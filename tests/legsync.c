@@ -346,7 +346,7 @@ int main(int argc, char **argv) {
   }
   legsync_teste_leitor(lerMkv, NULL);
   if (getenv("AUTOSYNC_PGS")) {
-    const char *pgs = "local:/pgs.mkv";
+    const char *pgs = "local:/vob.mkv";
     legsync_ui_ligar(); legsync_auto_habilitar(1); legsync_audio_habilitar(0);
     legsync_iniciar(pgs); legsync_primaria_externa("ext://0/ext_mais2500.srt", "pt", "Teste");
     v = esperarAuto(pgs, 3);
@@ -354,7 +354,7 @@ int main(int argc, char **argv) {
     assert(texto && !strcmp(texto, "Sem legenda de texto neste arquivo para usar como refer\xc3\xaancia"));
     char manual[200]; legsync_texto(&v, manual, sizeof manual); assert(!strcmp(manual, texto));
     assert(legsync_offset_ms(320) == -320 && trocas == 0);
-    puts("PASS: so PGS, sem audio, motivo curto na linha de sync e no modo manual");
+    puts("PASS: so imagem sem tempo, sem audio, motivo curto na linha de sync e no modo manual");
     legsync_destruir(); return 0;
   }
   if (getenv("TCL_CASO")) { regressaoTcl(atoi(getenv("TCL_CASO"))); return 0; }

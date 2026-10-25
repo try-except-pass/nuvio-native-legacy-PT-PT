@@ -158,8 +158,8 @@ static int escUiFixa;   // NUVIO_TAMANHO_UI (capturas): Ajustes nao sobrescreve
 // ESCALA DE TEXTO E COMPONENTES (gfx.h): multiplica o que o "Tamanho da
 // interface" nao cobre. As camadas ampliadas usam o produto (gfx_escala_ui);
 // home, detalhe e biblioteca ligam so ela (gfx_escala_txt_entrar).
-void gfx_escala_ui_definir(float s) { if (!escUiFixa) escUi = (s >= 0.8f && s <= 2.0f) ? s : 1.0f; }
-void gfx_escala_txt_definir(float s) { escTxt = (s >= 0.8f && s <= 1.5f) ? s : 1.0f; }
+void gfx_escala_ui_definir(float s) { if (!escUiFixa) escUi = (s >= 0.8f && s <= 3.0f) ? s : 1.0f; }
+void gfx_escala_txt_definir(float s) { escTxt = (s >= 0.8f && s <= 3.0f) ? s : 1.0f; }
 float gfx_escala_ui(void) { return escUi * escTxt; }
 float gfx_escala_ui_base(void) { return escUi; }
 float gfx_escala_txt(void) { return escTxt; }

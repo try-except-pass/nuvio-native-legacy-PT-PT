@@ -7,6 +7,7 @@
 
 // Append only: the first four indexes are already saved in ajustes.txt.
 #define UI_SIZE_AUTO 8
+#define UI_SIZE_CUSTOM 9   // Personalizado: the percent comes from AJ_TAMANHO_UI_PCT
 static inline float ui_size_inches(float inches) {
   if (!isfinite(inches) || inches < 20 || inches > 120) return 1.0f;
   return inches >= 75 ? .85f : inches <= 43 ? 1.15f : 1.0f;

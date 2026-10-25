@@ -1088,6 +1088,16 @@ static void legendaAutomatica(Uint32 agora) {
   }
   r = ling_legenda_auto_tipo(pref, audio, forcadaAuto,
                              emb, tipos, nEmb, embFechado, add, nAdd, addFechado);
+  // 2o IDIOMA (Ajustes/conta): so quando o principal nao tem NADA e as listas
+  // ja fecharam (NADA, nao ESPERA). Ex.: principal pt-pt, secundario pt-br.
+  if (r == LING_AUTO_NADA && origem == LEGMEM_DE_AJUSTE) {
+    const char *p2 = ling_legenda2();
+    if (p2[0] && strcasecmp(p2, "none") && !(ling_casa(p2, pref) && ling_casa(pref, p2))) {
+      int r2 = ling_legenda_auto_tipo(p2, audio, forcadaAuto,
+                                      emb, tipos, nEmb, embFechado, add, nAdd, addFechado);
+      if (r2 >= 0) { r = r2; pref = p2; }
+    }
+  }
   if (r == LING_AUTO_ESPERA) {
     // Passou do primeiro instante e ainda procura: a ilha diz o que esta fazendo.
     if (!soForcada && passou >= 1200u && pref[0] && strcasecmp(pref, "none")) pilBuscando(pref, agora);

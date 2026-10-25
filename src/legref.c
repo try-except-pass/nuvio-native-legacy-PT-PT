@@ -744,6 +744,96 @@ static LegendaDocumento *coletarMp4(Job *j, LegRefStatus *st, const unsigned cha
   return doc;
 }
 
+// --- PGS (S_HDMV/PGS): so TEMPOS -------------------------------------------------
+// Faixa de imagem: nao ha texto, mas cada conjunto de exibicao e um bloco com o
+// PROPRIO tempo, multiplexado com o video deste arquivo. O indice (Cues) traz o
+// tempo de TODOS os blocos: o que MOSTRA a fala (PCS com objetos) e o que a
+// LIMPA (PCS sem objetos) alternam, e o indice nao diz qual e qual. Por isso
+// le-se o inicio de 16 blocos espalhados (Range pequeno cada) e exige-se UMA
+// paridade; blocos fora do padrao (atualizacao de paleta, indice com buraco)
+// reprovam a faixa em vez de inventar tempo. Sai um documento so de tempos,
+// como no MP4: o texto e um rotulo.
+#define LR_PGS_AMOSTRAS 16
+#define LR_PGS_MIN      40         // menos blocos que isto nao dizem nada
+#define LR_PGS_JANELA   256L       // cabecalho do bloco + o PCS
+static int pgsFaixa(const Faixa *f) {
+  return f->tipo == 0x11 && !f->codificada && !strcmp(f->codec, "S_HDMV/PGS");
+}
+// 1 = o bloco MOSTRA uma fala (PCS com objetos), 0 = LIMPA, -1 = nao e um bloco
+// desta faixa / nao deu para ler. `p` comeca no BlockGroup/SimpleBlock.
+static int pgsMostra(const unsigned char *p, long n, int faixa) {
+  unsigned long id; long long s; int a, b, c, k; unsigned long tr = 0;
+  const unsigned char *bl = NULL; long nb = 0, o;
+  a = lerId(p, n, &id);
+  if (!a || (id != 0xA0 && id != 0xA3)) return -1;
+  b = lerTam(p + a, n - a, &s);
+  if (!b || s <= 4) return -1;
+  if (id == 0xA3) { bl = p + a + b; nb = n - a - b; }
+  else {
+    long fim = a + b + (long)s < n ? a + b + (long)s : n;
+    for (o = a + b; o < fim;) {   // filhos do BlockGroup: o Block e 0xA1
+      unsigned long i2; long long s2; int a2 = lerId(p + o, fim - o, &i2), b2 = a2 ? lerTam(p + o + a2, fim - o - a2, &s2) : 0;
+      if (!a2 || !b2 || s2 < 0) return -1;
+      if (i2 == 0xA1) { bl = p + o + a2 + b2; nb = fim - (o + a2 + b2); if (nb > s2) nb = (long)s2; break; }
+      o += a2 + b2 + (long)s2;
+    }
+    if (!bl) return -1;
+  }
+  c = nb > 0 ? largura(bl[0]) : 0;
+  if (c < 1 || c > 4 || c + 3 + 3 > nb) return -1;
+  tr = bl[0] & (0xFFu >> c);
+  for (k = 1; k < c; k++) tr = (tr << 8) | bl[k];
+  if ((int)tr != faixa || ((bl[c + 2] >> 1) & 3)) return -1;   // outra faixa / lacing
+  bl += c + 3; nb -= c + 3;
+  // Segmentos: tipo(1) tamanho(2). PCS = 0x16; objetos no byte 10 do corpo.
+  for (o = 0; o + 3 <= nb;) {
+    int t = bl[o]; long sz = (bl[o + 1] << 8) | bl[o + 2];
+    if (t == 0x16) return o + 3 + 11 <= nb && sz >= 11 ? bl[o + 3 + 10] > 0 : -1;
+    o += 3 + sz;
+  }
+  return -1;
+}
+static int cmpPontoIni(const void *a, const void *b) {
+  const LegRefPonto *x = a, *y = b; return x->inicio < y->inicio ? -1 : x->inicio > y->inicio;
+}
+// `pts` (do Cues da faixa) sai ordenado por tempo. NULL + j->erro quando a
+// faixa nao serve.
+static LegendaDocumento *pgsDoc(Job *j, const Faixa *f, LegRefPonto *pts, int nP, long long segData) {
+  int k, i, validas = 0, voto[2] = { 0, 0 }, par, nT = 0, ruins = 0;
+  Tempo *tv; LegendaDocumento *doc; char ident[32];
+  if (nP < LR_PGS_MIN) { j->erro = LEGREF_INCOMPLETO; return NULL; }
+  qsort(pts, (size_t)nP, sizeof *pts, cmpPontoIni);
+  for (k = 0; k < LR_PGS_AMOSTRAS; k++) {
+    long long cl; unsigned char *buf; long n = 0; int h, m = -1;
+    i = (int)((long long)k * (nP - 1) / (LR_PGS_AMOSTRAS - 1));
+    cl = segData + pts[i].pos;
+    buf = ler(j, cl + 5 + pts[i].rel, 7 + LR_PGS_JANELA, &n);
+    if (!buf) return NULL;
+    for (h = 5; h <= 12 && m < 0; h++)   // o cabecalho do Cluster tem 5 a 12 bytes
+      if (h - 5 < n) m = pgsMostra(buf + (h - 5), n - (h - 5), f->numero);
+    free(buf);
+    if (m < 0) continue;
+    validas++;
+    voto[m ? i % 2 : 1 - i % 2]++;   // paridade dos indices que MOSTRAM
+  }
+  par = voto[1] > voto[0];
+  if (validas < LR_PGS_AMOSTRAS * 3 / 4 || voto[1 - par] > 1) { j->erro = LEGREF_INCOMPLETO; return NULL; }
+  tv = malloc((size_t)(nP / 2 + 1) * sizeof *tv);
+  if (!tv) { j->erro = LEGREF_MEMORIA; return NULL; }
+  for (i = par; i + 1 < nP; i += 2) {
+    double d = pts[i + 1].inicio - pts[i].inicio;
+    if (d > 0.1 && d < 20.0) { tv[nT].inicio = pts[i].inicio; tv[nT].fim = pts[i + 1].inicio; nT++; }
+    else ruins++;
+  }
+  if (nT < LR_PGS_MIN / 2 || ruins * 5 > nT) { free(tv); j->erro = LEGREF_INCOMPLETO; return NULL; }
+  snprintf(ident, sizeof ident, "mkv-track:%d", f->numero);
+  progresso(j, nT, nT);
+  doc = montarTempos(tv, nT, f->idioma, ident, f->forced, j->p.sessao);
+  free(tv);
+  if (!doc) j->erro = LEGREF_MEMORIA;
+  return doc;
+}
+
 static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   long tam = 0, nTr = 0, oTr = 0, nCu = 0, oCu = 0;
   unsigned char *cab = NULL, *tracks = NULL, *cues = NULL, *bufTr;
@@ -751,7 +841,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   double escala = 1e-6;   // TimestampScale padrao (1 ms) em segundos
   Faixa fx[LR_FAIXAS]; int nF = 0, escolhida = -1, i, semRel = 0, nP, cand[LR_FAIXAS], nCand = 0;
   LegRefPonto *pts = NULL; Evento *ev = NULL; int nEv = 0;
-  LegendaDocumento *doc = NULL; int ass;
+  LegendaDocumento *doc = NULL; int ass, pgsModo = 0;
   // 1. Cabeca do arquivo. O primeiro pedido segue redirects (debrid) e guarda
   // o endereco final: Range e cabecalho do dono e nao atravessa origem num
   // redirect, entao os seguintes vao direto ao destino.
@@ -825,6 +915,15 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
       for (e = 0; e < j->p.nExcl; e++) if (j->p.excl[e] == fx[i].numero) ok[i] = 0;
     }
     nCand = ordenar(ids, nms, ok, nF, j->p.idioma, cand);
+    if (!nCand) {   // sem texto: faixa de imagem (PGS), so pelos tempos
+      for (i = 0; i < nF; i++) {
+        int e;
+        ok[i] = pgsFaixa(&fx[i]) && !letreiro(&fx[i]) && !comentario(fx[i].nome);
+        for (e = 0; e < j->p.nExcl; e++) if (j->p.excl[e] == fx[i].numero) ok[i] = 0;
+      }
+      nCand = ordenar(ids, nms, ok, nF, j->p.idioma, cand);
+      pgsModo = nCand > 0;
+    }
   }
   if (!nCand) { j->erro = LEGREF_SEM_FAIXA; goto fim; }
   escolhida = cand[0];
@@ -863,6 +962,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   // Um CuePoint sem posicao relativa e um bloco que nao sabemos buscar: a
   // faixa nao sai inteira, entao nao serve.
   if (semRel || nP < 1) { j->erro = LEGREF_SEM_INDICE; goto fim; }
+  if (pgsModo) { doc = pgsDoc(j, &fx[escolhida], pts, nP, segData); goto fim; }
   // SRT com CueDuration em todo ponto (ffmpeg e mkvmerge gravam): o indice
   // JA TEM os tempos. Um Range em vez de um por fala (um longa: ~1300
   // Ranges, minutos no ritmo da TV). ASS continua lendo os blocos: la o

@@ -73,7 +73,8 @@
 #define BU_COL_GAP     56.0f
 #define BU_CAMPO_H     buCampoH()
 #define BU_ILHA_GAP    22.0f
-#define BU_KB_PAD      20.0f
+static float buKbK(void);
+#define BU_KB_PAD      (20.0f * buKbK())
 #define BU_CAMPO_PADX  28.0f
 static int buRetrato(void) {
 #ifdef NV_TOUCH_UI
@@ -96,7 +97,7 @@ static float buCampoH(void) { return buTecladoNativo() ? 104.0f : 76.0f; }
 static float buMargem(void) { return buTelefone() ? 48.0f : ANC(BU_MARG); }
 static float buX(void)   { return ANC(ajustes_rail_largura_fixa()) + buMargem(); }
 static float buDir(void) { return NV_TELA_W - (buRetratoTelefone() ? buX() : buMargem()); }
-static float buColW(void) { return buUmaColuna() ? buDir() - buX() : fminf(520.0f, ANC(520.0f)); }
+static float buColW(void) { return buUmaColuna() ? buDir() - buX() : fminf(520.0f, ANC(520.0f)) * buKbK(); }
 static float buResY(void);
 // A coluna da esquerda desce quando a pilula da Dinamica ocupa o canto. A
 // pilula vem em px REAIS e esta tela mede pela virtual (real / escala de
@@ -109,8 +110,8 @@ static float buTopoEsq(void) {
 }
 
 // --- Teclado -----------------------------------------------------------------
-#define BU_TECLA_W     66.0f
-#define BU_TECLA_GAP   10.0f
+#define BU_TECLA_W     (66.0f * buKbK())
+#define BU_TECLA_GAP   (10.0f * buKbK())
 #define BU_KB_COLS      6
 // FILEIRAS DE TECLAS DE LETRA, no maximo (o layout latino usa 6; o cirilico, 7)
 // mais a de baixo (espaco/apagar/limpar/layout). O numero vivo e kbFil.
@@ -119,11 +120,11 @@ static float buTopoEsq(void) {
 #define BU_KB_W       (BU_KB_COLS * BU_TECLA_W + (BU_KB_COLS - 1) * BU_TECLA_GAP)
 #define BU_KB_X       buX()
 #define BU_KB_Y       (buTopoEsq() + BU_CAMPO_H + BU_ILHA_GAP)   // topo da ilha do teclado
-#define BU_TECLA_RAIO   20.0f
+#define BU_TECLA_RAIO   (20.0f * buKbK())
 #define BU_MAX_CONSULTA 48
 
 // --- Coluna da direita --------------------------------------------------------
-#define BU_RES_X       (buUmaColuna() ? buX() : buX() + ANC(520.0f + BU_COL_GAP))
+#define BU_RES_X       (buUmaColuna() ? buX() : buX() + ANC(520.0f * buKbK() + BU_COL_GAP))
 #define BU_RES_Y       buResY()
 #define BU_DIR         buDir()
 #define BU_RES_AREA_H  (NV_TELA_H - 48.0f - BU_RES_Y)
@@ -135,8 +136,8 @@ static float buTopoEsq(void) {
 // altura (capa 330x186 + padding 20); cartaz 180x270, nome 17 a 10 abaixo.
 #define BU_KICK_H       34.0f
 #define BU_MELHOR_H    fmaxf(226.0f, 186.0f * gfx_poster_k() + 40.0f)
-#define BU_CARTAZ_W    (180.0f * gfx_poster_k())
-#define BU_CARTAZ_H    (270.0f * gfx_poster_k())
+#define BU_CARTAZ_W    (180.0f * gfx_poster_k() * ajustes_busca_cartaz())
+#define BU_CARTAZ_H    (270.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_NOME_ALT     (buTecladoNativo() ? 50.0f : 30.0f)
 #define BU_SECAO_GAP    34.0f
 
@@ -286,6 +287,17 @@ static int  kbFil = 6;                     // fileiras de letra do layout ativo
 static int  kbTemLayout;                   // a tecla de layout aparece?
 static int  pagSim;                        // 1 = pagina de acentos e sinais (?!#)
 static int  KB_COLUNAS[BU_KB_MAX_FIL + 1] = { 6, 6, 6, 6, 6, 6, 3 };
+// TAMANHO DO TECLADO (Ajustes > Texto e tamanho): o fator pedido, limitado ao que
+// cabe: 100% da altura livre (fileiras + dicas) e ate 55% da largura da tela.
+// Menor que 100% sempre cabe. Telefone/retrato (uma coluna) nao muda.
+static float buKbK(void) {
+  float k = ajustes_busca_teclado(), alt, larg;
+  if (k <= 1.0f || buUmaColuna()) return buUmaColuna() ? 1.0f : k;
+  alt = (kbFil + 1) * 66.0f + kbFil * 10.0f + 40.0f + 16.0f + 2.0f * 20.0f + 36.0f;   // ilha + dicas
+  alt = (NV_TELA_H - 24.0f - (buTopoEsq() + buCampoH() + BU_ILHA_GAP)) / alt;
+  larg = (0.55f * NV_TELA_W - buX()) / fminf(520.0f, ANC(520.0f));
+  return fmaxf(1.0f, fminf(k, fminf(alt, larg)));
+}
 static float buResY(void) {
   if (buTecladoNativo()) return buTopoEsq() + BU_CAMPO_H + 44.0f;
   if (!buRetrato()) return ANC(64.0f);
@@ -1272,6 +1284,11 @@ static void busca_evento_(const SDL_Event *e) {
 
 // --- Geometria das entradas da direita ---------------------------------------
 // Five columns at 100%; scaled text keeps enough stride for preserved artwork.
+// Colunas de cartaz: 5 a 100%; o fator do Ajustes troca por mais/menos colunas.
+static int buColsCartaz(void) {
+  int c = (int)floorf(5.0f / ajustes_busca_cartaz() + 0.5f);
+  return c < 1 ? 1 : c > 8 ? 8 : c;
+}
 static float buPasso(void) {
   float larg = BU_DIR - BU_RES_X;
   if (buTelefone()) {
@@ -1286,7 +1303,9 @@ static float buPasso(void) {
     if (cols > 5) cols = 5;
     return (fmaxf(1.0f, larg) - (cols - 1) * 22.0f) / cols + 22.0f;
   } else {
-    float passo = (larg - 4.0f * 22.0f) / 5.0f + 22.0f;
+    // Cartazes maiores/menores (Ajustes > Texto e tamanho): menos/mais colunas.
+    int cols = buColsCartaz();
+    float passo = (larg - (cols - 1) * 22.0f) / (float)cols + 22.0f;
     return gfx_escala_txt() != 1.0f ? fmaxf(passo, BU_CARTAZ_W + 22.0f) : passo;
   }
 }
@@ -1301,7 +1320,7 @@ static float buCartazW(void) {
     return w * gfx_poster_k();
   }
   float w = buPasso() - 22.0f;
-  return buTecladoNativo() || w < BU_CARTAZ_W ? w : BU_CARTAZ_W;
+  return buTecladoNativo() || w < BU_CARTAZ_W || ajustes_busca_cartaz() != 1.0f ? w : BU_CARTAZ_W;
 }
 // PESSOAS: avatar 64 + 14 + nome (18), vao 26 entre pessoas (o .av do mockup).
 #define BU_PESS_AV     (buTecladoNativo() ? 96.0f : 64.0f)
@@ -1713,7 +1732,7 @@ static void desenhaTeclado(void) {
       // The tone eases every frame while focus moves: tint the cached white
       // line at draw time instead of rasterizing one line per tone.
       float tom = anim_mistura(243.0f, (float)ajustes_tinta_foco(), k) / 255.0f;
-      TxtLinha l = f < kbFil ? txt_linha(TXT_G26B, s, 255, 255, 255, 255)
+      TxtLinha l = f < kbFil ? txt_linha(buKbK() < 1.2f ? TXT_G26B : buKbK() < 1.55f ? TXT_G30B : TXT_G52B, s, 255, 255, 255, 255)
                              : txt_linha_corta(TXT_AJ_SEG, s, 255, 255, 255, 255, t.w - 8.0f);
       txt_desenhar_tom(l, t.x + (t.w - l.w) * 0.5f, t.y + (t.h - l.h) * 0.5f, tom, tom, tom, 1.0f);
     }

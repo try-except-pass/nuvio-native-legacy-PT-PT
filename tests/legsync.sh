@@ -12,6 +12,8 @@ import sys
 p = Path(sys.argv[1])
 # So PGS: preserva EBML/Tracks reais, troca apenas o CodecID (nao decodifica imagem).
 (p / 'pgs.mkv').write_bytes((p / 'ff.mkv').read_bytes().replace(b'S_TEXT/UTF8', b'S_HDMV/PGS\0'))
+# Imagem sem tempo aproveitavel (VobSub): nem texto nem PGS -> sem faixa.
+(p / 'vob.mkv').write_bytes((p / 'ff.mkv').read_bytes().replace(b'S_TEXT/UTF8', b'S_VOBSUB\0\0\0'))
 (p / 'sparse.srt').write_text('\n\n'.join((p / 'emb.srt').read_text().split('\n\n')[:3]) + '\n')
 PYFX
 mkvmerge -q -o "$FX/sparse.mkv" "$FX/video.mkv" --language 0:eng "$FX/sparse.srt"

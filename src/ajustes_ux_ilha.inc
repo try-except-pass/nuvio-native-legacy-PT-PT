@@ -1087,8 +1087,9 @@ static void aj2EditorNumero(GfxRect m) {
     if (ef && ef[0] && y + 12 + 80 <= aj2EditorBase(m) + 4.0f) {
       y += 12; y += aj2Ef("aj_info", i18n(ef), lx, y, lw, 1); } }
   if (pw > 0) aj2PreviaPendente(m.x + m.w - 52 - pw, aj2CabecalhoEditor(m), pw);
-  { AjDica d[3] = { { "← →", "Ajustar" }, { "OK", uxOp==AJ_GUIA_CATEGORIAS?"Selecionar":"Confirmar" }, { "Voltar", "Cancelar" } };
-    aj2RodapeEditor(m, lw, d, 3); }
+  { AjDica d[4] = { { "← →", "Ajustar" }, { "OK", uxOp==AJ_GUIA_CATEGORIAS?"Selecionar":"Confirmar" }, { "Voltar", "Cancelar" },
+                    { "0–9", "Digitar" } };
+    aj2RodapeEditor(m, lw, d, uxOp == AJ_FIL_LIMITE ? 3 : 4); }
 }
 static void aj2EditorEscolha(GfxRect m) {
   const Opcao *o = &OPCOES[uxOp];

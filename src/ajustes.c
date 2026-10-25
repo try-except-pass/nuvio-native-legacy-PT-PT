@@ -724,6 +724,13 @@ typedef enum {
   AJ_SUAVIZAR_DEGRADES, // Device-local, append-only: Automatic / Strong / Off.
   // Hero logo and information size (0 Normal, 1 Grande, 2 Muito grande). LOCAL, append-only.
   AJ_HERO_TAMANHO,
+  // Custom sizes up to 300%, typed or stepped (append-only; LOCAL). The two *_PCT rows below
+  // the interface/text choices apply when that choice is "Personalizado".
+  AJ_TAMANHO_UI_PCT,
+  AJ_ESCALA_TEXTO_PCT,
+  AJ_BUSCA_TECLADO_PCT,  // Search tab keyboard size, percent of the default
+  AJ_BUSCA_CARTAZ_PCT,   // Search tab poster/card size, percent of the default
+  AJ_SINOPSE_COMPLETA,   // Title page synopsis: 0 full text (default), 1 short (3 lines). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -850,10 +857,11 @@ static const char *V_COLECAO_EXIBICAO[] = {
 _Static_assert(sizeof V_COLECAO_EXIBICAO / sizeof *V_COLECAO_EXIBICAO == VT_LAY_N,
                "collection settings and persisted view IDs must match");
 // Indice gravado em tamanhoUiLocal; o fator sai de ajustes_tamanho_ui.
-static const char *V_TAMANHO_UI[] = { "100%", "120%", "130%", "150%", "80%", "85%", "90%", "115%", "Automático" };
+static const char *V_TAMANHO_UI[] = { "100%", "120%", "130%", "150%", "80%", "85%", "90%", "115%", "Automático", "Personalizado" };
 static const char *V_TAMANHO_AJUSTES[] = { "80%", "90%", "100%" };
-static const char *V_ESCALA_TEXTO[] = { "85%", "90%", "100%", "110%", "120%", "130%" };   // stored in escalaTextoLocal
+static const char *V_ESCALA_TEXTO[] = { "85%", "90%", "100%", "110%", "120%", "130%", "Personalizado" };   // stored in escalaTextoLocal
 #define ESCALA_TEXTO_PADRAO 0
+#define ESCALA_TEXTO_PERSONALIZADA 6   // append-only: the last V_ESCALA_TEXTO entry
 static const char *V_DET_ESPACO[] = { "Compacto", "Normal", "Confortável" };   // stored in detEspacoLocal
 static const char *V_INTERFACE_MODO[] = { "TV", "Mobile", "Automático" };
 static const char *V_MENU_POS[] = { "Na lateral", "No topo" };   // #461
@@ -1081,6 +1089,7 @@ static const char *V_NOTAS[]     = { "Mostrar", "Ocultar" };
 // 23/09/2026: Apple TV, fanart.tv e Anime entraram NO FIM (5, 6, 7), pelo
 // mesmo contrato — quem ja tinha 1..4 gravado continua lendo a mesma fonte.
 static const char *V_HERO_SINOPSE[] = { "Normal", "Grande" };
+static const char *V_SINOPSE_MODO[] = { "Texto inteiro", "Resumida (3 linhas)" };   // sinopseCompletaLocal
 static const char *V_HERO_TAMANHO[] = { "Normal", "Grande", "Muito grande" };
 static const char *V_HERO_FONTE[] = {
   "Automático", "Catálogo / Cinemeta", "IMDb / Metahub", "TMDB", "Trakt",
@@ -1151,7 +1160,7 @@ _Static_assert(sizeof V_IDIOMA / sizeof *V_IDIOMA == IDIOMA_N + 1,
 // 36: a lista de linguas.c tem 34 entradas (2 acoes + 31 idiomas). O valor
 // anterior era 24 e TRUNCAVA em silencio — os idiomas do fim da lista existiam
 // em linguas.c e nao apareciam na tela.
-#define LING_MAX_OPC 36
+#define LING_MAX_OPC 40
 // TEMA: a cor de DESTAQUE, e so ela.
 //
 // O app web tem doze temas e cada um troca onze variaveis de CSS, o fundo
@@ -1639,7 +1648,7 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Pacote de selos",                 V_SELOS_PACOTE, 4),   // por perfil: selospacote.c
   ACAO("Adicionar pacote de selos"),
   ACAO("Remover pacote"),
-  ESC("Tamanho da interface",            V_TAMANHO_UI, 9),    // local: tamanhoUiLocal
+  ESC("Tamanho da interface",            V_TAMANHO_UI, 10),    // local: tamanhoUiLocal
   ESC("Fundo",                           V_FUNDO, 3),         // local: fundoLocal
   ESC("Opacidade do vidro",              V_VIDRO_OPAC, 5),    // local: vidroOpacLocal
   ESC("Vidro fosco",                     V_VIDRO_FOSCO, 3),   // local: vidroFoscoLocal
@@ -1802,7 +1811,7 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Qualidade do vidro", V_VIDRO_QUALIDADE, 3),   // local: vidroQualidadeLocal
   ESC("Fundo da Dinâmica", V_FUNDO_DIN, 4),                  // local: fundoDinamicaLocal
   ESC("Cor do fundo", V_FUNDO_DIN_COR, 17),                  // local: fundoDinamicaCorLocal
-  ESC("Escala de texto e componentes", V_ESCALA_TEXTO, 6),   // local: escalaTextoLocal
+  ESC("Escala de texto e componentes", V_ESCALA_TEXTO, 7),   // local: escalaTextoLocal
   ESC("Preferir o mesmo grupo de fonte", V_LIGA, 2),          // local: fonteGrupoLocal
   ESC("Reusar o grupo entre sessões", V_LIGA, 2),             // local: fonteGrupoSessoesLocal
   ESC("Reusar o último link", V_LIGA, 2),                     // local: linkReusarLocal
@@ -1861,6 +1870,11 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Mostrar o codec do áudio", V_LIGA, 2),          // local: plrCodecLocal
   ESC("Suavizar degradês", V_DEGRADES, 3),
   ESC("Tamanho do destaque", V_HERO_TAMANHO, 3),       // local: heroSizeLocal
+  NUM("Tamanho personalizado da interface", 80, 300, 5, "%"),            // local: tamanhoUiPctLocal
+  NUM("Tamanho personalizado do texto e dos componentes", 80, 300, 5, "%"), // local: escalaTextoPctLocal
+  NUM("Tamanho do teclado da busca", 80, 300, 10, "%"),                  // local: buscaTecladoPctLocal
+  NUM("Tamanho dos cartazes da busca", 80, 300, 10, "%"),                // local: buscaCartazPctLocal
+  ESC("Sinopse na página do título", V_SINOPSE_MODO, 2),                 // local: sinopseCompletaLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2193,6 +2207,8 @@ static const char *CHAVE[] = {
   "plrCodecLocal",
   "suavizarDegradesLocal",
   "heroSizeLocal",
+  "tamanhoUiPctLocal", "escalaTextoPctLocal", "buscaTecladoPctLocal", "buscaCartazPctLocal",
+  "sinopseCompletaLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -2777,6 +2793,7 @@ static int uxVoltarOp = -1;
 void ajustes_voltar_de_lista(int plugins) { uxVoltarOp = plugins ? AJ_PLUGINS : AJ_ADDONS; }
 static int uxDifs[AJ_N], uxNDifs, uxDifFoco;
 static int uxEditor, uxOp, uxPendente, uxOriginal, uxRodape;
+static int uxDigitado = -1;   // numeric editor: value typed with the remote/keyboard digits; -1 = none
 static GuiaCategoria *uxCategorias;
 static unsigned char *uxCategoriasAbertura;
 static int uxNCategorias;
@@ -3112,15 +3129,24 @@ int ajustes_nota_fonte(int pos) {
   return notaFontes[0] < 0 ? nf_na_posicao_ord(pos, valor[AJ_NT_ORDEM] == 1) : notaFontes[pos];
 }
 int ajustes_det_espaco(void) { int v = valor[AJ_DET_ESPACO]; return v >= 0 && v <= 2 ? v : 1; }
+static int pctValido(int op) { int v = valor[op]; return v < 80 ? 80 : v > 300 ? 300 : v; }
 float ajustes_escala_texto(void) {
   static const float F[] = { 0.85f, 0.9f, 1.0f, 1.1f, 1.2f, 1.3f };
   int v = valor[AJ_ESCALA_TEXTO];
+  if (v == ESCALA_TEXTO_PERSONALIZADA) return pctValido(AJ_ESCALA_TEXTO_PCT) / 100.0f;
   return v >= 0 && v < 6 ? F[v] : 0.85f;
 }
 float ajustes_tamanho_ui(void) {
   int v = valor[AJ_TAMANHO_UI];
+  if (v == UI_SIZE_CUSTOM) return pctValido(AJ_TAMANHO_UI_PCT) / 100.0f;
   return ui_size_choice(v, v == UI_SIZE_AUTO ? tamanhoUiAutomatico() : 1.0f);
 }
+int ajustes_sinopse_completa(void) { return valor[AJ_SINOPSE_COMPLETA] == 0; }
+float ajustes_busca_teclado(void) { return pctValido(AJ_BUSCA_TECLADO_PCT) / 100.0f; }
+float ajustes_busca_cartaz(void)  { return pctValido(AJ_BUSCA_CARTAZ_PCT) / 100.0f; }
+#ifdef AJUSTES_TESTE
+void ajustes_teste_busca(int tecladoPct, int cartazPct) { valor[AJ_BUSCA_TECLADO_PCT] = tecladoPct; valor[AJ_BUSCA_CARTAZ_PCT] = cartazPct; }
+#endif
 #ifdef AJUSTES_TESTE
 static int ajEscalaTestePct;
 void ajustes_teste_escala(int percentual) {
@@ -6011,6 +6037,7 @@ static int somenteDesteAparelho(int op) {
     // traga algo com o mesmo nome.
     case AJ_HERO_FUNDO:
     case AJ_HERO_SINOPSE_TAM:
+    case AJ_SINOPSE_COMPLETA:
     case AJ_HERO_TAMANHO:
     case AJ_HERO_ARTE_DIF:
     case AJ_HERO_GENERO:
@@ -6075,6 +6102,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_COLECAO_EXIBICAO: /* por perfil neste aparelho, sem par na conta */
     case AJ_TRAILER_AUDIO:  /* o web nao tem */
     case AJ_TAMANHO_UI:     /* o tamanho e desta tela, e o web nao tem */
+    case AJ_TAMANHO_UI_PCT: case AJ_ESCALA_TEXTO_PCT: case AJ_BUSCA_TECLADO_PCT: case AJ_BUSCA_CARTAZ_PCT:
     case AJ_TAMANHO_AJUSTES:
     case AJ_ESCALA_TEXTO:   /* text/component scale is this screen's, the web has none */
     case AJ_DET_ESPACO:     /* title page spacing is this screen's too */
@@ -7939,8 +7967,13 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_GPU_EFEITOS: return "Efeitos funcionam em qualquer resolução. Automático adapta; Completos mantém tudo; Leves reduz brilho e desfoque; Mínimos reduz mais.";
     case AJ_FONTE_UI: return "Altera a tipografia dos menus. A fonte das legendas é escolhida separadamente no player.";
     case AJ_HERO_TAMANHO: return "Aumenta a logo e as informações do destaque da Home: tipo, gênero, ano, duração, nota do IMDb e sinopse. Vale só nesta TV.";
+    case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";
     case AJ_TAMANHO_UI: return "Aumenta os controles do player, os painéis e os avisos. Os Ajustes têm um tamanho próprio.";
+    case AJ_TAMANHO_UI_PCT: return i18n("Vale quando Tamanho da interface está em Personalizado. Digite o valor com os números do controle ou use esquerda e direita; de 80 a 300 por cento.");
+    case AJ_ESCALA_TEXTO_PCT: return i18n("Vale quando a Escala de texto e componentes está em Personalizado. Digite o valor com os números do controle ou use esquerda e direita; de 80 a 300 por cento.");
+    case AJ_BUSCA_TECLADO_PCT: return i18n("Muda o tamanho do teclado da aba de busca. Se o tamanho pedido não couber na tela, o teclado cresce até onde couber. Digite o valor ou use esquerda e direita.");
+    case AJ_BUSCA_CARTAZ_PCT: return i18n("Muda o tamanho dos cartazes e dos cartões nos resultados da busca. Digite o valor ou use esquerda e direita.");
     case AJ_INTERFACE_MODO: return "Automático usa TV em aparelhos Android TV e Mobile nos demais aparelhos. TV mantém a interface do controle remoto; Mobile usa toque em retrato ou paisagem. A escolha fica salva só neste aparelho.";
     case AJ_TAMANHO_AJUSTES: return i18n("Muda só o tamanho dos Ajustes nesta TV. O padrão é 100%.");
     case AJ_NT_ORDEM: return "Esquerda e direita escolhem subir ou descer; OK move.";
@@ -9633,8 +9666,8 @@ static int definirValorDireto(int op, int novo) {
   }
   if (op == AJ_LEG_LINGUA || op == AJ_LEG_LINGUA2 || op == AJ_AUD_LINGUA || op == AJ_AUD_LINGUA2) aplicarIdioma(op);
   if (op == AJ_IDIOMA) { idiomaEscolhido(); desc_repetir(); }
-  if (op == AJ_TAMANHO_UI) gfx_escala_ui_definir(ajustes_tamanho_ui());
-  if (op == AJ_ESCALA_TEXTO) gfx_escala_txt_definir(ajustes_escala_texto());
+  if (op == AJ_TAMANHO_UI || op == AJ_TAMANHO_UI_PCT) gfx_escala_ui_definir(ajustes_tamanho_ui());
+  if (op == AJ_ESCALA_TEXTO || op == AJ_ESCALA_TEXTO_PCT) gfx_escala_txt_definir(ajustes_escala_texto());
   if (op == AJ_INTERFACE_MODO) {
     interfaceAplicar();
     scrollY = velY = 0.0f;
@@ -10752,7 +10785,7 @@ static AjPreview familiaPreviaOpcao(int op) {
       return AJPV_REPRO;
     case AJ_HOME_LAYOUT:
     case AJ_PALCO_FUNDO:
-    case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO:
+    case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO: case AJ_SINOPSE_COMPLETA:
     case AJ_LANDSCAPE: case AJ_HERO_CHEIO: case AJ_FUNDO_DIN: case AJ_FUNDO_DIN_COR: case AJ_HERO_FUNDO:
     case AJ_HERO_ARTE_DIF: case AJ_HERO_TRAILER: case AJ_FIL_LIMITE:
     case AJ_ESPACO_FILEIRAS: case AJ_ESPACO_TITULOS:
@@ -10789,6 +10822,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_IDIOMA: case AJ_ANIM: case AJ_TEMA: case AJ_ARTE_TOM:
     case AJ_COR_LOGO: case AJ_FONTE_UI: case AJ_VIDRO: case AJ_VIDRO_CONTORNO: case AJ_FOCO_ACENTO:
     case AJ_RELOGIO: case AJ_RELOGIO_POS: case AJ_SAIDA_PLAYER: case AJ_RELOGIO_12H:
+    case AJ_TAMANHO_UI_PCT: case AJ_ESCALA_TEXTO_PCT: case AJ_BUSCA_TECLADO_PCT: case AJ_BUSCA_CARTAZ_PCT:
     case AJ_TAMANHO_UI: case AJ_ESCALA_TEXTO: case AJ_DET_ESPACO: case AJ_TAMANHO_AJUSTES: case AJ_LAYOUT_AJUSTES: case AJ_INTERFACE_MODO: case AJ_TECLADO_ANDROID: case AJ_FUNDO: case AJ_VIDRO_OPAC: case AJ_VIDRO_FOSCO: case AJ_VIDRO_QUALIDADE:
     case AJ_AVANCADAS: case AJ_LOGO_APP: case AJ_ABERTURA:
     case AJ_ESMAECER: case AJ_BRILHO_PLAYER: case AJ_HDR_UI: case AJ_MANTER_VIDEO:

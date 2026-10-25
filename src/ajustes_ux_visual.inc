@@ -184,6 +184,7 @@ static const char *ajVisualIcone(int op) {
     case AJ_ABERTURA_FUNDO: case AJ_ABERTURA_ESTILO: return "aj_clapperboard";
     case AJ_EP_TAMANHO: return "aj_layout-dashboard";
     case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO: return "aj_layout-dashboard";
+    case AJ_SINOPSE_COMPLETA: return "aj_file-text";
     case AJ_ESTAT_TAMANHO: return "aj_gauge";
     case AJ_ESTAT_LADO: return "aj_gauge";
     case AJ_REACAO_CREDITOS: return "aj_circle-play";
@@ -207,7 +208,7 @@ static const char *ajVisualIcone(int op) {
     case AJ_COR_LOGO: return "aj_palette";
     case AJ_VIDRO: return "aj_layers";
     case AJ_FONTE_UI: return "aj_type";
-    case AJ_TAMANHO_UI: return "aj_maximize-2";
+    case AJ_TAMANHO_UI: case AJ_TAMANHO_UI_PCT: case AJ_ESCALA_TEXTO_PCT: case AJ_BUSCA_TECLADO_PCT: case AJ_BUSCA_CARTAZ_PCT: return "aj_maximize-2";
     case AJ_TAMANHO_AJUSTES: return "aj_sliders-horizontal";
     case AJ_LAYOUT_AJUSTES: return "aj_layout-list";
     case AJ_INTERFACE_MODO: return "aj_smartphone";

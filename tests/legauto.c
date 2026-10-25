@@ -19,9 +19,9 @@ int main(void) {
   assert(ling_casa("hbs", "hr") && ling_casa("hbs", "sr") && ling_casa("sh", "bs"));
   assert(ling_casa("hr", "hbs") && ling_casa("bos", "bs") && !ling_casa("hbs", "sl") && !ling_casa("hr", "sr"));
   ling_normalizar("PORTUGUESE", c, sizeof c); assert(ling_casa(c, "pt"));
-  ling_normalizar("Portuguese (Brazil)", c, sizeof c); assert(ling_casa(c, "pt") && !strcmp(ling_selo(c), "PT-BR"));
+  ling_normalizar("Portuguese (Brazil)", c, sizeof c); assert(ling_casa(c, "pt-br") && !strcmp(ling_selo(c), "PT-BR"));
   ling_normalizar("por", c, sizeof c); assert(!strcmp(c, "por"));
-  ling_normalizar("pt-BR", c, sizeof c); assert(ling_casa(c, "pt"));
+  ling_normalizar("pt-BR", c, sizeof c); assert(ling_casa(c, "pt-br"));
   ling_normalizar("ENGLISH", c, sizeof c); assert(ling_casa(c, "en"));
   assert(!strcmp(ling_selo("por"), "PT") && !strcmp(ling_selo("eng"), "EN"));
 
@@ -31,13 +31,15 @@ int main(void) {
   v[1] = L("pt", "http://x/b.srt", "Movie.2020.720p.WEB");
   v[2] = L("pob", "http://x/c.srt", "Movie.2020.1080p.BluRay");
   v[3] = L("PORTUGUESE", "http://x/d.srt", "");
-  assert(legauto_escolher(v, 4, "pt", NULL, NULL, 0, 0) == 2);
+  assert(legauto_escolher(v, 4, "pt-br", NULL, NULL, 0, 0) == 2);
+  // "pt" = Portugal: nunca a pob; "pt-br" = a pob.
+  assert(legauto_escolher(v, 4, "pt", NULL, NULL, 0, 0) != 2 && legauto_escolher(v, 4, "pt", NULL, NULL, 0, 0) > 0);
   // Nenhuma no idioma: -1.
-  assert(legauto_escolher(v, 1, "pt", NULL, NULL, 0, 0) == -1);
+  assert(legauto_escolher(v, 1, "pt-br", NULL, NULL, 0, 0) == -1);
   // Mesmo grau: o que divide palavras com o arquivo que toca.
   v[2] = L("pob", "http://x/c.srt", "Other.Group.x264");
   v[4] = L("pob", "http://x/e.srt", "Movie.2020.1080p.BluRay.YIFY");
-  assert(legauto_escolher(v, 5, "pt", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", NULL, 0, 0) == 4);
+  assert(legauto_escolher(v, 5, "pt-br", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", NULL, 0, 0) == 4);
   // O CASO DA TCL (11/10): tres portuguesas com o titulo do filme em comum; a
   // sincronizada divide a fonte e o grupo (WEB-DL, NTb) com o arquivo que toca,
   // a outra so palavras do titulo e do episodio. O URL do debrid e opaco.
@@ -49,20 +51,20 @@ int main(void) {
     w[2] = L("por", "http://x/w2.srt", "The.Grand.Tour.S01E01.WEB-DL.NTb");
     w[3] = L("eng", "http://x/w3.srt", "The.Grand.Tour.S01E01.Eurocrash.Part.One.1080p.WEB-DL.NTb");
     // palavras do titulo que todas dividem nao decidem; fonte+grupo decidem
-    assert(legauto_escolher(w, 4, "pt", tocando, NULL, 0, 0) == 2);
+    assert(legauto_escolher(w, 4, "pt-br", tocando, NULL, 0, 0) == 2);
     // sem nome da fonte, o URL opaco nao diz nada: ordem de chegada
-    assert(legauto_escolher(w, 4, "pt", "https://rd.example/d/AbC123xYz", NULL, 0, 0) == 0);
+    assert(legauto_escolher(w, 4, "pt-br", "https://rd.example/d/AbC123xYz", NULL, 0, 0) == 0);
     // com o nome da fonte informado, legauto_midia o prefere ao URL
     legauto_fonte(tocando);
-    assert(legauto_escolher(w, 4, "pt", legauto_midia("https://rd.example/d/AbC123xYz"), NULL, 0, 0) == 2);
+    assert(legauto_escolher(w, 4, "pt-br", legauto_midia("https://rd.example/d/AbC123xYz"), NULL, 0, 0) == 2);
     legauto_fonte(NULL);
     assert(!strcmp(legauto_midia("u"), "u"));
   }
   // Ja recusada pelo AutoSync fica fora.
   uint64_t ex[1] = { legsync_hash_url(v[4].url) };
-  assert(legauto_escolher(v, 5, "pt", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", ex, 1, 0) == 2);
+  assert(legauto_escolher(v, 5, "pt-br", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", ex, 1, 0) == 2);
   // A que ja deu certo neste titulo vence tudo.
-  assert(legauto_escolher(v, 5, "pt", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", NULL, 0, legsync_hash_url(v[1].url)) == 1);
+  assert(legauto_escolher(v, 5, "pt-br", "http://h/Movie.2020.1080p.BluRay.YIFY.mkv", NULL, 0, legsync_hash_url(v[1].url)) == 1);
   // Memoria por titulo+idioma (4 entradas, a mais velha sai).
   legauto_lembrar("tt1", "pt", 11); legauto_lembrar("tt2", "pt", 22); legauto_lembrar("tt3", "pt", 33); legauto_lembrar("tt4", "pt", 44);
   assert(legauto_lembrada("tt1", "pt-BR") == 11 && legauto_lembrada("tt1", "en") == 0);

@@ -549,6 +549,13 @@ int ajustes_sinopse_tamanho(void);
 // Main UI thread: validated VtLayout ID (vertudo.h); 0 keeps automatic behavior.
 int ajustes_colecao_exibicao(void);
 float ajustes_tamanho_ui(void);
+// Search tab keyboard / card size factors (0.8..3.0; 1 = as before).
+int ajustes_sinopse_completa(void);   // title page: 1 = whole synopsis (default), 0 = 3 lines + reader
+float ajustes_busca_teclado(void);
+float ajustes_busca_cartaz(void);
+#ifdef AJUSTES_TESTE
+void ajustes_teste_busca(int tecladoPct, int cartazPct);
+#endif
 int   ajustes_det_espaco(void);     // title page row spacing: 0 Compacto, 1 Normal (default), 2 Confortavel
 float ajustes_escala_texto(void);   // 0,85..1,3 (Escala de texto e componentes); 1 = de sempre
 // Settings only: 0.8/0.9/1.0, default 0.9; independent of global UI zoom.

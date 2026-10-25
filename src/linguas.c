@@ -9,8 +9,9 @@
 // etiqueta quase sempre com os de tres. Estava dentro de video.c, privada;
 // addons.c mantinha uma versao propria com tres idiomas. Uma so agora.
 static const struct { const char *cod, *nome; } NOMES[] = {
-  { "pt", "Português" },  { "pob", "Português (BR)" }, { "por", "Português" },
+  { "pt", "Português (Portugal)" },  { "pob", "Português (BR)" }, { "por", "Português" },
   { "pt-br", "Português (BR)" }, { "ptb", "Português (BR)" }, { "br", "Português (BR)" },
+  { "pt-pt", "Português (Portugal)" },
   { "en", "Inglês" },     { "eng", "Inglês" },
   { "es", "Espanhol" },   { "spa", "Espanhol" }, { "esp", "Espanhol" },
   { "fr", "Francês" },    { "fre", "Francês" },  { "fra", "Francês" },
@@ -141,6 +142,23 @@ static const char *familia(const char *c, char *buf) {
     return d; }
 }
 
+// REGIAO do portugues: 0 sem regiao ("pt", "por"), 1 Portugal, 2 Brasil.
+// Como PREFERENCIA, "pt" e "por" valem Portugal (como no Nuvio oficial);
+// Brasil so com "pt-br"/"pob". Como ETIQUETA de faixa, "pt"/"por" nao dizem a
+// regiao (regiao() = 0) e casam mais fraco que a regiao certa.
+static int regiao(const char *c) {
+  static const char *const BR[] = { "pob", "ptb", "pt-br", "pt_br", "br", "pb", "ptbr" };
+  static const char *const PT[] = { "pt-pt", "pt_pt", "ptpt", "ptp" };
+  size_t i;
+  for (i = 0; i < sizeof BR / sizeof *BR; i++) if (!strcasecmp(c, BR[i])) return 2;
+  for (i = 0; i < sizeof PT / sizeof *PT; i++) if (!strcasecmp(c, PT[i])) return 1;
+  return 0;
+}
+static int regiaoPref(const char *c) {
+  int r = regiao(c);
+  return r ? r : (!strcasecmp(c, "pt") || !strcasecmp(c, "por")) ? 1 : 0;
+}
+
 // FORCA do casamento (#429 + revisao #205): 1 = familia igual (ou etiqueta
 // identica), 0 = casa so pela regra do conjunto "hbs"/"sh", -1 = nao casa.
 // Quem escolhe faixa ranqueia: o match EXATO de familia (hr/sr/bs pedido e
@@ -151,7 +169,14 @@ static int ling_casa_forca(const char *codigo, const char *pref) {
   if (!strcasecmp(codigo, pref)) return 1;
   { char a[8], b[8];
     const char *fa = familia(codigo, a), *fb = familia(pref, b);
-    if (!strcasecmp(fa, fb)) return 1;
+    if (!strcasecmp(fa, fb)) {
+      // Preferencia COM regiao (pt-pt / pt-br): a outra regiao nao casa — cai
+      // na segunda preferencia —, e a etiqueta sem regiao ("pt", "por") casa
+      // mais fraco (0) que a regiao certa (1).
+      int rp = regiaoPref(pref), rc = regiao(codigo);
+      if (rp && rc && rp != rc) return -1;
+      return rp && !rc ? 0 : 1;
+    }
     if (!strcmp(fa, "sh") || !strcmp(fb, "sh")) {
       const char *o = !strcmp(fa, "sh") ? fb : fa;
       return !strcmp(o, "hr") || !strcmp(o, "sr") || !strcmp(o, "bs") ? 0 : -1;
@@ -206,6 +231,7 @@ const char *ling_selo(const char *cod) {
   if (!strcasecmp(cod, "pob") || !strcasecmp(cod, "pt-br") || !strcasecmp(cod, "pt_br") ||
       !strcasecmp(cod, "ptb") || !strcasecmp(cod, "br") || !strcasecmp(cod, "pb") ||
       !strcasecmp(cod, "ptbr")) return "PT-BR";
+  if (regiao(cod) == 1) return "PT-PT";
   f = familia(cod, fam);
   for (k = 0; f[k] && k < 2; k++) d[k] = (char)(f[k] >= 'a' && f[k] <= 'z' ? f[k] - 32 : f[k]);
   d[k] = 0;
@@ -218,7 +244,9 @@ int ling_afinidade(const char *cod, const char *pref) {
   if (!pref || !*pref) return 1;
   if (!cod || !*cod || !ling_casa(cod, pref)) return 0;
   { char fam[8];
-    if (!strcmp(familia(pref, fam), "pt")) return !strcmp(ling_selo(cod), "PT-BR") ? 3 : 2; }
+    if (!strcmp(familia(pref, fam), "pt")) {
+      int rp = regiaoPref(pref), rc = regiao(cod);
+      return rp == rc ? 3 : 2; } }           // a regiao pedida ganha; sem regiao fica em 2
   return !strcasecmp(cod, pref) ? 3 : 2;
 }
 
@@ -338,7 +366,7 @@ const char *ling_audio_fonte(const char *padrao) {
 // tecla por tecla.
 static const char *OPCOES_COD[] = {
   "", "*",
-  "pt", "en", "es",
+  "pt", "en", "es",     // "pt" = Portugal (como no Nuvio oficial)
   "de", "ar", "zh", "da", "ko", "fr", "el", "he", "nl", "hi", "hu",
   "id", "it", "ja", "no", "pl", "ro", "ru", "sv", "th", "cs", "tr", "uk", "vi", "fi",
   // "~" = ORIGINAL DO TITULO. Nao e um idioma: e "descubra qual e o idioma
@@ -363,7 +391,9 @@ static const char *OPCOES_COD[] = {
   // #429 (2.0.6): croata, servio e bosnio, adicionados NO FIM pela regra
   // acima. Ficam fora da ordem alfabetica de proposito — a ordem e
   // compatibilidade, nao estetica.
-  "hr", "sr", "bs"
+  "hr", "sr", "bs",
+  // Portugues do Brasil, NO FIM pela mesma regra ("pt", indice 2, e Portugal).
+  "pt-br"
 };
 // LING_OPC_ORIGINAL e o indice do "~": fixo por compatibilidade com todo
 // ajustes.txt ja gravado (ver o comentario acima). Os idiomas novos entram
@@ -471,7 +501,7 @@ const char *ling_tipo_legenda_rotulo(int tipo) {
 // com letra acentuada ("Árabe") ficam de fora — sem como casar sem caixa em
 // UTF-8, melhor nao casar do que casar errado.
 static const struct { const char *radical, *cod; } NOME_IDIOMA[] = {
-  { "brazil", "pob" }, { "brasil", "pob" }, { "portugu", "por" },
+  { "brazil", "pob" }, { "brasil", "pob" }, { "portugu", "por" }, { "portugal", "pt-pt" },
   { "english", "eng" }, { "ingl", "eng" },
   { "spanish", "spa" }, { "espa\xc3\xb1ol", "spa" }, { "espanol", "spa" }, { "espanhol", "spa" },
   { "castellano", "spa" }, { "castilian", "spa" },
@@ -508,7 +538,8 @@ const char *ling_do_nome(const char *nome) {
     // "Brazilian Portuguese": mesma familia, fica o mais especifico (pob).
     char fa[8], fc[8];
     if (!strcasecmp(familia(achado, fa), familia(c, fc))) {
-      if (!strcmp(c, "pob")) achado = c;
+      if (regiao(achado) && regiao(c) && regiao(achado) != regiao(c)) return NULL;   // "Brasil" e "Portugal"
+      if (regiao(c)) achado = c;
       continue;
     }
     return NULL;    // dois idiomas diferentes no nome: nao da para saber

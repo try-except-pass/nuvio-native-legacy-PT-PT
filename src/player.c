@@ -2003,6 +2003,8 @@ static int temMkv(const char *t) {
 // arquivo, na ordem das TrackEntry — a mesma ordem da lista da TV.
 static int escolherLegendaPrebusca(const char *const *idiomas, int n) {
   int r = ling_legenda_auto(ling_legenda(), idiomas, n, 1, NULL, 0, 1);
+  if (r < 0 && ling_legenda2()[0] && strcasecmp(ling_legenda2(), "none"))   // 2o idioma, como legendaAutomatica
+    r = ling_legenda_auto(ling_legenda2(), idiomas, n, 1, NULL, 0, 1);
   return r >= 0 && r < n ? r : -1;
 }
 

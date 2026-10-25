@@ -4607,6 +4607,9 @@ static TextoGate gateHero;
 static char   sinVisto[900], sinAnt[900];
 static int    sinVistoInit;
 static Uint32 sinTrocaDesde;
+// Linhas da sinopse no heroi: o texto inteiro (Ajustes > Sinopse na pagina do
+// titulo; a pilha sobe pela altura medida) ou as 3 do dono, com o resto em "...".
+static int detSinLinhas(void) { return ajustes_sinopse_completa() ? 14 : NV_DETW2_SIN_LINHAS; }
 static float  hSinVis;            // altura reservada, suavizada
 static int    hSinInit;
 static Uint32 hSinTick;
@@ -4722,7 +4725,7 @@ static void heroWeb(float a, float desloc) {
   float hSin = 0.0f;
   if (sin) hSin = sinopse_bloco_corta(TXT_DET_SIN, sin, 255, 255, 255, -1.0f, 0.0f,
                             larguraTextoHero(), NV_DETW2_LD_SIN, 0.0f,
-                            NV_DETW2_SIN_LINHAS);
+                            detSinLinhas());
   // DADO A CAMINHO: sinopse e meta chegam da rede depois que a pagina abre.
   // Enquanto o pedido esta em voo desenha-se o ESQUELETO do texto no lugar e
   // RESERVA-SE a altura dele; quando o texto chega ele esvanece por cima e a
@@ -5161,12 +5164,12 @@ static void heroWeb(float a, float desloc) {
     if (f < 1.0f) {   // o que saiu esvanece por baixo do que entra
       if (sinAnt[0]) sinopse_bloco_corta(TXT_DET_SIN, sinAnt, 255, 255, 255, NV_DETW2_X, ySin,
                                larguraTextoHero(), NV_DETW2_LD_SIN, a * (1.0f - f),
-                               NV_DETW2_SIN_LINHAS);
+                               detSinLinhas());
       else esqueletoSinopse(NV_DETW2_X, ySin, a * (1.0f - f));
     }
     if (sin) sinopse_bloco_corta(TXT_DET_SIN, sin, 255, 255, 255, NV_DETW2_X, ySin,
                        larguraTextoHero(), NV_DETW2_LD_SIN, a * f,
-                       NV_DETW2_SIN_LINHAS);
+                       detSinLinhas());
     else if (esqSin) esqueletoSinopse(NV_DETW2_X, ySin, a * f); }
 
   // --- meta linha 1: generos • generos  ·  ano  ·  [IMDb] nota ---------------

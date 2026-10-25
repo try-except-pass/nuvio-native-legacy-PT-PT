@@ -21,8 +21,8 @@ int main(void) {
 
   // Variantes do mesmo idioma casam entre si, nas duas familias ISO.
   ok("pt casa com por",   ling_casa("por", "pt"));
-  ok("pt casa com pob",   ling_casa("pob", "pt"));
-  ok("pt casa com pt-BR", ling_casa("pt-BR", "pt"));
+  ok("pt-br casa com pob", ling_casa("pob", "pt-br"));
+  ok("pt (Portugal) NAO casa com pt-BR", !ling_casa("pt-BR", "pt"));
   ok("en casa com eng",   ling_casa("eng", "en"));
   ok("es NAO casa com pt", !ling_casa("spa", "pt"));
 
@@ -52,7 +52,7 @@ int main(void) {
   ok("zh casa zho",        ling_casa("zho", "zh"));
   ok("es casa es-419",     ling_casa("es-419", "es"));
   ok("pt casa pt-PT",      ling_casa("pt-PT", "pt"));
-  ok("pt casa pb",         ling_casa("pb", "pt"));
+  ok("pt-br casa pb",      ling_casa("pb", "pt-br"));
   ok("hr casa hrv",        ling_casa("hrv", "hr"));
   ok("hr casa hbs-hrv",    ling_casa("hbs-hrv", "hr"));
   ok("hr casa scr",        ling_casa("scr", "hr"));
@@ -77,9 +77,42 @@ int main(void) {
   ok("nome de bs", !strcmp(ling_nome("bs"), "Bósnio"));
   // #429: hr/sr/bs entraram NO FIM (regra de compatibilidade do ajustes.txt,
   // que grava o indice): 31, 32, 33 — nunca no meio da lista.
-  ok("opcao hr no fim", !strcmp(ling_opcao_codigo(ling_opcao_n() - 3), "hr"));
-  ok("opcao sr no fim", !strcmp(ling_opcao_codigo(ling_opcao_n() - 2), "sr"));
-  ok("opcao bs no fim", !strcmp(ling_opcao_codigo(ling_opcao_n() - 1), "bs"));
+  ok("opcao hr no indice 31", !strcmp(ling_opcao_codigo(31), "hr"));
+  ok("opcao sr no indice 32", !strcmp(ling_opcao_codigo(32), "sr"));
+  ok("opcao bs no indice 33", !strcmp(ling_opcao_codigo(33), "bs"));
+  // "pt" = Portugal (como no Nuvio oficial); Brasil so com pt-br/pob. O
+  // pt-br entrou DEPOIS do bs, pela regra do ajustes.txt.
+  ok("opcao pt-br no fim", !strcmp(ling_opcao_codigo(ling_opcao_n() - 1), "pt-br"));
+  ok("opcao 2 e pt", !strcmp(ling_opcao_codigo(2), "pt"));
+  ok("pt casa pt-PT",  ling_casa("pt-PT", "pt"));
+  ok("pt NAO casa pob", !ling_casa("pob", "pt"));
+  ok("pt NAO casa pt-BR", !ling_casa("pt-BR", "pt"));
+  ok("pt-pt NAO casa pt-br", !ling_casa("pt-br", "pt-pt"));
+  ok("pt-br NAO casa pt-pt", !ling_casa("pt-pt", "pt-br"));
+    ok("pt-br casa pob",    ling_casa("pob", "pt-br"));
+  ok("pt casa por (sem regiao)", ling_casa("por", "pt"));
+  ok("pt-br casa por (sem regiao)", ling_casa("por", "pt-br"));
+  ok("regiao certa vence a sem regiao",
+     ling_afinidade("pt-pt", "pt") > ling_afinidade("por", "pt") && ling_afinidade("por", "pt") > 0);
+  ok("afinidade da outra regiao e 0", ling_afinidade("pob", "pt") == 0 && ling_afinidade("pt-pt", "pt-br") == 0);
+  ok("pt-br: BR vence sem regiao", ling_afinidade("pob", "pt-br") > ling_afinidade("por", "pt-br"));
+  ok("selo de pt-pt", !strcmp(ling_selo("pt-pt"), "PT-PT"));
+  ok("nome de pt", !strcmp(ling_nome("pt"), "Português (Portugal)"));
+  ok("nome de pt-pt", !strcmp(ling_nome("pt-pt"), "Português (Portugal)"));
+  { char c[16];
+    ling_normalizar("Portuguese (Portugal)", c, sizeof c);
+    ok("nome por extenso Portugal -> pt-pt", !strcmp(c, "pt-pt"));
+    ling_normalizar("pt_PT", c, sizeof c);
+    ok("pt_PT -> pt-pt", !strcmp(c, "pt-pt"));
+    ling_normalizar("Brazilian Portuguese", c, sizeof c);
+    ok("Brazilian Portuguese continua pob", !strcmp(c, "pob")); }
+  // Primaria pt-pt, secundaria pt-br: so a regiao certa liga, e sem ela fica
+  // para a segunda (quem chama tenta pref1 e depois pref2).
+  { const char *so_br[] = { "pob", "en" }, *com_pt[] = { "pob", "pt-pt" }, *sem_regiao[] = { "pob", "por" };
+    ok("pt-pt sem faixa PT: nada (cai na secundaria)", ling_legenda_auto("pt", so_br, 2, 1, NULL, 0, 1) == LING_AUTO_NADA);
+    ok("pt-br acha a faixa BR", ling_legenda_auto("pt-br", so_br, 2, 1, NULL, 0, 1) == 0);
+    ok("pt-pt prefere a faixa PT", ling_legenda_auto("pt", com_pt, 2, 1, NULL, 0, 1) == 1);
+    ok("pt-pt aceita faixa sem regiao quando nao ha PT", ling_legenda_auto("pt", sem_regiao, 2, 1, NULL, 0, 1) == 1); }
   // Indices JA GRAVADOS em ajustes.txt nao podem mudar: 16 e "id" (nao "hr")
   // e o "~" fica no indice LING_OPC_ORIGINAL, antes dos idiomas novos.
   ok("indice 16 continua id", !strcmp(ling_opcao_codigo(16), "id"));
@@ -96,7 +129,7 @@ int main(void) {
     ling_normalizar("ces", c, sizeof c);
     ok("ces fica ces e casa cs", !strcmp(c, "ces") && ling_casa(c, "cs"));
     ling_normalizar("pt-BR", c, sizeof c);
-    ok("pt-BR normalizado casa pt", ling_casa(c, "pt") && !strcmp(ling_selo(c), "PT-BR"));
+    ok("pt-BR normalizado casa pt-br", ling_casa(c, "pt-br") && !strcmp(ling_selo(c), "PT-BR"));
   }
 
   // Nomes para a tela.
@@ -131,8 +164,10 @@ int main(void) {
        ling_legenda_auto("en", semEtiqueta, 2, 0, add, 2, 1) == LING_AUTO_ESPERA);
     ok("auto: addon quando o arquivo nao tem",
        ling_legenda_auto("en", semEtiqueta, 2, 1, add, 2, 1) == 3);
-    ok("auto: pt aceita pt-br do addon",
-       ling_legenda_auto("pt", NULL, 0, 1, add, 2, 1) == 0);
+    ok("auto: pt-br aceita pt-br do addon",
+       ling_legenda_auto("pt-br", NULL, 0, 1, add, 2, 1) == 0);
+    ok("auto: pt (Portugal) nao liga pt-br do addon",
+       ling_legenda_auto("pt", NULL, 0, 1, add, 2, 1) == LING_AUTO_NADA);
     ok("auto: espera o fio dos addons",
        ling_legenda_auto("es", emb, 2, 1, add, 2, 0) == LING_AUTO_ESPERA);
     ok("auto: nada em es",
@@ -205,7 +240,7 @@ int main(void) {
     ok("auto287: sonda pendente -> espera",
        ling_legenda_auto_tipo("pt", "por", 1, emb, tp, 2, 0, add, 1, 1) == LING_AUTO_ESPERA);
     ok("auto287: audio en + leg pt -> addon pt",
-       ling_legenda_auto_tipo("pt", "eng", 1, emb, tp, 2, 1, add, 1, 1) == 2); }
+       ling_legenda_auto_tipo("pt-br", "eng", 1, emb, tp, 2, 1, add, 1, 1) == 2); }
   { // so forcada no idioma, audio em outro: nunca a forcada como principal
     const char *emb[] = { "por" }; const int tp[] = { LING_LEG_FORCADA };
     ok("auto287: forcada nunca e a principal",

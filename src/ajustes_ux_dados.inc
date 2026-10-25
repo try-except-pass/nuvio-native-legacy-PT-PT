@@ -232,6 +232,8 @@ static const char *uxSinonimos(int op) {
     case AJ_LEG_LINGUA2: return "idioma legenda secundaria segunda dupla dual second subtitle subtitles";
     case AJ_TRAILER_ZOOM_TPK: return "trailer zoom barras pretas tarja ampliar recorte tela preta samsung experimental";
     case AJ_TECLADO_ANDROID: return "teclado android app grade ime sistema digitar keyboard virtual tela";
+    case AJ_TAMANHO_UI_PCT: case AJ_ESCALA_TEXTO_PCT: return "tamanho personalizado interface texto escala zoom ampliar percentual 300 custom size scale";
+    case AJ_BUSCA_TECLADO_PCT: case AJ_BUSCA_CARTAZ_PCT: return "busca teclado cartazes cartoes tamanho grande ampliar percentual search keyboard posters cards size";
     case AJ_MIC_BUSCA: return "microfone mic voz falar ditar ditado busca buscar teclado samsung controle remoto voice";
     case AJ_FONTE_ORDEM: case AJ_FONTE_ORDEM_USO:
       return "ordem ordenar subir descer prioridade add-on addon plugin primeiro desempate estrita auto-play autoplay automatico order priority tie strict";
@@ -273,6 +275,7 @@ static const char *uxSinonimos(int op) {
     case AJ_TMDB_IDIOMA: return "idioma metadados titulo sinopse traducao tmdb";
     case AJ_HERO_GENERO: return "genero destaque hero logo titulo categoria esconder mostrar card genre";
     case AJ_HERO_SINOPSE: return "sinopse destaque hero texto descricao resumo esconder mostrar synopsis description";
+    case AJ_SINOPSE_COMPLETA: return "sinopse resumo texto inteiro completo cortado reticencias tres linhas pagina titulo synopsis overview full text truncated";
     case AJ_HERO_TAMANHO: return "tamanho destaque hero logo informacoes texto grande muito grande normal hero size logo info";
     case AJ_HERO_SINOPSE_TAM: return "sinopse tamanho destaque hero texto grande normal synopsis size";
     case AJ_HERO_NOTAS: return "nota notas imdb destaque hero avaliacao rating ratings esconder mostrar";

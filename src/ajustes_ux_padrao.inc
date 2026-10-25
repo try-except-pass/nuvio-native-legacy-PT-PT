@@ -352,3 +352,8 @@
   0, /* show the audio codec in the format row: On (V_LIGA 0) */
   0, /* gradient smoothing: Automatic */
   0, /* hero logo and information size: Normal */
+  100, /* custom interface size, percent */
+  100, /* custom text/component scale, percent */
+  100, /* search keyboard size, percent */
+  100, /* search card size, percent */
+  0,   /* title page synopsis: full text */

@@ -128,7 +128,7 @@ static void uxAbrirEditor(int op) {
     }
     iptvListaSessao=nv_perfil_sessao_ler();
   }
-  uxOp = op; uxOriginal = uxValorAtual(op); uxPendente = uxOriginal;
+  uxOp = op; uxOriginal = uxValorAtual(op); uxPendente = uxOriginal; uxDigitado = -1;
   if(op==AJ_IPTV_CONTA || ajIptvGerenciador(op))iptvListaSessao=nv_perfil_sessao_ler();
   if(ajIptvGerenciador(op))iptvTipoPagina=ajIptvTipo(op);
   uxEditor = inativa(op) ? 2 : 1;
@@ -251,6 +251,7 @@ static void uxAplicar(void) {
   }
   if(uxOp==AJ_IPTV_CONTA && !nv_perfil_sessao_atual(iptvListaSessao)) { uxCancelar();return; }
   int antes = uxValorAtual(uxOp), bit;
+  if (OPCOES[uxOp].tipo == OP_NUMERO && uxOp != AJ_FIL_LIMITE) uxPendente = limita(uxOp, uxPendente);   // digitado abaixo do minimo
   // Conta/sync pode ter mudado o valor enquanto o seletor estava aberto.
   if (antes != uxOriginal) {
     uxOriginal = uxPendente = antes;
@@ -358,6 +359,24 @@ static int uxEvento(SDL_Keycode k) {
       if (uxPendente < 0) uxPendente = 0;
       if (uxPendente >= nValores(uxOp)) uxPendente = nValores(uxOp) - 1;
       return 1;
+    }
+    // NUMERO DIGITADO: os algarismos do controle (ou do teclado) formam o valor;
+    // passou do teto, recomeca pelo algarismo. Abaixo do minimo vale o minimo ao
+    // confirmar (uxAplicar). Apagar tira o ultimo algarismo.
+    if (uxEditor == 1 && !uxRodape && OPCOES[uxOp].tipo == OP_NUMERO && uxOp != AJ_FIL_LIMITE) {
+      int d = k >= SDLK_0 && k <= SDLK_9 ? (int)(k - SDLK_0) : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? (int)(k - SDLK_KP_1) + 1 : k == SDLK_KP_0 ? 0 : -1;
+      if (uxDigitado >= 0 && uxPendente != uxDigitado) uxDigitado = -1;   // as setas mexeram depois
+      if (d >= 0) {
+        long n = uxDigitado >= 0 ? uxDigitado * 10L + d : d;
+        if (n > OPCOES[uxOp].max) n = d;
+        uxDigitado = uxPendente = (int)n;
+        return 1;
+      }
+      if (k == SDLK_BACKSPACE && uxDigitado >= 0) {
+        uxDigitado = uxDigitado / 10; uxPendente = uxDigitado;
+        if (uxPendente == 0) { uxPendente = uxOriginal; uxDigitado = -1; }
+        return 1;
+      }
     }
     // Barra horizontal: laterais editam, baixo/cima navegam para restaurar.
     if (uxEditor == 1 && OPCOES[uxOp].tipo == OP_NUMERO) {

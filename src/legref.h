@@ -22,6 +22,9 @@
 // MP4: so o `moov` (as caixas de topo sao puladas pelo tamanho); tempos de
 // stts/ctts/elst e amostra vazia por stsz. MP4 fragmentado: SEM_INDICE.
 // Documento so de tempos: o texto de cada fala e um rotulo ("fala 0001").
+// PGS (S_HDMV/PGS), quando o arquivo nao tem faixa de texto: os tempos vem do
+// indice e 16 blocos pequenos dizem quais blocos MOSTRAM a fala e quais a LIMPAM
+// (uma paridade so; senao a faixa e recusada como INCOMPLETO).
 //
 // COMPLETUDE, sem exagero: "completo" quer dizer "todos os blocos que o
 // indice aponta vieram e foram lidos". ffmpeg e mkvmerge escrevem um CuePoint
