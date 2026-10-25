@@ -357,3 +357,4 @@
   100, /* search keyboard size, percent */
   100, /* search card size, percent */
   0,   /* title page synopsis: full text */
+  0,   /* focused poster glow: On (V_LIGA 0) */

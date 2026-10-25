@@ -57,7 +57,7 @@ static const char *ajVisualIcone(int op) {
     case AJ_PS_CONTINUAR: return "aj_users";
     case AJ_EXPANDIR: return "aj_maximize-2";
     case AJ_EXPANDIR_ATRASO: return "aj_clock";
-    case AJ_BORDA_FOCO: return "aj_maximize-2";
+    case AJ_BORDA_FOCO: case AJ_SOMBRA_FOCO: return "aj_maximize-2";
     case AJ_GRAD_CLASSICO: return "aj_maximize-2";
     case AJ_LARGURA_DP: return "aj_images";
     case AJ_RAIO_DP: return "aj_images";

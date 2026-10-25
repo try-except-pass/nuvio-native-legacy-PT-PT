@@ -550,6 +550,7 @@ int ajustes_sinopse_tamanho(void);
 int ajustes_colecao_exibicao(void);
 float ajustes_tamanho_ui(void);
 // Search tab keyboard / card size factors (0.8..3.0; 1 = as before).
+int ajustes_sombra_foco(void);       // glow behind the focused poster (accent color), default on
 int ajustes_sinopse_completa(void);   // title page: 1 = whole synopsis (default), 0 = 3 lines + reader
 float ajustes_busca_teclado(void);
 float ajustes_busca_cartaz(void);

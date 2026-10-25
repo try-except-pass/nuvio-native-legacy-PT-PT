@@ -731,6 +731,7 @@ typedef enum {
   AJ_BUSCA_TECLADO_PCT,  // Search tab keyboard size, percent of the default
   AJ_BUSCA_CARTAZ_PCT,   // Search tab poster/card size, percent of the default
   AJ_SINOPSE_COMPLETA,   // Title page synopsis: 0 full text (default), 1 short (3 lines). LOCAL
+  AJ_SOMBRA_FOCO,        // Accent-colored glow behind the focused poster: 0 On (default). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1875,6 +1876,7 @@ static const Opcao OPCOES[AJ_N] = {
   NUM("Tamanho do teclado da busca", 80, 300, 10, "%"),                  // local: buscaTecladoPctLocal
   NUM("Tamanho dos cartazes da busca", 80, 300, 10, "%"),                // local: buscaCartazPctLocal
   ESC("Sinopse na página do título", V_SINOPSE_MODO, 2),                 // local: sinopseCompletaLocal
+  ESC("Sombra no cartaz em foco", V_LIGA, 2),                            // local: sombraFocoLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2209,6 +2211,7 @@ static const char *CHAVE[] = {
   "heroSizeLocal",
   "tamanhoUiPctLocal", "escalaTextoPctLocal", "buscaTecladoPctLocal", "buscaCartazPctLocal",
   "sinopseCompletaLocal",
+  "sombraFocoLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -3141,6 +3144,7 @@ float ajustes_tamanho_ui(void) {
   if (v == UI_SIZE_CUSTOM) return pctValido(AJ_TAMANHO_UI_PCT) / 100.0f;
   return ui_size_choice(v, v == UI_SIZE_AUTO ? tamanhoUiAutomatico() : 1.0f);
 }
+int ajustes_sombra_foco(void) { return lig(AJ_SOMBRA_FOCO); }
 int ajustes_sinopse_completa(void) { return valor[AJ_SINOPSE_COMPLETA] == 0; }
 float ajustes_busca_teclado(void) { return pctValido(AJ_BUSCA_TECLADO_PCT) / 100.0f; }
 float ajustes_busca_cartaz(void)  { return pctValido(AJ_BUSCA_CARTAZ_PCT) / 100.0f; }
@@ -6017,6 +6021,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_CW_FONTE:
     case AJ_CW_PROXIMO:
     case AJ_BORDA_FOCO:
+    case AJ_SOMBRA_FOCO:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -7950,6 +7955,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_EXPANDIR_ATRASO: return "Quanto tempo o foco precisa ficar parado antes de o cartaz expandir.";
     case AJ_FOCO_TRAILER: return "Com o foco parado num cartaz, o trailer toca no destaque depois da espera da expansão. Tela cheia: no lugar da arte do destaque, com a Home no lugar. No card: dentro do cartaz; pôster em pé só com Expandir pôster ao focar.";
     case AJ_NAV_RAPIDA: return "Andar de lado numa fileira não espera a animação terminar. Serve para controle que repete rápido.";
+    case AJ_SOMBRA_FOCO: return i18n("Um brilho suave, na cor de destaque, atrás do cartaz em foco: a mesma cor do anel, que acompanha o tema. Vale só nesta TV.");
     case AJ_BORDA_FOCO: return "O anel colorido que marca o cartaz em foco na Home. Desligado, o foco fica só pelo tamanho do cartaz.";
     case AJ_PROF: return "Dá relevo aos cartazes: borda iluminada e um reflexo que acompanha o foco.";
     case AJ_PROF_BORDA: return "Quanto a borda do cartaz em foco acende.";
@@ -10811,7 +10817,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_TRAILER_AUDIO:
       return AJPV_DETALHE;
     case AJ_EXPANDIR: case AJ_EXPANDIR_ATRASO: case AJ_NAV_RAPIDA:
-    case AJ_BORDA_FOCO:
+    case AJ_BORDA_FOCO: case AJ_SOMBRA_FOCO:
       return AJPV_FOCO;
     case AJ_PROF: case AJ_PROF_BORDA: case AJ_PROF_BRILHO:
     case AJ_PROF_COBERTURA: case AJ_PROF_POSTERS: case AJ_PROF_CW:
