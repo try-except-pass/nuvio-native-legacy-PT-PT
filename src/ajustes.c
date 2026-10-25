@@ -3,6 +3,7 @@
 // cancela. A lista mostra valor e chevron, a ficha explica alcance e padrao.
 // IDs, chaves persistidas e indices de valores continuam os legados.
 #include "ajustes.h"
+#include "ajweb.h"
 #include "legfontes.h"
 #include "logrede.h"
 #include "jsw.h"
@@ -732,6 +733,7 @@ typedef enum {
   AJ_BUSCA_CARTAZ_PCT,   // Search tab poster/card size, percent of the default
   AJ_SINOPSE_COMPLETA,   // Title page synopsis: 0 full text (default), 1 short (3 lines). LOCAL
   AJ_SOMBRA_FOCO,        // Accent-colored glow behind the focused poster: 0 On (default). LOCAL
+  AJ_WEB_AJUSTES,        // LAN page to tweak these settings from a browser: 1 Off (default). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1877,6 +1879,7 @@ static const Opcao OPCOES[AJ_N] = {
   NUM("Tamanho dos cartazes da busca", 80, 300, 10, "%"),                // local: buscaCartazPctLocal
   ESC("Sinopse na página do título", V_SINOPSE_MODO, 2),                 // local: sinopseCompletaLocal
   ESC("Sombra no cartaz em foco", V_LIGA, 2),                            // local: sombraFocoLocal
+  ESC("Ajustar pelo navegador", V_LIGA, 2),                              // local: ajustesWebLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2212,6 +2215,7 @@ static const char *CHAVE[] = {
   "tamanhoUiPctLocal", "escalaTextoPctLocal", "buscaTecladoPctLocal", "buscaCartazPctLocal",
   "sinopseCompletaLocal",
   "sombraFocoLocal",
+  "ajustesWebLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -6016,6 +6020,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_QUALIDADE_IMG:  /* resolucao da arte decodificada: idem */
     case AJ_ENVIO_AUTO:     /* consentimento de envio de registro deste aparelho */
     case AJ_LOG_REDE:       /* pagina de registro na rede desta casa */
+    case AJ_WEB_AJUSTES:    /* pagina de ajustes na rede desta casa */
     case AJ_ANIM:           /* animacoes reduzidas: acessibilidade nesta TV */
     case AJ_IDIOMA:         /* idioma da interface deste aparelho */
     case AJ_FIL_LIMITE:     /* fileiras da home: por aparelho (fileirasui-p<N>.txt) */
@@ -8141,6 +8146,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_DICASCONTROLE: return "Dicas do controle";
     case AJ_NOVIDADES20: return "O tour do que mudou na 2.0, capítulo por capítulo, com o que vale neste aparelho. Abre do começo.";
     case AJ_APOIAR: return "Se o Nuvio te ajuda e você quiser apoiar quem faz o app, aponte a câmera do celular para um dos códigos. É opcional: nada muda no app.";
+    case AJ_WEB_AJUSTES: return "Abre uma página na rede de casa para mudar estes ajustes pelo navegador do computador ou do celular, com o efeito vendo-se na TV. As mudanças vão só para o perfil em uso. Ligue, abra o endereço abaixo na mesma rede e desligue quando terminar.";
     case AJ_LOG_REDE: return "Mostra o registro desta TV numa página da sua rede: abra o endereço abaixo no celular ou no computador, na mesma rede. Sem senhas nem chaves; endereços vão cortados no host. Desligue quando terminar.";
     case AJ_ENVIAR_LOG: return "Manda os últimos 200 KB do registro desta sessão (sem senhas nem chaves) para quem faz o app. Use quando algo estiver errado agora.";
     case AJ_ENVIO_AUTO: return "Ligado, o app manda o registro sozinho: o da sessão anterior ao abrir e o desta a cada minuto. Sem senhas nem chaves; serve para achar o que trava a Samsung. Desligue quando quiser.";
@@ -8189,6 +8195,10 @@ static const char *ajudaOpcao(int op) {
   const char *base = ajudaOpcaoBase(op);
   static char b[2048];
   // O endereco da pagina vai junto da ajuda, ao vivo (muda com o IP da TV).
+  if (op == AJ_WEB_AJUSTES && ajweb_url()[0]) {
+    snprintf(b, sizeof b, "%s\n%s", i18n(base), ajweb_url());
+    return b;
+  }
   if (op == AJ_LOG_REDE && logrede_url()[0]) {
     snprintf(b, sizeof b, "%s\n%s", i18n(base), logrede_url());
     return b;
@@ -10842,7 +10852,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_SALVOS_DEST: case AJ_TRAKT: case AJ_SIMKL: case AJ_DISCORD: case AJ_HIST_CONTA: case AJ_SOCIAL:
       return AJPV_RASTREIO;
     case AJ_VERSAO_I: case AJ_ATUALIZAR: case AJ_ENVIAR_LOG: case AJ_GUIA: case AJ_NOVIDADES20: case AJ_DICASCONTROLE: case AJ_APOIAR:
-    case AJ_ENVIO_AUTO: case AJ_VER_REGISTRO: case AJ_LOG_REDE:
+    case AJ_ENVIO_AUTO: case AJ_VER_REGISTRO: case AJ_LOG_REDE: case AJ_WEB_AJUSTES:
 #ifdef NV_ANDROID
     case AJ_BAIXAR_REGISTRO:
 #endif
@@ -11398,4 +11408,129 @@ int ajustes_rapido_cor_definir(int i) {
   r = definirValorDireto(AJ_TEMA, corTema(i));
   ajOrigemDireto = AJLOG_AJUSTES;
   return r;
+}
+
+// --- AJUSTES PELO NAVEGADOR (ajweb.c) -------------------------------------------
+// Tudo aqui roda no fio principal: o servidor da LAN so entrega o pedido e
+// espera (ajweb_configurar, uma vez por quadro). O esquema sai da MESMA tabela
+// TELA que desenha a tela de Ajustes, com os mesmos rotulos e textos de valor,
+// entao a pagina nunca diverge da TV.
+typedef struct { char *p; size_t n, cap; } WebJ;
+static void webjAdd(WebJ *w, const char *s, size_t n) {
+  if (w->n + n + 1 > w->cap) {
+    size_t c = w->cap ? w->cap * 2 : 16384;
+    char *q;
+    while (c < w->n + n + 1) c *= 2;
+    q = realloc(w->p, c);
+    if (!q) return;
+    w->p = q; w->cap = c;
+  }
+  if (!w->p) return;
+  memcpy(w->p + w->n, s, n);
+  w->n += n;
+  w->p[w->n] = 0;
+}
+static void webjLit(WebJ *w, const char *s) { webjAdd(w, s, strlen(s)); }
+static void webjStr(WebJ *w, const char *s) {
+  webjAdd(w, "\"", 1);
+  for (; s && *s; s++) {
+    unsigned char c = (unsigned char)*s;
+    char t[8];
+    if (c == '"' || c == '\\') { t[0] = '\\'; t[1] = (char)c; webjAdd(w, t, 2); }
+    else if (c < 0x20) { int k = snprintf(t, sizeof t, "\\u%04x", c); webjAdd(w, t, (size_t)k); }
+    else webjAdd(w, (const char *)&c, 1);
+  }
+  webjAdd(w, "\"", 1);
+}
+static void webjF(WebJ *w, const char *fmt, int a, int b) {
+  char t[96];
+  int k = snprintf(t, sizeof t, fmt, a, b);
+  if (k > 0) webjAdd(w, t, (size_t)k);
+}
+// Que opcoes a pagina mostra e deixa mexer: escolhas e numeros que gravam por
+// definirValorDireto sem uma tela propria (as que abrem folha, lista de contas
+// ou chave ficam so na TV).
+static int webOpcaoOk(int op) {
+  if (op < 0 || op >= AJ_N || !ajOpcaoDisponivel(op)) return 0;
+  if (OPCOES[op].tipo != OP_ESCOLHA && OPCOES[op].tipo != OP_NUMERO) return 0;
+  if (escopoDe(op) == ESC_NENHUM || op == AJ_WEB_AJUSTES) return 0;
+  if (ajFonte(op) || ajIptvGerenciador(op) || ajFalhaBackend(op)) return 0;
+  if (op == AJ_GUIA_CATEGORIAS || op == AJ_IPTV_CONTA || op == AJ_IPTV_ACOES || op == AJ_IPTV_EXCLUIR ||
+      op == AJ_IPTV_ATIVA || op == AJ_XTREAM_CONEXOES || op == AJ_PROVEDORES_ESCOPO ||
+      op == AJ_PERFIL_PESQ || op == AJ_PERFIL_INFANTIL || op == AJ_SALVOS_DEST) return 0;
+  if (OPCOES[op].tipo == OP_ESCOLHA && (OPCOES[op].n < 2 || OPCOES[op].n > 64)) return 0;
+  return 1;
+}
+int ajustes_web_ajustes(void) { return lig(AJ_WEB_AJUSTES); }
+
+char *ajustes_web_esquema(void) {
+  WebJ w = { NULL, 0, 0 };
+  const ContaPerfil *pf = perfis_item_ativo();
+  int i, nSec = 0, emSec = 0, mais = 0, primeiro = 1;
+  montarTela();
+  webjLit(&w, "{\"perfil\":");
+  webjStr(&w, pf ? pf->nome : "");
+  webjF(&w, ",\"pn\":%d,\"v\":%d,\"s\":[", perfis_ativo(), 1);
+  for (i = 0; i < AJ_N_TELA; i++) {
+    const Item *it = &TELA[i];
+    if (it->tipo == IT_SEC) {
+      if (emSec) webjLit(&w, "]}");
+      if (nSec++) webjLit(&w, ",");
+      webjLit(&w, "{\"t\":");
+      webjStr(&w, i18n(it->titulo));
+      webjLit(&w, ",\"i\":[");
+      emSec = 1; primeiro = 1; mais = 0;
+    } else if (it->tipo == IT_MAIS) {
+      mais = 1;
+    } else if (it->tipo == IT_ROT || it->tipo == IT_GRP) {
+      if (!emSec) continue;
+      if (!primeiro) webjLit(&w, ",");
+      primeiro = 0;
+      webjLit(&w, "{\"g\":");
+      webjStr(&w, i18n(it->titulo));
+      webjF(&w, ",\"a\":%d}", mais, 0);
+    } else if (it->tipo == IT_OPC && emSec && webOpcaoOk(it->op)) {
+      int op = it->op, j;
+      const Opcao *o = &OPCOES[op];
+      char t[160];
+      EscopoAj e = escopoDe(op);
+      if (!primeiro) webjLit(&w, ",");
+      primeiro = 0;
+      webjLit(&w, "{\"k\":");
+      webjStr(&w, CHAVE[op]);
+      webjLit(&w, ",\"l\":");
+      webjStr(&w, i18n(rotuloOpcao(op)));
+      webjLit(&w, ",\"c\":");
+      webjStr(&w, e == ESC_TV ? "t" : e == ESC_PERFIL_LOCAL ? "p" : "c");
+      webjF(&w, ",\"a\":%d,\"v\":%d", mais, uxValorAtual(op));
+      webjF(&w, ",\"d\":%d,\"y\":", uxValorPadrao(op), 0);
+      if (o->tipo == OP_NUMERO) {
+        webjLit(&w, "\"n\"");
+        webjF(&w, ",\"min\":%d,\"max\":%d", o->min, o->max);
+        webjF(&w, ",\"p\":%d,\"u\":", o->passo > 0 ? o->passo : 1, 0);
+        webjStr(&w, o->sufixo ? o->sufixo : "");
+      } else {
+        webjLit(&w, "\"e\",\"o\":[");
+        for (j = 0; j < o->n; j++) {
+          uxValorTexto(op, j, t, sizeof t);
+          if (j) webjLit(&w, ",");
+          webjStr(&w, t);
+        }
+        webjLit(&w, "]");
+      }
+      webjLit(&w, "}");
+    }
+  }
+  if (emSec) webjLit(&w, "]}");
+  webjLit(&w, "]}");
+  return w.p;
+}
+
+// 1 = gravou. Mesmas regras de validacao da folha de Ajustes (definirValorDireto).
+int ajustes_web_aplicar(const char *chave, int v) {
+  int op;
+  if (!chave || !chave[0]) return 0;
+  for (op = 0; op < AJ_N; op++)
+    if (CHAVE[op] && !strcmp(CHAVE[op], chave)) return webOpcaoOk(op) && definirValorDireto(op, v);
+  return 0;
 }

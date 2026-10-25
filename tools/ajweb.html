@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-PT"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0c0f">
+<title>Nuvio · Ajustes pelo navegador</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0b0c0f;--card:#15161b;--line:rgba(255,255,255,.09);--tx:#f3f3f1;--mu:rgba(255,255,255,.58);--ac:#7aa7ff;--ok:#5ad19a;--er:#ff7a7a}
+html{background:var(--bg)}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--tx)}
+header{position:sticky;top:0;z-index:5;background:rgba(11,12,15,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:650;letter-spacing:.02em}
+.perfil{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--mu)}
+.perfil b{color:var(--tx)}
+#q{flex:1;min-width:160px;max-width:360px;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:9px 12px;font:inherit}
+button,label.bt{font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+button:hover,label.bt:hover{border-color:rgba(255,255,255,.28)}
+.layout{display:flex;max-width:1200px;margin:0 auto}
+nav{width:230px;flex:none;padding:14px 8px 40px 14px;position:sticky;top:62px;align-self:flex-start;max-height:calc(100vh - 62px);overflow:auto}
+nav a{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:10px;color:var(--mu);text-decoration:none;cursor:pointer}
+nav a.on{background:var(--card);color:var(--tx)}
+nav a i{font-style:normal;font-size:12px;color:var(--ac)}
+main{flex:1;min-width:0;padding:10px 18px 80px}
+h2{font-size:22px;margin:16px 0 4px}
+h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin:26px 0 8px;font-weight:600}
+.row{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:0 0 8px}
+.row.mu{opacity:.45}
+.row.ch{border-color:rgba(122,167,255,.45)}
+.nm{min-width:0}
+.nm small{display:block;color:var(--mu);font-size:12px;margin-top:2px}
+.bd{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:8px;color:var(--mu);vertical-align:1px}
+.bd.t{color:#ffcf7a;border-color:rgba(255,207,122,.4)}
+.ctl{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;max-width:62%}
+.seg{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.seg button{padding:6px 10px;border-radius:9px;font-size:13.5px}
+.seg button.on{background:var(--ac);color:#0b0c0f;border-color:var(--ac);font-weight:600}
+select,input[type=number]{background:#0e0f13;color:var(--tx);border:1px solid var(--line);border-radius:9px;padding:7px 9px;font:inherit}
+input[type=range]{width:180px;accent-color:var(--ac)}
+.rs{padding:4px 8px;font-size:15px;line-height:1}
+#t{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#202228;border:1px solid var(--line);border-radius:12px;padding:10px 16px;opacity:0;transition:opacity .2s;pointer-events:none}
+#t.v{opacity:1}#t.er{border-color:var(--er)}#t.okk{border-color:var(--ok)}
+.vazio{color:var(--mu);padding:40px 0;text-align:center}
+.av{font-size:12.5px;color:var(--mu);margin:6px 0 0}
+.chk{display:flex;gap:7px;align-items:center;font-size:13px;color:var(--mu)}
+@media(max-width:760px){nav{display:none}.ctl{max-width:100%}.row{flex-direction:column;align-items:flex-start}.ctl{justify-content:flex-start}.seg{justify-content:flex-start}}
+</style></head><body>
+<header>
+  <h1>Nuvio · Ajustes</h1>
+  <span class="perfil">Perfil em uso na TV: <b id="pf">…</b></span>
+  <input id="q" type="search" placeholder="Procurar um ajuste…" autocomplete="off">
+  <label class="chk"><input id="tv" type="checkbox"> Permitir ajustes que valem para a TV toda</label>
+  <button id="re" title="Voltar a ler os valores da TV">Atualizar</button>
+  <button id="ex">Exportar</button>
+  <label class="bt">Importar<input id="im" type="file" accept="application/json" hidden></label>
+</header>
+<div class="layout"><nav id="nav"></nav><main id="main"><div class="vazio">A ler os ajustes da TV…</div></main></div>
+<div id="t"></div>
+<script>
+"use strict";
+var D=null,sec=0,tvOk=false,fila=Promise.resolve(),tt=0;
+var $=function(s){return document.querySelector(s)};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function norm(s){return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase()}
+function toast(m,k){var t=$("#t");t.textContent=m;t.className="v "+(k||"");clearTimeout(tt);tt=setTimeout(function(){t.className=""},1800)}
+function ops(){var r=[];D.s.forEach(function(s,i){s.i.forEach(function(o){if(o.k)r.push([i,o])})});return r}
+function mudou(o){return o.v!==o.d}
+function txt(o,v){return o.y==="e"?(o.o[v]!=null?o.o[v]:String(v)):(v+(o.u||""))}
+function enviar(o,v){
+  var ant=o.v;
+  fila=fila.then(function(){
+    return fetch("api/settings",{method:"POST",headers:{"Content-Type":"text/plain"},body:o.k+" "+v+"\n"})
+      .then(function(r){if(!r.ok)throw 0;return r.json()})
+      .then(function(j){
+        if(j.ok){o.v=v;toast(o.l+": "+txt(o,v),"okk")}
+        else{o.v=ant;toast("A TV não aceitou esta mudança","er")}
+        desenhar();
+      }).catch(function(){o.v=ant;toast("Sem resposta da TV (ligada? na mesma rede?)","er");desenhar()});
+  });
+}
+function linha(o){
+  var off=o.c==="t"&&!tvOk;
+  var r=el("div","row"+(mudou(o)?" ch":"")+(off?" mu":""));
+  var nm=el("div","nm",o.l),b=el("span","bd"+(o.c==="t"?" t":""),o.c==="t"?"TV":o.c==="p"?"Perfil · só nesta TV":"Perfil · conta");
+  nm.appendChild(b);r.appendChild(nm);
+  var c=el("div","ctl");
+  if(o.y==="e"){
+    if(o.o.length<=5){
+      var sg=el("div","seg");
+      o.o.forEach(function(n,i){var bt=el("button",i===o.v?"on":"",n);bt.disabled=off;bt.onclick=function(){if(i!==o.v)enviar(o,i)};sg.appendChild(bt)});
+      c.appendChild(sg);
+    }else{
+      var s=el("select");o.o.forEach(function(n,i){var op=el("option","",n);op.value=i;if(i===o.v)op.selected=true;s.appendChild(op)});
+      s.disabled=off;s.onchange=function(){enviar(o,+s.value)};c.appendChild(s);
+    }
+  }else{
+    var rg=el("input");rg.type="range";rg.min=o.min;rg.max=o.max;rg.step=o.p;rg.value=o.v;rg.disabled=off;
+    var nb=el("input");nb.type="number";nb.min=o.min;nb.max=o.max;nb.step=o.p;nb.value=o.v;nb.disabled=off;nb.style.width="86px";
+    var u=el("span","",o.u||"");var t0=0;
+    function go(v){v=Math.max(o.min,Math.min(o.max,+v||0));rg.value=nb.value=v;clearTimeout(t0);t0=setTimeout(function(){if(v!==o.v)enviar(o,v)},350)}
+    rg.oninput=function(){go(rg.value)};nb.onchange=function(){go(nb.value)};
+    c.appendChild(rg);c.appendChild(nb);c.appendChild(u);
+  }
+  if(mudou(o)&&!off){var rs=el("button","rs","↺");rs.title="Repor o padrão ("+txt(o,o.d)+")";rs.onclick=function(){enviar(o,o.d)};c.appendChild(rs)}
+  r.appendChild(c);return r;
+}
+function desenhar(){
+  var q=norm($("#q").value.trim()),m=$("#main"),nav=$("#nav");
+  nav.textContent="";
+  D.s.forEach(function(s,i){
+    var n=s.i.filter(function(o){return o.k&&mudou(o)}).length;
+    var a=el("a",i===sec&&!q?"on":"",s.t);if(n)a.appendChild(el("i","",n));
+    a.onclick=function(){sec=i;$("#q").value="";desenhar();scrollTo(0,0)};nav.appendChild(a);
+  });
+  m.textContent="";
+  if(q){
+    var achou=0;m.appendChild(el("h2","","Resultados"));
+    ops().forEach(function(p){var o=p[1];if(norm(o.l).indexOf(q)<0)return;achou++;
+      var h=el("div","av",D.s[p[0]].t);m.appendChild(h);m.appendChild(linha(o))});
+    if(!achou)m.appendChild(el("div","vazio","Nenhum ajuste encontrado."));
+    return;
+  }
+  var s=D.s[sec];m.appendChild(el("h2","",s.t));
+  var av=false;
+  s.i.forEach(function(o){
+    if(o.g!=null){m.appendChild(el("h3","",o.g+(o.a?" · avançadas":"")));return}
+    m.appendChild(linha(o));
+  });
+}
+function ler(){
+  return fetch("api/settings",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+    D=j;$("#pf").textContent=j.perfil||("Perfil "+j.pn);if(sec>=D.s.length)sec=0;desenhar();
+  }).catch(function(){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Não consegui ler a TV. Está ligada, com o Nuvio aberto e este ajuste ligado?"))});
+}
+$("#q").oninput=function(){desenhar()};
+$("#tv").onchange=function(){tvOk=this.checked;desenhar()};
+$("#re").onclick=function(){ler().then(function(){toast("Valores lidos da TV","okk")})};
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&D)ler()});
+$("#ex").onclick=function(){
+  var v={};ops().forEach(function(p){var o=p[1];if(mudou(o))v[o.k]=o.v});
+  var b=new Blob([JSON.stringify({nuvio:1,perfil:D.perfil,valores:v},null,1)],{type:"application/json"});
+  var a=el("a");a.href=URL.createObjectURL(b);a.download="nuvio-ajustes-"+(D.perfil||"perfil")+".json";a.click();
+};
+$("#im").onchange=function(){
+  var f=this.files[0];if(!f)return;var rd=new FileReader();
+  rd.onload=function(){
+    try{var j=JSON.parse(rd.result),n=0;
+      ops().forEach(function(p){var o=p[1];if(j.valores&&o.k in j.valores&&(o.c!=="t"||tvOk)&&o.v!==j.valores[o.k]){n++;enviar(o,j.valores[o.k])}});
+      toast(n+" ajustes a aplicar"+(tvOk?"":" (os da TV toda ficam de fora)"),"okk");
+    }catch(e){toast("Ficheiro inválido","er")}
+  };rd.readAsText(f);this.value="";
+};
+ler();
+</script></body></html>

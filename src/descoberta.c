@@ -3345,6 +3345,11 @@ static int filtrarRemoto(CatItem *v, int n, int (*aSeguir)(const char *),
 // Texto localizado do Continuar assistindo (#176): o Trakt/Simkl/conta so tem o
 // titulo e a sinopse em ingles. Definidas junto do cache de /meta, mais abaixo.
 static int aplicarLocCache(CatItem *v, int n);
+static char *metaCacheObter(const char *id);
+static int metaTextos(const char *corpo, char *tit, size_t nt, char *sin, size_t ns);
+static void completarRaso(CatItem *dst, const char *corpo, const char *tipo);
+static int locChaveDoItem(const CatItem *c, char *id, size_t nid, const char **tipo);
+void desc_meta_chave(char *dst, size_t n, const char *tipo, const char *id);
 static void localizarContinuarPublicado(void);
 
 // "A SEGUIR" DA CONTA NUVIO (issue #199). LG C9, 1.6.4, sem Trakt e sem
@@ -3908,12 +3913,51 @@ static void cwDepoisDePublicar(CatItem *c, int k) {
   }
   pthread_mutex_unlock(&cwPubTrava);
 }
+// A FICHA GUARDADA VOLTA JUNTO COM O CATALOGO (dono, 25/10/2026: "volto do
+// player ou da busca e falta metadado no destaque"). Sinopse, logo e o resto do
+// que o /meta traz entravam no item DEPOIS da publicacao (fioSinopseHero, um
+// pedido por vez, 150 ms entre eles); cada vez que o catalogo e refeito o item
+// novo nasce raso e o destaque espera a fila de novo, mesmo com a ficha ja no
+// cache de memoria/disco. Aqui, antes de publicar, as tres primeiras fileiras
+// (onde o destaque sorteia e onde o olho esta) tomam do cache o que ele ja tem:
+// sem rede, sem fio, so o que ja foi baixado alguma vez.
+static void aplicarMetaGuardada(CatItem *lote, int n, const CatFileira *fils, int nf) {
+  int r, i, feitos = 0;
+  if (!lote || !fils) return;
+  for (r = 0; r < nf && r < 3; r++)
+    for (i = 0; i < fils[r].n; i++) {
+      int at = fils[r].ini + i;
+      CatItem *c;
+      char id[24], chave[96], tit[160], sin[900];
+      const char *tipo;
+      char *corpo;
+      if (at < 0 || at >= n) continue;
+      c = &lote[at];
+      if ((c->sinopse[0] && c->logo[0]) || !locChaveDoItem(c, id, sizeof id, &tipo)) continue;
+      desc_meta_chave(chave, sizeof chave, tipo, id);
+      corpo = metaCacheObter(chave);
+      if (!corpo) continue;
+      tit[0] = sin[0] = 0;
+      if (metaTextos(corpo, tit, sizeof tit, sin, sizeof sin)) {
+        if (!c->sinopse[0] && sin[0]) snprintf(c->sinopse, sizeof c->sinopse, "%s", sin);
+        completarRaso(c, corpo, tipo);
+        feitos++;
+      }
+      free(corpo);
+    }
+  if (feitos) {
+    printf("[desc] ficha guardada: %d titulo(s) das primeiras fileiras ja completos na publicacao\n", feitos);
+    fflush(stdout);
+  }
+}
+
 // Toda publicacao de montar() passa por aqui (em partes e a do fim).
 static void publicarMontagem(const CatItem *lote, int n, const CatFileira *fils, int nf) {
   int k;
   double t0 = cat_relogio_ms();
   CatItem *cw;
   if (!nv_perfil_sessao_travar(descSessao())) return;
+  aplicarMetaGuardada((CatItem *)lote, n, fils, nf);
   cw = cwAntesDePublicar(&k);
   cat_definir_tudo(lote, n, fils, nf);
   cwDepoisDePublicar(cw, k);
@@ -6791,8 +6835,8 @@ static void localizarContinuarPublicado(void) {
 static void completarRaso(CatItem *dst, const char *corpo, const char *tipo);
 #define HSIN_LOTE 10
 #define HSIN_PAUSA_MS 150
-#define HSIN_NEG_N 32
-#define HSIN_NEG_S 600
+#define HSIN_NEG_N 128   // era 32
+#define HSIN_NEG_S 60    // era 600: uma falha de rede nao pode esconder a sinopse por 10 min
 static int hsIdx[HSIN_LOTE], hsNIdx;
 static NvPerfilSessao hsSessao;
 static volatile int hsVivo, hsDeNovo;
