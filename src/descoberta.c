@@ -6374,7 +6374,7 @@ static int arteDoAddon(const char *tipo, const char *id, char *logo, size_t nl,
 }
 
 // Cache do texto localizado: um pedido por titulo e por idioma, nao um por
-// refazagem da fileira. Resposta negativa vale 10 min (falha de rede nao vira
+// refazagem da fileira. Resposta negativa vale 90 s (falha de rede nao vira
 // "sem traducao" para a sessao inteira).
 //
 // GUARDADO EM DISCO (#213). So na memoria, ele nascia vazio a cada abertura: o
@@ -6384,7 +6384,7 @@ static int arteDoAddon(const char *tipo, const char *id, char *logo, size_t nl,
 // com aplicarLocCache sem nada, e o texto russo so depois de fioLocalizar. Com o
 // arquivo, o primeiro quadro ja e o do idioma; a entrada do disco serve para
 // pintar, e a rede ainda refaz uma vez por sessao (`doDisco`) para nao congelar.
-#define LOC_N 64
+#define LOC_N 320   // era 64: uma Home de ~20 fileiras e as buscas se expulsavam do cache
 static struct { char chave[64]; char titulo[160]; char sinopse[900];
                 char logo[512]; char fundo[512]; int ok, doDisco; long quando; }
   locCache[LOC_N];
@@ -6403,7 +6403,7 @@ static int locLerEx(const char *chave, char *tit, size_t nt, char *sin, size_t n
   pthread_mutex_lock(&locTrava);
   for (i = 0; i < LOC_N; i++) {
     if (!locCache[i].chave[0] || strcmp(locCache[i].chave, chave)) continue;
-    if (!locCache[i].ok && time(NULL) - locCache[i].quando > 600) break;
+    if (!locCache[i].ok && time(NULL) - locCache[i].quando > 90) break;
     if (locCache[i].doDisco && !disco) break;
     *ok = locCache[i].ok;
     if (*ok) {

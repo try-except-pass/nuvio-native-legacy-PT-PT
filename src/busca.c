@@ -299,9 +299,32 @@ static float buKbK(void) {
   larg = (0.55f * NV_TELA_W - buX()) / fminf(520.0f, ANC(520.0f));
   return fmaxf(1.0f, fminf(k, fminf(alt, larg)));
 }
+// --- HERO (coluna da direita, acima dos resultados) ----------------------------
+// Teclado a esquerda, hero a direita e os resultados embaixo do hero. O hero
+// mostra o titulo em foco (ou o primeiro resultado, enquanto o foco esta no
+// teclado). So na tela larga: telefone e retrato seguem com a coluna unica.
+#define BU_HERO_H   ANC(300.0f)
+#define BU_HERO_GAP ANC(30.0f)
+static int heroIdx = -1;                // indice de catalogo mostrado agora
+static int heroAnt = -1;                // o de antes, esvanecendo
+static Uint32 heroTroca;
+
+static int heroTitulo(int r) { return r >= 0 && r < nFil && !fil[r].pessoas && fil[r].n > 0; }
+// O indice de catalogo que o hero deve mostrar, ou -1.
+static int heroAlvo(void) {
+  int r;
+  if (sugestao || nFil <= 0) return -1;
+  if (painel == 1 && heroTitulo(focoRes.fileira) && focoRes.coluna >= 0 && focoRes.coluna < fil[focoRes.fileira].n)
+    return fil[focoRes.fileira].itens[focoRes.coluna];
+  if (heroIdx >= 0 && painel != 0) return heroIdx;   // foco em pessoas/recentes: mantem o ultimo
+  for (r = 0; r < nFil; r++) if (heroTitulo(r)) return fil[r].itens[0];
+  return -1;
+}
+static int heroAtivo(void) { return !buUmaColuna() && heroAlvo() >= 0; }
+
 static float buResY(void) {
   if (buTecladoNativo()) return buTopoEsq() + BU_CAMPO_H + 44.0f;
-  if (!buRetrato()) return ANC(64.0f);
+  if (!buRetrato()) return ANC(64.0f) + (heroAtivo() ? BU_HERO_H + BU_HERO_GAP : 0.0f);
   return BU_KB_Y + 2.0f * BU_KB_PAD + (kbFil + 1) * BU_TECLA_W
        + kbFil * BU_TECLA_GAP + 92.0f;
 }
@@ -464,6 +487,7 @@ static void refiltrar(void) {
       focoRes.coluna < fil[focoRes.fileira].n)
     anterior = fil[focoRes.fileira].itens[focoRes.coluna];
   snprintf(consultaFiltrada, sizeof consultaFiltrada, "%s", consulta);
+  if (!mesmaConsulta) { heroIdx = heroAnt = -1; }
   normalizar(consulta, alvo, sizeof alvo);
   nFil = 0; nPess = 0;
   // Menos de 2 caracteres = estado vazio, como o web ("Digite ao menos 2
@@ -632,7 +656,7 @@ static void refiltrar(void) {
   // e vira uma entrada propria, de um item, desenhada como o tile grande. Foco,
   // abertura e onda tratam essa entrada como qualquer fileira.
   for (int i = 0; i < nFil; i++) { fil[i].melhor = 0; fil[i].pessoas = 0; }
-  if (nFil > 0 && nFil < BU_MAX_FILEIRAS && fil[0].n > 0) {
+  if (buUmaColuna() && nFil > 0 && nFil < BU_MAX_FILEIRAS && fil[0].n > 0) {
     int melhorIdx = fil[0].itens[0];
     memmove(&fil[1], &fil[0], (size_t)nFil * sizeof fil[0]);
     nFil++;
@@ -1823,6 +1847,57 @@ static void desenhaRecentes(Uint32 agora, float dy) {
     sugDesloc = (y - dy) + BU_REC_H + 22.0f + d.h + BU_SECAO_GAP - BU_RES_Y; }
 }
 
+// Uma camada do hero: arte, veu e texto do titulo `ci`, com opacidade `a`.
+static void heroCamada(const CatItem *ci, GfxRect t, float a, float aTxt) {
+  const char *url = ci->backdrop[0] ? ci->backdrop : ci->poster;
+  const float grupo = gfx_opacidade_grupo, raio = 26.0f / t.h;
+  const float tx = t.x + 40.0f, tw = t.w * 0.54f;
+  float ty;
+  if (a < 0.01f) return;
+  gfx_opacidade_grupo = grupo * a;
+  gfx_card_forcar_cover_atual = 1.0f;   // moldura 3,8:1: sem faixas dos lados (como o RETOMAR da Home)
+  buArte(t, url, 26.0f, 1.0f);
+  gfx_card_forcar_cover_atual = 0.0f;
+  gfx_rect(t, 0, GFX_VEU, 0, 1, 0, raio, 0, 0, 0, 0.92f);
+  gfx_opacidade_grupo = grupo * aTxt;
+  { TxtLinha nome = txt_linha_corta(TXT_ILHA_TITULO, ci->titulo, BU_TX, tw);
+    TxtLinha meta = txt_linha_corta(TXT_ILHA_META, ci->meta, BU_TX, tw);
+    TxtLinha gen = { 0, 0, 0 };
+    float bloco, hSin = 0.0f;
+    if (ci->genero[0]) gen = txt_linha_corta(TXT_ILHA_GENERO, ci->genero, BU_TX, tw);
+    if (ci->sinopse[0]) hSin = txt_bloco_corta(TXT_ILHA_META, ci->sinopse, 255, 255, 255, 0, 0, tw, 27.0f, 0.0f, 3);
+    bloco = nome.h + 8.0f + (ci->meta[0] ? meta.h + 6.0f : 0.0f) + (gen.h ? gen.h + 10.0f : 0.0f) + hSin;
+    ty = t.y + t.h - 32.0f - bloco;
+    if (ty < t.y + 24.0f) ty = t.y + 24.0f;
+    txt_desenhar(nome, tx, ty);
+    ty += nome.h + 8.0f;
+    if (ci->meta[0]) { txt_desenhar_alpha(meta, tx, ty, 0.78f); ty += meta.h + 6.0f; }
+    if (gen.h) { txt_desenhar_alpha(gen, tx, ty, 0.55f); ty += gen.h + 10.0f; }
+    if (hSin > 0.0f) txt_bloco_corta(TXT_ILHA_META, ci->sinopse, 255, 255, 255, tx, ty, tw, 27.0f, 0.70f, 3); }
+  gfx_opacidade_grupo = grupo;
+}
+
+// O hero: troca de titulo com um fundido curto (HERO_FUNDIDO_MS).
+#define HERO_FUNDIDO_MS 260u
+static void desenhaHero(Uint32 agora) {
+  int alvo = heroAlvo();
+  GfxRect t = { BU_RES_X, ANC(64.0f), BU_DIR - BU_RES_X, BU_HERO_H };
+  const CatItem *ci;
+  float f = 1.0f;
+  if (buUmaColuna() || alvo < 0) return;
+  if (alvo != heroIdx) { heroAnt = heroIdx; heroIdx = alvo; heroTroca = agora; }
+  if (heroAnt >= 0 && !anim_politica_reduzida) {
+    f = (float)(agora - heroTroca) / (float)HERO_FUNDIDO_MS;
+    if (f >= 1.0f) { f = 1.0f; heroAnt = -1; }
+  } else heroAnt = -1;
+  ajustes_ui_ilha(t, 26.0f, 0);
+  // A arte do anterior fica por baixo e a nova entra por cima; o texto sai na
+  // primeira metade do fundido e entra na segunda, sem sobrepor duas sinopses.
+  if (heroAnt >= 0 && (ci = cat_item(heroAnt)) != NULL) heroCamada(ci, t, 1.0f, fmaxf(0.0f, 1.0f - 2.0f * f));
+  if ((ci = cat_item(heroIdx)) != NULL)
+    heroCamada(ci, t, heroAnt >= 0 ? f : 1.0f, heroAnt >= 0 ? fmaxf(0.0f, 2.0f * f - 1.0f) : 1.0f);
+}
+
 static void desenhaResultados(Uint32 agora) {
   float varreFoco = revela_varre(&revVarre, painel == 1
                                  ? focoRes.fileira * 64 + focoRes.coluna : -1, agora);
@@ -1851,6 +1926,7 @@ static void desenhaResultados(Uint32 agora) {
     return;
   }
 
+  desenhaHero(agora);
   if (!movel)
     gfx_recorte(BU_RES_X - 30.0f, BU_RES_Y - 20.0f,
                 (BU_DIR - BU_RES_X) + 60.0f, BU_RES_AREA_H + 40.0f);

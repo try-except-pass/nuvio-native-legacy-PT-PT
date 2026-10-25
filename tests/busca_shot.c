@@ -250,11 +250,11 @@ int main(int argc, char **argv) {
   capturaEm(nome, 170);
   snprintf(nome, sizeof nome, "%s-resultados.bmp", saida);
   capturaEm(nome, 1200);
-  // Foco no melhor resultado e depois num cartaz da fileira de baixo.
+  // Foco no primeiro cartaz (o hero mostra o titulo em foco) e depois no segundo.
   { int i; for (i = 0; i < 6; i++) tecla(SDLK_RIGHT); }
   snprintf(nome, sizeof nome, "%s-resultados-foco.bmp", saida);
   capturaEm(nome, 500);
-  tecla(SDLK_DOWN); tecla(SDLK_RIGHT);
+  tecla(SDLK_RIGHT);
   snprintf(nome, sizeof nome, "%s-resultados-foco2.bmp", saida);
   capturaEm(nome, 500);
   // PESSOAS: a fileira entra logo depois da primeira de titulos; OK devolve o

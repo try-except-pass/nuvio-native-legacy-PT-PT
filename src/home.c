@@ -5820,7 +5820,6 @@ static void desenhaAtalhos(int r, float y) {
     alvoCard(x, cy, cw, ch, r, c);
     // O ANEL E OPCIONAL (Ajustes > Foco no cartaz). Sem ele o foco continua
     // dito pelo tamanho e pela animacao do cartaz — o que sai e so a borda.
-    if (!redonda) foco_sombra(x, cy, cw, ch, f, 1.0f);
     if (!redonda && f > .01f && ajustes_borda_foco()) {
       float menor = cw < ch ? cw : ch;
       float ar, ag, ab; ajustes_acento(&ar, &ag, &ab);
@@ -7317,7 +7316,6 @@ static void desenhaHeroiCard(const CatItem *ci, int completo, const char *texto,
                              float f, float varre) {
   const float pad = completo ? NV_HEROI_PAD : 32.0f;
   GfxRect card = { px, py, w, h };
-  foco_sombra(px, py, w, h, f, 1.0f);
   if (f > 0.01f && ajustes_borda_foco()) {
     float ar, ag, ab; ajustes_acento(&ar, &ag, &ab);
     gfx_cor((GfxRect){px - NV_ANEL_FOCO, py - NV_ANEL_FOCO,
@@ -7487,7 +7485,6 @@ static void pintarCartao(const CartaoFoco *k, float raio) {
                      f, varreFoco);
     return;
   }
-          foco_sombra(px, py, w, h, f, 1.0f);
           if (f > 0.01f && ajustes_borda_foco()) {
             GfxRect borda = { px - NV_ANEL_FOCO, py - NV_ANEL_FOCO,
                               w + NV_ANEL_FOCO * 2, h + NV_ANEL_FOCO * 2 };
