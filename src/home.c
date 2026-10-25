@@ -105,8 +105,6 @@ int video_registro_negado(void); /* video.h: motivo do trailer bloqueado */
 #include "anos.h"
 #include "detail.h"   /* partirMeta: o `meta` do catalogo e "ANO  ·  DURACAO" */
 
-static void sombraFoco(float px, float py, float w, float h, float f, float a);
-
 #define MAX_ARTE   64
 // Era 32 para as 16 fileiras (CAT_FIL_MAX) do web neste runtime, mais o que a
 // home acrescenta por conta propria (grupos de colecao, social, retomada). Com
@@ -5822,7 +5820,7 @@ static void desenhaAtalhos(int r, float y) {
     alvoCard(x, cy, cw, ch, r, c);
     // O ANEL E OPCIONAL (Ajustes > Foco no cartaz). Sem ele o foco continua
     // dito pelo tamanho e pela animacao do cartaz — o que sai e so a borda.
-    if (!redonda) sombraFoco(x, cy, cw, ch, f, 1.0f);
+    if (!redonda) foco_sombra(x, cy, cw, ch, f, 1.0f);
     if (!redonda && f > .01f && ajustes_borda_foco()) {
       float menor = cw < ch ? cw : ch;
       float ar, ag, ab; ajustes_acento(&ar, &ag, &ab);
@@ -7312,20 +7310,6 @@ static float heroiMeta(const CatItem *ci, float x, float y, float w) {
   return h;
 }
 
-// SOMBRA DE FOCO (Ajustes > Sombra no cartaz em foco): uma mancha difusa na cor de
-// destaque por tras do cartaz em foco — a mesma cor do anel (ajustes_acento), que
-// acompanha o tema/arte. Desenhada ANTES do cartaz; `f` e a mola de foco.
-static void sombraFoco(float px, float py, float w, float h, float f, float a) {
-  float ar, ag, ab, g, m;
-  if (f <= 0.01f || !ajustes_sombra_foco()) return;
-  ajustes_acento(&ar, &ag, &ab);
-  m = w < h ? w : h;
-  g = 30.0f;   // alcance do brilho para fora da borda, em px de layout
-  // Queda de `g` px a partir da borda do retangulo (como o box-shadow do CSS):
-  // forte colada no cartaz, some em `g` px. O raio de fora acompanha o do cartaz.
-  gfx_rect((GfxRect){ px - g, py - g, w + 2.0f * g, h + 2.0f * g }, 0, GFX_SOMBRA, 1.0f, g, 0,
-           (0.07f * m + g) / (m + 2.0f * g), ar, ag, ab, 0.80f * f * a);
-}
 // Hero A: ring only, tinted reading veil, logo, metadata and two synopsis lines.
 static void desenhaHeroiCard(const CatItem *ci, int completo, const char *texto,
                              const char *caminho, GLuint t, float aArte,
@@ -7333,7 +7317,7 @@ static void desenhaHeroiCard(const CatItem *ci, int completo, const char *texto,
                              float f, float varre) {
   const float pad = completo ? NV_HEROI_PAD : 32.0f;
   GfxRect card = { px, py, w, h };
-  sombraFoco(px, py, w, h, f, 1.0f);
+  foco_sombra(px, py, w, h, f, 1.0f);
   if (f > 0.01f && ajustes_borda_foco()) {
     float ar, ag, ab; ajustes_acento(&ar, &ag, &ab);
     gfx_cor((GfxRect){px - NV_ANEL_FOCO, py - NV_ANEL_FOCO,
@@ -7503,7 +7487,7 @@ static void pintarCartao(const CartaoFoco *k, float raio) {
                      f, varreFoco);
     return;
   }
-          sombraFoco(px, py, w, h, f, 1.0f);
+          foco_sombra(px, py, w, h, f, 1.0f);
           if (f > 0.01f && ajustes_borda_foco()) {
             GfxRect borda = { px - NV_ANEL_FOCO, py - NV_ANEL_FOCO,
                               w + NV_ANEL_FOCO * 2, h + NV_ANEL_FOCO * 2 };

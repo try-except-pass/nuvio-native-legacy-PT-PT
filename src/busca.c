@@ -42,6 +42,7 @@
 #include "escala.h"
 #include "segurar.h"
 #include "ajustes.h"
+#include "focoprof.h"
 #include "catalogo.h"
 #include "descoberta.h"
 #include "buscasrec.h"
@@ -1248,14 +1249,9 @@ static void busca_evento_(const SDL_Event *e) {
       else focus_mover(&focoRes, -1, 0);
       break;
     case SDLK_RIGHT:
-      // `fastHorizontalNavigationEnabled`: o web pula de 3 em 3 dentro da
-      // fileira quando a preferencia esta ligada. Numa fileira de 12 cards, 4
-      // toques em vez de 12 para chegar ao fim.
+      // Um card por toque, como a esquerda. O salto de 3 que havia aqui so
+      // existia na busca (a Home nao o tem) e a esquerda nunca o teve.
       focus_mover(&focoRes, 1, 0);
-      if (ajustes_navegacao_horizontal_rapida()) {
-        focus_mover(&focoRes, 1, 0);
-        focus_mover(&focoRes, 1, 0);
-      }
       break;
     case SDLK_UP: {
       int moveu = focus_mover(&focoRes, 0, -1);
@@ -1999,6 +1995,9 @@ static void desenhaResultados(Uint32 agora) {
                           + (1.0f - entra) * NV_ENTRA_DY, cw * esc, ch * esc };
           float raio = 14.0f / p.h;
           gfx_opacidade_grupo = grupo * entra;
+          // Mesmo foco da Home (focoprof.h): brilho e anel na cor de destaque.
+          foco_sombra(p.x, p.y, p.w, p.h, f, 1.0f);
+          foco_anel(p, raio, f, 1.0f);
           if (f > 0.01f)
             gfx_rect((GfxRect){ p.x - 16, p.y - 4, p.w + 32, p.h + 40 }, 0, GFX_SOMBRA, 1.0f, 0, 0, 0.5f,
                      0, 0, 0, 0.50f * f);

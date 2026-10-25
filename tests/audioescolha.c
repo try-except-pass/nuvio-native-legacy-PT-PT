@@ -111,6 +111,32 @@ int main(void) {
   ling_local_audio2("");
   ling_local_audio("");
   ok(!strcmp(ling_audio2(), ""), "account sentinel ORIGINAL: no second language");
+
+  // ONLY ORIGINAL AUDIO: a source whose tagged tracks are all another language is a dub.
+  { AudioCand pt1[1] = {{ "por", "A_AC3", "Portugues", 6, 0, 1, 1 }};
+    AudioCand dual[2] = {{ "por", "A_AC3", "Portugues", 6, 0, 1, 1 }, { "eng", "A_AC3", "Ingles", 6, 0, 1, 2 }};
+    AudioCand solta[2] = {{ "por", "A_AC3", "Portugues", 6, 0, 1, 1 }, { "", "A_AC3", "Faixa 2", 2, 0, 1, 2 }};
+    AudioCand br[1] = {{ "pt-BR", "A_AC3", "Portugues (BR)", 6, 0, 1, 1 }};
+    ok(audioesc_sem_original(pt1, 1, "en"), "only a Portuguese track on an English title: dub");
+    ok(!audioesc_sem_original(dual, 2, "en"), "has the English track: plays");
+    ok(!audioesc_sem_original(solta, 2, "en"), "an untagged track: cannot tell, plays");
+    ok(!audioesc_sem_original(pt1, 1, ""), "unknown original language: plays");
+    ok(!audioesc_sem_original(pt1, 1, "xx"), "no-speech title: plays");
+    ok(!audioesc_sem_original(br, 1, "pt"), "Portuguese original, Brazilian-tagged track: same original");
+    ok(audioesc_sem_original(dual, 2, "ja"), "Japanese original, only pt+en: dub");
+    audioesc_titulo("ttD1");
+    ling_definir_original("en");
+    { int i, puladas = 0;
+      for (i = 0; i < AUDIOESC_PULOS_MAX + 2; i++) puladas += audioesc_pular_dublada(pt1, 1);
+      ok(puladas == AUDIOESC_PULOS_MAX, "skips at most AUDIOESC_PULOS_MAX dubbed sources in a row"); }
+    ok(!audioesc_pular_dublada(dual, 2), "an original source plays and resets the count");
+    ok(audioesc_pular_dublada(pt1, 1), "skipping works again after a good source");
+    audioesc_titulo("ttD2");
+    audioesc_lembrar("por", "A_AC3", "Portugues", 6);
+    ok(!audioesc_pular_dublada(pt1, 1), "a track chosen by hand on this title: never skipped");
+    audioesc_titulo("ttD3");
+    ling_definir_original("");
+  }
   printf(falhas ? "audioescolha: %d FAIL(S)\n" : "audioescolha: ok\n", falhas);
   return falhas != 0;
 }

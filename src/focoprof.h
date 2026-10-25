@@ -35,4 +35,19 @@ static inline void foco_anel(GfxRect r, float raio, float f, float a) {
           ar, ag, ab, f * a);
 }
 
+// SOMBRA DE FOCO (Ajustes > Sombra no cartaz em foco): uma mancha difusa na cor de
+// destaque por tras do cartaz em foco — a mesma cor do anel (ajustes_acento), que
+// acompanha o tema/arte. Desenhada ANTES do cartaz; `f` e a mola de foco.
+static inline void foco_sombra(float px, float py, float w, float h, float f, float a) {
+  float ar, ag, ab, g, m;
+  if (f <= 0.01f || !ajustes_sombra_foco()) return;
+  ajustes_acento(&ar, &ag, &ab);
+  m = w < h ? w : h;
+  g = 30.0f;   // alcance do brilho para fora da borda, em px de layout
+  // Queda de `g` px a partir da borda do retangulo (como o box-shadow do CSS):
+  // forte colada no cartaz, some em `g` px. O raio de fora acompanha o do cartaz.
+  gfx_rect((GfxRect){ px - g, py - g, w + 2.0f * g, h + 2.0f * g }, 0, GFX_SOMBRA, 1.0f, g, 0,
+           (0.07f * m + g) / (m + 2.0f * g), ar, ag, ab, 0.80f * f * a);
+}
+
 #endif

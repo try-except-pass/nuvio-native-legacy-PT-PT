@@ -996,7 +996,7 @@ static const char *V_TRAILFONTE[] = { "Automático", "Apple TV", "IMDb", "YouTub
 // demais sao nativos de proposito). Ele nao e um idioma: valor[AJ_IDIOMA] e o
 // INDICE DESTA LISTA (0 = automatico, 1 + IDIOMA_* = escolha manual), e o que
 // vai para o disco e outra coisa (ver "IDIOMA AUTOMATICO" mais abaixo).
-static const char *V_IDIOMA[]    = { "Automático", "Português", "English", "Română", "Українська", "Русский",
+static const char *V_IDIOMA[]    = { "Automático", "Português (Brasil)", "English", "Română", "Українська", "Русский",
                                      "Français", "Deutsch", "Español",
                                      // Os 22 de 2026-09, na ordem de IDIOMA_IT... IDIOMA_ZHTW. Os tres
                                      // ultimos (日本語, 简体中文, 繁體中文) so desenham porque text.c manda
@@ -3146,8 +3146,10 @@ float ajustes_tamanho_ui(void) {
 }
 int ajustes_sombra_foco(void) { return lig(AJ_SOMBRA_FOCO); }
 int ajustes_sinopse_completa(void) { return valor[AJ_SINOPSE_COMPLETA] == 0; }
-float ajustes_busca_teclado(void) { return pctValido(AJ_BUSCA_TECLADO_PCT) / 100.0f; }
-float ajustes_busca_cartaz(void)  { return pctValido(AJ_BUSCA_CARTAZ_PCT) / 100.0f; }
+// A busca nao entra na camada de escala da interface (so Explorar e o teclado a
+// usam), entao o "Tamanho da interface" entra aqui, multiplicando o ajuste proprio.
+float ajustes_busca_teclado(void) { return pctValido(AJ_BUSCA_TECLADO_PCT) / 100.0f * ajustes_tamanho_ui(); }
+float ajustes_busca_cartaz(void)  { return pctValido(AJ_BUSCA_CARTAZ_PCT) / 100.0f * ajustes_tamanho_ui(); }
 #ifdef AJUSTES_TESTE
 void ajustes_teste_busca(int tecladoPct, int cartazPct) { valor[AJ_BUSCA_TECLADO_PCT] = tecladoPct; valor[AJ_BUSCA_CARTAZ_PCT] = cartazPct; }
 #endif

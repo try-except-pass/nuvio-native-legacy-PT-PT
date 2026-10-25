@@ -1163,6 +1163,24 @@ static int eventoPayload(const char *p, unsigned minhaSessao) {
     // DTS/TrueHD antes (DTS que a TV recusa converte, ver audioNaoSup). Sem
     // regra que decida, NAO se mexe: a escolha do pipeline (faixa 0) e melhor
     // que uma trocada por chute — quem quer outra abre a folha de faixas.
+    // SO AUDIO ORIGINAL (audioescolha.h): fonte dublada conta como fonte que
+    // falhou, e a fila automatica segue para a proxima. Fonte escolhida a mao
+    // (Ajustes > Escolher a fonte você mesmo) nao e largada por tras da tela.
+    if (nAudio > 0 && !ajustes_fonte_manual()) {
+      AudioCand c[NV_FAIXA_MAX];
+      int i;
+      for (i = 0; i < nAudio; i++) {
+        c[i].idioma = faixaAudio[i].idioma; c[i].codec = faixaAudio[i].codec;
+        c[i].rotulo = faixaAudio[i].rotulo; c[i].canais = faixaAudio[i].canais;
+        c[i].dts = 0; c[i].pode = 1; c[i].numero = faixaAudio[i].numero;
+      }
+      if (audioesc_pular_dublada(c, nAudio)) {
+        falhou = 1;
+        ack_publicar();
+        snprintf(erroTexto, sizeof erroTexto, "This source has no original-language audio");
+        return 1;
+      }
+    }
     if (nAudio > 1) {
       AudioCand c[NV_FAIXA_MAX];
       int i, o, k;

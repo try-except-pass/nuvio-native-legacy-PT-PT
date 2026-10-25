@@ -87,4 +87,15 @@ int audioesc_escolher_com(const AudioCand *c, int n, const AudioLembrada *lembra
                           const char *pref1, const char *pref2, const char *original, int *origem);
 int audioesc_escolher_binge(const AudioCand *c, int n, const AudioLembrada *lembrada, const char *binge,
                             const char *pref1, const char *pref2, const char *original, int *origem);
+
+// SO AUDIO ORIGINAL (dono, 25/10/2026): a fonte cujas faixas de audio sao TODAS
+// de outro idioma que o original do titulo (dublagem) e largada, e a fila segue
+// para a proxima. Nao decide quando o idioma original e desconhecido ou quando
+// alguma faixa nao tem etiqueta. Puro, para o teste.
+int audioesc_sem_original(const AudioCand *c, int n, const char *original);
+// Com estado: 1 = largue esta fonte. Nao larga se a pessoa escolheu a faixa a
+// mao neste titulo; depois de AUDIOESC_PULOS_MAX largadas seguidas deixa tocar,
+// para que um titulo que so existe dublado nao fique sem fonte.
+#define AUDIOESC_PULOS_MAX 6
+int audioesc_pular_dublada(const AudioCand *c, int n);
 #endif

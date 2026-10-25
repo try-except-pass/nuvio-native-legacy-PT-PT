@@ -19,7 +19,7 @@
 
 int main(void) {
   // tmdb_language e locales, com regiao
-  M("pt-BR", IDIOMA_PT);  M("pt", IDIOMA_PT);
+  M("pt-BR", IDIOMA_PT);  M("pt", IDIOMA_PTPT);
   M("pt_BR", IDIOMA_PT);  M("PT-br", IDIOMA_PT);
   M("en-US", IDIOMA_EN);  M("en-GB", IDIOMA_EN);  M("en", IDIOMA_EN);
   M("ro-RO", IDIOMA_RO);  M("ro", IDIOMA_RO);
@@ -33,7 +33,7 @@ int main(void) {
   M("en_US.UTF-8", IDIOMA_EN);  M("pt_BR.UTF-8", IDIOMA_PT);
   M("ro_RO@euro", IDIOMA_RO);   M("de_DE.utf8", IDIOMA_DE);
   // ISO 639-2 (legenda): bibliografico e terminologico
-  M("por", IDIOMA_PT);  M("pob", IDIOMA_PT);  M("eng", IDIOMA_EN);
+  M("por", IDIOMA_PTPT);  M("pob", IDIOMA_PT);  M("eng", IDIOMA_EN);
   M("rum", IDIOMA_RO);  M("ron", IDIOMA_RO);  M("ukr", IDIOMA_UK);
   M("rus", IDIOMA_RU);  M("fre", IDIOMA_FR);  M("fra", IDIOMA_FR);
   M("ger", IDIOMA_DE);  M("deu", IDIOMA_DE);  M("spa", IDIOMA_ES);
@@ -74,7 +74,7 @@ int main(void) {
   M("yue", IDIOMA_ZHTW);
   // o que NAO e um dos trinta, ou nem e idioma
   M(NULL, -1);   M("", -1);   M("none", -1);  M("off", -1);  M("DEVICE", -1);
-  M("ko", -1);   M("ko-KR", -1);  M("hr", -1);  M("ar", -1);  M("he", -1);  M("th", -1);
+  M("ko", -1);   M("ko-KR", -1);  M("hr", -1);   M("he", -1);  M("th", -1);
   M("C", -1);  M("POSIX", -1);  M("-", -1);  M("e", -1);
   M("portugues", -1);   // nome por extenso nao e codigo
   M("xxxxxxxxxxxxxxxxxxxxxxxx", -1);   // muito longo: nao estoura o buffer
@@ -99,7 +99,7 @@ int main(void) {
   R("nb", "swe", "en-US",    IDIOMA_NO, IDA_TMDB);
   // uma fonte que existe mas nao e um dos trinta passa a vez para a proxima
   R("ko", "spa", "de-DE",    IDIOMA_ES, IDA_LEGENDA);
-  R("ar", "none", "fr-FR",   IDIOMA_FR, IDA_SISTEMA);
+  R("he", "none", "fr-FR",   IDIOMA_FR, IDA_SISTEMA);
   R("ko", "th", "hr",        IDIOMA_EN, IDA_PADRAO);
   R("he", "off", "C",        IDIOMA_EN, IDA_PADRAO);
   // fonte NULL no ponteiro de saida e aceita

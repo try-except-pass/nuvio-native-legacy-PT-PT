@@ -9,6 +9,9 @@
 #include <string.h>
 #include <strings.h>
 
+// Fontes largadas em sequencia, neste titulo, por nao terem o audio original.
+static int pulos;
+
 static char chaveAtual[96];
 static AudioLembrada lembrada;
 static int temLembrada;
@@ -52,6 +55,7 @@ void audioesc_titulo(const char *chave) {
     fflush(stdout);
   }
   snprintf(chaveAtual, sizeof chaveAtual, "%s", c);
+  pulos = 0;
   temLembrada = 0;
   memset(&lembrada, 0, sizeof lembrada);
   // A ESCOLHA GRAVADA DESTE TITULO (o anime aberto amanha, depois de fechar o
@@ -181,4 +185,41 @@ int audioesc_escolher_binge(const AudioCand *c, int n, const AudioLembrada *m, c
 int audioesc_escolher(const AudioCand *c, int n, int *origem) {
   return audioesc_escolher_binge(c, n, temLembrada ? &lembrada : NULL, bingeAtual(), ling_audio(),
                                  ling_audio2(), ling_original(), origem);
+}
+
+// Idiomas que nao dizem nada sobre dublagem: sem etiqueta, indeterminado, sem
+// fala, varios. Uma faixa assim impede a decisao (nao se sabe o que ela e).
+static int idiomaVago(const char *l) {
+  return !l || !l[0] || !strcasecmp(l, "und") || !strcasecmp(l, "zxx") || !strcasecmp(l, "mul") ||
+         !strcasecmp(l, "mis");
+}
+
+int audioesc_sem_original(const AudioCand *c, int n, const char *original) {
+  int i;
+  if (!c || n < 1 || !original || !original[0]) return 0;
+  // TMDB: "xx" = sem fala; "cn" = cantones, que as faixas etiquetam de varios jeitos.
+  if (!strcasecmp(original, "xx") || !strcasecmp(original, "cn") || idiomaVago(original)) return 0;
+  for (i = 0; i < n; i++) {
+    if (idiomaVago(c[i].idioma)) return 0;   // arquivo de MKV sem etiqueta e comum: toca
+    if (ling_casa(c[i].idioma, original)) return 0;
+    // "pt" pedido como preferencia e Portugal, mas um filme original portugues
+    // pode ter o audio etiquetado do Brasil: e o mesmo original.
+    if (!strncasecmp(original, "pt", 2) && ling_casa(c[i].idioma, "pt-br")) return 0;
+  }
+  return 1;
+}
+
+int audioesc_pular_dublada(const AudioCand *c, int n) {
+  if (temLembrada) return 0;   // a pessoa escolheu a faixa a mao neste titulo
+  if (!audioesc_sem_original(c, n, ling_original())) { pulos = 0; return 0; }
+  if (pulos >= AUDIOESC_PULOS_MAX) {
+    printf("[audio] %d fontes seguidas sem audio original: esta toca assim mesmo\n", pulos);
+    fflush(stdout);
+    return 0;
+  }
+  pulos++;
+  printf("[audio] fonte sem audio original (%s): pulando (%d de %d)\n", ling_original(), pulos,
+         AUDIOESC_PULOS_MAX);
+  fflush(stdout);
+  return 1;
 }

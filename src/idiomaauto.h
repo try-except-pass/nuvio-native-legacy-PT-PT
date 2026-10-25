@@ -36,7 +36,7 @@ static inline const char *idiomaauto_fonte_nome(int fonte) {
 // portugues do Brasil x de Portugal e chines simplificado x tradicional.
 static inline const char *idiomaauto_codigo(int idioma) {
   static const char *C[IDIOMA_N] = {
-    "pt", "en", "ro", "uk", "ru", "fr", "de", "es", "it", "nl", "pl", "tr", "pt-PT",
+    "pt-BR", "en", "ro", "uk", "ru", "fr", "de", "es", "it", "nl", "pl", "tr", "pt-PT",
     "sv", "da", "no", "cs", "sk", "sl", "hu", "lt", "bs", "sr", "bg", "el", "id",
     "vi", "ja", "zh-CN", "zh-TW", "ar"
   };
@@ -57,7 +57,7 @@ static inline int ida_igual(const char *a, const char *b) {
 // Sem distinguir caixa. O idioma PRIMARIO decide quase tudo (a regiao nao muda a
 // lingua da interface: es-419 e "es", en-GB e "en"). As EXCECOES sao as que tem
 // tabela propria:
-//   pt-PT (e ao, mz, cv)          portugues europeu; pt, pt-BR, pb e pob: o do Brasil
+//   pt, pt-PT, ao, mz, cv...      portugues europeu (neste fork "pt" e Portugal); pt-BR, pb e pob: o do Brasil
 //   nb, nn, no                    noruegues (uma tabela so, em bokmal)
 //   sr, sr-Latn, sr-Cyrl, sr-RS   servio em latim (quem le em cirilico le em latim,
 //                                 e cair no ingles seria pior)
@@ -65,7 +65,7 @@ static inline int ida_igual(const char *a, const char *b) {
 static inline int idiomaauto_mapear(const char *cod) {
   char p[8], sub[2][8];
   size_t n = 0;
-  int ns = 0, hant = 0, pt_eu = 0, hans = 0;
+  int ns = 0, hant = 0, pt_br = 0, hans = 0;
   if (!cod) return -1;
   while (*cod == ' ' || *cod == '\t') cod++;
   for (; *cod && *cod != '-' && *cod != '_' && *cod != '.' && *cod != '@' &&
@@ -89,11 +89,10 @@ static inline int idiomaauto_mapear(const char *cod) {
       if (ida_igual(sub[i], "hant") || ida_igual(sub[i], "tw") || ida_igual(sub[i], "hk") ||
           ida_igual(sub[i], "mo")) hant = 1;
       if (ida_igual(sub[i], "hans") || ida_igual(sub[i], "cn") || ida_igual(sub[i], "sg")) hans = 1;
-      if (ida_igual(sub[i], "pt") || ida_igual(sub[i], "ao") || ida_igual(sub[i], "mz") ||
-          ida_igual(sub[i], "cv")) pt_eu = 1;
+      if (ida_igual(sub[i], "br")) pt_br = 1;
     } }
   if (n == 2) {
-    if (ida_igual(p, "pt")) return pt_eu ? IDIOMA_PTPT : IDIOMA_PT;
+    if (ida_igual(p, "pt")) return pt_br ? IDIOMA_PT : IDIOMA_PTPT;
     if (ida_igual(p, "pb")) return IDIOMA_PT;
     if (ida_igual(p, "en")) return IDIOMA_EN;
     if (ida_igual(p, "ro") || ida_igual(p, "mo")) return IDIOMA_RO;
@@ -126,7 +125,8 @@ static inline int idiomaauto_mapear(const char *cod) {
     return -1;
   }
   if (n == 3) {
-    if (ida_igual(p, "por") || ida_igual(p, "pob")) return IDIOMA_PT;
+    if (ida_igual(p, "por")) return IDIOMA_PTPT;
+    if (ida_igual(p, "pob")) return IDIOMA_PT;
     if (ida_igual(p, "eng")) return IDIOMA_EN;
     if (ida_igual(p, "ron") || ida_igual(p, "rum")) return IDIOMA_RO;
     if (ida_igual(p, "ukr")) return IDIOMA_UK;
