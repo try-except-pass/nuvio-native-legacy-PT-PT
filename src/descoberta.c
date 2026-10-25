@@ -3922,7 +3922,8 @@ static void cwDepoisDePublicar(CatItem *c, int k) {
 // (onde o destaque sorteia e onde o olho esta) tomam do cache o que ele ja tem:
 // sem rede, sem fio, so o que ja foi baixado alguma vez.
 static void aplicarMetaGuardada(CatItem *lote, int n, const CatFileira *fils, int nf) {
-  int r, i, feitos = 0;
+  int r, i, feitos = 0, vistos = 0, faltam = 0, semFicha = 0;
+  char amostra[96] = "";
   if (!lote || !fils) return;
   for (r = 0; r < nf && r < 3; r++)
     for (i = 0; i < fils[r].n; i++) {
@@ -3933,18 +3934,32 @@ static void aplicarMetaGuardada(CatItem *lote, int n, const CatFileira *fils, in
       char *corpo;
       if (at < 0 || at >= n) continue;
       c = &lote[at];
+      vistos++;
       if ((c->sinopse[0] && c->logo[0]) || !locChaveDoItem(c, id, sizeof id, &tipo)) continue;
       desc_meta_chave(chave, sizeof chave, tipo, id);
       corpo = metaCacheObter(chave);
-      if (!corpo) continue;
+      if (!corpo) {
+        semFicha++; faltam++;
+        if (!amostra[0]) snprintf(amostra, sizeof amostra, "%s", id);
+        continue;
+      }
       tit[0] = sin[0] = 0;
       if (metaTextos(corpo, tit, sizeof tit, sin, sizeof sin)) {
         if (!c->sinopse[0] && sin[0]) snprintf(c->sinopse, sizeof c->sinopse, "%s", sin);
         completarRaso(c, corpo, tipo);
         feitos++;
       }
+      if (!c->sinopse[0] || !c->logo[0]) faltam++;
       free(corpo);
     }
+  // O RELATO DO QUE FALTA (para o registro da TV: grep meta-falta): de cada
+  // publicacao, quantos titulos das primeiras fileiras seguem sem sinopse ou
+  // logo, e quantos deles nem ficha tem no cache (esses dependem da rede).
+  if (faltam) {
+    printf("[meta-falta] publicacao: %d de %d titulos das 3 primeiras fileiras sem sinopse/logo "
+           "(%d sem ficha no cache; ex.: %s)\n", faltam, vistos, semFicha, amostra[0] ? amostra : "-");
+    fflush(stdout);
+  }
   if (feitos) {
     printf("[desc] ficha guardada: %d titulo(s) das primeiras fileiras ja completos na publicacao\n", feitos);
     fflush(stdout);
@@ -6667,6 +6682,11 @@ static int localizarTexto(const char *tipo, const char *id, char *tit, size_t nt
   if (arteDoAddon(tipo, id, logo, nl, fundo, nf)) ok = 1;
   if (!logo[0] && logoTmdb[0]) { snprintf(logo, nl, "%s", logoTmdb); ok = 1; }
   DESC_PUBLICAR(locGuardar(chave, tit, sin, logo, fundo, ok));
+  if (!ok) {
+    printf("[meta-falta] localizar %s/%s (%s): sem texto nem arte; nova tentativa em 90 s\n",
+           tipo, id, desc_tmdb_idioma());
+    fflush(stdout);
+  }
   return ok;
 }
 
@@ -6922,7 +6942,15 @@ static void *fioSinopseHero(void *u) {
       if (!e) continue;
       if (!cat_copiar_item(lista[k], e) || (e->sinopse[0] && e->logo[0])) { free(e); continue; }
       snprintf(imdb, sizeof imdb, "%s", e->imdb);
-      if (hsNegativo(imdb)) { free(e); continue; }
+      if (hsNegativo(imdb)) {
+        static long ultimoAviso;
+        if ((long)time(NULL) - ultimoAviso >= 5) {   // um aviso a cada 5 s, nao um por titulo
+          ultimoAviso = (long)time(NULL);
+          printf("[meta-falta] destaque: %s pulado, falhou ha menos de %d s\n", imdb, HSIN_NEG_S);
+          fflush(stdout);
+        }
+        free(e); continue;
+      }
       r = desc_sinopse_completar_item(e, NULL, NULL);
       if (r == 0) DESC_PUBLICAR(hsNegGuardar(imdb));
       // Publica somente lacunas, revalidando identidade; preserva outros escritores.
