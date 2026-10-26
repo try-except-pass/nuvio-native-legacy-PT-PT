@@ -5643,6 +5643,7 @@ void app_atualizar(float dt, Uint32 agora) {
         if (player_mini_ativo() && player_id_canal()[0]) guiaComCanalNoAr();
         else trocarTela(TELA_GUIA);
         break;
+      case MENU_GALERIA:    home_definir_vista(1); trocarTela(TELA_HOME); break;
       case MENU_EXPLORAR:   trocarTela(TELA_EXPLORAR);   break;
       case MENU_BUSCAR:     trocarTela(TELA_BUSCA);      break;
       case MENU_BIBLIOTECA: trocarTela(TELA_BIBLIOTECA); break;
@@ -5654,7 +5655,7 @@ void app_atualizar(float dt, Uint32 agora) {
       // prometia. trocarTela(TELA_PERFIL) ja chama perfil_abrir + pedirPerfil.
       case MENU_PERFIL:     trocarTela(TELA_PERFIL);     break;
       case MENU_AJUSTES:    trocarTela(TELA_AJUSTES);    break;
-      default:              trocarTela(TELA_HOME);       break;
+      default:              home_definir_vista(0); trocarTela(TELA_HOME); break;
     }
   }
   // Pedidos de abrir um titulo, vindos de qualquer tela.

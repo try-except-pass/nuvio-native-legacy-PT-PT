@@ -1051,6 +1051,7 @@ static int heroSetCat, heroSetNFil;
 // diferente por quadro; sortear uma vez por arranque e o que "lista aleatoria"
 // quer dizer para quem esta no sofa.
 static unsigned heroSemente;
+static int homeVista;   // 0 Home, 1 segunda aba; ver home_definir_vista
 
 // SEM REPETIDOS no sorteio "*" (dono, 2026-10-26): hashes dos titulos ja
 // oferecidos nesta sessao. O mesmo filme em varias fileiras do catalogo conta
@@ -1073,6 +1074,15 @@ static void heroMarcarVisto(unsigned h) {
   if (heroVistosN >= HERO_VISTOS_MAX) heroVistosN = heroVistosBase = 0;   // shortcut: catalogo > 8192 titulos recomeca o historico
   heroVistos[heroVistosN++] = h;
 }
+// O item do catalogo pertence a alguma fileira desta aba? (so o destaque automatico/sorteio usa)
+static int heroItemNaVista(int idx) {
+  int r, n = cat_n_fileiras();
+  for (r = 0; r < n; r++) {
+    const CatFileira *cf = cat_fileira(r);
+    if (cf && idx >= cf->ini && idx < cf->ini + cf->n && fil_na_vista(cf->chave, homeVista)) return 1;
+  }
+  return 0;
+}
 static int heroEhSorteio(void) { const char *f = fil_hero_fonte(); return f[0] == '*' && !f[1]; }
 
 static void heroMontarSet(void) {
@@ -1086,7 +1096,7 @@ static void heroMontarSet(void) {
     static int baralho[4096];   // shortcut: catalogo acima de 4096 titulos so sorteia os 4096 primeiros
 
     unsigned x = heroSemente ? heroSemente : (heroSemente = (unsigned)SDL_GetTicks() | 1u);
-    int tentou = 0;
+    int tentou = 0, filtro = 1;   // filtro: so itens das fileiras desta aba (cai se nao sobrar nenhum)
     // Refazer a MESMA janela (fileiras que chegam, perfil) nao consome o catalogo: parte do
     // historico fechado na ultima renovacao, com a mesma semente.
     heroVistosN = heroVistosBase;
@@ -1094,7 +1104,7 @@ static void heroMontarSet(void) {
       int m = 0, n = HOME_HERO_LISTA;
       for (i = 0; i < total && m < (int)(sizeof baralho / sizeof *baralho); i++) {
         const CatItem *c = cat_item(i);
-        if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = i;
+        if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c)) && (!filtro || heroItemNaVista(i))) baralho[m++] = i;
       }
       for (i = 0; i < m && heroSetN < n; i++) {
         int j;
@@ -1107,8 +1117,11 @@ static void heroMontarSet(void) {
         heroMarcarVisto(h);
         heroSet[heroSetN++] = baralho[i];
       }
-      if (heroSetN > 0 || tentou || total <= 0) break;
-      heroVistosN = heroVistosBase = 0; tentou = 1;   // catalogo esgotado: recomeca
+      if (heroSetN > 0 || total <= 0) break;
+      heroVistosN = heroVistosBase = 0;   // catalogo esgotado: recomeca
+      if (!tentou) tentou = 1;
+      else if (filtro) filtro = 0;
+      else break;
     }
     return;
   }
@@ -1142,7 +1155,10 @@ static void heroMontarSet(void) {
     if (heroSetN) return;
   }
   for (i = 0; i < total && heroSetN < HOME_HERO_LISTA; i++)
-    if (!filmeVistoOculto(cat_item(i))) heroSet[heroSetN++] = i;
+    if (!filmeVistoOculto(cat_item(i)) && heroItemNaVista(i)) heroSet[heroSetN++] = i;
+  if (!heroSetN)   // nenhuma fileira desta aba tem item ainda: o de sempre, o catalogo todo
+    for (i = 0; i < total && heroSetN < HOME_HERO_LISTA; i++)
+      if (!filmeVistoOculto(cat_item(i))) heroSet[heroSetN++] = i;
 }
 
 static void heroSetGarantir(void) {
@@ -3093,6 +3109,7 @@ static void sincronizarFileiras(void) {
   // Quem a montagem publicou como futuro (issue #127): so pesa em "Separar
   // futuros", mas e um inteiro — mais barato perguntar sempre que ramificar.
   revisao = (revisao ^ cwo_revisao()) * 16777619u;
+  revisao = (revisao ^ (unsigned)(homeVista + 1)) * 16777619u;   // a aba muda o que se monta
   // O titulo retido pelo cartao/faixa (cwretido.h) muda a fileira desenhada.
   revisao = (revisao ^ cw_retido_rev()) * 16777619u;
   // A curadoria também pesa no hash: ela muda sem o catálogo mudar.
@@ -3142,6 +3159,7 @@ static void sincronizarFileiras(void) {
   for (r = 0; r < nCat && destino < MAX_FIL - 1; r++) {
     const CatFileira *cf = cat_fileira(r);
     if (!cf) break;
+    if (!fil_na_vista(cf->chave, homeVista)) continue;   // fileira de outra aba
     // `continueWatchingEnabled: false` tira a fileira da home inteira — nao a
     // esvazia, tira. E o que renderModernHomeLayout faz quando
     // computeContinueWatchingRenderState devolve a fileira desligada.
@@ -3686,6 +3704,17 @@ void home_ir_topo(void) {
   posVivaCol = 0;
   sairPerguntadoEm = 0;
   heroUltTecla = SDL_GetTicks();
+}
+
+// SEGUNDA ABA (dono, 2026-10-26): a mesma tela com outro conjunto de fileiras. Cada fileira
+// diz em qual aba aparece (fileiras.h, fil_na_vista); a vista so filtra o que a Home monta.
+int home_vista(void) { return homeVista; }
+void home_definir_vista(int v) {
+  v = v ? 1 : 0;
+  if (v == homeVista) return;
+  homeVista = v;
+  heroSetRev = 0;      // o conjunto do destaque tambem depende da aba
+  home_ir_topo();
 }
 
 // A HOME SE MONTA POR TRAS DA ESCOLHA DE PERFIL (app.c), mas NAO E PINTADA. Sem

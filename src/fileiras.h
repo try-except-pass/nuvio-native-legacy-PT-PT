@@ -375,6 +375,9 @@ const char *fil_titulo(int i);
 int         fil_linha_oculta(int i);
 int         fil_linha_tipo(int i);
 int         fil_linha_tam(int i);
+int         fil_linha_galeria(int i);   // 0 Home, 1 segunda aba, 2 as duas
+void        fil_ciclar_galeria(int i);
+int         fil_na_vista(const char *chave, int vista);   // vista 0 Home, 1 segunda aba
 // Origem desta linha, e o que a acompanha. `fil_linha_addon` devolve "" quando
 // nenhum registrador soube dizer (addon que sumiu da conta, fileira lida so do
 // arquivo); `fil_linha_conteudo` devolve "Filmes"/"Séries"/""; `fil_linha_itens`

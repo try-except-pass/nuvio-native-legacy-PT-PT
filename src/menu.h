@@ -22,6 +22,7 @@
 // enquanto Biblioteca e Perfil continuam mais abaixo, como no shell legado.
 typedef enum {
   MENU_INICIO,
+  MENU_GALERIA,   // a segunda aba da Home (outro conjunto de fileiras); ver home_definir_vista
   MENU_EXPLORAR,
   MENU_GUIA,
   MENU_BUSCAR,

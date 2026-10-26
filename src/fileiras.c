@@ -41,6 +41,9 @@ typedef struct {
   // "o addon declarou hoje e entrou no fim ligado". Vai para o arquivo como
   // quinto numero, ANTES do titulo; o leitor aceita a linha sem ele.
   int  fila;
+  // ABA da fileira (dono, 2026-10-26): 0 so a Home, 1 so a segunda aba, 2 as duas. Vai para o arquivo
+  // em linha propria ("galeria <chave> <n>"); arquivo antigo, sem ela, e tudo Home.
+  int  galeria;
   // SO EM MEMORIA — nao entram no arquivo. Ver o cabecalho de fil_registrar em
   // fileiras.h: o formato gravado tem o titulo no fim da linha e acrescentar
   // campos faria o arquivo de quem ja usa o app ser descartado inteiro.
@@ -311,7 +314,7 @@ static void gravar(void) {
   // 64 linhas de ate ~310 bytes (chave 192 + titulo 96 + quatro numeros), mais
   // o cabecalho. Alocado e nao na pilha: sao ~20 KB e esta funcao roda no fio
   // do desenho.
-  size_t cap = 128 + 64 + (size_t)FIL_MAX * (2 * FIL_CHAVE + FIL_TITULO + 56);
+  size_t cap = 128 + 64 + (size_t)FIL_MAX * (3 * FIL_CHAVE + FIL_TITULO + 72);
   char *txt = malloc(cap);
   size_t k;
   int i;
@@ -355,6 +358,9 @@ static void gravar(void) {
     if (linhas[i].ordem > 0 && linhas[i].ordem < FIL_ORD_N)
       k += (size_t)snprintf(txt + k, cap - k, "ordemfileira %s %d\n",
                             linhas[i].chave, linhas[i].ordem);
+  for (i = 0; i < nLinhas && k < cap; i++)
+    if (linhas[i].galeria > 0 && linhas[i].galeria < 3)
+      k += (size_t)snprintf(txt + k, cap - k, "galeria %s %d\n", linhas[i].chave, linhas[i].galeria);
   if (k < cap) dados_gravar(arquivoDoPerfil(), txt);
   free(txt);
   revisao++;
@@ -417,6 +423,16 @@ static void carregar(void) {
         if (o > 0 && o < FIL_ORD_N)
           for (int i = 0; i < nLinhas; i++)
             if (!strcmp(linhas[i].chave, buf + 13)) linhas[i].ordem = o;
+      }
+    } else if (!strncmp(buf, "galeria ", 8)) {
+      // Chave de fileira nunca tem espaco: termina no primeiro, o resto e o modo.
+      char *esp = strchr(buf + 8, ' ');
+      if (esp) {
+        int m = atoi(esp + 1);
+        *esp = 0;
+        if (m > 0 && m < 3)
+          for (int i = 0; i < nLinhas; i++)
+            if (!strcmp(linhas[i].chave, buf + 8)) linhas[i].galeria = m;
       }
     } else if (!strncmp(buf, "visibilidade ", 13)) {
       for (int i = 0; i < nLinhas; i++)
@@ -1571,6 +1587,26 @@ int fil_linha_oculta(int i) { return (i >= 0 && i < nLinhas && (linhas[i].oculta
 int fil_linha_sem_addon(int i) { return (i >= 0 && i < nLinhas && linhas[i].semAddon) ? 1 : 0; }
 int fil_linha_tipo(int i)   { return (i >= 0 && i < nLinhas) ? linhas[i].tipo : FIL_TIPO_AUTO; }
 int fil_linha_tam(int i)    { return (i >= 0 && i < nLinhas) ? linhas[i].tam : FIL_TAM_PADRAO; }
+int fil_linha_galeria(int i) { return (i >= 0 && i < nLinhas) ? linhas[i].galeria : 0; }
+void fil_ciclar_galeria(int i) {
+  pthread_mutex_lock(&trava);
+  if (i >= 0 && i < nLinhas) {
+    linhas[i].galeria = (linhas[i].galeria + 1) % 3;   // Home -> segunda aba -> as duas
+    gravar();
+  }
+  pthread_mutex_unlock(&trava);
+}
+// A fileira `chave` aparece na aba `vista` (0 Home, 1 segunda aba)? Sem registro: so Home.
+int fil_na_vista(const char *chave, int vista) {
+  int i, m = 0;
+  if (chave && chave[0]) {
+    pthread_mutex_lock(&trava);
+    i = achar(chave);
+    if (i >= 0) m = linhas[i].galeria;
+    pthread_mutex_unlock(&trava);
+  }
+  return m == 2 || m == (vista ? 1 : 0);
+}
 
 int fil_linha_origem(int i) {
   return fil_origem_de((i >= 0 && i < nLinhas) ? linhas[i].chave : "");

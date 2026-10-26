@@ -563,6 +563,7 @@ float ajustes_menu_espaco(void);        // sidebar item gap factor 0..4
 int   ajustes_menu_so_icones(void);     // sidebar never expands to labels
 float ajustes_busca_espaco(void);       // Search tab spacing factor 0.4..1.5
 int   ajustes_fil_titulos(void);        // row titles on Home
+int   ajustes_menu_galeria(void);       // second Home tab in the sidebar
 #ifdef AJUSTES_TESTE
 void ajustes_teste_busca(int tecladoPct, int cartazPct);
 #endif

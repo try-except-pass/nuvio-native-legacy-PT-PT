@@ -148,7 +148,7 @@ static void ajCelula(float x, float yc, float w, const char *t, float al, int fo
 #define AJF_PAINEL_W 560.0f
 
 static void ajFilPainel(GfxRect pr, int n, int lim);
-typedef struct { GfxRect ilha, painel; float cx, cw, estado, card, tamanho; } AjFilMedidas;
+typedef struct { GfxRect ilha, painel; float cx, cw, estado, card, tamanho, aba; } AjFilMedidas;
 static AjFilMedidas ajFilMedir(void) {
   AjFilMedidas m;
   float rail = ajustes_rail_largura_fixa();
@@ -160,7 +160,7 @@ static AjFilMedidas ajFilMedir(void) {
   if (ajRetrato()) m.painel.x = m.ilha.x + m.ilha.w;
   m.cx = m.ilha.x + 30; m.cw = m.painel.x - 30 - m.cx;
   float fator = ajRetrato() ? fmaxf(0.0f, (m.cw - 28.0f) * 0.5f) / 630.0f : 1.0f;
-  m.estado = 200.0f * fator; m.card = 230.0f * fator; m.tamanho = 200.0f * fator;
+  m.estado = 170.0f * fator; m.card = 210.0f * fator; m.tamanho = 160.0f * fator; m.aba = 150.0f * fator;
   return m;
 }
 
@@ -228,7 +228,7 @@ static void desenhaFileiras(void) {
   AjFilMedidas m = ajFilMedir();
   GfxRect ilha = m.ilha, pr = m.painel;
   float cx = m.cx, cw = m.cw;
-  float campos = m.estado + m.card + m.tamanho;
+  float campos = m.estado + m.card + m.tamanho + m.aba;
   float hx = cx + 14, y, topo, base, segL = cx + cw;
   int n, lim = fil_limite(), i;
   filMontarLista();
@@ -306,6 +306,7 @@ static void desenhaFileiras(void) {
   // CABECALHO DAS COLUNAS (so na aba Na Home)
   if (filAba == 0 && n > 0) {
     float x = cx + cw - 14;
+    x -= m.aba; ajCaps(TXT_AJ_CAPS13, "Aba", 1.68f, x + 16, topo, 0.38f);
     x -= m.tamanho; ajCaps(TXT_AJ_CAPS13, "Tamanho", 1.68f, x + 16, topo, 0.38f);
     x -= m.card; ajCaps(TXT_AJ_CAPS13, "Card", 1.68f, x + 16, topo, 0.38f);
     x -= m.estado; ajCaps(TXT_AJ_CAPS13, "Estado", 1.68f, x + 16, topo, 0.38f);
@@ -398,6 +399,7 @@ static void desenhaFileiras(void) {
         ponteiro_alvo_faixa(xc, y, m.estado, rh, topo, base, ajFilToqueFocar, soltar, i, 1);
         ponteiro_alvo_faixa(xc + m.estado, y, m.card, rh, topo, base, ajFilToqueFocar, soltar, i, 2);
         ponteiro_alvo_faixa(xc + m.estado + m.card, y, m.tamanho, rh, topo, base, ajFilToqueFocar, soltar, i, 3);
+        ponteiro_alvo_faixa(xc + m.estado + m.card + m.tamanho, y, m.aba, rh, topo, base, ajFilToqueFocar, soltar, i, 4);
       }
     }
 #endif
@@ -454,6 +456,8 @@ static void desenhaFileiras(void) {
         ajCelula(xc, yc, m.estado, foco && filCampo == 1 ? "Remover" : naFila ? "Na fila" : "Na Home", 0.55f, foco && filCampo == 1 && !filPegou);
         ajCelula(xc + m.estado, yc, m.card, aceita ? fil_linha_tipo_rotulo(idx) : "Fixo", aceita ? 0.55f : 0.35f, foco && filCampo == 2 && !filPegou);
         ajCelula(xc + m.estado + m.card, yc, m.tamanho, fil_tam_rotulo(fil_linha_tam(idx)), 0.55f, foco && filCampo == 3 && !filPegou);
+        ajCelula(xc + m.estado + m.card + m.tamanho, yc, m.aba,
+                 fil_linha_galeria(idx) == 1 ? "Galeria" : fil_linha_galeria(idx) == 2 ? "Ambas" : "Home", 0.55f, foco && filCampo == 4 && !filPegou);
       } else if (foco || (i == filFoco && !filNaBarra)) {
         int noBotao = filCampo == 1 && !filNaBarra && i == filFoco;
         TxtLinha t = noBotao ? ajTxtT(TXT_AJ_CHIP, "Adicionar à Home") : ajTxt(TXT_AJ_CHIP, "Adicionar à Home");

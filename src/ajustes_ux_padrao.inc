@@ -365,3 +365,4 @@
   1,   /* sidebar icons only: Off */
   100, /* search tab spacing, percent */
   0,   /* row titles on Home: shown */
+  0,   /* second Home tab (Galeria) in the sidebar: shown */

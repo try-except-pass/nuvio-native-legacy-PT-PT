@@ -740,6 +740,7 @@ typedef enum {
   AJ_MENU_SO_ICONES,     // Sidebar shows icons only, never expands to labels: 1 Off (default). LOCAL
   AJ_BUSCA_ESPACO_PCT,   // Search tab spacing, percent of the default. LOCAL
   AJ_FIL_TITULOS,        // Row titles on Home: 0 shown (default). LOCAL
+  AJ_MENU_GALERIA,       // Second Home tab ("Galeria") in the sidebar: 0 shown (default). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1083,7 +1084,7 @@ static const int   LINK_PRAZO_H[] = { 1, 2, 3, 6, 12, 24, 48, 72, 168 };
 // O que o toque curto de OK faz num card da retomada (issue #93): abre o
 // episodio direto no player, ou abre a pagina do titulo como sempre fez.
 // Local, como cwFonteLocal — o app oficial nao tem esta escolha.
-static const char *V_CW_OK[]     = { "Retomar", "Abrir página", "Movies play, series open" };
+static const char *V_CW_OK[]     = { "Retomar", "Abrir página", "Filme toca, série abre" };
 // `discoverLocation`, validado contra estes tres.
 static const char *V_DESCOBRIR[] = { "Mostrar na Busca", "Na barra lateral", "Desligado" };
 // `homeImdbRatingsVisibility` — normalizeHomeImdbRatingsVisibility so aceita
@@ -1886,12 +1887,13 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Sinopse na página do título", V_SINOPSE_MODO, 2),                 // local: sinopseCompletaLocal
   ESC("Sombra no cartaz em foco", V_LIGA, 2),                            // local: sombraFocoLocal
   ESC("Ajustar pelo navegador", V_LIGA, 2),                              // local: ajustesWebLocal
-  ESC("Focus ring on Search results", V_LIGA, 2),                        // local: bordaFocoBuscaLocal
-  NUM("Sidebar size", 50, 200, 5, "%"),                                  // local: menuTamPctLocal
-  NUM("Sidebar item spacing", 0, 400, 25, "%"),                          // local: menuEspacoPctLocal
-  ESC("Sidebar icons only", V_LIGA, 2),                                  // local: menuSoIconesLocal
-  NUM("Search tab spacing", 40, 150, 10, "%"),                           // local: buscaEspacoPctLocal
-  ESC("Row titles on Home", V_LIGA, 2),                                  // local: filTitulosLocal
+  ESC("Anel de foco nos resultados da busca", V_LIGA, 2),                        // local: bordaFocoBuscaLocal
+  NUM("Tamanho da barra lateral", 50, 200, 5, "%"),                                  // local: menuTamPctLocal
+  NUM("Espaço entre itens da barra lateral", 0, 400, 25, "%"),                          // local: menuEspacoPctLocal
+  ESC("Barra lateral só com ícones", V_LIGA, 2),                                  // local: menuSoIconesLocal
+  NUM("Espaçamento da aba Pesquisar", 40, 150, 10, "%"),                           // local: buscaEspacoPctLocal
+  ESC("Títulos das fileiras na Home", V_LIGA, 2),                                  // local: filTitulosLocal
+  ESC("Galeria na barra lateral", V_LIGA, 2),                            // local: menuGaleriaLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2228,7 +2230,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
-  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -2710,7 +2712,7 @@ static int pedeConfirmacao(int op) {
 // Modal dentro desta tela, e nao uma tela nova: quem troca de tela e o app.c e
 // ajustes.c nao conhece as outras telas (a mesma razao registrada em
 // ajustes_pediu_addons). Uma folha aqui nao pede nada ao app.c.
-#define AJ_FIL_CAMPOS 4          // nome/mover, estado, card, tamanho
+#define AJ_FIL_CAMPOS 5          // nome/mover, estado, card, tamanho, aba
 static int filAberta;
 static int filFoco;
 static int filCampo;
@@ -3169,6 +3171,7 @@ float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
 int ajustes_menu_so_icones(void) { return lig(AJ_MENU_SO_ICONES); }
 float ajustes_busca_espaco(void) { return pctEntre(AJ_BUSCA_ESPACO_PCT, 40, 150); }
 int ajustes_fil_titulos(void) { return lig(AJ_FIL_TITULOS); }
+int ajustes_menu_galeria(void) { return lig(AJ_MENU_GALERIA); }
 int ajustes_sinopse_completa(void) { return valor[AJ_SINOPSE_COMPLETA] == 0; }
 // A busca nao entra na camada de escala da interface (so Explorar e o teclado a
 // usam), entao o "Tamanho da interface" entra aqui, multiplicando o ajuste proprio.
@@ -6051,7 +6054,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
     case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
-    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -8005,12 +8008,12 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_GPU_EFEITOS: return "Efeitos funcionam em qualquer resolução. Automático adapta; Completos mantém tudo; Leves reduz brilho e desfoque; Mínimos reduz mais.";
     case AJ_FONTE_UI: return "Altera a tipografia dos menus. A fonte das legendas é escolhida separadamente no player.";
     case AJ_HERO_TAMANHO: return "Aumenta a logo e as informações do destaque da Home: tipo, gênero, ano, duração, nota do IMDb e sinopse. Vale só nesta TV.";
-    case AJ_BORDA_FOCO_BUSCA: return i18n("The coloured ring around the focused card in Search results. Independent from the Home ring.");
-    case AJ_MENU_TAM_PCT: return i18n("Size of the sidebar, icons and labels. 100% is the default.");
-    case AJ_MENU_ESPACO_PCT: return i18n("Space between the sidebar items. 0% packs them together; 100% is the default.");
-    case AJ_MENU_SO_ICONES: return i18n("The sidebar stays a slim icon strip and never expands to show labels.");
-    case AJ_BUSCA_ESPACO_PCT: return i18n("Space between the keyboard, the field and the result rows in the Search tab. Lower is tighter.");
-    case AJ_FIL_TITULOS: return i18n("Show or hide the titles above the Home rows.");
+    case AJ_BORDA_FOCO_BUSCA: return i18n("O anel colorido em volta do cartaz em foco nos resultados da busca. Independente do anel da Home.");
+    case AJ_MENU_TAM_PCT: return i18n("Tamanho da barra lateral, dos ícones e dos nomes. 100% é o padrão.");
+    case AJ_MENU_ESPACO_PCT: return i18n("Espaço entre os itens da barra lateral. 0% encosta-os uns nos outros; 100% é o padrão.");
+    case AJ_MENU_SO_ICONES: return i18n("A barra lateral fica sempre uma faixa estreita de ícones e nunca abre para mostrar os nomes.");
+    case AJ_BUSCA_ESPACO_PCT: return i18n("Espaço entre o teclado, o campo e as fileiras de resultados na aba Pesquisar. Menor é mais apertado.");
+    case AJ_FIL_TITULOS: return i18n("Mostra ou esconde os títulos acima das fileiras da Home.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";
     case AJ_TAMANHO_UI: return "Aumenta os controles do player, os painéis e os avisos. Os Ajustes têm um tamanho próprio.";
@@ -8182,7 +8185,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_ENVIAR_LOG: return "Manda os últimos 200 KB do registro desta sessão (sem senhas nem chaves) para quem faz o app. Use quando algo estiver errado agora.";
     case AJ_ENVIO_AUTO: return "Ligado, o app manda o registro sozinho: o da sessão anterior ao abrir e o desta a cada minuto. Sem senhas nem chaves; serve para achar o que trava a Samsung. Desligue quando quiser.";
     case AJ_DIAGNOSTICO: return "Testa manifestos, fontes e artes dos addons, mede os tempos e aplica um perfil seguro de Qualidade ou Desempenho. O teste não marca títulos como assistidos.";
-    case AJ_MENU_EXPLORAR: case AJ_MENU_GUIA: case AJ_MENU_AGENDA: case AJ_MENU_PERFIL:
+    case AJ_MENU_EXPLORAR: case AJ_MENU_GUIA: case AJ_MENU_AGENDA: case AJ_MENU_PERFIL: case AJ_MENU_GALERIA:
       return "Desligado, o item some da barra lateral. Nada é apagado: ligue de novo para ele voltar.";
     case AJ_VELOCIDADE: return "Mede a velocidade dos seus addons e das fontes nesta TV e diz até quantos GB por filme e por episódio tocam sem travar. Não muda nenhum ajuste.";
 
@@ -8825,6 +8828,7 @@ static void eventoFileiras(SDL_Keycode k) {
               if (filFoco >= filListaN) filFoco = filListaN > 0 ? filListaN - 1 : 0;
               break;
       case 2: if (fil_aceita_tipo(idx)) { fil_ciclar_tipo(idx); fileirasReagir(); } break;
+      case 4: fil_ciclar_galeria(idx); fileirasReagir(); break;   // Home / segunda aba / as duas
       default: fil_ciclar_tam(idx); sync_proteger_ajustes_locais(); break;
     }
   }

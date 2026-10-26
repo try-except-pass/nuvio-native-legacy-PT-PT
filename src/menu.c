@@ -134,7 +134,7 @@ static float menuEscala(void) {
 // os outros tres sao substantivos (Biblioteca, Ajustes) e o verbo destoava.
 // Dono (2026-10-26): agora "Pesquisar" (PT-PT) e a Biblioteca saiu da barra.
 // Rotulos e ordem conferidos na referencia.
-static const char *ROTULOS[MENU_N] = { "Início", "Explorar", "Guia TV", "Pesquisar", "Biblioteca", "Agenda", "Perfil e Stats", "Ajustes" };
+static const char *ROTULOS[MENU_N] = { "Início", "Galeria", "Explorar", "Guia TV", "Pesquisar", "Biblioteca", "Agenda", "Perfil e Stats", "Ajustes" };
 
 // ITEM ESCONDIDO (#162): Explorar, Guia, Agenda e Perfil somem da barra quando
 // desligados nos Ajustes. Inicio, Busca e Ajustes ficam sempre (Biblioteca saiu da barra) —
@@ -142,6 +142,7 @@ static const char *ROTULOS[MENU_N] = { "Início", "Explorar", "Guia TV", "Pesqui
 // a linha: desenho, alvos do ponteiro e setas pulam o item, e o painel encolhe.
 static int mostra(int i) {
   switch (i) {
+    case MENU_GALERIA:  return ajustes_menu_galeria();
     case MENU_EXPLORAR: return ajustes_menu_explorar();
     case MENU_GUIA:     return ajustes_menu_guia();
     case MENU_AGENDA:   return ajustes_menu_agenda();
@@ -465,6 +466,7 @@ int menu_visivel(void) { return 1; }
 int menu_destino(void) { return destino; }
 void menu_definir_destino(int d) {
   if (d < 0 || d >= MENU_N) return;
+  if (d == MENU_INICIO && home_vista()) d = MENU_GALERIA;   // a Home na segunda aba acende a Galeria
   destino = d;
   if (!aberto) linha = d;
 }
@@ -623,7 +625,7 @@ void menu_atualizar(float dt, Uint32 agora) {
 static void icone(int d, float cx, float cy, float s, float r, float g, float b, float a) {
   // `portal` ja e um SVG embarcado e le como entrada para uma descoberta;
   // manter o icone real evita inventar um glifo SDF e duplicar o de Busca.
-  static const char *nomes[MENU_N] = {"menu_home", "portal", "menu_guide", "menu_search", "menu_library", "menu_agenda", "menu_profile", "menu_settings"};
+  static const char *nomes[MENU_N] = {"menu_home", "menu_library", "portal", "menu_guide", "menu_search", "menu_library", "menu_agenda", "menu_profile", "menu_settings"};
   if (d < 0 || d >= MENU_N) return;
   gfx_icone((GfxRect){cx-s*.5f, cy-s*.5f, s, s}, nomes[d], r, g, b, a);
 }
@@ -632,7 +634,7 @@ static void icone(int d, float cx, float cy, float s, float r, float g, float b,
 // Os icones da barra CLASSICA: os de traco do mockup (tools/icones-menu.sh).
 // A Dinamica continua chamando icone(), com os menu_*.png de sempre.
 static void iconeTraco(int d, float cx, float cy, float s, float r, float g, float b, float a) {
-  static const char *nomes[MENU_N] = {"mt_inicio", "mt_explorar", "mt_guia", "mt_busca", "mt_biblioteca", "mt_agenda", "mt_perfil", "mt_ajustes"};
+  static const char *nomes[MENU_N] = {"mt_inicio", "mt_biblioteca", "mt_explorar", "mt_guia", "mt_busca", "mt_biblioteca", "mt_agenda", "mt_perfil", "mt_ajustes"};
   if (d < 0 || d >= MENU_N) return;
   gfx_icone((GfxRect){cx-s*.5f, cy-s*.5f, s, s}, nomes[d], r, g, b, a);
 }
@@ -919,7 +921,7 @@ static int tvAtivo(void) { return ajustes_home_layout() == HOME_LAYOUT_DINAMICA;
 
 // Ordem do original: Inicio, Busca, Explorar... (o resto segue a ordem do app).
 static const int TV_ORDEM[MENU_N] = {
-  MENU_INICIO, MENU_BUSCAR, MENU_EXPLORAR, MENU_GUIA, MENU_AGENDA,
+  MENU_INICIO, MENU_GALERIA, MENU_BUSCAR, MENU_EXPLORAR, MENU_GUIA, MENU_AGENDA,
   MENU_BIBLIOTECA, MENU_PERFIL, MENU_AJUSTES
 };
 static const char *tvRotulo(int d) { return menu_rotulo(d); }
