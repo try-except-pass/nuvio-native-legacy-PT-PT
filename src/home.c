@@ -452,6 +452,9 @@ static Uint32 heroUltTecla;
 // atravessava o catalogo inteiro (281 titulos na conta do dono) — invisivel
 // enquanto ninguem contava, mentira assim que aparece um "3 / 281" na tela e a
 // pessoa tenta chegar ao fim.
+static int homeVista;   // 0 Home, 1 segunda aba (Galeria); ver home_definir_vista
+// dono (2026-10-26): a Galeria nao tem destaque; o resto dos ajustes e o da Home.
+static int heroLigado(void) { return ajustes_hero_ligado() && !homeVista; }
 #undef NV_LEGACY_ROW_HEAD_H
 #define NV_LEGACY_ROW_HEAD_H (ajustes_fil_titulos() ? 64.0f : 22.0f)   // sem titulo, so a folga ate os cartazes
 #define HOME_HERO_LISTA 10
@@ -862,7 +865,7 @@ static float heroVisivelToque(void) {
 // Onde a fileira EM FOCO ancora o titulo dela. E tambem a referencia do
 // esvanecer das de cima (o `fade` de home_desenhar).
 static float topoFileiras(void) {
-  int heroOn = ajustes_hero_ligado();
+  int heroOn = heroLigado();
   if (homeRetratoTelefone() && !heroOn) return ANC(NV_DIN_TOPO_FIL);
   switch (layoutHome()) {
     case HOME_LAYOUT_PADRAO:
@@ -876,10 +879,10 @@ static float topoFileiras(void) {
 // a fileira que sai NAO passar por cima dele; a Dinamica nao corta — a fileira
 // some pelo esvanecer e o destaque ja subiu.
 static float corteFileiras(void) {
-  if (homeRetratoTelefone() && !ajustes_hero_ligado()) return 132.0f;
+  if (homeRetratoTelefone() && !heroLigado()) return 132.0f;
 #ifdef NV_TOUCH_UI
   if (heroCompactoTelefone() && toqueLivreY) {
-    if (!ajustes_hero_ligado()) return 132.0f;
+    if (!heroLigado()) return 132.0f;
     if (layoutHome() == HOME_LAYOUT_PADRAO)
       return fmaxf(132.0f, ANC(NV_PAD_BANNER_Y + NV_PAD_BANNER_H + 8.0f) - scrollY);
     if (layoutHome() == HOME_LAYOUT_DINAMICA) return 132.0f;
@@ -888,7 +891,7 @@ static float corteFileiras(void) {
 #endif
   switch (layoutHome()) {
     case HOME_LAYOUT_PADRAO:
-      return ajustes_hero_ligado() ? ANC(NV_PAD_BANNER_Y + NV_PAD_BANNER_H + 8.0f) : 0.0f;
+      return heroLigado() ? ANC(NV_PAD_BANNER_Y + NV_PAD_BANNER_H + 8.0f) : 0.0f;
     case HOME_LAYOUT_DINAMICA: return 0.0f;
     default:                   return ANC(NV_SHELF_TOP - (heroCompactoTelefone() ? 0.0f : 96.0f));
   }
@@ -898,7 +901,7 @@ static float corteFileiras(void) {
 // esta. Dinamica: a distancia entre "primeira fileira espiando" e "fileira em
 // foco", que e o quanto o destaque sobe ao descer.
 static float empurraHero(void) {
-  int heroOn = ajustes_hero_ligado();
+  int heroOn = heroLigado();
   if (homeRetratoTelefone() && !heroOn) return 0.0f;
   switch (layoutHome()) {
     case HOME_LAYOUT_PADRAO:   return 0.0f;
@@ -1051,7 +1054,6 @@ static int heroSetCat, heroSetNFil;
 // diferente por quadro; sortear uma vez por arranque e o que "lista aleatoria"
 // quer dizer para quem esta no sofa.
 static unsigned heroSemente;
-static int homeVista;   // 0 Home, 1 segunda aba; ver home_definir_vista
 
 // SEM REPETIDOS no sorteio "*" (dono, 2026-10-26): hashes dos titulos ja
 // oferecidos nesta sessao. O mesmo filme em varias fileiras do catalogo conta
@@ -2122,7 +2124,7 @@ static int toqueHeroValido(void) {
 
 static void toqueHeroAtualizar(float dt, Uint32 agora, int oculto, int reduzido) {
   if (!toqueHero.estado) return;
-  if (!telefoneui_ativo() || oculto || !ajustes_hero_ligado() || !toqueHeroValido()) {
+  if (!telefoneui_ativo() || oculto || !heroLigado() || !toqueHeroValido()) {
     toqueHeroCancelar(); return;
   }
   heroUltTecla = agora;
@@ -2149,7 +2151,7 @@ static void toqueHeroAtualizar(float dt, Uint32 agora, int oculto, int reduzido)
 static int toqueHeroRolar(const PonteiroRolagem *e) {
   if (!telefoneui_ativo()) { toqueHeroCancelar(); return 0; }
   if (e->fase == PONT_ROL_INICIO) {
-    if (e->eixoY || toqueHero.estado || !ajustes_hero_ligado() ||
+    if (e->eixoY || toqueHero.estado || !heroLigado() ||
         heroVisivelToque() <= .25f || detail_aberto() || player_aberto() ||
         e->x < homeConteudoX() || e->x >= NV_TELA_W ||
         e->y < fmaxf(0.0f, heroArteRect.y) ||
@@ -2867,7 +2869,7 @@ static void home_evento_(const SDL_Event *e) {
   }
   else if (k == SDLK_DOWN)  focoVertical(1);
   else if (k == SDLK_UP && !focoVertical(-1)) {
-    if (ajustes_hero_ligado() && cat_n() > 0) focoHero = 1;
+    if (heroLigado() && cat_n() > 0) focoHero = 1;
     else if (ajustes_menu_topo()) pedidoMenu = 1;
     else pedidoRelogio = 1;
   }
@@ -2894,7 +2896,7 @@ static int assinaturaPrefs(void) {
        | (ajustes_home_layout() << 8)
        // Ligar/desligar o destaque decide se a primeira fileira vira vitrine
        // (vitrineNaPrimeira).
-       | (ajustes_hero_ligado() ? 1 << 12 : 0)
+       | (heroLigado() ? 1 << 12 : 0)
        | (ajustes_ocultar_filmes_vistos() ? 1 << 13 : 0)
        | (ajustes_bib_home() ? 1 << 14 : 0);
 }
@@ -2912,7 +2914,7 @@ static int assinaturaPrefs(void) {
 // cartoes deitados e era a unica em Automatico que nao saia como as outras.
 // Quem quer a vitrine ali escolhe "Paisagem grande" no Estilo da fileira.
 static int vitrineNaPrimeira(void) {
-  return ajustes_home_layout() == HOME_LAYOUT_DINAMICA || !ajustes_hero_ligado();
+  return ajustes_home_layout() == HOME_LAYOUT_DINAMICA || !heroLigado();
 }
 
 // --- DINAMICA: A FORMA DE CADA FILEIRA SAI DO QUE ELA E ------------------------
@@ -3715,6 +3717,7 @@ void home_definir_vista(int v) {
   homeVista = v;
   heroSetRev = 0;      // o conjunto do destaque tambem depende da aba
   home_ir_topo();
+  focoHero = heroLigado() ? 1 : 0;   // sem destaque (Galeria) o foco comeca na primeira fileira
 }
 
 // A HOME SE MONTA POR TRAS DA ESCOLHA DE PERFIL (app.c), mas NAO E PINTADA. Sem
@@ -4280,7 +4283,7 @@ static const char *dinArteDaCor(void) {
   const Fileira *f;
   int idx, deitado;
   if (dinColArte[0] && dinColAlfa > 0.3f) return dinColArte;   // colecao em foco
-  if (ajustes_hero_ligado()) return arte_por_identidade(heroAtual, 2);
+  if (heroLigado()) return arte_por_identidade(heroAtual, 2);
   if (foco.fileira < 0 || foco.fileira >= nFileiras) return NULL;
   f = &fileiras[foco.fileira];
   if (f->tipo == FILEIRA_SOCIAL || f->tipo == FILEIRA_CATALOGOS) return NULL;
@@ -6240,11 +6243,11 @@ static void home_trailer_passo_(int topo, float dt, Uint32 agora) {
   // ja segue o card em repouso (heroAtual, ver "O HERO SEGUE O FOCO"), entao o
   // trailer toca onde a arte dele ja esta. Espera o mesmo tempo da expansao do
   // cartaz, contado de quando o foco parou nele.
-  { int noHero = focoHero && ajustes_hero_ligado() && heroSetting;
+  { int noHero = focoHero && heroLigado() && heroSetting;
     // Use the saved layout: Dinamica keeps hero trailers disabled even when
     // Stage/Split borrow Moderna geometry.
     int noCartaz = !focoHero && posterSetting &&
-                   (destCartao || (ajustes_hero_ligado() && ajustes_home_layout() != HOME_LAYOUT_DINAMICA)) &&
+                   (destCartao || (heroLigado() && ajustes_home_layout() != HOME_LAYOUT_DINAMICA)) &&
                    (destCartao || heroPendente == heroAtual) &&
                    agora - heroPendenteEm >= (Uint32)(ajustes_expandir_poster_atraso() * 1000.0f);
     // No card: the focused card drawn last frame must accept the video.
@@ -6252,7 +6255,7 @@ static void home_trailer_passo_(int topo, float dt, Uint32 agora) {
     if (destCartao && !cartaoAssentado(agora)) cartaoTrailerServe = 0;
     pronto = topo && (noHero || noCartaz);
     if (!topo) motivo = HERO_GATE_OVERLAY;
-    else if (!destCartao && !ajustes_hero_ligado()) motivo = HERO_GATE_DISABLED;
+    else if (!destCartao && !heroLigado()) motivo = HERO_GATE_DISABLED;
     else if (focoHero ? !heroSetting : !posterSetting) motivo = HERO_GATE_SETTING;
     else if (!destCartao && !focoHero && ajustes_home_layout() == HOME_LAYOUT_DINAMICA) motivo = HERO_GATE_DYNAMIC;
     else if (!noHero && !noCartaz) motivo = HERO_GATE_POSTER_WAIT;
@@ -7922,13 +7925,13 @@ static void home_desenhar_(Uint32 agora) {
   desenhaFundo(agora);
   float pd = detail_progresso();
   const int vazioQr = homevazio_ativo(nFileiras);   // sem add-ons: o cartao com o QR no lugar da Home
-  if ((ajustes_hero_ligado() || dinPalcoSplit() || palcoFundoModo != PALCO_ATUAL) &&
+  if ((heroLigado() || dinPalcoSplit() || palcoFundoModo != PALCO_ATUAL) &&
       !vazioQr && palcoFundoAlpha > 0.004f) {
     gfx_opacidade_grupo = palcoFundoModo == PALCO_ATUAL ? palcoFundoAlpha : 1.0f;
     desenhaHero(agora, pd);
     gfx_opacidade_grupo = 1.0f;
   }
-  if (ajustes_hero_ligado() && !vazioQr && heroVisivelToque() > 0.25f) {
+  if (heroLigado() && !vazioQr && heroVisivelToque() > 0.25f) {
     float heroBaixo = layoutHome() == HOME_LAYOUT_DINAMICA
                     ? dinHeroY() + alturaTextoHeroDin() : corteFileiras();
     if (heroBaixo > 0.0f)
