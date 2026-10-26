@@ -1071,7 +1071,9 @@ static unsigned heroSemente;
 static unsigned heroVistos[HERO_VISTOS_MAX];
 static int heroVistosN, heroVistosBase;   // Base = o que ja ficou para tras ao abrir a janela atual
 static unsigned heroHashTitulo(const CatItem *c) {
-  const unsigned char *p = (const unsigned char *)(c->imdb[0] ? c->imdb : c->titulo);
+  const unsigned char *p;
+  if (!c) return 0;   // catalogo vazio (arranque sem cache): 0 = "nenhum" para quem compara
+  p = (const unsigned char *)(c->imdb[0] ? c->imdb : c->titulo);
   unsigned h = 2166136261u;
   while (*p) h = (h ^ *p++) * 16777619u;
   return h ? h : 1u;

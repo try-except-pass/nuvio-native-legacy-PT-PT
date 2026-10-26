@@ -930,6 +930,33 @@ static EM_BOOL cicloWgt(int tipo, const EmscriptenVisibilityChangeEvent *e, void
 }
 #endif
 
+// [quadros] (dono, 2026-10-26: "fluidez de Netflix, com dados"): percentis do intervalo entre quadros na
+// janela de 3 s, quantos passaram do orcamento de 60 Hz e a latencia tecla -> primeiro quadro apresentado.
+#define QJ_MAX 1024
+static double qjDt[QJ_MAX];
+static int qjN;
+static Uint32 qjTeclaEm;                 // KEYDOWN ainda sem quadro apresentado (0 = nenhuma)
+static double qjLatSoma, qjLatMax;
+static int qjLatN;
+static int qjCmp(const void *a, const void *b) {
+  double x = *(const double *)a, y = *(const double *)b;
+  return x < y ? -1 : x > y;
+}
+static void qjRelatar(void) {
+  double o[QJ_MAX];
+  int i, acima = 0, perdidos = 0;
+  if (qjN > 0) {
+    memcpy(o, qjDt, sizeof(double) * (size_t)qjN);
+    qsort(o, (size_t)qjN, sizeof(double), qjCmp);
+    for (i = 0; i < qjN; i++) { if (o[i] > 17.5) acima++; if (o[i] > 25.0) perdidos++; }
+    printf("[quadros] n=%d p50=%.1f p95=%.1f p99=%.1f max=%.1f acima16=%d perdidos=%d"
+           " | tecla n=%d med=%.0fms max=%.0fms\n",
+           qjN, o[qjN / 2], o[(qjN * 95) / 100], o[(qjN * 99) / 100], o[qjN - 1], acima, perdidos,
+           qjLatN, qjLatN ? qjLatSoma / qjLatN : 0.0, qjLatMax);
+  }
+  qjN = 0; qjLatN = 0; qjLatSoma = qjLatMax = 0.0;
+}
+
 int main(int argc, char **argv) {
   // NUMERO COM PONTO, SEMPRE. O host .NET do .tpk poe o processo no locale do
   // idioma da TV, e em alemao/portugues/russo o printf("%.2f") sai "0,50" e o
@@ -1883,6 +1910,7 @@ int main(int argc, char **argv) {
     // Enquanto o detalhe existe ele fica com o teclado inteiro: a home
     // continua desenhada por baixo, mas nao deve reagir ao D-pad.
     while (SDL_PollEvent(&e)) {
+      if (e.type == SDL_KEYDOWN && !e.key.repeat && !qjTeclaEm) qjTeclaEm = e.key.timestamp ? e.key.timestamp : SDL_GetTicks();
 #if defined(NV_ANDROID) && defined(NV_TOUCH_UI)
       if (android_toque_cancelado(&e)) {
         ponteiro_cancelar_toque();
@@ -2117,6 +2145,7 @@ int main(int argc, char **argv) {
                          pGfxMs=fGfxMs; pTexMs=fTexMs; pNRect=fNRect; pNProg=fNProg;
                          pNBind=fNBind; pNBusca=fNBusca; pOutMs=fOutMs; pNOut=fNOut; pFill=fFill; pNCheio=fNCheio; pTela=fTela; pTrans=fTrans; }
       if (dtms > swapint_limite_jank(&swapInt)) janks++;
+      if (qjN < QJ_MAX) qjDt[qjN++] = dtms;
     }
     // Automatic glass belongs to the shared FPS ladder (gpunivel.h).
     // RASTRO POR QUADRO, so com /tmp/nuvio-quadros presente (conferido no
@@ -2309,6 +2338,12 @@ int main(int argc, char **argv) {
     }
     if (!nvPrimeiroQuadroFeito) arranque_etapa("primeiro SwapWindow");
     SDL_GL_SwapWindow(win);
+    if (qjTeclaEm) {
+      double lat = (double)(Uint32)(SDL_GetTicks() - qjTeclaEm);
+      qjLatSoma += lat; qjLatN++; if (lat > qjLatMax) qjLatMax = lat;
+      if (lat > 100.0) printf("[tecla] lenta: %.0f ms ate o quadro (tela=%s)\n", lat, app_tela_nome());
+      qjTeclaEm = 0;
+    }
 #ifndef __EMSCRIPTEN__
     { unsigned wait = player_frame_wait(playerUi, SDL_GetTicks() - frameStarted);
       if (wait) SDL_Delay(wait); }
@@ -2671,6 +2706,7 @@ int main(int argc, char **argv) {
                   txt_despejos);
           fclose(fp);
         } }
+      qjRelatar();
       quadros = 0; ultRelato = agora; pior = 0; janks = 0; piorTxtMs = 0; piorTxtN = 0;
       txt_despejos = 0;
       tex_despejos = 0; tex_despejos_quentes = 0;
