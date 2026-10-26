@@ -9378,7 +9378,7 @@ static void ffEscolher(void) {
     static const char *const alfabeto =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789, ._-+";
     FonteFiltroConfig cfg; char contexto[160]; fontefalha_filtro(&cfg);
-    snprintf(contexto, sizeof contexto, "%s · %s", i18n("Fontes e addons"), i18n("Filtros das fontes"));
+    snprintf(contexto, sizeof contexto, "%s · %s", i18n("Reprodução"), i18n("Filtros das fontes"));
     teclado_contexto(contexto); stCampo = AJ_FILTRO_GRUPOS;
     teclado_abrir_com("Grupos de lançamento excluídos", "Ex.: YTS, EZTV, RARBG. Vazio remove o filtro.",
                       TECLADO_LONGO, alfabeto, cfg.grupos);

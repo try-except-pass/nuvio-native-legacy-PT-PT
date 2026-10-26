@@ -35,7 +35,7 @@ static const char *const VID_NOMES[VID_NU] = {
 typedef struct {
   GLuint prog;
   GLint rect, tela, tex, foco, reflexo, par, raio, cor, asp, texAsp, forcarCover, veuTela, heroiVeu, borda, varre, veu, desl, fundo,
-        sombra, sombraCy, sombraR, grad0, grad1, grad2, tempo, reg0, reg1, reg2, reg3, vaza, acento;
+        sombra, grad0, grad1, grad2, tempo, reg0, reg1, reg2, reg3, vaza, acento;
   GLint amb, ambOn;         // uAmb/uAmbOn: so os tres modos de arte com rampa
   GLint texB, texAspB, alfaB;   // camadas do destaque (gfx_hero_camadas)
   GLint alt;     // uAlt: altura do rect em pixels do alvo (a rampa de 1 px do SDF)
@@ -99,11 +99,7 @@ int gfx_veu_na_arte = 0;
 // rampas/veu ficam paradas; o que sai do retangulo nao pinta. 0 = no lugar.
 // Mesmo regime do rebordo: global, e quem mexe devolve a 0.
 float gfx_desliza_atual = 0.0f;
-// A sombra do canto do destaque (nv_sombra_canto). Quem muda devolve com gfx_hero_sombra_padrao().
-float gfx_hero_sombra_cy = 1.0f;   // centro vertical (UV): 1 = base do destaque
-float gfx_hero_sombra_r = 0.75f;
-float gfx_hero_sombra = 0.75f;
-void gfx_hero_sombra_padrao(void) { gfx_hero_sombra_cy = 1.0f; gfx_hero_sombra_r = 0.75f; gfx_hero_sombra = ajustes_hero_sombra(); }
+float gfx_hero_sombra = 0.75f;   // forca da sombra do canto do destaque (nv_sombra_canto)
 float gfx_opacidade_grupo = 1.0f;
 float gfx_osd_mult = 1.0f;
 float gfx_hdr_ui = 1.0f;
@@ -296,8 +292,6 @@ static const char *FS_CABECA =
   "uniform vec4  uVeu;     // GFX_CARD: dois veus da base (fracao, alfa)\n"
   "uniform float uDesliza;\n"
   "uniform float uSombra;   // forca da sombra do canto do destaque\n"
-  "uniform float uSombraCy; // centro vertical (UV) da sombra: acompanha o bloco do titulo\n"
-  "uniform float uSombraR;  // raio vertical (UV) da sombra\n"
   "#if !defined(GL_ES) || defined(GL_FRAGMENT_PRECISION_HIGH)\n"
   "uniform highp vec2 uPar;\n"
   "#else\n"
@@ -421,9 +415,9 @@ static const char *FS_CABECA =
   "  float ad = (a > 0.0 && a < 1.0) ? clamp(a + 2.0*n, 0.0, 1.0) : a;\n"
   "  return vec4(clamp(c + n / max(a, 0.004), 0.0, 1.0), ad);\n"
   "}\n"
-  // A sombra do canto do destaque: miolo cheio ate 55 % do raio (home.c dimensiona uSombraR por isso), some ate a borda.
+  // A sombra do canto inferior esquerdo do destaque, atras do titulo (Ajustes > Sombra do destaque).
   "float nv_sombra_canto(){\n"
-  "  return uSombra * (1.0 - smoothstep(0.55, 1.0, length(vec2(vUv.x / 0.70, (vUv.y - uSombraCy) / uSombraR))));\n"
+  "  return uSombra * (1.0 - smoothstep(0.55, 1.0, length(vec2(vUv.x / 0.60, (1.0 - vUv.y) / 0.75))));\n"
   "}\n"
   // uAlt = altura do rect em PIXELS DO ALVO. O SDF mede em fracao da altura,
   // entao 1 px la e 1/uAlt; e o que deixa a rampa da borda com 1 px em
@@ -1787,8 +1781,6 @@ static int progMontar(int m) {
   progs[m].veu    = glGetUniformLocation(p, "uVeu");
   progs[m].desl   = glGetUniformLocation(p, "uDesliza");
   progs[m].sombra = glGetUniformLocation(p, "uSombra");
-  progs[m].sombraCy = glGetUniformLocation(p, "uSombraCy");
-  progs[m].sombraR = glGetUniformLocation(p, "uSombraR");
   progs[m].fundo  = glGetUniformLocation(p, "uFundo");
   progs[m].acento = glGetUniformLocation(p, "uAcento");
   progs[m].grad0  = glGetUniformLocation(p, "uGrad0");
@@ -2703,8 +2695,6 @@ void gfx_rect(GfxRect r, GLuint tex, GfxModo modo, float foco,
   }
   if (P->desl >= 0)   glUniform1f(P->desl, gfx_desliza_atual);
   if (P->sombra >= 0) glUniform1f(P->sombra, gfx_hero_sombra);
-  if (P->sombraCy >= 0) glUniform1f(P->sombraCy, gfx_hero_sombra_cy);
-  if (P->sombraR >= 0) glUniform1f(P->sombraR, gfx_hero_sombra_r);
   // So os tres modos de rampa declaram uFundo: e uma chamada por destaque ou
   // fundo de detalhe desenhado, nao por retangulo.
   if (P->fundo >= 0)  glUniform3f(P->fundo, NV_COR_FUNDO_R, NV_COR_FUNDO_G, NV_COR_FUNDO_B);

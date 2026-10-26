@@ -7,6 +7,8 @@ const char *ajweb_url(void) { return ""; }
 #else
 
 #include "ajweb_pagina.h"
+#include "registro.h"
+#include "resolucao.h"
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
@@ -36,6 +38,7 @@ int   ajustes_web_aplicar(const char *chave, int valor);
 
 #define AW_CAB_MAX   8192
 #define AW_CORPO_MAX 16384
+#define AW_LOG_MAX (6L * 1024 * 1024)   // o fim do log que a pagina baixa
 #define AW_PRAZO_MS  5000     // um pedido inteiro, do accept ao fim do corpo
 #define AW_ESPERA_S  4        // quanto o fio espera o fio principal
 
@@ -300,6 +303,52 @@ static void atender(int c) {
     if (!strcmp(metodo, "GET")) puts("[ajweb] pagina aberta");
     if (strcmp(metodo, "GET") && strcmp(metodo, "HEAD")) { responder(c, 405, NULL, NULL, "Allow: GET, HEAD\r\n"); return; }
     responder(c, 200, "text/html; charset=utf-8", metodo[0] == 'G' ? AJWEB_PAGINA : NULL, NULL);
+    return;
+  }
+  // O REGISTRO DO APP para baixar (dono, 2026-10-26): o fim do log (ate AW_LOG_MAX), com o caminho das URLs
+  // mascarado como no painel da TV, e um cabecalho com a versao e a hora.
+  if (!strcmp(caminho + n, "/api/log")) {
+    const char *arq = registro_arquivo();
+    FILE *f;
+    long tamArq, ini;
+    char *bruto, *saida, *p, *o;
+    size_t lidos;
+    if (strcmp(metodo, "GET")) { responder(c, 405, NULL, NULL, "Allow: GET\r\n"); return; }
+    fflush(stdout);
+    f = arq ? fopen(arq, "rb") : NULL;
+    if (!f) { responder(c, 404, NULL, "No log file on this device.\n", NULL); return; }
+    fseek(f, 0, SEEK_END);
+    tamArq = ftell(f);
+    ini = tamArq > AW_LOG_MAX ? tamArq - AW_LOG_MAX : 0;
+    fseek(f, ini, SEEK_SET);
+    bruto = malloc((size_t)(tamArq - ini) + 1);
+    saida = malloc((size_t)(tamArq - ini) + 256);
+    if (!bruto || !saida) { fclose(f); free(bruto); free(saida); responder(c, 503, NULL, NULL, NULL); return; }
+    lidos = fread(bruto, 1, (size_t)(tamArq - ini), f);
+    fclose(f);
+    bruto[lidos] = 0;
+    { time_t t = time(NULL); char quando[40];
+      strftime(quando, sizeof quando, "%Y-%m-%d %H:%M:%S", localtime(&t));
+      o = saida + sprintf(saida, "# Nuvio %s log, downloaded %s (%ld of %ld bytes)\n", NV_VERSAO, quando,
+                          (long)lidos, tamArq); }
+    p = bruto;
+    if (ini > 0) { char *nl = strchr(p, '\n'); p = nl ? nl + 1 : p; }   // comeca numa linha inteira
+    while (*p) {
+      char *nl = strchr(p, '\n');
+      size_t k;
+      if (nl) *nl = 0;
+      registro_mascarar(p);
+      k = strlen(p);
+      memcpy(o, p, k); o += k; *o++ = '\n';
+      if (!nl) break;
+      p = nl + 1;
+    }
+    *o = 0;
+    free(bruto);
+    puts("[ajweb] registro baixado");
+    responder(c, 200, "text/plain; charset=utf-8", saida,
+              "Content-Disposition: attachment; filename=\"nuvio-log.txt\"\r\n");
+    free(saida);
     return;
   }
   if (!strcmp(caminho + n, "/api/settings")) {

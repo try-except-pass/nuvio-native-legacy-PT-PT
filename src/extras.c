@@ -2349,6 +2349,17 @@ int extras_colecao_nota(int i) { return (i >= 0 && i < nCol) ? col[i].nota : 0; 
 int extras_n_estudios(void) { return nEstudio; }
 // O idioma original do titulo que esta na ficha, ou "" quando nao se sabe.
 const char *extras_idioma_original(void) { return fichaIdiomaOrig; }
+// A ficha carregada (ou a caminho) e deste titulo? Compara o id do titulo, sem o sufixo de episodio.
+int extras_e_do_titulo(const char *imdb) {
+  size_t n;
+  int r;
+  if (!imdb || !imdb[0]) return 0;
+  n = strcspn(imdb, ":");
+  pthread_mutex_lock(&trava);
+  r = idPedido[0] && strlen(idPedido) == n && !strncmp(idPedido, imdb, n);
+  pthread_mutex_unlock(&trava);
+  return r;
+}
 
 const char *extras_estudio_nome(int i) {
   return (i >= 0 && i < nEstudio) ? estudio[i].nome : "";

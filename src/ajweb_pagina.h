@@ -53,6 +53,7 @@ static const char AJWEB_PAGINA[] =
   "  <label class=\"chk\"><input id=\"tv\" type=\"checkbox\"> Allow settings that apply to the whole TV</label>\n"
   "  <button id=\"re\" title=\"Re-read the values from the TV\">Refresh</button>\n"
   "  <button id=\"ex\">Export</button>\n"
+  "  <a id=\"lg\" href=\"api/log\" download=\"nuvio-log.txt\" title=\"Download the app log (URL paths masked) to send for troubleshooting\"><button type=\"button\">Download log</button></a>\n"
   "  <label class=\"bt\">Import<input id=\"im\" type=\"file\" accept=\"application/json\" hidden></label>\n"
   "</header>\n"
   "<div class=\"layout\"><nav id=\"nav\"></nav><main id=\"main\"><div class=\"vazio\">Reading the TV settings…</div></main></div>\n"

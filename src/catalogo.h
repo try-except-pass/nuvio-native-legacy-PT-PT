@@ -464,6 +464,8 @@ typedef struct {
   // o catalogo unico, que e o que a biblioteca e a busca varrem. Duplicar os
   // itens por fileira custaria ~3,5 KB por titulo repetido.
   int  ini, n;
+  // Titulos logo DEPOIS da janela (ini + n ...) que a fileira nao mostra: a reserva do destaque (descoberta.c).
+  int  nCauda;
   // 1 = resposta valida explicitamente vazia. A linha permanece na
   // estrutura para que uma resposta parcial nao desloque as seguintes.
   int estado;

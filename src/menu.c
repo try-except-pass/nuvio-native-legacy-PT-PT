@@ -327,15 +327,7 @@ static void desenhaMaterial(const MenuGeo *g, float a) {
   if (a <= 0.01f) return;
   if (padrao() && !topo()) { r.x -= g->raio; r.w += g->raio; }
   raio = g->raio / r.h;
-  // O box-shadow do CSS: o retangulo deslocado `dy` e alargado `b` (o blur)
-  // em cada lado, com a queda em PIXELS (GFX_SOMBRA com uPar.x): metade da
-  // forca na borda do painel, como a gaussiana do navegador.
-  { int vidro = ajustes_vidro();
-    // The top chrome shares the island shadow: 0 10 30 at 34 %.
-    float b = MK(vidro && !topo() ? 40.0f : 30.0f), dy = MK(vidro && !topo() ? 14.0f : 10.0f);
-    GfxRect s = { r.x - b, r.y + dy - b, r.w + 2.0f * b, r.h + 2.0f * b };
-    gfx_sombra_sob(s, 1.0f, b * 1.41f * gfx_escala(), (g->raio + b) / s.h,
-                   0, 0, 0, (topo() ? 0.34f : vidro ? 0.36f : 0.45f) * a, r, g->raio, vidro ? 0.0f : a); }
+  // Sem sombra (dono, 2026-10-26): nem a barra lateral, nem a do topo, nem o circulo do perfil.
   if (topo()) { gfx_vidro_camada = 1; gfx_chrome(r, raio, a); gfx_vidro_camada = 0; }
   else if (ajustes_vidro()) {
     // Fechada, os .80 do mockup (a rail fica sobre a arte do destaque).

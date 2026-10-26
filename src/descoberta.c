@@ -1640,7 +1640,6 @@ static int lerCatalogoHome(const char *base, const char *tipo, const char *id,
 #define HERO_CAUDA_FIL   24
 #define HERO_CAUDA_TOTAL 200
 #define HERO_CAUDA_FOLGA 800
-static int heroFonteAutomatica(void) { const char *f = fil_hero_fonte(); return !f[0] || (f[0] == '*' && !f[1]); }
 
 // filsMontadas = as janelas do bloco QUE ESTA PUBLICADO, e nada alem disso.
 // desc_remontar_fileiras republica este vetor por cima do bloco da tela sem
@@ -2996,8 +2995,9 @@ static void *fioCatalogo(void *u) {
       CatItem *cauda = NULL;
       if (ajustes_ocultar_filmes_vistos() && !strcmp(t->tipo, "movie"))
         ampliados = malloc(sizeof *ampliados * HOME_VISTOS_MAX);
-      // RESERVA DO DESTAQUE (ver HERO_CAUDA_*): a mesma resposta traz mais que a fileira mostra. Com o destaque no automatico/"*" a cauda fica, em vez de ser descartada.
-      else if (heroFonteAutomatica())
+      // RESERVA DO DESTAQUE (ver HERO_CAUDA_*): a mesma resposta traz mais que a fileira mostra; a cauda fica,
+      // em vez de ser descartada, qualquer que seja a fonte do destaque (automatico, "*" ou fileiras escolhidas).
+      else
         cauda = malloc(sizeof *cauda * (size_t)(q + HERO_CAUDA_FIL));
       got = lerCatalogoHomeParcial(t->base, t->tipo, t->id, ampliados ? ampliados : cauda ? cauda : t->itens,
                             ampliados ? HOME_VISTOS_MAX : cauda ? q + HERO_CAUDA_FIL : MAX_POR_FILEIRA,
@@ -5243,7 +5243,7 @@ static void *montar(void *u) {
             if (m > CAT_MAX - HERO_CAUDA_FOLGA - n) m = CAT_MAX - HERO_CAUDA_FOLGA - n;   // nunca toma a vaga das fileiras e listas
             GARANTE(m);
             if (m > cap - n) m = cap - n;
-            if (m > 0) { memcpy(lote + n, tarefas[k].heroCauda, sizeof(CatItem) * (size_t)m); n += m; caudaTotal += m; }
+            if (m > 0) { memcpy(lote + n, tarefas[k].heroCauda, sizeof(CatItem) * (size_t)m); n += m; caudaTotal += m; fil[nFil - 1].nCauda = m; }
           }
           pthread_mutex_lock(&cargaTrava); carga.fileiras++; pthread_mutex_unlock(&cargaTrava);
           printf("[desc] fileira %d: %s (%d)\n", nFil - 1, d->titulo, got);

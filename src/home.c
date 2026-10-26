@@ -1086,12 +1086,12 @@ static void heroMarcarVisto(unsigned h) {
   heroVistos[heroVistosN++] = h;
 }
 // O item do catalogo pertence a alguma fileira desta aba? (so o destaque automatico/sorteio usa)
-// Item fora de toda fileira (a reserva do destaque, descoberta.c) conta como desta aba: so a Home tem destaque.
+// A reserva do destaque (CatFileira.nCauda) e da aba da fileira dela; item fora de toda fileira conta como da Home.
 static int heroItemNaVista(int idx) {
   int r, n = cat_n_fileiras(), emAlguma = 0;
   for (r = 0; r < n; r++) {
     const CatFileira *cf = cat_fileira(r);
-    if (!cf || idx < cf->ini || idx >= cf->ini + cf->n) continue;
+    if (!cf || idx < cf->ini || idx >= cf->ini + cf->n + cf->nCauda) continue;
     if (fil_na_vista(cf->chave, homeVista)) return 1;
     emAlguma = 1;
   }
@@ -1126,12 +1126,23 @@ static int heroCandidatos(const char *fonte, int filtro, int *baralho, int cap) 
           if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = idx;
         }
       }
+      // A reserva do destaque desta fileira: os titulos depois da janela publicada (CatFileira.nCauda).
+      for (i = 0; i < cat_n_fileiras() && achou; i++) {
+        const CatFileira *cf = cat_fileira(i);
+        if (!cf || strcmp(cf->chave, t)) continue;
+        for (k = cf->n; k < cf->n + cf->nCauda && m < cap; k++) {
+          int idx = cf->ini + k;
+          const CatItem *c = (idx >= 0 && idx < cat_n()) ? cat_item(idx) : NULL;
+          if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = idx;
+        }
+        break;
+      }
       // #327: fileira nao desenhada (pasta de colecao / fora da Home): os titulos
       // estao no catalogo publicado.
       for (i = 0; i < cat_n_fileiras() && !achou; i++) {
         const CatFileira *cf = cat_fileira(i);
         if (!cf || strcmp(cf->chave, t)) continue;
-        for (k = 0; k < cf->n && m < cap; k++) {
+        for (k = 0; k < cf->n + cf->nCauda && m < cap; k++) {
           int idx = cf->ini + k;
           const CatItem *c = (idx >= 0 && idx < cat_n()) ? cat_item(idx) : NULL;
           if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = idx;
@@ -1183,10 +1194,12 @@ static void heroMontarSet(void) {
     for (;;) {
       int m = heroCandidatos(fonte, filtro, baralho, (int)(sizeof baralho / sizeof *baralho));
       int n = HOME_HERO_LISTA;
+      static unsigned hs[4096];   // o hash de cada candidato, uma vez so (era recalculado por item da lista anterior)
+      for (i = 0; i < m; i++) hs[i] = heroHashTitulo(cat_item(baralho[i]));
       // 1. o que ja estava na lista, na mesma ordem
       for (int q = 0; q < antN && heroSetN < n; q++) {
         for (i = 0; i < m; i++) {
-          unsigned h = heroHashTitulo(cat_item(baralho[i]));
+          unsigned h = hs[i];
           if (h != ant[q] || heroVisto(h)) continue;
           heroMarcarVisto(h);
           heroSet[heroSetN++] = baralho[i];
@@ -1201,8 +1214,9 @@ static void heroMontarSet(void) {
           x = x * 1103515245u + 12345u;
           j = i + (int)((x >> 16) % (unsigned)(m - i));
           { int t = baralho[i]; baralho[i] = baralho[j]; baralho[j] = t; }
+          { unsigned t = hs[i]; hs[i] = hs[j]; hs[j] = t; }
         }
-        h = heroHashTitulo(cat_item(baralho[i]));
+        h = hs[i];
         if (heroVisto(h)) continue;   // o mesmo titulo em outra fileira
         heroMarcarVisto(h);
         heroSet[heroSetN++] = baralho[i];
@@ -1226,8 +1240,24 @@ static void heroMontarSet(void) {
   if (!heroSetN)   // nenhuma fileira desta aba tem item ainda: o de sempre, o catalogo todo
     for (i = 0; i < total && heroSetN < HERO_AUTO_MAX; i++)
       if (!filmeVistoOculto(cat_item(i))) heroSet[heroSetN++] = i;
+  for (i = 0; i < heroSetN; i++) heroSetHash[i] = heroHashTitulo(cat_item(heroSet[i]));
 }
 
+// O ultimo titulo escolhido NO destaque (as fileiras levam o heroAtual para o cartaz em foco).
+static int heroUltNoDestaque = -1;
+// O CATALOGO E REPUBLICADO (cada fileira que chega, a volta da descoberta) e os indices mudam: o titulo na
+// tela continua o MESMO pela identidade (dono, 2026-10-26: "voltava para titulos ja vistos, fora de ordem").
+static unsigned heroHashNoSet(int idx) {
+  int i;
+  for (i = 0; i < heroSetN; i++) if (heroSet[i] == idx) return heroSetHash[i];
+  return 0;
+}
+static int heroIdxDoHash(unsigned h, int antes) {
+  int i;
+  if (!h) return antes;
+  for (i = 0; i < heroSetN; i++) if (heroSetHash[i] == h) return heroSet[i];
+  return antes;
+}
 static void heroSetGarantir(void) {
   unsigned fr = fil_revisao();
   int ocultar = ajustes_ocultar_filmes_vistos();
@@ -1238,12 +1268,18 @@ static void heroSetGarantir(void) {
     return;
   heroSetOcultaVistos = ocultar; heroSetItensRev = ir;
   heroSetFilRev = fr; heroSetCat = cn; heroSetNFil = nf; heroSetRev = 1;
-  heroMontarSet();
+  { unsigned hA = heroHashNoSet(heroAtual), hB = heroHashNoSet(heroAnterior), hP = heroHashNoSet(heroPendente),
+             hD = heroDesejado >= 0 ? heroHashNoSet(heroDesejado) : 0, hU = heroHashNoSet(heroUltNoDestaque);
+    heroMontarSet();
+    heroAtual = heroIdxDoHash(hA, heroAtual); heroAnterior = heroIdxDoHash(hB, heroAnterior);
+    heroPendente = heroIdxDoHash(hP, heroPendente); heroUltNoDestaque = heroIdxDoHash(hU, heroUltNoDestaque);
+    if (heroDesejado >= 0) heroDesejado = heroIdxDoHash(hD, heroDesejado); }
   // Os candidatos ja sao conhecidos: completa em segundo plano a sinopse dos
   // que vieram rasos (lista do Trakt), antes de o carrossel chegar a eles.
   desc_sinopse_hero(heroSet, heroSetN);
 }
 
+int home_hero_total(void) { return heroSetN; }   // so le: o relatorio [perf] (main.c) nao refaz a lista
 // Quantos titulos o destaque oferece.
 static int heroNLista(void) {
   heroSetGarantir();
@@ -3963,7 +3999,6 @@ static void home_atualizar_(float dt, Uint32 agora) {
     // ali o contador "3 / 10" tem de corresponder a arte, e um `heroAtual`
     // fora do conjunto nao tem posicao para mostrar.
     // dono (2026-10-26): voltar das fileiras ao destaque retoma o ultimo titulo escolhido nele, nao o primeiro.
-    static int heroUltNoDestaque = -1;
     if (!heroOculto && focoHero && heroNLista() > 0 && heroPosDe(heroAtual) >= 0) heroUltNoDestaque = heroAtual;
     if (!heroOculto && focoHero && heroNLista() > 0 && heroPosDe(heroAtual) < 0
 #ifdef NV_TOUCH_UI
@@ -4729,7 +4764,6 @@ void hero_meta_linha(const CatItem *ci, char *dst, size_t n) {
 
 // Teto e topo do bloco da Vitrine da colecao (home_vitrine_texto); 0 = Home.
 static float vitTeto, vitTopoBloco;
-static float heroSombraTopo, heroSombraBase;   // topo e base (px) do bloco do titulo no ultimo desenho
 static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
                              float base, int lay, int cheio, float logoH,
                              float sinW, int sinLinhas, float aTexto,
@@ -4893,7 +4927,6 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     copy.logo += dy; copy.caption += dy; copy.friends += dy; copy.meta += dy;
     copy.secondary += dy; copy.synopsis += dy; copy.action += dy;
   }
-  if (principal) { heroSombraTopo = copy.logo; heroSombraBase = copy.action + btnH; }   // a sombra do canto acompanha o bloco
   logoH = copy.logoHeight;
   float ySin = copy.synopsis, ySec = copy.secondary, yMeta = copy.meta;
   float logoY = copy.logo - cin * NV_CINEMA_DESCE;
@@ -8991,13 +9024,7 @@ void home_atualizar(float dt, Uint32 agora) { ajustes_galeria_aplicar(homeVista)
 void home_trailer_passo(int topo, float dt, Uint32 agora) { TXT_INI(); home_trailer_passo_(topo, dt, agora); TXT_FIM(); }
 void home_desenhar(Uint32 agora) {
   gfx_hero_sombra = ajustes_hero_sombra();
-  if (heroArteRect.h > 1.0f && heroSombraBase > heroSombraTopo) {
-    float meio = (heroSombraTopo + heroSombraBase) * 0.5f, meioH = (heroSombraBase - heroSombraTopo) * 0.5f;
-    gfx_hero_sombra_cy = (meio - heroArteRect.y) / heroArteRect.h;
-    gfx_hero_sombra_r = (meioH + 70.0f) / 0.55f / heroArteRect.h;   // 0,55 = o miolo de nv_sombra_canto (gfx.c): cobre o bloco inteiro
-  }
   ajustes_galeria_aplicar(homeVista); TXT_INI(); home_desenhar_(agora); TXT_FIM(); ajustes_galeria_aplicar(0);
-  gfx_hero_sombra_padrao();   // quem define devolve: o detalhe e as outras telas usam o canto de sempre
 }
 int home_cartao_foco_por_cima(int indice) {
   int r;

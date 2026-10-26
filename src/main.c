@@ -35,6 +35,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#ifndef __EMSCRIPTEN__
+#include <sys/resource.h>
+#include <dirent.h>
+#endif
 // SIGTERM tratado pelo app: webOS e desktop (Mac/Linux). No .tpk o host .NET e
 // dono do sinal, no Android o sistema mata sem SIGTERM util e no Tizen/WASM nao
 // ha sinal. Os desktops entram para o handler ser exercitavel por teste no Mac.
@@ -2420,6 +2424,23 @@ int main(int argc, char **argv) {
              rssMB(),
              memoria,
              dados_persistente() ? "" : "  <<< SEM PERSISTENCIA");
+#ifndef __EMSCRIPTEN__
+      // [perf] (dono, 2026-10-26: "lento em todo lugar"): o que o FPS acima nao mostra — CPU do processo na
+      // janela (todas as threads; > 100 % = mais de um nucleo), threads vivas, tamanho do catalogo e do destaque.
+      { static double cpuAnt;
+        struct rusage ru;
+        double cpu, pct = 0.0;
+        int threads = 0;
+        getrusage(RUSAGE_SELF, &ru);
+        cpu = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec / 1e6 + ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
+        if (cpuAnt > 0.0) pct = (cpu - cpuAnt) * 100000.0 / (double)(agora - ultRelato);
+        cpuAnt = cpu;
+        { DIR *d = opendir("/proc/self/task");
+          struct dirent *de;
+          if (d) { while ((de = readdir(d)) != NULL) if (de->d_name[0] != '.') threads++; closedir(d); } }
+        printf("[perf] tela=%s cpu=%.0f%% threads=%d catalogo=%d fileiras=%d destaque=%d\n",
+               app_tela_nome(), pct, threads, cat_n(), cat_n_fileiras(), home_hero_total()); }
+#endif
       // O medidor de desempenho na tela (desempenho.h) le os mesmos numeros.
       desempenho_amostra((float)(quadros * 1000.0 / (double)(agora - ultRelato)), (float)pior, janks,
                          quentes, (float)(bytesQ / 1048576.0), pend, tex_despejos, tex_despejos_quentes,

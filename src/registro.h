@@ -40,6 +40,8 @@
 // lugar so decide o caminho, e e o mesmo que o painel le. Sem isso os dois
 // lados combinariam "/tmp/nuvio.log" por coincidencia.
 const char *registro_arquivo(void);
+// Mascara o CAMINHO das URLs da linha (chaves de debrid viajam nele); o host fica. Encolhe no lugar.
+void registro_mascarar(char *linha);
 
 // 1 quando o evento foi CONSUMIDO. O chamador tem de devolver na hora — e a
 // mesma convencao das outras camadas de app.c.

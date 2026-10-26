@@ -9,6 +9,7 @@
 #include "livetv_regras.h"
 #include "idioma.h"
 #include "linguas.h"
+#include "extras.h"
 #include "badges.h"
 #include "selospacote.h"
 #include "logotitulo.h"
@@ -1128,6 +1129,9 @@ static double duracaoDaLista(void) {
   return seg;
 }
 static const char *idiomaPreferidoFonte(void) {
+  // "Original" vale o idioma DESTE titulo. O player so o define ao abrir — depois de a fonte ser escolhida —, e
+  // ate la ficava o do titulo anterior: as fontes eram ordenadas pelo idioma errado (dono, 2026-10-26).
+  if (alvoLista[0]) ling_definir_original(extras_e_do_titulo(alvoLista) ? extras_idioma_original() : "");
   const char *c = ajustes_fonte_idioma_audio() ? ling_audio() : "";
   return c ? c : "";
 }

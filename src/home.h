@@ -161,3 +161,6 @@ const char *home_rastro_foco(void);
 int  home_fileira_titulos(int *out, int max, int *pos);
 // Poe o foco da fileira atual no titulo `indice` (a volta do carrossel).
 void home_focar_titulo(int indice);
+
+// Quantos titulos a lista do destaque tem agora (sem refazer a lista).
+int home_hero_total(void);

@@ -155,6 +155,9 @@ static void mascarar(char *s) {
   }
 }
 
+// Para quem exporta o log inteiro (a pagina de ajustes no navegador, ajweb.c): a mesma mascara.
+void registro_mascarar(char *linha) { mascarar(linha); }
+
 // Corta lixo de UTF-8 no FIM: snprintf trunca por BYTE, e uma sequencia
 // invalida faz o SDL_ttf devolver linha VAZIA.
 static void aparaUtf8(char *s) {

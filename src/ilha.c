@@ -1169,13 +1169,15 @@ static float larguraCartao(const IlhaCartao *c, int qual, LinhasCartao *L) {
                    10.0f + (float)L->meta.w + (qual != ILHA_VIVO ? 22.0f : 0.0f);
       if (cartaoTeto - fixo < titMax) titMax = fmaxf(60.0f, cartaoTeto - fixo);
     }
-    L->tit = qual == ILHA_AMIGO
+    // O que esta tocando: so a capa e o tempo que falta, sem o titulo (dono, 2026-10-26).
+    if (qual == ILHA_VIVO) memset(&L->tit, 0, sizeof L->tit);
+    else L->tit = qual == ILHA_AMIGO
            ? txt_linha_corta(TXT_ILHA_FORTE, c->pessoa, 240, 242, 246, 255, titMax)
            : txt_linha_corta(TXT_BODY, c->titulo, 240, 242, 246, 255, titMax);
   }
   w = (float)L->hora.w + CT_VAO * 2.0f + 1.5f +
       (qual == ILHA_VIVO ? CT_CAPA_W : qual == ILHA_AMIGO ? ROSTO + MINI_W - DUO_SOBRE : ICONE) + VAO +
-      (float)L->tit.w + 10.0f + (float)L->meta.w;
+      (L->tit.w ? (float)L->tit.w + 10.0f : 0.0f) + (float)L->meta.w;
   if (qual != ILHA_VIVO) w += 12.0f + 10.0f;   // o ponto de nao lido / de "agora"
   // O medidor em Minimo depois do cartao, so se a pilula ainda couber.
   L->ds = dsCartao ? desempenho_linha_w(DS_MINIMO) : 0.0f;
@@ -1233,8 +1235,10 @@ static void desenharCartao(const IlhaCartao *c, int qual, GfxRect r, float a) {
     x += ICONE + VAO;
   }
   xTexto = x;
-  txt_desenhar_alpha(L.tit, x, yt - (float)L.tit.h * 0.5f, a);
-  x += (float)L.tit.w + 10.0f;
+  if (L.tit.w) {
+    txt_desenhar_alpha(L.tit, x, yt - (float)L.tit.h * 0.5f, a);
+    x += (float)L.tit.w + 10.0f;
+  }
   txt_desenhar_alpha(L.meta, x, yt - (float)L.meta.h * 0.5f, a);
   x += (float)L.meta.w;
   if (qual == ILHA_ESTREIA)
@@ -2038,7 +2042,9 @@ void ilha_desenhar(Uint32 agora) {
       float fit = fminf((ox - 40.0f) / MD_W, (NV_TELA_H - 40.0f - oy) / Mh);
       if (fit > 0.2f && fit < k) k += (fit - k) * (modalT > 1.0f ? 1.0f : modalT);
     }
-    { float livre = menu_topo_livre_direita();
+    // A barra do topo so muda com ajustes ou destinos: medir os rotulos dela a cada quadro era trabalho a toa.
+    { static float livre; static Uint32 medidoEm;
+      if (!medidoEm || agora - medidoEm > 1000u) { livre = menu_topo_livre_direita(); medidoEm = agora | 1u; }
       cartaoTeto = livre > 0.0f ? livre / (gfx_escala() * k) : 0.0f; }
     if (k != 1.0f) gfx_transformar(ox, oy, k, 0.0f, 0.0f);
     ilha_desenharCorpo_(agora);

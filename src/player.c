@@ -1854,11 +1854,11 @@ void player_abrir(int indiceCatalogo, const char *url) {
   // A ficha e do titulo que a tela de detalhe abriu, que e por onde a
   // reproducao passa. Quem manda tocar direto da home sem abrir o detalhe
   // chega aqui com a ficha vazia — e ai o certo e mesmo nao trocar nada.
-  // dono (2026-10-26): a ficha pode ser de OUTRO titulo (tocar da home sem abrir o detalhe) ou ainda nao ter
-  // chegado; pede a deste titulo (nao refaz se ja e ela) e, se o idioma original chegar depois, player_atualizar
-  // refaz a escolha de audio.
+  // So quando a ficha e de OUTRO titulo (tocar da home sem abrir o detalhe) pede a deste; a do detalhe nunca e
+  // refeita aqui: refazer zerava o idioma original bem na hora de escolher fonte e faixa (dono, 2026-10-26:
+  // "tocou uma fonte sem o audio original"). Chegando depois, player_atualizar refaz a escolha de audio.
   { const CatItem *pc = cat_item(indiceCatalogo);
-    if (pc && pc->imdb[0]) extras_pedir(pc->imdb, !strcmp(pc->tipo, "series"), pc->tmdb); }
+    if (pc && pc->imdb[0] && !extras_e_do_titulo(pc->imdb)) extras_pedir(pc->imdb, !strcmp(pc->tipo, "series"), pc->tmdb); }
   ling_definir_original(extras_idioma_original());
 
   int ficaMini = querMini; querMini = 0;
