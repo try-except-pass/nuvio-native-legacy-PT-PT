@@ -3932,7 +3932,7 @@ static int fopModo;
 static int sugN, sug[G_SUG];
 static void mapaDefinir(GCanal *c, const char *gf, const char *gid);
 static float fontesRol;
-static int barraVisivel(void) { return nLtvF > 0 && !overlay; }
+static int barraVisivel(void) { return 0; }   // dono (2026-10-26): sem as bolhas Favoritos/Todas/fontes
 static int fontesN(void) { return 2 + nLtvF; }
 static int filtroDoChip(int i) { return i == 0 ? G_FILTRO_FAV : i == 1 ? G_FILTRO_TODAS : i - 2; }
 static int chipDoFiltro(void) { return filtro == G_FILTRO_FAV ? 0 : filtro == G_FILTRO_TODAS ? 1 : filtro + 2; }
@@ -4090,7 +4090,7 @@ static int fontesEvento(SDL_Keycode k, Uint32 agora) {
   }
   if (k == SDLK_LEFT)  { if (fontesCol > 0) fontesCol--; return 1; }
   if (k == SDLK_RIGHT) { if (fontesCol + 1 < fontesN()) fontesCol++; return 1; }
-  if (k == SDLK_UP)    { focoFontes = 0; focoTopo = 1; topoCol = modoLista ? G_TOPO_LISTA : G_TOPO_CARTOES; return 1; }
+  if (k == SDLK_UP)    { focoFontes = 0; focoTopo = 1; topoCol = G_TOPO_BUSCAR; return 1; }
   if (k == SDLK_DOWN)  { focoFontes = 0; focoValido(); return 1; }
   if (k == SDLK_RETURN || k == SDLK_KP_ENTER) {
     if (!fontesOkDesde) { fontesOkDesde = agora ? agora : 1; fontesOkLongo = 0; }
@@ -4279,8 +4279,8 @@ void guia_evento(const SDL_Event *e) {
   // a barra de fontes (ou as linhas), OK age. CIMA nao faz nada.
   if (focoTopo) {
     dirSeg = 0;
-    if (k == SDLK_LEFT)  { if (topoCol > 0) topoCol--; return; }
-    if (k == SDLK_RIGHT) { if (topoCol + 1 < G_TOPO_PRIMARIOS) topoCol++; return; }
+    if (k == SDLK_LEFT)  { return; }
+    if (k == SDLK_RIGHT) { return; }
     if (k == SDLK_DOWN)  { focoTopo = 0; if (barraVisivel()) fontesEntrar(); return; }
     if (k == SDLK_RETURN || k == SDLK_KP_ENTER) {
       if (!e->key.repeat) topoAcionar(topoCol);
@@ -4295,7 +4295,7 @@ void guia_evento(const SDL_Event *e) {
     // Only a fresh Up at the first channel may leave the channel list.
     if (dir < 0 && fresco && focoLin == 0 && (!modoLista || focoCol == 0)) {
       focoTopo = 1; focoFontes = 0;
-      topoCol = modoLista ? G_TOPO_LISTA : G_TOPO_CARTOES;
+      topoCol = G_TOPO_BUSCAR;
       dirSeg = 0;
       return;
     }
@@ -4318,11 +4318,11 @@ void guia_evento(const SDL_Event *e) {
   // toda". BAIXO no cabecalho volta para a linha em que estava.
   if (modoLista) {
     if (k == SDLK_LEFT)  { if (janelaDesl > 0) janelaDesl -= G_L_PASSO_MIN;
-                           else { if (barraVisivel()) fontesEntrar(); else { focoTopo = 1; topoCol = G_TOPO_LISTA; } dicaUsou(); } return; }
+                           else { if (barraVisivel()) fontesEntrar(); else { focoTopo = 1; topoCol = G_TOPO_BUSCAR; } dicaUsou(); } return; }
     if (k == SDLK_RIGHT) { if (janelaDesl < G_L_DESL_MAX) janelaDesl += G_L_PASSO_MIN; return; }
   } else {
     if (k == SDLK_LEFT)  { if (focoCol > 0) focoCol--;
-                           else { if (barraVisivel()) fontesEntrar(); else { focoTopo = 1; topoCol = G_TOPO_CARTOES; } dicaUsou(); } return; }
+                           else { if (barraVisivel()) fontesEntrar(); else { focoTopo = 1; topoCol = G_TOPO_BUSCAR; } dicaUsou(); } return; }
     if (k == SDLK_RIGHT) { if (focoCol + 1 < linhaN(focoLin)) focoCol++; return; }
   }
   if (k == SDLK_RETURN || k == SDLK_KP_ENTER) {
@@ -5438,155 +5438,13 @@ static void desenharHero(float a, time_t agoraT, time_t tFoco) {
              NV_COR_FUNDO_R, NV_COR_FUNDO_G, NV_COR_FUNDO_B, 0.85f * a);
   }
 
-  // Channel identity belongs with LIVE, below the header summary.
-  { char num[16];
-    float tx = x;
-    logoNaCaixa(c, (GfxRect){tx, y - 4.0f, 48.0f, 40.0f}, 48, 40, G_LOGO_CLARO, ha);
-    tx += 60.0f;
-    snprintf(num, sizeof num, "%d", c->numero);
-    TxtLinha n = txt_linha(TXT_DET_META2, num, 150, 153, 162, 255);
-    txt_desenhar_alpha(n, tx, y + (32.0f - n.h) * 0.5f, ha);
-    tx += n.w + 16.0f;
-    tx += guia_selo_ao_vivo(tx, y, ha) + 16.0f;
-    guia_etiqueta(c->cat >= 0 ? i18n(cats[c->cat].nome) : "", tx, y,
-                  fmaxf(0, x + w - tx), ha);
-  }
-  y += 56.0f;
-  if (tem) {
-    TxtLinha n = txt_linha_corta(TXT_CW_TITULO, c->nome, 196, 198, 206, 255, w);
-    txt_desenhar_alpha(n, x, y, ha);
-    y += n.h + 12.0f;
-  }
-
+  // dono (2026-10-26): o heroi mostra so o titulo do item em foco.
   // TITULO: o programa, ou o canal quando nao ha programa. 56 px em ate duas
   // linhas — o degrau acima do nome do canal (28) e de 2x, e o de baixo, ate
   // a linha de meta (25), de 2,2x: a ficha le em tres niveis de relance.
   y += txt_bloco(TXT_TITULO2, tem ? p.titulo : c->nome, 246, 247, 250,
                  x, y - 4.0f, w, 66.0f, ha, 1) + 10.0f;
-
-  // META: selo + faixa de horario + quanto falta, e a barra de progresso.
-  { char meta[160], h1[12], h2[12];
-    float mx = x;
-    meta[0] = 0;
-    if (tem) {
-      fmtHora(p.ini, h1, sizeof h1); fmtHora(p.fim, h2, sizeof h2);
-      if (noAr) {
-        int falta = (int)((p.fim - agoraT + 59) / 60);
-        char resto[64];
-        snprintf(resto, sizeof resto, i18n("%d min restantes"), falta);
-        snprintf(meta, sizeof meta, "%s \xe2\x80\x93 %s  \xc2\xb7  %s", h1, h2, resto);
-      } else {
-        int em = (int)((p.ini - agoraT + 59) / 60);
-        char quando[64];
-        snprintf(quando, sizeof quando, i18n("Começa em %d min"), em > 0 ? em : 0);
-        snprintf(meta, sizeof meta, "%s \xe2\x80\x93 %s  \xc2\xb7  %s", h1, h2, quando);
-      }
-    } else if (epg == -1) {
-      snprintf(meta, sizeof meta, "%s", i18n("Carregando programação…"));
-    } else if (epg == -2) {
-      snprintf(meta, sizeof meta, "%s", i18n("Sem grade de programação"));
-    }
-    if (meta[0]) {
-      TxtLinha t = txt_linha_corta(TXT_DET_META, meta, 196, 198, 206, 255, x + w - mx);
-      txt_desenhar_alpha(t, mx, y + (32.0f - (float)t.h) * 0.5f, ha);
-    }
-    y += 32.0f + 18.0f;
-    // PROGRAMA DO FUTURO: a linha diz o que o OK faz aqui — lembrar, nao
-    // assistir — e se o lembrete ja esta marcado.
-    if (tem && !noAr && p.ini > agoraT) {
-      int marcado = lembrete_achar(c->id, p.ini, p.titulo) >= 0;
-      TxtLinha t = txt_linha(TXT_DET_META, marcado ? i18n("Lembrete marcado  ·  OK cancela")
-                                                   : i18n("OK avisa quando começar"),
-                             marcado ? 236 : 196, marcado ? 237 : 198, marcado ? 242 : 206, 255);
-      gfx_icone((GfxRect){ x, y + 2.0f, 26.0f, 26.0f }, "sino",
-                marcado ? ar : 0.75f, marcado ? ag : 0.76f, marcado ? ab : 0.80f, ha);
-      txt_desenhar_alpha(t, x + 38.0f, y + (30.0f - (float)t.h) * 0.5f, ha);
-      y += 30.0f + 18.0f;
-    }
-    if (noAr) {
-      float f = (p.fim > p.ini)
-                ? anim_clamp((float)(agoraT - p.ini) / (float)(p.fim - p.ini), 0.0f, 1.0f)
-                : 0.0f;
-      GfxRect tr = { x, y, 440.0f, 4.0f };
-      GfxRect an = { tr.x, tr.y, tr.w * f, tr.h };
-      if (ajustes_vidro()) gfx_vidro_chip(tr, 0.5f, 0.55f, a);
-      else gfx_cor(tr, 0.5f, 1, 1, 1, 0.14f * a);
-      gfx_cor(an, 0.5f, ar, ag, ab, a);
-      y += 4.0f + 22.0f;
-    } }
-
-  // DESCRICAO do canal (o XMLTV deste guia nao traz sinopse de programa). O
-  // molde do addon ("Categoria: X Qualidades: 4K, FHD 8 fonte(s)") vira
-  // selos de qualidade e a contagem de fontes; o que sobrar, ou texto fora
-  // do molde, vai como veio — no maximo tres linhas, e so as que cabem antes
-  // da linha "A seguir".
-  // "Canal: <nome do canal>" (outro addon, visto na C9 em 25/09) nao diz nada
-  // que a linha do canal ja nao diga.
-  { char eco[200];
-    snprintf(eco, sizeof eco, "Canal: %s", c->nome);
-  if (c->desc[0] && strcmp(c->desc, eco)) {
-    GDesc d;
-    int molde = descMolde(c->desc, &d);
-    const char *txt = molde ? d.resto : c->desc;
-    if (molde && (d.nq > 0 || d.fontes > 0)) {
-      float bx = x;
-      int k;
-      // QUALIDADES COMO MARCA (dono, 29/09/2026): eram caixas de texto com
-      // contorno ("4K", "FHD", "HD", "SD"); agora sao as marcas de resolucao
-      // do app (badges.h), as mesmas do OSD ao vivo e da folha de fontes.
-      // Nome que nao e resolucao conhecida vai no selo neutro da tabela unica.
-      for (k = 0; k < d.nq; k++) {
-        int fm = marca_resolucao(d.q[k]);
-        if (fm >= 0)
-          bx += marca_formato((FormatoMarca)fm, bx, y + 2.0f, 26.0f, 0.86f, 0.87f, 0.90f, ha) + 18.0f;
-        else
-          bx += badge_desenhar(bx, y + 1.0f, d.q[k], BADGE_NEUTRO, ha) + BADGE_GAP;
-      }
-      if (d.fontes > 0) {
-        char f[48];
-        TxtLinha t;
-        if (d.fontes == 1) snprintf(f, sizeof f, "%s", i18n("1 fonte"));
-        else snprintf(f, sizeof f, i18n("%d fontes"), d.fontes);
-        t = txt_linha(TXT_DET_META2, f, 150, 153, 162, 255);
-        txt_desenhar_alpha(t, bx + (d.nq ? 8.0f : 0.0f), y + (30.0f - (float)t.h) * 0.5f, ha);
-      }
-      y += 30.0f + 20.0f;
-    }
-    if (txt[0]) {
-      float descFim = gRetrato() ? proxY : G_PREVIEW_H - 104.0f;
-      int linhas = (int)((descFim - 22.0f - y) / 34.0f);
-      if (linhas > 3) linhas = 3;
-      if (linhas > 0)
-        txt_bloco(TXT_DET_SIN, txt, 172, 175, 184, x, y, w, 34.0f, ha * 0.95f, linhas);
-    }
-  } }
-
-  // A SEGUIR, ancorado na base do heroi (alinhado a base do preview).
-  { EpgProg q;
-    if (gProximo(c, tFoco, 0, &q)) {
-      char hh[12];
-      TxtLinha l = txt_linha(TXT_PG_ROTULO, i18n("A SEGUIR"), 140, 143, 152, 255);
-      TxtLinha hr, tt;
-      float lx = x;
-      fmtHora(q.ini, hh, sizeof hh);
-      gfx_cor((GfxRect){ x, proxY - 18.0f, w, 1.0f }, 0.0f, 1, 1, 1, 0.08f * a);
-      txt_desenhar_alpha(l, lx, proxY + (30.0f - (float)l.h) * 0.5f, ha);
-      lx += (float)l.w + 20.0f;
-      hr = txt_linha(TXT_BODY, hh, 180, 183, 192, 255);
-      txt_desenhar_alpha(hr, lx, proxY + (30.0f - (float)hr.h) * 0.5f, ha);
-      lx += (float)hr.w + 14.0f;
-      tt = txt_linha_corta(TXT_BODY, q.titulo, 230, 231, 236, 255, x + w - lx);
-      txt_desenhar_alpha(tt, lx, proxY + (30.0f - (float)tt.h) * 0.5f, ha);
-    } else {
-      // SEM "A SEGUIR", a base do heroi diz o que o OK faz: a acao principal
-      // escrita onde o olho ja esta, em vez de so na barra de ajuda.
-      TxtLinha k = txt_linha(TXT_PG_ROTULO, i18n("OK"), 24, 25, 30, 255);
-      TxtLinha l = txt_linha(TXT_BODY, i18n("Assistir"), 222, 224, 230, 255);
-      GfxRect kc = { x, proxY, (float)k.w + 24.0f, 30.0f };
-      gfx_cor(kc, 0.25f, 0.88f, 0.885f, 0.90f, ha);
-      txt_desenhar_alpha(k, kc.x + 12.0f, kc.y + (kc.h - (float)k.h) * 0.5f, ha);
-      txt_desenhar_alpha(l, kc.x + kc.w + 14.0f, proxY + (30.0f - (float)l.h) * 0.5f, ha);
-    } }
+  (void)proxY; (void)epg; (void)noAr; (void)ar; (void)ag; (void)ab; (void)agoraT;
 }
 
 // O PAINEL DE CATEGORIAS: uma gaveta opaca de 440 px na esquerda, com um veu
@@ -6064,7 +5922,7 @@ static int guiaVazioTelefone(void) {
 static void ponteiroConfigGuia(int i, int b) {
   (void)i; (void)b;
   if (!guiaVazioTelefone() || guiaCamadaAberta() || falhas || xtFalha) return;
-  focoTopo = 1; topoCol = G_TOPO_OPCOES;
+  focoTopo = 1; topoCol = G_TOPO_BUSCAR;
 }
 static int toqueVazioRolar(const PonteiroRolagem *e) {
   if (!guiaVazioTelefone() || guiaCamadaAberta()) return 0;
@@ -6282,8 +6140,8 @@ static float desenharTopo(float a) {
   }
 #endif
   seg0 = xs[G_TOPO_CARTOES];
-  // Trilho do controle segmentado.
-  { GfxRect tr = { seg0, G_CHIPS_Y, w[G_TOPO_CARTOES] + w[G_TOPO_LISTA], G_TOPO_H };
+  // Trilho do controle segmentado (escondido: so a busca aparece).
+  if (0) { GfxRect tr = { seg0, G_CHIPS_Y, w[G_TOPO_CARTOES] + w[G_TOPO_LISTA], G_TOPO_H };
 #ifdef NV_TOUCH_UI
     if (gRetrato()) tr.y = gTopoRects[G_TOPO_CARTOES].y;
 #endif
@@ -6301,6 +6159,8 @@ static float desenharTopo(float a) {
     if (gRetrato()) r = gTopoRects[i];
 #endif
     int ct;
+    if (i != G_TOPO_BUSCAR) continue;   // dono (2026-10-26): so o botao de busca, maior
+    { float k = 1.45f, cx = r.x + r.w * 0.5f; r.w *= k; r.h *= k; r.x = G_AREA_X; r.y = G_CHIPS_Y - (r.h - G_TOPO_H) * 0.5f; (void)cx; }
     if (!overlay && !guiaCamadaAberta() && a > 0.99f) ponteiro_alvo(r.x, r.y, r.w, r.h, ponteiroTopo, NULL, i, 0);
     if (seg) {
       // Segmento: so o escolhido tem superficie, 3 px para dentro do trilho.
@@ -7524,10 +7384,8 @@ void guia_desenhar(Uint32 agora) {
                       guiacorte_por_canais(&corte) ? i18n("Mostrando %d de %d canais (o que cabe nesta TV)")
                                                    : i18n("Mostrando %d de %d canais (limite de categorias)"),
                       sub, sizeof sub);
-    else
-      snprintf(sub, sizeof sub, i18n("%d canais · %d categorias · segure %s para pular seção"),
-               nCanais, nCats, "\xe2\x86\x91\xe2\x86\x93");
-    { float subX = G_AREA_X;
+    else sub[0] = 0;   // dono (2026-10-26): sem a linha "N canais · N categorias · segure ..."
+    if (sub[0]) { float subX = G_AREA_X;
       TxtLinha st = txt_linha_corta(gRetrato() ? TXT_DET_META2 : TXT_ILHA_HORA, sub, 150, 153, 162, 255,
                                     gRetrato() ? G_AREA_W : G_INFO_W);
       float subY = (gRetrato() ? gTopoFim : G_CHIPS_Y + G_TOPO_H) + 12.0f;
@@ -7742,32 +7600,7 @@ void guia_desenhar(Uint32 agora) {
 #define GUIA_FECHA_L i18n("OK troca de canal  ·  segure OK = favorito  ·  \xe2\x86\x90\xe2\x86\x92 adianta a grade  ·  segure \xe2\x86\x91\xe2\x86\x93 pula seção  ·  Voltar ou Azul fecha")
 #define GUIA_FECHA_G i18n("OK troca de canal  ·  segure OK = favorito  ·  segure \xe2\x86\x91\xe2\x86\x93 pula seção  ·  Voltar ou Azul fecha")
 #endif
-  { const char *dica = modoLista
-      ? (overlay
-         ? GUIA_FECHA_L
-         : i18n("OK assiste  ·  segure OK = opções  ·  \xe2\x86\x90\xe2\x86\x92 adianta a grade  ·  \xe2\x86\x91 fontes  ·  Voltar sai"))
-      : (overlay
-         ? GUIA_FECHA_G
-         : i18n("OK assiste  ·  segure OK = opções  ·  \xe2\x86\x91 fontes  ·  segure \xe2\x86\x91\xe2\x86\x93 pula seção  ·  Voltar sai"));
-    if (dicaDesde && SDL_GetTicks() - dicaDesde < G_DICA_MS)
-      dica = i18n("← no primeiro canal: opções do guia");
-    TxtLinha t = txt_linha_corta(TXT_CAPTION, dica, 128, 130, 138, 255,
-                                 G_AREA_W);
-    txt_desenhar_alpha(t, G_AREA_X, NV_TELA_H - 48.0f, a);
-    // O VERDE do diagnostico da Live TV, na ponta direita quando cabe — so na
-    // LG, que tem a tecla. No Android e no navegador o caminho e o botao
-    // Diagnostico da barra de cima.
-#if !defined(NV_ANDROID) && !defined(__EMSCRIPTEN__) && !defined(NV_TPK)
-    if (!overlay) {
-      TxtLinha v = txt_linha(TXT_CAPTION, i18n("Verde: diagnóstico da Live TV"), 128, 130, 138, 255);
-      if ((float)t.w + 48.0f + (float)v.w <= G_AREA_W)
-        txt_desenhar_alpha(v, G_AREA_X + G_AREA_W - (float)v.w, NV_TELA_H - 48.0f, a);
-    }
-#endif
-    }
-
   if ((estado == G_PRONTO || estado == G_BAIXANDO) && nLtvF > 0) {
-    desenharFontes(a);
     if (filtro == G_FILTRO_FAV && !nFavOrd) {
       TxtLinha t = txt_linha_corta(TXT_BODY, i18n("Nenhum favorito ainda. Segure OK num canal para marcar."),
                                    200, 202, 210, 255, G_INFO_W);

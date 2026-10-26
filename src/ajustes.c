@@ -745,7 +745,20 @@ typedef enum {
   AJ_CW_TAM_PCT,         // Continue Watching card size, percent. LOCAL
   AJ_RELOGIO_PCT,        // On-screen clock island size, percent. LOCAL
   AJ_MENU_ICONE_PCT,     // Sidebar icon size, percent. LOCAL
-  AJ_GALERIA_EDITAR,     // Settings below edit the Galeria tab's own copy: 1 Off (default, never persisted as On). LOCAL
+  AJ_BUSCA_CARTAZ_GAP_PCT, // Search tab poster gap, percent (100 = 12px). LOCAL
+  AJ_GAL_LANDSCAPE,
+  AJ_GAL_ITENS_FILEIRA,
+  AJ_GAL_ESPACO_FILEIRAS,
+  AJ_GAL_ESPACO_TITULOS,
+  AJ_GAL_FIL_TITULOS,
+  AJ_GAL_NOTAS_HOME,
+  AJ_GAL_SELO_VISTO,
+  AJ_GAL_ABAS_ESTILO,
+  AJ_GAL_OCULTAR_FILMES_VISTOS,
+  AJ_GAL_AMIGOS_ESTILO,
+  AJ_GAL_COLECAO_EXIBICAO,
+  AJ_GAL_BORDA_FOCO,
+  AJ_GAL_SOMBRA_FOCO,
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1903,7 +1916,20 @@ static const Opcao OPCOES[AJ_N] = {
   NUM("Tamanho dos cartões de Continuar assistindo", 60, 160, 10, "%"),   // local: cwTamPctLocal
   NUM("Tamanho do relógio", 70, 200, 10, "%"),                         // local: relogioPctLocal
   NUM("Tamanho dos ícones da barra lateral", 70, 200, 10, "%"),         // local: menuIconePctLocal
-  ESC("Editar os ajustes da Galeria", V_LIGA, 2),                                    // local: galeriaEditarLocal
+  NUM("Espaço entre cartazes da busca", 0, 300, 25, "%"),   // local: buscaCartazGapPctLocal
+  ESC("Pôsteres horizontais (Galeria)",       V_LIGA, 2),   // local: galeriaLandscapeLocal
+  ESC("Itens por fileira (Galeria)",               V_ITENS_FIL, 3),   // local: galeriaItensFileiraLocal
+  NUM("Espaço entre fileiras (Galeria)",           50, 300, 25, "%"),   // local: galeriaEspacoFileirasLocal
+  NUM("Espaço entre títulos (Galeria)",            50, 300, 25, "%"),   // local: galeriaEspacoTitulosLocal
+  ESC("Títulos das fileiras (Galeria)", V_LIGA, 2),   // local: galeriaFilTitulosLocal
+  ESC("Avaliações gerais (Galeria)",          V_NOTAS, 2),   // local: galeriaNotasHomeLocal
+  ESC("Selo de assistido nos pôsteres (Galeria)",  V_SELO_VISTO, 3),   // local: galeriaSeloVistoLocal
+  ESC("Estilo das abas (Galeria)", V_ABAS_ESTILO, 5),   // local: galeriaAbasEstiloLocal
+  ESC("Ocultar filmes assistidos (Galeria)", V_LIGA, 2),   // local: galeriaOcultarFilmesVistosLocal
+  ESC("Estilo da fileira de amigos (Galeria)", V_AMIGOS_ESTILO, 6),   // local: galeriaAmigosEstiloLocal
+  ESC("Exibição padrão das coleções (Galeria)", V_COLECAO_EXIBICAO, VT_LAY_N),   // local: galeriaColecaoExibicaoLocal
+  ESC("Borda no cartaz em foco (Galeria)",    V_LIGA, 2),   // local: galeriaBordaFocoLocal
+  ESC("Sombra no cartaz em foco (Galeria)", V_LIGA, 2),   // local: galeriaSombraFocoLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2240,7 +2266,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
-  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "cwTamPctLocal", "relogioPctLocal", "menuIconePctLocal", "galeriaEditarLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "cwTamPctLocal", "relogioPctLocal", "menuIconePctLocal", "buscaCartazGapPctLocal", "galeriaLandscapeLocal", "galeriaItensFileiraLocal", "galeriaEspacoFileirasLocal", "galeriaEspacoTitulosLocal", "galeriaFilTitulosLocal", "galeriaNotasHomeLocal", "galeriaSeloVistoLocal", "galeriaAbasEstiloLocal", "galeriaOcultarFilmesVistosLocal", "galeriaAmigosEstiloLocal", "galeriaColecaoExibicaoLocal", "galeriaBordaFocoLocal", "galeriaSombraFocoLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -2368,7 +2394,6 @@ static void pstTesteRecolher(void);
 static const char *pstTexto(int op);
 static void uxNotificar(const char *s);
 static int gravar(void);
-static void galAjCarregar(void);
 static int dePerfil(int i);
 static int perfilGravarVetor(int perfil, const int *v);
 static int perfilLerVetor(int perfil, int *v, char *tem);
@@ -3183,6 +3208,7 @@ float ajustes_relogio_escala(void) { return pctEntre(AJ_RELOGIO_PCT, 70, 200); }
 float ajustes_menu_icone(void) { return pctEntre(AJ_MENU_ICONE_PCT, 70, 200); }
 float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
 int ajustes_menu_so_icones(void) { return lig(AJ_MENU_SO_ICONES); }
+float ajustes_busca_cartaz_gap(void) { return pctEntre(AJ_BUSCA_CARTAZ_GAP_PCT, 0, 300); }
 float ajustes_busca_espaco(void) { return pctEntre(AJ_BUSCA_ESPACO_PCT, 40, 150); }
 int ajustes_fil_titulos(void) { return lig(AJ_FIL_TITULOS); }
 int ajustes_menu_galeria(void) { return lig(AJ_MENU_GALERIA); }
@@ -5264,70 +5290,42 @@ void ajustes_dir(const char *dir) {
   ajEpgMemoriaAplicar();
   legenda2_atualizar_offset_manual(ajustes_leg2_atraso());
   ppReconciliar();
-  galAjCarregar();
   ajSombraSync();   // o que veio do disco nao e mudanca de ninguem
 }
 
-// GALERIA: copia propria dos ajustes de aparencia da Home. `valor[]` guarda
-// SEMPRE o que esta em vigor; `galAjVal[]` guarda o OUTRO conjunto (o principal
-// enquanto a troca esta ligada, o da Galeria quando desligada). A troca liga
-// enquanto a Home desenha a Galeria (galAjRun) ou enquanto a pessoa ajusta a
-// Galeria nos Ajustes (galAjEdit). gravar() desfaz a troca para nao gravar o
-// conjunto da Galeria como se fosse o principal.
-static const int GAL_OPS[] = {
-  AJ_LANDSCAPE, AJ_ITENS_FILEIRA, AJ_ESPACO_FILEIRAS, AJ_ESPACO_TITULOS, AJ_FIL_TITULOS,
-  AJ_NOTAS_HOME, AJ_SELO_VISTO, AJ_ABAS_ESTILO, AJ_OCULTAR_FILMES_VISTOS, AJ_AMIGOS_ESTILO,
-  AJ_COLECAO_EXIBICAO, AJ_BORDA_FOCO, AJ_SOMBRA_FOCO,
+// GALERIA: copia propria dos ajustes de aparencia da Home. Cada opcao tem um
+// gemeo AJ_GAL_* que o usuario edita na categoria "Galeria"; enquanto a Home
+// desenha a Galeria (galAjRun) o valor do gemeo entra no lugar do principal, e
+// gravar() desfaz a troca para nao gravar um no lugar do outro.
+static const int GAL_OPS[][2] = {
+  { AJ_LANDSCAPE, AJ_GAL_LANDSCAPE },
+  { AJ_ITENS_FILEIRA, AJ_GAL_ITENS_FILEIRA },
+  { AJ_ESPACO_FILEIRAS, AJ_GAL_ESPACO_FILEIRAS },
+  { AJ_ESPACO_TITULOS, AJ_GAL_ESPACO_TITULOS },
+  { AJ_FIL_TITULOS, AJ_GAL_FIL_TITULOS },
+  { AJ_NOTAS_HOME, AJ_GAL_NOTAS_HOME },
+  { AJ_SELO_VISTO, AJ_GAL_SELO_VISTO },
+  { AJ_ABAS_ESTILO, AJ_GAL_ABAS_ESTILO },
+  { AJ_OCULTAR_FILMES_VISTOS, AJ_GAL_OCULTAR_FILMES_VISTOS },
+  { AJ_AMIGOS_ESTILO, AJ_GAL_AMIGOS_ESTILO },
+  { AJ_COLECAO_EXIBICAO, AJ_GAL_COLECAO_EXIBICAO },
+  { AJ_BORDA_FOCO, AJ_GAL_BORDA_FOCO },
+  { AJ_SOMBRA_FOCO, AJ_GAL_SOMBRA_FOCO },
 };
 #define GAL_N ((int)(sizeof GAL_OPS / sizeof *GAL_OPS))
-static int galAjVal[GAL_N], galAjTrocado, galAjRun, galAjEdit, galAjPronta;   // Pronta: galAjCarregar ja rodou (gravar() de migracoes vem antes)
+static int galAjTrocado, galAjRun;
 static void galAjSync(void) {
-  int quer = galAjRun || galAjEdit, i;
-  if (quer == galAjTrocado) return;
-  for (i = 0; i < GAL_N; i++) { int t = valor[GAL_OPS[i]]; valor[GAL_OPS[i]] = galAjVal[i]; galAjVal[i] = t; }
-  galAjTrocado = quer;
+  int i;
+  if (galAjRun == galAjTrocado) return;
+  for (i = 0; i < GAL_N; i++) { int t = valor[GAL_OPS[i][0]]; valor[GAL_OPS[i][0]] = valor[GAL_OPS[i][1]]; valor[GAL_OPS[i][1]] = t; }
+  galAjTrocado = galAjRun;
 }
 void ajustes_galeria_aplicar(int on) { galAjRun = on ? 1 : 0; galAjSync(); }
-static void galAjArquivo(char *c, size_t n) { snprintf(c, n, "%s/galeria.txt", dirAjustes); }
-// Chamada depois de ler ajustes.txt: o conjunto da Galeria vem do arquivo; sem
-// arquivo comeca igual ao principal.
-static void galAjCarregar(void) {
-  char c[600], l[160];
-  FILE *f;
-  int i;
-  galAjRun = galAjEdit = galAjTrocado = 0;
-  valor[AJ_GALERIA_EDITAR] = 1;
-  for (i = 0; i < GAL_N; i++) galAjVal[i] = valor[GAL_OPS[i]];
-  galAjArquivo(c, sizeof c);
-  f = fopen(c, "r");
-  galAjPronta = 1;
-  if (!f) return;
-  while (fgets(l, sizeof l, f)) {
-    char k[64]; int v;
-    if (sscanf(l, "%63s %d", k, &v) != 2) continue;
-    for (i = 0; i < GAL_N; i++)
-      if (CHAVE[GAL_OPS[i]] && !strcmp(k, CHAVE[GAL_OPS[i]])) galAjVal[i] = v;
-  }
-  fclose(f);
-}
-static void galAjGravar(void) {   // chamado com a troca desfeita: galAjVal e o conjunto da Galeria
-  char c[600];
-  FILE *f;
-  int i;
-  galAjArquivo(c, sizeof c);
-  f = fopen(c, "w");
-  if (!f) return;
-  for (i = 0; i < GAL_N; i++)
-    if (CHAVE[GAL_OPS[i]]) fprintf(f, "%s %d\n", CHAVE[GAL_OPS[i]], galAjVal[i]);
-  fclose(f);
-}
 static int gravarBase(void);
 static int gravar(void) {
   int r, run = galAjRun;
-  galAjRun = galAjEdit = 0; galAjSync();   // grava o conjunto principal em valor[] e o da Galeria em galAjVal[]
+  galAjRun = 0; galAjSync();
   r = gravarBase();
-  if (r && galAjPronta) galAjGravar();
-  galAjEdit = valor[AJ_GALERIA_EDITAR] == 0;   // o interruptor "Ajustar a Galeria" so vale depois deste gravar
   galAjRun = run; galAjSync();
   return r;
 }
@@ -6136,7 +6134,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
     case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
-    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_GALERIA_EDITAR: case AJ_CW_TAM_PCT: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_BUSCA_CARTAZ_GAP_PCT: case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO: case AJ_CW_TAM_PCT: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -8099,7 +8097,9 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_CW_TAM_PCT: return i18n("Tamanho dos cartões da fileira Continuar assistindo. 100% é o padrão.");
     case AJ_RELOGIO_PCT: return i18n("Tamanho do relógio e dos avisos que saem dele. 100% é o padrão.");
     case AJ_MENU_ICONE_PCT: return i18n("Tamanho dos ícones da barra lateral, sem mudar o resto da barra. 100% é o padrão.");
-    case AJ_GALERIA_EDITAR: return i18n("Ligado: tudo o que mexer em Fileiras, cartazes e anel de foco muda só a Galeria (a Galeria tem a sua própria cópia). Desligado: volta a mexer na Home.");
+    case AJ_BUSCA_CARTAZ_GAP_PCT: return i18n("Espaço entre os cartazes dos resultados na aba Pesquisar. 0% encosta-os uns nos outros.");
+    case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO:
+      return i18n("A Galeria tem a sua própria cópia deste ajuste, separada da Home. Só muda a aba Galeria.");
     case AJ_HERO_DETALHES_PCT: return i18n("Tamanho do ano, da duração e da nota do IMDb no destaque da Home. Não muda com o tamanho da interface. 100% é o padrão.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";

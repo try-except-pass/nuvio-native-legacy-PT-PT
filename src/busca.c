@@ -143,6 +143,7 @@ static float buTopoEsq(void) {
 #define BU_KICK_H       34.0f
 #define BU_MELHOR_H    fmaxf(226.0f, 186.0f * gfx_poster_k() + 40.0f)
 #define BU_CARTAZ_W    (180.0f * gfx_poster_k() * ajustes_busca_cartaz())
+#define BU_CARTAZ_GAP  (12.0f * ajustes_busca_cartaz_gap())
 #define BU_CARTAZ_H    (270.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_NOME_ALT     (buTecladoNativo() ? 50.0f : 30.0f)
 #define BU_SECAO_GAP    (34.0f * ajustes_busca_espaco())
@@ -455,32 +456,6 @@ static void montarPessoas(const char *alvo) {
     } }
 }
 
-// CAMPO VAZIO: nada de vazio no meio da tela. Os POPULARES sao as primeiras
-// fileiras de filme/serie que o catalogo ja tem (as mesmas da home), com a
-// mesma maquina dos resultados — foco, rolagem, abrir. A primeira leva o rotulo
-// "Populares"; a segunda, o nome do proprio catalogo.
-static void montarSugestoes(void) {
-  int nCat = cat_n_fileiras(), r;
-  for (r = 0; r < nCat && nFil < 2; r++) {
-    const CatFileira *cf = cat_fileira(r);
-    int achou = 0, i;
-    if (!cf || !cf->titulo[0] || !strcmp(cf->tipo, "channel") || !strcmp(cf->tipo, "tv") ||
-        !strcmp(cf->tipo, "channels") || !strcmp(cf->tipo, "live") || !strcmp(cf->tipo, "iptv")) continue;
-    for (i = 0; i < cf->n && achou < BU_MAX_POR_FIL; i++) {
-      const CatItem *ci = cat_item(cf->ini + i);
-      if (!ci || !ci->titulo[0] || (!ci->poster[0] && !ci->backdrop[0])) continue;
-      if (!strcmp(ci->tipo, "channel")) continue;
-      fil[nFil].itens[achou++] = cf->ini + i;
-    }
-    if (achou < 3) continue;
-    fil[nFil].titulo = nFil == 0 ? i18n("Populares") : cf->titulo;
-    fil[nFil].origem = NULL;
-    fil[nFil].n = achou;
-    fil[nFil].melhor = 0; fil[nFil].pessoas = 0;
-    nFil++;
-  }
-}
-
 // --- Filtro ------------------------------------------------------------------
 // Uma fileira por CATALOGO, exatamente como o web monta `.search-results-row`.
 // Antes isto era uma lista plana do acervo inteiro, o que perdia a informacao de
@@ -521,15 +496,15 @@ static void refiltrar(void) {
   if (!mesmaConsulta) { heroIdx = heroAnt = -1; }
   normalizar(consulta, alvo, sizeof alvo);
   nFil = 0; nPess = 0;
-  // Menos de 2 caracteres = estado vazio, como o web ("Digite ao menos 2
+  // Campo vazio = estado vazio, como o web ("Digite ao menos 2
   // caracteres"). Buscar com uma letra devolve o acervo inteiro e nao ajuda.
   // Em vez do vazio, as SUGESTOES (Populares). So derruba o painel de
   // RESULTADOS: o de buscas recentes vive justamente com o campo vazio.
-  if (busca_codepoints(alvo) < 2) {
+  if (busca_codepoints(alvo) < 1) {
     if (painel == 1 && !sugestao) painel = 0;
     sugestao = 1;
     redePend = 0; nVelho = 0; redeDisparado[0] = 0;
-    montarSugestoes();
+    // dono (2026-10-26): campo vazio nao mostra resultado nenhum (nada de "Populares")
     goto montado;
   }
   sugestao = 0;
@@ -1056,7 +1031,7 @@ void busca_teste_layout_recentes(void) {
   }
 }
 #endif
-int  busca_quer_sair(void) { return sair; }
+int  busca_quer_sair(void) { int s = sair; sair = 0; return s; }   // consome: a barra aberta por cima nao pode ficar "saindo" a cada quadro
 int busca_pediu_relogio(void) { int v = pediuRelogio; pediuRelogio = 0; return v; }
 int busca_relogio_navegavel(void) { return !teclado_aberto() && st_estado() == ST_PARADO; }
 
@@ -1343,10 +1318,6 @@ static void busca_evento_(const SDL_Event *e) {
 // --- Geometria das entradas da direita ---------------------------------------
 // Five columns at 100%; scaled text keeps enough stride for preserved artwork.
 // Colunas de cartaz: 5 a 100%; o fator do Ajustes troca por mais/menos colunas.
-static int buColsCartaz(void) {
-  int c = (int)floorf(5.0f / ajustes_busca_cartaz() + 0.5f);
-  return c < 1 ? 1 : c > 8 ? 8 : c;
-}
 static float buPasso(void) {
   float larg = BU_DIR - BU_RES_X;
   if (buTelefone()) {
@@ -1362,9 +1333,7 @@ static float buPasso(void) {
     return (fmaxf(1.0f, larg) - (cols - 1) * 22.0f) / cols + 22.0f;
   } else {
     // Cartazes maiores/menores (Ajustes > Texto e tamanho): menos/mais colunas.
-    int cols = buColsCartaz();
-    float passo = (larg - (cols - 1) * 22.0f) / (float)cols + 22.0f;
-    return gfx_escala_txt() != 1.0f ? fmaxf(passo, BU_CARTAZ_W + 22.0f) : passo;
+    return BU_CARTAZ_W + BU_CARTAZ_GAP;
   }
 }
 static float buCartazW(void) {
@@ -1377,6 +1346,7 @@ static float buCartazW(void) {
     gfx_escala_sair(old);
     return w * gfx_poster_k();
   }
+  if (!buTelefone()) return BU_CARTAZ_W;
   float w = buPasso() - 22.0f;
   return buTecladoNativo() || w < BU_CARTAZ_W || ajustes_busca_cartaz() != 1.0f ? w : BU_CARTAZ_W;
 }
@@ -1518,7 +1488,7 @@ static void busca_atualizar_(float dt, Uint32 agora) {
   { char alvo[BU_MAX_CONSULTA * 2];
     static int ultimoRemoto = -1, ultimoChegou = -1;
     normalizar(consulta, alvo, sizeof alvo);
-    if (busca_codepoints(alvo) >= 2) {
+    if (busca_codepoints(alvo) >= 1) {
       int n = desc_busca_n(consulta);
       // A CONTAGEM SOZINHA NAO BASTA: "matrix" -> "matrixs" fica em 0 itens
       // enquanto a resposta nao chega (fileiras antigas mantidas de proposito)
@@ -1800,11 +1770,11 @@ static void desenhaTeclado(void) {
 
 static void desenhaVazio(void) {
   // dono (2026-10-26): enquanto os addons ainda respondem, diz "Aguardando resultados" em letras grandes.
-  int espera = nConsulta >= 2 && desc_busca_carregando(consulta);
-  const char *t1 = espera ? "Aguardando resultados" : nConsulta >= 2 ? "Nenhum título recebido" : "O que vamos assistir?";
+  int espera = nConsulta >= 1 && desc_busca_carregando(consulta);
+  const char *t1 = espera ? "Aguardando resultados" : nConsulta >= 1 ? "Nenhum título recebido" : "O que vamos assistir?";
   const char *t2 = espera ? "Os addons ainda estão respondendo."
-                 : nConsulta >= 2 ? "Os resultados dos addons aparecem aqui."
-                             : "Digite ao menos 2 letras de um filme ou série.";
+                 : nConsulta >= 1 ? "Os resultados dos addons aparecem aqui."
+                             : "Digite uma letra de um filme ou série.";
   float larg = fmaxf(1.0f, BU_DIR - BU_RES_X);
   TxtLinha l1 = buTelefone() ? txt_linha_corta(TXT_ILHA_TITULO, t1, BU_TX, larg)
                             : (espera ? txt_linha_corta(TXT_TITULO1, t1, BU_TX, larg) : txt_linha(TXT_ILHA_TITULO, t1, BU_TX));
@@ -1814,7 +1784,7 @@ static void desenhaVazio(void) {
   float y = BU_RES_Y + 220.0f;
   txt_desenhar(l1, cx - l1.w * 0.5f, y);
   txt_desenhar_alpha(l2, cx - l2.w * 0.5f, y + l1.h + 14.0f, 0.55f);
-  if (nConsulta >= 2) {
+  if (nConsulta >= 1) {
     TxtLinha ajuda = buTelefone() ? txt_linha_corta(TXT_ILHA_GENERO,
         "Se não aparecerem, confira a conexão ou tente outro nome.", BU_TX, larg)
         : txt_linha(TXT_ILHA_GENERO,
@@ -2158,9 +2128,7 @@ static void desenhaTituloFoco(void) {
   float larg = BU_DIR - BU_RES_X;
   if (buUmaColuna() || painel != 1 || !temItemFoco || !itemFoco.titulo || larg < 100.0f) return;
   { TxtLinha t = txt_linha_corta(TXT_HEADLINE, itemFoco.titulo, BU_TX, larg);
-    TxtLinha m = txt_linha_corta(TXT_ILHA_META, itemFoco.meta ? itemFoco.meta : "", BU_TX, larg);
-    txt_desenhar(t, BU_RES_X, ANC(64.0f));
-    if (itemFoco.meta && itemFoco.meta[0]) txt_desenhar_alpha(m, BU_RES_X, ANC(64.0f) + t.h + 6.0f, 0.62f); }
+    txt_desenhar(t, BU_RES_X, buTopoEsq()); }
 }
 
 static void busca_desenhar_(Uint32 agora) {

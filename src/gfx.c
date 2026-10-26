@@ -634,6 +634,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.40\n"
   "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.16;\n"
   "  ah *= step(vUv.x, 0.45);\n"
+  "  ah = 0.0;\n"   // dono (2026-10-26): sem a rampa escura da esquerda
   // uPar.x > 0.5 = SO AS RAMPAS, como veu com alpha: por cima do trailer que
   // toca atras do canvas no lugar da arte (trailer.h). Mesma regra do
   // GFX_DETALHE.
@@ -844,6 +845,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.38\n"
   "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.42;\n"
   "  ah *= step(vUv.x, 0.65);\n"
+  "  ah = 0.0;\n"   // dono (2026-10-26): sem a rampa escura da esquerda
   "  if (uPar.x > 0.5) { vec3 vb = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "    gl_FragColor = nv_dither(vb, clamp(ah + av - ah*av, 0.0, 1.0) * uCor.a); return; }\n"
   "  if (uAmbOn > 0.5) { vec3 amb = texture2D(uAmb, vAmb).rgb;\n"
@@ -1358,6 +1360,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.40\n"
   "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.16;\n"
   "  ah *= step(vUv.x, 0.45);\n"
+  "  ah = 0.0;\n"   // dono (2026-10-26): sem a rampa escura da esquerda
   "  float rampa = clamp(ah + av - ah*av, 0.0, 1.0);\n"
   "  vec3 dst = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "  vec3 cB = texture2D(uTexB, clamp(coverAsp(vec2(xd, vUv.y), uTexAspB), 0.0, 1.0)).rgb;\n"
@@ -1383,6 +1386,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.38\n"
   "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.42;\n"
   "  ah *= step(vUv.x, 0.65);\n"
+  "  ah = 0.0;\n"   // dono (2026-10-26): sem a rampa escura da esquerda
   "  float rampa = clamp(ah + av - ah*av, 0.0, 1.0);\n"
   "  vec3 dst = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "  vec3 cB = texture2D(uTexB, clamp(coverAsp(vec2(xd, vUv.y), uTexAspB), 0.0, 1.0)).rgb;\n"

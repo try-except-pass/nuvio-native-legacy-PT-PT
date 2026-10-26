@@ -565,6 +565,7 @@ int   ajustes_borda_foco_busca(void);   // focus ring on Search results
 float ajustes_menu_tamanho(void);       // sidebar size factor 0.5..2
 float ajustes_menu_espaco(void);        // sidebar item gap factor 0..4
 int   ajustes_menu_so_icones(void);     // sidebar never expands to labels
+float ajustes_busca_cartaz_gap(void);   // Search tab poster gap factor 0..3
 float ajustes_busca_espaco(void);       // Search tab spacing factor 0.4..1.5
 int   ajustes_fil_titulos(void);        // row titles on Home
 int   ajustes_menu_galeria(void);       // second Home tab in the sidebar

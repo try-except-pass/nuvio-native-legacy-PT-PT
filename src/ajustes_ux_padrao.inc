@@ -370,4 +370,17 @@
   100, /* Continue Watching card size, percent */
   100, /* clock size, percent */
   100, /* sidebar icon size, percent */
-  1,   /* Galeria settings editing: Off */
+  100, /* search poster gap, percent */
+  0, /* Galeria copy: LANDSCAPE */
+  0, /* Galeria copy: ITENS_FILEIRA */
+  100, /* Galeria copy: ESPACO_FILEIRAS */
+  100, /* Galeria copy: ESPACO_TITULOS */
+  0, /* Galeria copy: FIL_TITULOS */
+  0, /* Galeria copy: NOTAS_HOME */
+  0, /* Galeria copy: SELO_VISTO */
+  0, /* Galeria copy: ABAS_ESTILO */
+  0, /* Galeria copy: OCULTAR_FILMES_VISTOS */
+  0, /* Galeria copy: AMIGOS_ESTILO */
+  0, /* Galeria copy: COLECAO_EXIBICAO */
+  0, /* Galeria copy: BORDA_FOCO */
+  0, /* Galeria copy: SOMBRA_FOCO */

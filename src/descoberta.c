@@ -7169,6 +7169,33 @@ static const char *elencoProximo(const char *p, const char *fim) {
 // foto). Sem rede. A raiz define a ordem; o extra casa POR NOME, nunca indice.
 // Complementos so preenchem lacunas. A base nova preserva dados conhecidos da
 // MESMA pessoa, inclusive seu id TMDB, sem transferir ids de outro provedor.
+// dono (2026-10-26): o diretor e o PRIMEIRO do elenco (clicavel como os atores).
+// Idempotente: acha o nome na lista (ator que tambem dirige) ou o insere na frente.
+static void elencoDiretorPrimeiro(CatItem *d, const char *nome, long id, const char *foto) {
+  int k, j;
+  if (!d || !nome || !nome[0]) return;
+  for (k = 0; k < d->nElenco; k++) if (elencoMesmoNome(d->elenco[k].nome, nome)) break;
+  if (k == d->nElenco) {
+    if (d->nElenco >= CAT_ELENCO_MAX) k = d->nElenco - 1; else d->nElenco++;
+    memset(&d->elenco[k], 0, sizeof d->elenco[k]);
+    snprintf(d->elenco[k].nome, sizeof d->elenco[k].nome, "%s", nome);
+  }
+  if (id > 0) d->elenco[k].tmdb = id;
+  if (foto && foto[0] && !d->elenco[k].foto[0]) snprintf(d->elenco[k].foto, sizeof d->elenco[k].foto, "%s", foto);
+  snprintf(d->elenco[k].papel, sizeof d->elenco[k].papel, "%s", i18n("Direção"));
+  if (k > 0) {
+    char nome0[64], papel0[64], foto0[512]; long t0 = d->elenco[k].tmdb;
+    snprintf(nome0, sizeof nome0, "%s", d->elenco[k].nome);
+    snprintf(papel0, sizeof papel0, "%s", d->elenco[k].papel);
+    snprintf(foto0, sizeof foto0, "%s", d->elenco[k].foto);
+    for (j = k; j > 0; j--) d->elenco[j] = d->elenco[j - 1];
+    snprintf(d->elenco[0].nome, sizeof d->elenco[0].nome, "%s", nome0);
+    snprintf(d->elenco[0].papel, sizeof d->elenco[0].papel, "%s", papel0);
+    snprintf(d->elenco[0].foto, sizeof d->elenco[0].foto, "%s", foto0);
+    d->elenco[0].tmdb = t0;
+  }
+}
+
 int desc_meta_elenco(const char *json, CatItem *d, int soVazios) {
   const char *m = json, *extra, *raiz, *rico, *p;
   struct { char nome[64], papel[64], foto[512]; long tmdb; } antigos[CAT_ELENCO_MAX];
@@ -7253,6 +7280,9 @@ int desc_meta_elenco(const char *json, CatItem *d, int soVazios) {
     }
     if (nome[0]) snprintf(d->direcao, sizeof d->direcao, "%s", nome);
   }
+  { char primeiro[128]; const char *v = strchr(d->direcao, ',');   // "A, B": o primeiro nome
+    snprintf(primeiro, sizeof primeiro, "%.*s", v ? (int)(v - d->direcao) : (int)sizeof primeiro, d->direcao);
+    elencoDiretorPrimeiro(d, primeiro, 0, NULL); }
   return d->nElenco;
 }
 
@@ -7309,6 +7339,19 @@ static int tmdbElenco(const char *json, CatItem *d, int soVazios) {
     d->nElenco++;
   }
   free(t);
+  for (p = js_array(json, NULL, "crew"); p; p = js_prox(js_fim(p))) {
+    const char *f = js_fim(p);
+    char job[48] = "", nome[64] = "", cam[128] = "", foto[512] = "";
+    js_texto(p, f, "job", job, sizeof job);
+    if (strcasecmp(job, "director")) continue;
+    js_texto(p, f, "name", nome, sizeof nome);
+    if (!nome[0]) continue;
+    if (js_texto(p, f, "profile_path", cam, sizeof cam) && cam[0] == '/')
+      snprintf(foto, sizeof foto, "https://image.tmdb.org/t/p/w185%s", cam);
+    if (!d->direcao[0]) snprintf(d->direcao, sizeof d->direcao, "%s", nome);
+    elencoDiretorPrimeiro(d, nome, (long)js_num(p, f, "id", 0.0), foto);
+    break;
+  }
   return casados;
 }
 

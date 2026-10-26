@@ -136,8 +136,6 @@ static const Item TELA[] = {
 
   // ---- TELAS ---------------------------------------------------------------------
   SEC("Tela inicial", "Estilo, fileiras, barra lateral e Continuar assistindo", "aj_layout-dashboard"),
-    ROT("Galeria"),
-      OPC(AJ_MENU_GALERIA), OPC(AJ_GALERIA_EDITAR),
     ROT("Estilo"),
       OPC(AJ_HOME_LAYOUT), OPC(AJ_LANDSCAPE), OPC(AJ_HERO), OPC(AJ_HERO_CHEIO),
       OPC(AJ_FUNDO_DIN), OPC(AJ_FUNDO_DIN_COR),
@@ -169,6 +167,11 @@ static const Item TELA[] = {
       OPC(AJ_MIC_BUSCA),
 #endif
 
+  SEC("Galeria", "A segunda aba da Home, com os seus próprios ajustes", "aj_layout-dashboard"),
+    ROT("Barra lateral"), OPC(AJ_MENU_GALERIA),
+    ROT("Fileiras"),
+      OPC(AJ_GAL_LANDSCAPE), OPC(AJ_GAL_ITENS_FILEIRA), OPC(AJ_GAL_ESPACO_FILEIRAS), OPC(AJ_GAL_ESPACO_TITULOS), OPC(AJ_GAL_FIL_TITULOS), OPC(AJ_GAL_NOTAS_HOME), OPC(AJ_GAL_SELO_VISTO), OPC(AJ_GAL_ABAS_ESTILO), OPC(AJ_GAL_OCULTAR_FILMES_VISTOS), OPC(AJ_GAL_AMIGOS_ESTILO), OPC(AJ_GAL_COLECAO_EXIBICAO), OPC(AJ_GAL_BORDA_FOCO), OPC(AJ_GAL_SOMBRA_FOCO),
+
   SEC("Aparência", "Cor, transparência, fonte, animações e relógio", "aj_palette"),
 #ifdef NV_TOUCH_UI
     OPC(AJ_INTERFACE_MODO),
@@ -183,7 +186,7 @@ static const Item TELA[] = {
       OPC(AJ_LOGO_APP), OPC(AJ_ABERTURA), OPC(AJ_ICONE_APP),
     ROT("Texto e tamanho"),
       OPC(AJ_FONTE_UI), OPC(AJ_TAMANHO_UI), OPC(AJ_TAMANHO_UI_PCT), OPC(AJ_ESCALA_TEXTO), OPC(AJ_ESCALA_TEXTO_PCT), OPC(AJ_DET_ESPACO), OPC(AJ_TAMANHO_AJUSTES), OPC(AJ_LAYOUT_AJUSTES),
-      OPC(AJ_BUSCA_TECLADO_PCT), OPC(AJ_BUSCA_CARTAZ_PCT), OPC(AJ_BUSCA_ESPACO_PCT),
+      OPC(AJ_BUSCA_TECLADO_PCT), OPC(AJ_BUSCA_CARTAZ_PCT), OPC(AJ_BUSCA_ESPACO_PCT), OPC(AJ_BUSCA_CARTAZ_GAP_PCT),
     ROT("Movimento e relógio"),
       OPC(AJ_ANIM), OPC(AJ_RELOGIO), OPC(AJ_RELOGIO_PCT), OPC(AJ_RELOGIO_12H),
     ROT("Tela de descanso"),

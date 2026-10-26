@@ -460,6 +460,7 @@ static int heroLigado(void) { return ajustes_hero_ligado() && !homeVista; }
 // O destaque percorre ate HOME_HERO_LISTA titulos de uma vez (dono, 2026-10-26: sem a janela de 10 que
 // repetia); o automatico (sem fonte escolhida) segue com os 10 primeiros.
 #define HOME_HERO_LISTA 200
+#define HERO_FONTE_MAX_LOCAL 2048
 #define HERO_AUTO_MAX 10
 #define HOME_HERO_SIN_LINHAS 12   // teto pratico: sinopse inteira (shortcut: texto acima de 12 linhas e cortado)
 static int heroAtual = 0, heroAnterior = 0;
@@ -1051,6 +1052,11 @@ static int heroSetN;
 static unsigned heroSetRev, heroSetFilRev, heroSetItensRev;
 static int heroSetOcultaVistos;
 static int heroSetCat, heroSetNFil;
+// A lista e ESTAVEL (dono, 2026-10-26): ao refazer (catalogo que chega, fileira nova) os titulos
+// que ja estavam ficam na mesma ordem e so os novos entram no fim. Guarda os hashes para isso.
+static unsigned heroSetHash[HOME_HERO_LISTA];
+static char heroSetFonte[HERO_FONTE_MAX_LOCAL];
+static int heroSetVista = -1, heroSetNAnt;
 
 // Sorteio ESTAVEL dentro da sessao: o embaralhamento usa uma semente propria
 // que so muda quando a lista e refeita. Sortear a cada quadro daria um destaque
@@ -1164,10 +1170,26 @@ static void heroMontarSet(void) {
     int tentou = 0, filtro = 1;   // filtro: so itens das fileiras desta aba (so no "*"; cai se nao sobrar nenhum)
     // Refazer a MESMA janela (fileiras que chegam, perfil) nao consome o catalogo: parte do
     // historico fechado na ultima renovacao, com a mesma semente.
+    unsigned ant[HOME_HERO_LISTA];
+    int antN = 0;
+    if (!strcmp(heroSetFonte, fonte) && heroSetVista == homeVista) { antN = heroSetNAnt; memcpy(ant, heroSetHash, sizeof ant); }
+    snprintf(heroSetFonte, sizeof heroSetFonte, "%s", fonte);
+    heroSetVista = homeVista;
     heroVistosN = heroVistosBase;
     for (;;) {
       int m = heroCandidatos(fonte, filtro, baralho, (int)(sizeof baralho / sizeof *baralho));
       int n = HOME_HERO_LISTA;
+      // 1. o que ja estava na lista, na mesma ordem
+      for (int q = 0; q < antN && heroSetN < n; q++) {
+        for (i = 0; i < m; i++) {
+          unsigned h = heroHashTitulo(cat_item(baralho[i]));
+          if (h != ant[q] || heroVisto(h)) continue;
+          heroMarcarVisto(h);
+          heroSet[heroSetN++] = baralho[i];
+          break;
+        }
+      }
+      // 2. o resto, sorteado, entra no fim
       for (i = 0; i < m && heroSetN < n; i++) {
         unsigned h;
         if (embaralha) {
@@ -1188,7 +1210,11 @@ static void heroMontarSet(void) {
       else break;
     }
     // Fileira escolhida que nao existe (addon saiu): cai no automatico, abaixo.
-    if (heroSetN) return;
+    if (heroSetN) {
+      for (i = 0; i < heroSetN; i++) heroSetHash[i] = heroHashTitulo(cat_item(heroSet[i]));
+      heroSetNAnt = heroSetN;
+      return;
+    }
   }
   for (i = 0; i < total && heroSetN < HERO_AUTO_MAX; i++)
     if (!filmeVistoOculto(cat_item(i)) && heroItemNaVista(i)) heroSet[heroSetN++] = i;
@@ -1211,14 +1237,6 @@ static void heroSetGarantir(void) {
   // Os candidatos ja sao conhecidos: completa em segundo plano a sinopse dos
   // que vieram rasos (lista do Trakt), antes de o carrossel chegar a eles.
   desc_sinopse_hero(heroSet, heroSetN);
-}
-
-// Nova janela do sorteio quando a anterior acabou (a seta ou o carrossel
-// chegaram ao fim): zera a assinatura para heroSetGarantir refazer a lista.
-static void heroRenovar(void) {
-  heroVistosBase = heroVistosN;
-  heroSemente = (heroSemente * 1664525u + 1013904223u) | 1u;
-  heroSetRev = 0;
 }
 
 // Quantos titulos o destaque oferece.
@@ -1541,10 +1559,6 @@ static int heroProximoAuto(int mutar) {
   int total = heroNLista();
   int pos = heroPosDe(heroAtual), p;
   if (total <= 0) return 0;
-  if (heroEhSorteio() && pos >= 0 && pos + 1 >= total) {
-    if (!mutar) return -1;
-    heroRenovar(); total = heroNLista(); pos = -1;
-  }
   p = pos < 0 ? 0 : (pos + 1) % total;
   p = heroIdxEm(p);
   return p < 0 ? 0 : p;
@@ -1563,8 +1577,7 @@ static void heroPasso(int d) {
   int pos = heroPosDe(heroIntencao());
   int alvo;
   if (pos < 0) pos = 0;
-  if (heroEhSorteio() && d > 0 && n > 0 && pos + d >= n) { heroRenovar(); n = heroNLista(); pos = -d; }
-  alvo = heroIdxEm(pos + d);
+  alvo = n > 0 ? heroIdxEm(((pos + d) % n + n) % n) : -1;   // a mesma lista, em ordem, dando a volta nas pontas
   if (n <= 0 || alvo < 0) return;
   heroPendente = alvo;
   heroTempoInicio(alvo);
@@ -4574,8 +4587,9 @@ static HeroCopyLayout heroCopyTelefone(float base, float *hSin, int hasMeta,
 // salta tambem, para nao varrer a fileira inteira. Mais de 12 titulos: uma
 // janela de 12 em volta do atual. Cada ponto e um gfx_cor (pilula de canto
 // 0,5): ~16 retangulos pequenos, nada de tela cheia.
-#define HERO_PONTOS_MAX 12
+#define HERO_PONTOS_MAX 10
 static float heroPontosPos = -1.0f;
+static int heroPontosIni = -1;
 static Uint32 heroPontosT;
 static void desenhaPontosHero(float xDir, float yc, int n, int atual, float a) {
   const float d = 8.0f, gap = 10.0f, larga = 26.0f, seta = 22.0f, folga = 14.0f;
@@ -4586,15 +4600,15 @@ static void desenhaPontosHero(float xDir, float yc, int n, int atual, float a) {
   heroPontosT = agora;
   if (n <= 1 || a <= 0.004f) return;
   if (dt > 0.1f) dt = 0.1f;
+  // Paginas de 10 pontos: passou do 10o, recomeca no primeiro (e a lista anda em paginas, nao em janela).
+  ini = (atual / HERO_PONTOS_MAX) * HERO_PONTOS_MAX;
+  m = n - ini < HERO_PONTOS_MAX ? n - ini : HERO_PONTOS_MAX;
+  if (ini != heroPontosIni) { heroPontosIni = ini; heroPontosPos = (float)atual; }
   if (heroPontosPos < 0.0f || ajustes_animacoes_reduzidas() ||
       fabsf(heroPontosPos - (float)atual) > 1.5f)
     heroPontosPos = (float)atual;
   else
     heroPontosPos += ((float)atual - heroPontosPos) * (1.0f - expf(-dt * 14.0f));
-  m = n < HERO_PONTOS_MAX ? n : HERO_PONTOS_MAX;
-  ini = atual - m / 2;
-  if (ini > n - m) ini = n - m;
-  if (ini < 0) ini = 0;
   w = (float)(m - 1) * (d + gap) + larga;
   x = xDir - seta - folga - w;
   gfx_icone((GfxRect){ x - folga - seta, yc - seta * 0.5f, seta, seta }, "pl_chevron-left",
@@ -4957,6 +4971,9 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     // alfa de troca aqui era invencao nossa — e, com o rasterizador fazendo 2
     // linhas por quadro (text.c:40), esvanecer texto que ainda esta assentando
     // e o pior caso possivel.
+    // dono (2026-10-26): sem a rampa escura da esquerda, uma sombra no texto garante a leitura sobre arte clara.
+    { TxtLinha sh = txt_linha_corta(heroMetaEstilo(), metaLinha, 0, 0, 0, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
+      txt_desenhar_alpha(sh, x + badgeW + 2.0f, yMeta + (linhaH - lm.h) * 0.5f + 2.0f, 0.75f * aCopy); }
     txt_desenhar_alpha(lm, x + badgeW, yMeta + (linhaH - lm.h) * 0.5f, aCopy);
     cx = x + badgeW + lm.w + 14.0f;
     if (fundeLinha) {
@@ -4976,6 +4993,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     if (scale != 1.0f) gfx_transformar(x, ySec, scale, 0, 0);
     if (destaque[0]) {
       // .home-modern-hero-highlight: branco cheio, peso 600, tracking 0.04em.
+      txt_tracking(TXT_HERO_SEC, destaque, 0, 0, 0, cx + 2.0f, ySec + 2.0f, 0.75f * a, NV_FT_HERO_SEC * 0.04f);
       cx += txt_tracking(TXT_HERO_SEC, destaque, 255, 255, 255, cx, ySec, a,
                          NV_FT_HERO_SEC * 0.04f);
       cx += 14.0f;
@@ -4998,8 +5016,10 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   }
 
   if (sinopse[0] && (!(heroCompactoTelefone() || vitTeto > 0.0f) || hSin > 0.0f) && aCopy > 0.004f)
-    txt_bloco_corta(heroSinEstilo(), sinopse, 255, 255, 255, x, ySin, sinW,
-                    heroSinEntrelinha(), aCopy, sinLinhas);
+    { txt_bloco_corta(heroSinEstilo(), sinopse, 0, 0, 0, x + 2.0f, ySin + 2.0f, sinW,
+                      heroSinEntrelinha(), 0.7f * aCopy, sinLinhas);
+      txt_bloco_corta(heroSinEstilo(), sinopse, 255, 255, 255, x, ySin, sinW,
+                      heroSinEntrelinha(), aCopy, sinLinhas); }
   return copy.action;
 }
 
@@ -8928,7 +8948,7 @@ void home_abrir_sessao(void) {
   heroSetN = heroSetCat = heroSetNFil = 0;
   heroSetRev = heroSetFilRev = heroSemente = 0;
   heroVizBase = -1; heroVizFeito = 0; heroVizTentaEm = 0;
-  heroPontosPos = -1.0f; heroPontosT = 0;
+  heroPontosPos = -1.0f; heroPontosT = 0; heroPontosIni = -1;
   memset(&heroTempo, 0, sizeof heroTempo);
   if (trailer_aberto() && trailer_dono() == TRAILER_DONO_HOME) trailer_fechar();
   heroTrailerItem = cartaoTrailerItem = -1;
