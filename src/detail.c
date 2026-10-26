@@ -3423,7 +3423,7 @@ static void detail_evento_(const SDL_Event *e) {
     }
   }
   else if (k == SDLK_DOWN)  moverFileira(1);
-  else if (k == SDLK_UP)    { if (!moverFileira(-1)) nivel = 0; }
+  else if (k == SDLK_UP)    { if (!moverFileira(-1)) { nivel = 0; focoAmigos = 0; focoSinopse = sinopseDe(idx) != NULL; } }   // sobe passo a passo: a sinopse antes dos botoes (dono, 2026-10-26)
 }
 
 // Pilulas de "Producao": largura pelo nome; quebram linha na largura da

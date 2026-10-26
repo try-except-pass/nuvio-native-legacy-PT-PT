@@ -1565,6 +1565,18 @@ static void topoMedir(TopoTira *t) {
   }
 }
 
+// Espaco (px da tela real) entre a borda direita da barra do topo e a margem da ilha: o teto da largura da
+// pilula do cartao, para ela nunca cobrir a barra (dono, 2026-10-26). 0 = sem barra no topo, sem teto.
+float menu_topo_livre_direita(void) {
+  TopoTira t;
+  float larg, borda;
+  if (!topo()) return 0.0f;
+  topoMedir(&t);
+  larg = (t.larg + 2.0f * TOPO_TRILHA) * TOPO_K * NV_MENU_ESCALA;
+  borda = NV_LAYOUT_REAL_W * 0.5f + larg * 0.5f;
+  return NV_LAYOUT_REAL_W - borda - NV_ILHA_MARGEM_D * gfx_escala_ui_base() - 16.0f;
+}
+
 // x da pilula k na tira (0 = inicio dela): tab_pill_x deles.
 static float topoPilulaX(const TopoTira *t, int k) {
   float x = 0.0f;

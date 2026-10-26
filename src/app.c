@@ -7157,6 +7157,7 @@ int app_home_recebe_teclas(void) {
 }
 
 static int relogioCabe(void) {
+  if (tela == TELA_GUIA) return 0;   // dono (2026-10-26): o guia de TV nao tem relogio
   // AJUSTES NO GLASS UI (mockup de 03/10): o relogio fica no canto, em cima da
   // ilha de categorias — a tela nao tem mais titulo ali. Com folha, vinculo ou
   // teclado por cima ele some, como na home com um cartao na frente.

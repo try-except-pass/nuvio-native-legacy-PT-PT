@@ -237,6 +237,16 @@ void sinopse_desenhar(void) {
   cab = txt_linha_corta(TXT_AJ_INSP, leitor.comentario ? leitor.titulo : i18n("Ler sinopse"), 243, 242, 239, 255, w - 2 * pad - (leitor.comentario ? 240 : 0));
   titulo = txt_linha_corta(TXT_ILHA_SUB, leitor.comentario ? leitor.data : leitor.titulo, 243, 242, 239, 255, w - 2 * pad);
   botao = txt_linha_corta(TXT_PG_ROTULO, i18n("Fechar"), 243, 242, 239, 255, w - 2 * pad - 40);
+  // dono (2026-10-26): a janela acompanha o tamanho do texto; sinopse curta nao ocupa a tela toda.
+  int movel = 0;
+#ifdef NV_TOUCH_UI
+  movel = layout_modo_mobile();
+#endif
+  if (!leitor.comentario && !leitor.oculto && !movel) {
+    float th = textoCompleto(estilo, 0, 0, w - 2 * pad - 12, sinopse_entrelinha(TXT_DET_SIN, 40), 0);
+    float need = pad + cab.h + 8 + titulo.h + 24 + th + 24 + fmaxf(56, botao.h + 24) + pad;
+    if (need < h) { h = fmaxf(need, 300.0f); y = (NV_TELA_H - h) * .5f; folha = (GfxRect){ x, y, w, h }; }
+  }
   { float visualH = fmaxf(56, botao.h + 24), alvoH = visualH;
 #ifdef NV_TOUCH_UI
     // The Mobile canvas normalizes the short edge to1080. Reserve48dp on a

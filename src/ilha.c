@@ -1153,16 +1153,26 @@ static void metaCartao(const IlhaCartao *c, int qual, char *b, size_t n) {
     else snprintf(b, n, i18n("%d min restantes"), m); }
 }
 
+static float cartaoTeto;   // largura maxima da pilula do cartao, em unidades do quadro (0 = sem teto)
 static float larguraCartao(const IlhaCartao *c, int qual, LinhasCartao *L) {
   char meta[96];
   float w;
   L->hora = txt_linha(TXT_PG_RELOGIO, hora, 244, 245, 248, 255);
   // No cartao do amigo o nome vai em destaque e o titulo vira a meta.
-  L->tit = qual == ILHA_AMIGO
-         ? txt_linha_corta(TXT_ILHA_FORTE, c->pessoa, 240, 242, 246, 255, CT_TIT_MAX)
-         : txt_linha_corta(TXT_BODY, c->titulo, 240, 242, 246, 255, CT_TIT_MAX);
   metaCartao(c, qual, meta, sizeof meta);
   L->meta = txt_linha_corta(TXT_CAPTION2, meta, 176, 180, 190, 255, CT_TIT_MAX);
+  { // dono (2026-10-26): a pilula nunca cobre a barra do topo; o titulo cede o que faltar.
+    float titMax = CT_TIT_MAX;
+    if (cartaoTeto > 0.0f) {
+      float fixo = PAD_E + PAD_D + (float)L->hora.w + CT_VAO * 2.0f + 1.5f +
+                   (qual == ILHA_VIVO ? CT_CAPA_W : qual == ILHA_AMIGO ? ROSTO + MINI_W - DUO_SOBRE : ICONE) + VAO +
+                   10.0f + (float)L->meta.w + (qual != ILHA_VIVO ? 22.0f : 0.0f);
+      if (cartaoTeto - fixo < titMax) titMax = fmaxf(60.0f, cartaoTeto - fixo);
+    }
+    L->tit = qual == ILHA_AMIGO
+           ? txt_linha_corta(TXT_ILHA_FORTE, c->pessoa, 240, 242, 246, 255, titMax)
+           : txt_linha_corta(TXT_BODY, c->titulo, 240, 242, 246, 255, titMax);
+  }
   w = (float)L->hora.w + CT_VAO * 2.0f + 1.5f +
       (qual == ILHA_VIVO ? CT_CAPA_W : qual == ILHA_AMIGO ? ROSTO + MINI_W - DUO_SOBRE : ICONE) + VAO +
       (float)L->tit.w + 10.0f + (float)L->meta.w;
@@ -1260,10 +1270,7 @@ static void desenharCartao(const IlhaCartao *c, int qual, GfxRect r, float a) {
 #define AT_W       640.0f   // painel da atividade (Home loading)
 #define AT_H       292.0f
 
-static float modalSinopseExtra(void) {
-  return !modalAviso && !modalAtividade && modalC.sinopse[0]
-       ? fmaxf(0, sinopse_entrelinha(TXT_CAPTION, 30) - 30) : 0;
-}
+static float modalSinopseExtra(void) { return 0.0f; }   // dono (2026-10-26): o cartao expandido nao tem sinopse
 
 static GfxRect modalAlvo(GfxRect p, int dir) {
   int compacto = modalAtividade && atvTemCarga;
@@ -1660,6 +1667,15 @@ static void desenharModal(GfxRect m, float a) {
   float y = ay, by = ay + MD_ARTE_H + extraSin + 24.0f, sy, cr, cg, cb;
   int i;
   if (a < 0.01f) return;
+  // Titulo, episodio e estado centrados na vertical da coluna da direita (dono, 2026-10-26).
+  if (!modalAtividade) {
+    GLuint lt0 = c->logo[0] ? tex_obter_larg_qualquer(c->logo, MD_LOGO_W) : 0;
+    float asp0 = lt0 ? tex_aspecto(c->logo) : 0.0f;
+    float total = (lt0 && asp0 > 0.0f ? MD_LOGO_H : (float)txt_linha(TXT_TITULO3, "Ag", 255, 255, 255, 255).h) + 14.0f +
+                  (c->serie && c->t > 0 && c->e > 0 ? (float)txt_linha(TXT_CALLOUT, "Ag", 255, 255, 255, 255).h + 10.0f : 0.0f) +
+                  (float)txt_linha(TXT_CAPTION, "Ag", 255, 255, 255, 255).h;
+    if (total < MD_ARTE_H) y = ay + (MD_ARTE_H - total) * 0.5f;
+  }
   ajustes_acento(&cr, &cg, &cb);
   if (modalAtividade && atvTemCarga) {
     // PAINEL COMPACTO da carga da Home: titulo + etapa a esquerda, o tempo
@@ -1787,7 +1803,7 @@ static void desenharModal(GfxRect m, float a) {
     else if (c->quando[0]) snprintf(b, sizeof b, "%s · %s", i18n("Episódio novo"), c->quando);
     else snprintf(b, sizeof b, "%s", i18n("Episódio novo"));
     t = txt_linha(TXT_CAPTION, b, 200, 204, 212, 255);
-    sy = ay + MD_ARTE_H + extraSin - (float)t.h;
+    sy = y;
     if (modalQual == ILHA_ESTREIA || modalQual == ILHA_AMIGO) {
       // O ponto: acento no episodio novo, vermelho de "agora" no amigo.
       if (modalQual == ILHA_AMIGO) gfx_cor((GfxRect){ cx, sy + (float)t.h * 0.5f - 5.0f, 10.0f, 10.0f }, 0.5f, 1.0f, 0.353f, 0.322f, a);
@@ -1802,12 +1818,6 @@ static void desenharModal(GfxRect m, float a) {
       if (tr.w * pr > 4.0f) gfx_cor((GfxRect){ tr.x, tr.y, tr.w * pr, 4.0f }, 0.5f, cr, cg, cb, a);
       txt_desenhar_alpha(t, cx + 220.0f + 14.0f, sy, a);
     } }
-  if (c->sinopse[0]) {
-    int linhas = (int)((sy - 12.0f - y) / 30.0f);
-    if (linhas > 3) linhas = 3;
-    if (linhas >= 1)
-      sinopse_bloco_corta(TXT_CAPTION, c->sinopse, 176, 180, 190, cx, y, cw, 30.0f, a, linhas);
-  }
   // Botoes. O ponteiro: o fundo inteiro fecha, o modal absorve, cada botao foca.
   if (a > 0.3f) {
     ponteiro_camada();
@@ -2028,6 +2038,8 @@ void ilha_desenhar(Uint32 agora) {
       float fit = fminf((ox - 40.0f) / MD_W, (NV_TELA_H - 40.0f - oy) / Mh);
       if (fit > 0.2f && fit < k) k += (fit - k) * (modalT > 1.0f ? 1.0f : modalT);
     }
+    { float livre = menu_topo_livre_direita();
+      cartaoTeto = livre > 0.0f ? livre / (gfx_escala() * k) : 0.0f; }
     if (k != 1.0f) gfx_transformar(ox, oy, k, 0.0f, 0.0f);
     ilha_desenharCorpo_(agora);
     if (k != 1.0f) gfx_sem_transformar(); }
@@ -2268,7 +2280,7 @@ static void ilha_desenharCorpo_(Uint32 agora) {
     if (repouso && !ajustes_vidro()) gfx_chrome(R, raio, A);
     else if (ajustes_vidro()) {
       gfx_vidro_camada = 1;
-      if (repouso) gfx_vidro_material(R, raio, 0.50f, A);   // dono (2026-10-26): o frost da barra lateral, bem mais transparente
+      if (repouso) gfx_vidro_material(R, raio, 0.60f, A);   // dono (2026-10-26): o frost da barra lateral, bem mais transparente
       else gfx_vidro_material(R, raio, fundo, A);
       gfx_vidro_camada = 0;
     }

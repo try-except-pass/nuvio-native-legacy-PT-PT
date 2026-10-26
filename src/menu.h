@@ -64,6 +64,7 @@ int  menu_aberto(void);
 // 1 enquanto ainda ha pixel para desenhar (inclui a saida). Serve para o loop
 // decidir se vale sequer chamar menu_desenhar.
 int  menu_visivel(void);
+float menu_topo_livre_direita(void);   // px reais livres a direita da barra do topo (0 = sem teto)
 
 // Destino em vigor (um MenuDestino). menu_definir_destino existe para o app
 // impor o estado inicial ou reagir a uma navegacao que nao veio da barra.

@@ -141,7 +141,7 @@ static float buTopoEsq(void) {
 #define BU_MAX_POR_FIL  DESC_BUSCA_POR_ALVO
 // Rotulo em caixa alta (15/700) 18 acima do conteudo; melhor resultado 226 de
 // altura (capa 330x186 + padding 20); cartaz 180x270, nome 17 a 10 abaixo.
-#define BU_KICK_H       64.0f   // dono (2026-10-26): titulo da categoria maior e mais folga ate os cartazes
+#define BU_KICK_H       84.0f   // dono (2026-10-26): titulo da categoria maior e mais folga ate os cartazes
 #define BU_MELHOR_H    fmaxf(226.0f, 186.0f * gfx_poster_k() + 40.0f)
 #define BU_CARTAZ_W    (180.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_CARTAZ_GAP  (12.0f * ajustes_busca_cartaz_gap())
@@ -312,7 +312,7 @@ static float buKbK(void) {
 // teclado). So na tela larga: telefone e retrato seguem com a coluna unica.
 #define BU_HERO_H   ANC(300.0f)
 #define BU_HERO_GAP ANC(30.0f)
-#define BU_TITULO_H ANC(96.0f)   // faixa do titulo em foco, no lugar do antigo destaque
+#define BU_TITULO_H ANC(132.0f)   // faixa do titulo em foco, no lugar do antigo destaque
 static int heroIdx = -1;                // indice de catalogo mostrado agora
 static int heroAnt = -1;                // o de antes, esvanecendo
 static Uint32 heroTroca;
@@ -636,7 +636,7 @@ static void refiltrar(void) {
     }
   }
 
-  int nCat = cat_n_fileiras();
+  int nCat = desc_busca_n_alvos() > 0 ? 0 : cat_n_fileiras();   // com a busca nos addons so entram filmes e series dela (dono, 2026-10-26)
   for (int r = 0; r < nCat && nFil < BU_MAX_FILEIRAS; r++) {
     const CatFileira *cf = cat_fileira(r);
     if (!cf) break;
@@ -1380,6 +1380,8 @@ static float filAlt(int r) {
 static float filTopo(int r) {
   float y = sugestao ? sugDesloc : 0.0f;
   for (int i = 0; i < r; i++) y += filAlt(i) + BU_SECAO_GAP;
+  // Pessoas: sobe um pouco, tirando espaco de cima (filmes) e dando ao de baixo (series) (dono, 2026-10-26).
+  if (r >= 0 && r < nFil && fil[r].pessoas) y -= 44.0f;
   return y;
 }
 

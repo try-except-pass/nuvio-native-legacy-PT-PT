@@ -308,7 +308,7 @@ static void pausao_desenharCorpo_(Uint32 agora, const PausaoCena *cena) {
     fim = metaPontos(c->meta, PAUSAO_X, y, PAUSAO_LARG, a);
     if (notaImdb > 0) {
       float bx = PAUSAO_X + fim + (fim > 0.0f ? 16.0f : 0.0f);
-      if (bx + badge_imdb_largura(notaImdb) <= PAUSAO_X + PAUSAO_LARG) badge_imdb(bx, y - 4.0f, notaImdb, 0, a);
+      if (bx + badge_imdb_largura(notaImdb) <= PAUSAO_X + PAUSAO_LARG) badge_imdb(bx, y + ((float)txt_linha(TXT_CAPTION2, "Ag", 0, 0, 0, 255).h - BADGE_H) * 0.5f, notaImdb, 0, a);
     }
     y += hMeta;
   }

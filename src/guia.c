@@ -5239,7 +5239,7 @@ static void desenharCard(GCanal *c, float x, float y, float foco, float a,
                epg == -3 ? i18n("Não foi possível carregar a programação")
                : epg == -2 ? i18n("Sem grade de programação")
                : epg >= 0 ? i18n("Sem próximos programas")
-                          : i18n("Carregando programação…"));
+                          : "");   // dono (2026-10-26): sem mensagem de carregando
     }
     { int ct = escuro ? 60 : 160;
       TxtLinha l = txt_linha_corta(TXT_MINI, linha, ct, ct + 2, ct + 10, 255,
@@ -6438,7 +6438,7 @@ static void desenharLinhaLista(GCanal *c, float y, int focada, float a,
       }
     } else {
       int ct = focada ? 176 : 118;
-      const char *m = epg == -1 ? i18n("Carregando programação…")
+      const char *m = epg == -1 ? ""
                     : epg == -3 ? i18n("Não foi possível carregar a programação")
                : epg == -2 ? i18n("Sem grade de programação")
                                 : i18n("Sem próximos programas");
@@ -7194,8 +7194,6 @@ static void buscaDesenhar(Uint32 agora) {
         i18n("Nada encontrado nos canais nem na grade das próximas horas."),
         180, 184, 194, 255, G_BUSCA_W), x0, y + 20.0f, ea);
   gfx_sem_recorte();
-  txt_desenhar_alpha(txt_linha(TXT_CAPTION, buscaPendente.ativa ? i18n("Carregando programação…") : i18n("OK abre  ·  ↑↓ escolhe  ·  Voltar fecha"), 128, 130, 138, 255),
-                     x0, NV_TELA_H - 84.0f, ea);
 }
 
 #ifdef NV_TOUCH_UI
@@ -7351,10 +7349,8 @@ void guia_desenhar(Uint32 agora) {
                            243, 242, 239, 255);
     float sx = G_AREA_X + (float)t.w + 20.0f;
     txt_desenhar_alpha(t, G_AREA_X, G_TOPO_Y + (G_TOPO_H - (float)t.h) * 0.5f, a);
-    if (estado == G_BAIXANDO && nCanais > 0)   // lista do cache na tela, rede atras
-      snprintf(sub, sizeof sub, i18n("%d canais · %d categorias · atualizando…"), nCanais, nCats);
-    else if (estado == G_BAIXANDO)
-      snprintf(sub, sizeof sub, "%s", i18n("Carregando canais…"));
+    sub[0] = 0;   // dono (2026-10-26): nada de "N canais · N categorias" nem "Carregando canais" enquanto carrega
+    if (estado == G_BAIXANDO) { }
     else if (falhas && !nCanais)
       snprintf(sub, sizeof sub, "%s",
                i18n("Os addons de canais não responderam."));
@@ -7369,25 +7365,6 @@ void guia_desenhar(Uint32 agora) {
     else if (estado == G_FALHOU || (fontesOk && !nFontes && !nCanais))
       snprintf(sub, sizeof sub, "%s",
                i18n("Nenhum canal: sem addon de canais e sem portal IPTV."));
-    // A falha do Xtream toma o lugar da contagem simples, e so ela: os canais
-    // dos addons continuam na tela e funcionam, o que falta e o portal.
-    else if (xtFalha == XT_SEM_RESPOSTA || xtFalha == XT_PAGINA || xtFalha == XT_HTTP)
-      snprintf(sub, sizeof sub, i18n("%d canais · %d categorias · a lista do Xtream não respondeu"),
-               nCanais, nCats);
-    else if (xtFalha == XT_RECUSOU)
-      snprintf(sub, sizeof sub, i18n("%d canais · %d categorias · o Xtream recusou o usuário e a senha"),
-               nCanais, nCats);
-    // A CONTA XTREAM, quando ha o que dizer (#158): vencida, desativada,
-    // telas cheias ou vencendo. E a causa de "nenhum canal toca" que se sabe
-    // ANTES de tentar um canal. Lido do que o fio do guia guardou, sem rede.
-    else if (xtream_configurado() && xtAviso(sub, sizeof sub)) { }
-    // O CORTE SE DIZ: o guia guarda um teto de canais/categorias (guiacorte.h)
-    // e antes cortava em silencio. Mesma frase da linha da fonte (feat/guia-tv).
-    else if (guiacorte_cortou(&corte))
-      guiacorte_linha(&corte, nCanais,
-                      guiacorte_por_canais(&corte) ? i18n("Mostrando %d de %d canais (o que cabe nesta TV)")
-                                                   : i18n("Mostrando %d de %d canais (limite de categorias)"),
-                      sub, sizeof sub);
     else sub[0] = 0;   // dono (2026-10-26): sem a linha "N canais · N categorias · segure ..."
     if (sub[0]) { float subX = G_AREA_X;
       TxtLinha st = txt_linha_corta(gRetrato() ? TXT_DET_META2 : TXT_ILHA_HORA, sub, 150, 153, 162, 255,
