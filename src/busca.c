@@ -350,10 +350,12 @@ static void kbMaiuscula(char *dst, size_t n, const char *src) {
     else if (a == 0xC3 && b >= 0xA0 && b <= 0xBE && b != 0xB7) { dst[k++] = (char)a; dst[k++] = (char)(b - 32); p += 2; }
     else if (a == 0xD0 && b >= 0xB0 && b <= 0xBF) { dst[k++] = (char)a; dst[k++] = (char)(b - 32); p += 2; }
     else if (a == 0xD1 && b >= 0x80 && b <= 0x8F) { dst[k++] = (char)0xD0; dst[k++] = (char)(b + 0x20); p += 2; }
-    else if (a == 0xD1 && b == 0x91) { dst[k++] = (char)0xD0; dst[k++] = (char)0x81; p += 2; }
-    else if (a == 0xD1 && b == 0x94) { dst[k++] = (char)0xD0; dst[k++] = (char)0x84; p += 2; }
-    else if (a == 0xD1 && b == 0x96) { dst[k++] = (char)0xD0; dst[k++] = (char)0x86; p += 2; }
-    else if (a == 0xD1 && b == 0x97) { dst[k++] = (char)0xD0; dst[k++] = (char)0x87; p += 2; }
+    else if (a == 0xD1 && b >= 0x90 && b <= 0x9F) { dst[k++] = (char)0xD0; dst[k++] = (char)(b - 0x10); p += 2; }   // ѐ-џ
+    else if (a == 0xC4 && b >= 0x80 && b <= 0xB7 && b != 0xB1 && (b & 1)) { dst[k++] = (char)a; dst[k++] = (char)(b - 1); p += 2; }   // Latin Extended-A
+    else if (a == 0xC4 && b >= 0xBA && b <= 0xBE && !(b & 1)) { dst[k++] = (char)a; dst[k++] = (char)(b - 1); p += 2; }
+    else if (a == 0xC5 && ((b >= 0x82 && b <= 0x88 && !(b & 1)) || (b >= 0x8B && b <= 0xB7 && (b & 1)) ||
+                           (b >= 0xBA && b <= 0xBE && !(b & 1)))) { dst[k++] = (char)a; dst[k++] = (char)(b - 1); p += 2; }
+    else if (a == 0xC5 && b == 0x80) { dst[k++] = (char)0xC4; dst[k++] = (char)0xBF; p += 2; }   // ŀ -> Ŀ
     else if (a == 0xD2 && b == 0x91) { dst[k++] = (char)0xD2; dst[k++] = (char)0x90; p += 2; }
     else { dst[k++] = (char)*p++; }
   }

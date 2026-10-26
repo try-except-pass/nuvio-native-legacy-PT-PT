@@ -1083,7 +1083,8 @@ static void heroMontarSet(void) {
   if (fonte[0] == '*' && !fonte[1]) {
     // Sorteio sem repeticao entre as janelas: o catalogo inteiro (todas as
     // fileiras juntas), menos o que ja foi oferecido nesta sessao.
-    static int baralho[4096];
+    static int baralho[4096];   // shortcut: catalogo acima de 4096 titulos so sorteia os 4096 primeiros
+
     unsigned x = heroSemente ? heroSemente : (heroSemente = (unsigned)SDL_GetTicks() | 1u);
     int tentou = 0;
     // Refazer a MESMA janela (fileiras que chegam, perfil) nao consome o catalogo: parte do
@@ -1483,11 +1484,15 @@ static const char *arte_por_identidade(int indice, int deitado) {
 
 // O proximo titulo do carrossel automatico. No sorteio "*", ao fim da janela
 // sorteia outra (sem repetir) em vez de voltar ao primeiro.
-static int heroProximoAuto(void) {
+// `mutar` = 0 (pre-busca) so espia: sem renovar a janela, devolve -1 no fim dela.
+static int heroProximoAuto(int mutar) {
   int total = heroNLista();
   int pos = heroPosDe(heroAtual), p;
   if (total <= 0) return 0;
-  if (heroEhSorteio() && pos >= 0 && pos + 1 >= total) { heroRenovar(); total = heroNLista(); pos = -1; }
+  if (heroEhSorteio() && pos >= 0 && pos + 1 >= total) {
+    if (!mutar) return -1;
+    heroRenovar(); total = heroNLista(); pos = -1;
+  }
   p = pos < 0 ? 0 : (pos + 1) % total;
   p = heroIdxEm(p);
   return p < 0 ? 0 : p;
@@ -3947,7 +3952,7 @@ static void home_atualizar_(float dt, Uint32 agora) {
       // A MESMA LISTA QUE A SETA PERCORRE. O carrossel andava pelo catalogo
       // inteiro; com o contador na tela isso viraria um "3 / 281" que ninguem
       // atravessa e que contradiz o que a seta faz.
-      int proximo = heroProximoAuto();
+      int proximo = heroProximoAuto(1);
       heroPendente = proximo;
       heroTempoInicio(proximo);
       heroPendenteEm = agora - NV_HERO_REPOUSO_MS;
@@ -3982,8 +3987,8 @@ static void home_atualizar_(float dt, Uint32 agora) {
       if (alvo < 0 && heroDesejado < 0 && !heroAutoDesligado && janela &&
           (!focoHero || agora + NV_HERO_PRE_MS - heroUltTecla >= HOME_HERO_OCIO_MS) &&
           (!seg || !tocando)) {
-        int proximo = heroProximoAuto();
-        if (proximo != heroAtual) heroPreItem = proximo;
+        int proximo = heroProximoAuto(0);
+        if (proximo >= 0 && proximo != heroAtual) heroPreItem = proximo;
       }
       // DIAGNOSTICO: a janela abriu e a pre-busca nao saiu — diz quem a
       // impediu. Sai quando o MOTIVO muda (e no maximo a cada 5 s) ou, com o

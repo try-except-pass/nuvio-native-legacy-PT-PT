@@ -7472,6 +7472,8 @@ static int inativa(int op) {
     // nao existe nesta TV — o "Explorar" daqui e outra tela. A escolha vem e
     // vai para a conta, mas aqui nao muda nada, e a linha tem de dizer isso.
     case AJ_DESCOBRIR:    return 1;
+    // 2026-10-26: a pergunta "o que achou" nos creditos saiu do app; a linha fica apagada.
+    case AJ_REACAO_CREDITOS: return 1;
     // Comentarios do Trakt no painel de pausa: a linha fica apagada sem o painel.
     case AJ_PAUSA_COMENTARIOS: return !lig(AJ_PAUSA_OVERLAY);
     case AJ_PAUSA_NOTAS: return !lig(AJ_PAUSA_OVERLAY);

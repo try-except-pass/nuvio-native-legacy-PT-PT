@@ -605,7 +605,9 @@ void ctx_abrir(int indice) {
   doSocial = 0;
   soFileira = 0;
   doLista = 0;
-  detalhesPend = !deOutraTela && ajustes_cw_ok_toca() && home_foco_retomada();
+  { const CatItem *cw = cat_item(indice);
+    int toca = ajustes_cw_ok_auto() ? (cw && !strcmp(cw->tipo, "movie")) : ajustes_cw_ok_toca();
+    detalhesPend = !deOutraTela && toca && home_foco_retomada(); }
   abrirComum(indice);
   { HomeItem hi;
     // So um CARTAZ: o destaque tambem e "item focado", mas o retangulo dele e

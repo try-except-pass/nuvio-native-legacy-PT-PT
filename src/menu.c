@@ -132,11 +132,12 @@ static float menuEscala(void) {
 
 // "Inicio" sem acento era erro de portugues NA TELA. E "Busca", nao "Buscar":
 // os outros tres sao substantivos (Biblioteca, Ajustes) e o verbo destoava.
+// Dono (2026-10-26): agora "Pesquisar" (PT-PT) e a Biblioteca saiu da barra.
 // Rotulos e ordem conferidos na referencia.
 static const char *ROTULOS[MENU_N] = { "Início", "Explorar", "Guia TV", "Pesquisar", "Biblioteca", "Agenda", "Perfil e Stats", "Ajustes" };
 
 // ITEM ESCONDIDO (#162): Explorar, Guia, Agenda e Perfil somem da barra quando
-// desligados nos Ajustes. Inicio, Busca, Biblioteca e Ajustes ficam sempre —
+// desligados nos Ajustes. Inicio, Busca e Ajustes ficam sempre (Biblioteca saiu da barra) —
 // sem os Ajustes nao haveria como trazer os outros de volta. Esconder so tira
 // a linha: desenho, alvos do ponteiro e setas pulam o item, e o painel encolhe.
 static int mostra(int i) {
