@@ -300,7 +300,9 @@ static void atender(int c) {
     char *r;
     if (!strcmp(metodo, "GET")) {
       r = pedirAoApp(1, NULL);
-      if (!r) { responder(c, 503, "application/json", "{\"erro\":\"tv ocupada\"}", NULL); return; }
+      if (!r) { puts("[ajweb] esquema: a TV nao respondeu a tempo (503)"); responder(c, 503, "application/json", "{\"erro\":\"tv ocupada\"}", NULL); return; }
+      { int ks = 0; const char *q = r; while ((q = strstr(q, "\"k\":")) != NULL) { ks++; q++; }
+        printf("[ajweb] esquema enviado: %zu bytes, %d ajustes\n", strlen(r), ks); fflush(stdout); }
       responder(c, 200, "application/json; charset=utf-8", r, NULL);
       free(r);
       return;

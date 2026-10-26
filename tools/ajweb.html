@@ -127,9 +127,9 @@ function desenhar(){
   });
 }
 function ler(){
-  return fetch("api/settings",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
-    D=j;$("#pf").textContent=j.perfil||("Profile "+j.pn);if(sec>=D.s.length)sec=0;desenhar();
-  }).catch(function(){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Could not reach the TV. Is it on, with Nuvio open and this setting switched on?"))});
+  return fetch("api/settings",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(j){
+    D=j;$("#pf").textContent=j.perfil||("Profile "+j.pn);if(!D.s||!D.s.length)throw new Error("the TV sent no settings");if(sec>=D.s.length)sec=0;desenhar();
+  }).catch(function(e){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Could not read the settings from the TV ("+(e&&e.message?e.message:e)+"). Is it on, with Nuvio open and this setting switched on?"))});
 }
 $("#q").oninput=function(){desenhar()};
 $("#tv").onchange=function(){tvOk=this.checked;desenhar()};
