@@ -109,6 +109,8 @@ static float buResY(void);
 static float buTopoEsq(void) {
   float px, py, pw, ph;
   if (menu_pilula_rect(&px, &py, &pw, &ph)) return ANC(fmaxf(64.0f, py + ph + BU_TOPO_VAO));
+  { float b = menu_topo_baixo();   // barra do topo visivel: o campo (e o teclado) ficam abaixo dela
+    if (b > 0.0f) return ANC(fmaxf(64.0f, b + BU_TOPO_VAO)); }
   return ANC(64.0f);
 }
 
@@ -330,7 +332,7 @@ static int heroAtivo(void) { return 0; }
 
 static float buResY(void) {
   if (buTecladoNativo()) return buTopoEsq() + BU_CAMPO_H + 44.0f;
-  if (!buRetrato()) return ANC(64.0f) + (heroAtivo() ? BU_HERO_H + BU_HERO_GAP : 0.0f) + (buUmaColuna() ? 0.0f : BU_TITULO_H);
+  if (!buRetrato()) return fmaxf(ANC(64.0f), buTopoEsq()) + (heroAtivo() ? BU_HERO_H + BU_HERO_GAP : 0.0f) + (buUmaColuna() ? 0.0f : BU_TITULO_H);
   return BU_KB_Y + 2.0f * BU_KB_PAD + (kbFil + 1) * BU_TECLA_W
        + kbFil * BU_TECLA_GAP + 92.0f;
 }
@@ -978,7 +980,7 @@ static GfxRect retanguloTecla(int fileira, int coluna) {
   } else {
     // Teclas de baixo (espaco, apagar, limpar, ?!#, layout) com largura
     // proporcional ao rotulo: 5 colunas de 56 nao dariam "espaço" inteiro.
-    static const float PESO[5] = { 1.7f, 1.2f, 1.2f, 0.9f, 0.9f };
+    static const float PESO[5] = { 1.5f, 1.5f, 1.3f, 0.9f, 0.9f };
     int n = KB_COLUNAS[kbFil], i;
     float soma = 0.0f, un, x = 0.0f;
     for (i = 0; i < n; i++) soma += PESO[i];
@@ -1241,7 +1243,7 @@ static void busca_evento_(const SDL_Event *e) {
         if (campoFoco == 3 && st_voz_disponivel()) campoFoco = 2;
         else if (campoFoco >= 2 && st_ime_disponivel()) campoFoco = 1;
         else if (campoFoco >= 2) campoFoco = 0;
-        else { registrarConsulta(); sair = 1; }
+        else if (!ajustes_menu_topo()) { registrarConsulta(); sair = 1; }   // com a barra no topo a esquerda nao sai
         return;
       case SDLK_UP:
         if (ajustes_menu_topo()) sair = 1; else pediuRelogio = 1;
@@ -1265,7 +1267,7 @@ static void busca_evento_(const SDL_Event *e) {
     if (k == SDLK_TAB && nFil > 0) { painel = 1; return; }
     switch (k) {
       case SDLK_LEFT:
-        if (!focus_mover_grade(&focoKb, -1, 0)) { registrarConsulta(); sair = 1; }
+        if (!focus_mover_grade(&focoKb, -1, 0) && !ajustes_menu_topo()) { registrarConsulta(); sair = 1; }
         break;
       case SDLK_RIGHT:
         // Passar da ULTIMA coluna do teclado entra nos resultados. E a unica
@@ -1797,12 +1799,15 @@ static void desenhaTeclado(void) {
 }
 
 static void desenhaVazio(void) {
-  const char *t1 = nConsulta >= 2 ? "Nenhum título recebido" : "O que vamos assistir?";
-  const char *t2 = nConsulta >= 2 ? "Os resultados dos addons aparecem aqui."
+  // dono (2026-10-26): enquanto os addons ainda respondem, diz "Aguardando resultados" em letras grandes.
+  int espera = nConsulta >= 2 && desc_busca_carregando(consulta);
+  const char *t1 = espera ? "Aguardando resultados" : nConsulta >= 2 ? "Nenhum título recebido" : "O que vamos assistir?";
+  const char *t2 = espera ? "Os addons ainda estão respondendo."
+                 : nConsulta >= 2 ? "Os resultados dos addons aparecem aqui."
                              : "Digite ao menos 2 letras de um filme ou série.";
   float larg = fmaxf(1.0f, BU_DIR - BU_RES_X);
   TxtLinha l1 = buTelefone() ? txt_linha_corta(TXT_ILHA_TITULO, t1, BU_TX, larg)
-                            : txt_linha(TXT_ILHA_TITULO, t1, BU_TX);
+                            : (espera ? txt_linha_corta(TXT_TITULO1, t1, BU_TX, larg) : txt_linha(TXT_ILHA_TITULO, t1, BU_TX));
   TxtLinha l2 = buTelefone() ? txt_linha_corta(TXT_ILHA_CORPO, t2, BU_TX, larg)
                             : txt_linha(TXT_ILHA_CORPO, t2, BU_TX);
   float cx = BU_RES_X + (BU_DIR - BU_RES_X) * 0.5f;

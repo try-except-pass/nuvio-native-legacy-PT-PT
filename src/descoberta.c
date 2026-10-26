@@ -940,6 +940,7 @@ static struct {
 static NvPerfilSessao buscaSessao;
 static int  geracao;            // sobe a cada termo novo
 static int  respGeracao = -1;   // geracao da ultima resposta aceita (desc_busca_chegou)
+static int  respFeitas;         // alvos que ja responderam (mesmo vazios) nesta geracao: a busca ainda carrega enquanto < nAlvos
 static int  proximoAlvo;        // fila de trabalho: proximo indice a consultar
 static int  fiosVivos;
 
@@ -1095,6 +1096,7 @@ static void *fioBusca(void *arg) {
       resAlvo[meu].n = n;
       resAlvo[meu].geracao = g;
       respGeracao = g;
+      respFeitas++;
       snprintf(buscaTermo, sizeof buscaTermo, "%s", termo);
     }
     pthread_mutex_unlock(&buscaTrava);
@@ -1116,6 +1118,7 @@ void desc_buscar(const char *termo) {
   geracao++;
   buscaSessao = nv_perfil_sessao_ler();
   proximoAlvo = 0;
+  respFeitas = 0;
   // Zera a contagem, nao os itens: a tela pode estar desenhando o quadro
   // corrente e ler item pela metade seria pior que uma fileira a menos.
   for (k = 0; k < BUSCA_ALVOS; k++) resAlvo[k].n = 0;
@@ -1141,6 +1144,15 @@ int desc_busca_chegou(const char *termo) {
   int r;
   pthread_mutex_lock(&buscaTrava);
   r = termo && !strcmp(termo, buscaTermo) && respGeracao == geracao;
+  pthread_mutex_unlock(&buscaTrava);
+  return r;
+}
+
+// A busca deste termo ainda espera algum alvo? (1 = sim: mostrar "Aguardando resultados", nao "nenhum".)
+int desc_busca_carregando(const char *termo) {
+  int r;
+  pthread_mutex_lock(&buscaTrava);
+  r = termo && !strcmp(termo, buscaPedido) && nAlvos > 0 && respFeitas < nAlvos;
   pthread_mutex_unlock(&buscaTrava);
   return r;
 }
@@ -1729,7 +1741,13 @@ static void lerPrefs(void) {
 // Um contador que mede metade do caminho ja me custou uma rodada.
 static int engolidasNaDeclaracao;
 // #327: chave da fileira baixada so para alimentar o destaque (vazia = nenhuma).
-static char heroAlimChave[192];
+static char heroAlimChave[2048];   // chaves (separadas por tab) das fileiras baixadas so para o destaque
+static int heroAlimTem(const char *k) {
+  char marca[200], tudo[2060];
+  snprintf(marca, sizeof marca, "\t%s\t", k);
+  snprintf(tudo, sizeof tudo, "\t%s\t", heroAlimChave);
+  return heroAlimChave[0] && strstr(tudo, marca) != NULL;
+}
 
 // A VISIBILIDADE DO GRUPO FAZ PARTE DA PERGUNTA, E EU JA A TIREI UMA VEZ.
 //
@@ -5262,27 +5280,35 @@ static void *montar(void *u) {
       // fora da Home (ela esta engolida/oculta/na fila), entao a home nao a
       // desenha — so o destaque usa os titulos.
       heroAlimChave[0] = 0;
-      if (nFil < CAT_FIL_MAX - (nContinuar ? 0 : 1) - 1) {
+      // Varias fileiras escolhidas (chaves separadas por tab): cada uma que ainda nao veio por uma
+      // fileira desenhada e baixada so para o destaque. `tentadas` evita repetir uma que falhou.
+      { char tentadas[2048] = "";
+        int volta;
+        for (volta = 0; volta < 12 && nFil < CAT_FIL_MAX - (nContinuar ? 0 : 1) - 1; volta++) {
         const char *hf = fil_hero_fonte();
         const Decl *dh = NULL;
         int temCat = 0, q, ja = 0;
         for (q = 0; q < nFil; q++) if (fil[q].base[0]) { temCat = 1; break; }
         if (hf[0] && !(hf[0] == '*' && !hf[1])) {
-          // Multi-selecao (chaves separadas por tab): alimenta so a primeira que
-          // ainda nao veio por uma fileira. shortcut: uma fileira fora da Home por vez.
           char copia[2048], *sv, *t;
           snprintf(copia, sizeof copia, "%s", hf);
           for (t = strtok_r(copia, "\t", &sv); t && !dh; t = strtok_r(NULL, "\t", &sv)) {
+            char marca[200];
+            snprintf(marca, sizeof marca, "\t%s\t", t);
+            if (strstr(tentadas, marca)) continue;
             ja = 0;
             for (q = 0; q < nFil && !ja; q++) ja = !strcmp(fil[q].chave, t);
             if (!ja) for (q = 0; q < nDecl; q++)
               if (!strcmp(decls[q].chave, t)) { dh = &decls[q]; break; }
           }
-        } else if (!temCat) {
+        } else if (!temCat && !volta) {
           for (q = 0; q < nOrdem && !dh; q++) if (!fil_oculta(decls[ordem[q]].chave)) dh = &decls[ordem[q]];
           for (q = 0; q < nOrdem && !dh; q++) dh = &decls[ordem[q]];
         }
-        if (dh && dh->base[0] && (fil_estado_chave(dh->chave) == FIL_FORA ||
+        if (!dh) break;
+        if (strlen(tentadas) + strlen(dh->chave) + 3 < sizeof tentadas)
+          strcat(strcat(strcat(tentadas, "\t"), dh->chave), "\t");
+        if (dh->base[0] && (fil_estado_chave(dh->chave) == FIL_FORA ||
                                               fil_estado_chave(dh->chave) == FIL_NA_FILA)) {
           static CatItem hItens[HOME_VISTOS_MAX];
           int resp = 0, qtd = ajustes_itens_fileira(), got;
@@ -5304,11 +5330,13 @@ static void *montar(void *u) {
               memcpy(lote + n, hItens, sizeof(CatItem) * (size_t)got);
               f->ini = n; f->n = got;
               n += got;
-              snprintf(heroAlimChave, sizeof heroAlimChave, "%s", dh->chave);
+              if (strlen(heroAlimChave) + strlen(dh->chave) + 2 < sizeof heroAlimChave)
+                snprintf(heroAlimChave + strlen(heroAlimChave), sizeof heroAlimChave - strlen(heroAlimChave),
+                         "%s%s", heroAlimChave[0] ? "\t" : "", dh->chave);
             }
           }
         }
-      }
+      } }
       nFilsLote = nFil;
       memcpy(filsLote, fil, sizeof(CatFileira) * (size_t)nFil);
       // UMA LINHA QUE RESPONDE "o que falhou no arranque". As quatro contagens
@@ -5833,7 +5861,7 @@ void desc_remontar_fileiras(void) {
   for (i = 0; i < nFileirasMontadas; i++) {
     const CatFileira *f = &filsMontadas[i];
     if (!f->base[0]) continue;
-    if (heroAlimChave[0] && !strcmp(f->chave, heroAlimChave) &&
+    if (heroAlimTem(f->chave) &&
         fil_estado_chave(f->chave) != FIL_NA_HOME) continue;   // #327: volta no fim
     if (fil_oculta(f->chave) || (catordem_oculta(f->chave, f->chave) && !fil_adicionada_na_tv(f->chave))) continue;
     if (dentroDeColecaoVisivelBase(f->base, f->tipo, f->catId) &&
@@ -5918,11 +5946,11 @@ void desc_remontar_fileiras(void) {
     saidaFil[nOut++] = filsMontadas[idxCat[ordem[k]]];
 
   // #327: a fileira so do destaque fica, fora da conta do limite.
-  if (heroAlimChave[0] && nOut < CAT_FIL_MAX) {
-    int ja = 0;
-    for (i = 0; i < nOut && !ja; i++) ja = !strcmp(saidaFil[i].chave, heroAlimChave);
-    for (i = 0; !ja && i < nFileirasMontadas; i++)
-      if (!strcmp(filsMontadas[i].chave, heroAlimChave)) { saidaFil[nOut++] = filsMontadas[i]; break; }
+  for (i = 0; heroAlimChave[0] && i < nFileirasMontadas && nOut < CAT_FIL_MAX; i++) {
+    int ja = 0, k2;
+    if (!heroAlimTem(filsMontadas[i].chave)) continue;
+    for (k2 = 0; k2 < nOut && !ja; k2++) ja = !strcmp(saidaFil[k2].chave, filsMontadas[i].chave);
+    if (!ja) saidaFil[nOut++] = filsMontadas[i];
   }
   printf("[desc] fileiras remontadas sem rede: %d de %d%s\n",
          nOut, nFileirasMontadas,
@@ -7287,7 +7315,7 @@ static int tmdbElenco(const char *json, CatItem *d, int soVazios) {
 // Blocking lookup for the detail worker. Never confuse transport errors with absence.
 long desc_buscar_pessoa(const char *nome, long titulo, const char *tipo) {
   char termo[193], url[600];
-  const char *chave = desc_chave_tmdb(), *p, *resultados;
+  const char *chave = desc_chave_tmdb_reserva(), *p, *resultados;
   long melhor = 0;
   int melhorTitulo = 0;
   double popularidade = -1;

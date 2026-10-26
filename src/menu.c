@@ -363,6 +363,16 @@ static void dicaNome(const char *nome, float x, float cy, float a) {
   gfx_vidro_ou_solido(r, 0.5f, 0.8f, a, 0.08f, 0.09f, 0.10f, 0.92f);
   txt_desenhar_alpha(l, r.x + 18.0f, cy - l.h * 0.5f, a);
 }
+// A mesma pilula, centrada em `cx` e com o TOPO em `yTopo` (a barra do topo).
+static void dicaNomeCentro(const char *nome, float cx, float yTopo, float a) {
+  TxtLinha l;
+  GfxRect r;
+  if (a <= 0.01f || !nome) return;
+  l = txt_linha(TXT_BODY, nome, 243, 242, 239, 255);
+  r = (GfxRect){ cx - (l.w + 36.0f) * 0.5f, yTopo, l.w + 36.0f, l.h + 22.0f };
+  gfx_vidro_ou_solido(r, 0.5f, 0.8f, a, 0.08f, 0.09f, 0.10f, 0.92f);
+  txt_desenhar_alpha(l, r.x + 18.0f, r.y + 11.0f, a);
+}
 
 // O PAINEL nas duas larguras. `e` vai de 0 (rail: so icones) a 1 (aberto, com
 // rotulos; passa um pouco no repique); `a` e a opacidade do painel todo;
@@ -603,7 +613,8 @@ void menu_atualizar(float dt, Uint32 agora) {
     return;
   }
   // So icones: o painel fica na largura da rail e nunca mostra rotulos.
-  float alvo = (aberto && !ajustes_menu_so_icones()) ? 1.0f : 0.0f;
+  // Na barra do topo "aberta" e a barra visivel (desliza); so a rail lateral deixa de expandir com so icones.
+  float alvo = (aberto && (topo() || !ajustes_menu_so_icones())) ? 1.0f : 0.0f;
   float ms   = alvo > 0.0f ? NV_MENU_ABRIR_MS : NV_MENU_FECHAR_MS;
   desliza = anim_rampa(desliza, alvo, dt, ms);
   // A MOLA DA ILHA (ilha.c, molaIlhaWZ): quatro subpassos, dt no maximo 50 ms.
@@ -1032,6 +1043,13 @@ float menu_pilula_alfa(void) {
 // O cabecalho da barra da Apple TV tem relogio proprio: aberta, a ilha do
 // canto duplicava a hora (11:29 + 11:29 na captura da TCL).
 int menu_relogio_cabe(void) { return !(aberto && tvAtivo()); }
+// Base (px reais) da barra do topo quando ela esta na tela; 0 sem barra. A Busca encaixa o campo abaixo dela.
+float menu_topo_baixo(void) {
+  MenuTopoGeo g;
+  if (!topo() || tvAtivo() || !(tvPilAlvo > 0.5f || aberto)) return 0.0f;
+  menu_topo_geo(&g);
+  return g.trilha[1] + g.trilha[3];
+}
 void menu_pilula_mostrar(float alvo) {
   // Negativo = some JA, sem mola: ao trocar para uma tela com titulo no canto
   // a pilula nao pode ficar 300 ms por cima dele.
@@ -1460,7 +1478,9 @@ static void tvDesenhar(void) {
 #define TOPO_VAO_MIN   TOPO_VAO
 #define TOPO_PAD_MIN   TP(10.0f)
 #define TOPO_TXT       TXT_BODY     // o corpo dos rotulos da rail
-#define TOPO_RELOGIO   ((NV_ILHA_MARGEM_D * gfx_escala_ui_base() + ilha_relogio_largura() + 16.0f) / NV_MENU_ESCALA)
+#define TOPO_RELOGIO   ((NV_ILHA_MARGEM_D * gfx_escala_ui_base() + ilha_relogio_largura() * ajustes_relogio_escala() + 16.0f) / NV_MENU_ESCALA)
+// Tamanho da barra (Ajustes): a barra inteira escala em torno da linha de centro; as medidas abaixo ficam em tamanho 100 %.
+#define TOPO_K         ajustes_menu_tamanho()
 
 // AS CAPSULAS VIAJAM entre as pilulas (Capsule::step deles): mola criticamente
 // amortecida na borda esquerda E na largura (uma pilula larga vira estreita
@@ -1519,11 +1539,18 @@ static void topoMedir(TopoTira *t) {
     if (t->ordem[k] == MENU_BUSCAR) ni++;
     else { txt += (float)txt_largura(TOPO_TXT, topoRotulo(t->ordem[k])); nl++; }
   }
-  disp = NV_TELA_W - 2.0f * TOPO_RELOGIO - 2.0f * TOPO_TRILHA;
+  disp = (NV_TELA_W - 2.0f * TOPO_RELOGIO) / TOPO_K - 2.0f * TOPO_TRILHA;
+  // So icones: toda pilula e quadrada e o vao vem do ajuste de espacamento (100 % = 14 px).
+  if (ajustes_menu_so_icones()) {
+    t->vao = TK(14.0f) * ajustes_menu_espaco(); t->pad = 0.0f; t->rotMax = 1e6f; t->cortado = 0;
+    t->larg = t->n > 1 ? (t->n - 1) * t->vao : 0.0f;
+    for (k = 0; k < t->n; k++) { t->ws[k] = TOPO_PILULA_H; t->larg += t->ws[k]; }
+    return;
+  }
   fixo = txt + ni * TOPO_PILULA_H;
-  t->vao = TOPO_VAO; t->pad = TOPO_PAD; t->rotMax = 1e6f; t->cortado = 0;
+  t->vao = fmaxf(0.0f, TOPO_VAO + TK(10.0f) * (ajustes_menu_espaco() - 1.0f)); t->pad = TOPO_PAD; t->rotMax = 1e6f; t->cortado = 0;
   if (t->n > 1 && fixo + 2.0f * nl * t->pad + (t->n - 1) * t->vao > disp)
-    t->vao = fmaxf(TOPO_VAO_MIN, (disp - fixo - 2.0f * nl * t->pad) / (t->n - 1));
+    t->vao = fmaxf(0.0f, (disp - fixo - 2.0f * nl * t->pad) / (t->n - 1));
   if (nl && fixo + 2.0f * nl * t->pad + (t->n - 1) * t->vao > disp)
     t->pad = fmaxf(TOPO_PAD_MIN, (disp - fixo - (t->n - 1) * t->vao) / (2.0f * nl));
   if (nl && fixo + 2.0f * nl * t->pad + (t->n - 1) * t->vao > disp) {
@@ -1588,19 +1615,24 @@ void menu_topo_geo(MenuTopoGeo *o) {
   int k;
   topoMedir(&t);
   memset(o, 0, sizeof *o);
+  float K = TOPO_K, cx = NV_TELA_W * 0.5f;
+#define TFX(v) (cx + ((v) - cx) * K)
+#define TFY(v) (TOPO_CY + ((v) - TOPO_CY) * K)
   x0 = floorf((NV_TELA_W - t.larg) * 0.5f);
   o->n = t.n; o->cortado = t.cortado;
-  o->y = (TOPO_CY - TOPO_PILULA_H * 0.5f) * e; o->h = TOPO_PILULA_H * e;
+  o->y = TFY(TOPO_CY - TOPO_PILULA_H * 0.5f) * e; o->h = TOPO_PILULA_H * K * e;
   for (k = 0; k < t.n && k < MENU_TOPO_MAX; k++) {
-    o->x[k] = (x0 + topoPilulaX(&t, k)) * e; o->w[k] = t.ws[k] * e;
+    o->x[k] = TFX(x0 + topoPilulaX(&t, k)) * e; o->w[k] = t.ws[k] * K * e;
     o->busca[k] = t.ordem[k] == MENU_BUSCAR;
     o->foco[k] = topoFoc.a * topoCobre(topoPilulaX(&t, k), t.ws[k], &topoFoc);
   }
-  o->trilha[0] = (x0 - TOPO_TRILHA) * e; o->trilha[1] = TOPO_Y * e;
-  o->trilha[2] = (t.larg + 2.0f * TOPO_TRILHA) * e; o->trilha[3] = TOPO_H * e;
-  o->avatar[0] = TOPO_X * e; o->avatar[1] = TOPO_Y * e; o->avatar[2] = o->avatar[3] = TOPO_H * e;
-  o->sel[0] = (x0 + topoSel.x) * e; o->sel[1] = topoSel.w * e; o->sel[2] = limita01(topoSel.a);
-  o->foc[0] = (x0 + topoFoc.x) * e; o->foc[1] = topoFoc.w * e; o->foc[2] = limita01(topoFoc.a);
+  o->trilha[0] = TFX(x0 - TOPO_TRILHA) * e; o->trilha[1] = TFY(TOPO_Y) * e;
+  o->trilha[2] = (t.larg + 2.0f * TOPO_TRILHA) * K * e; o->trilha[3] = TOPO_H * K * e;
+  o->avatar[0] = TOPO_X * e; o->avatar[1] = (TOPO_CY - TOPO_H * K * 0.5f) * e; o->avatar[2] = o->avatar[3] = TOPO_H * K * e;
+  o->sel[0] = TFX(x0 + topoSel.x) * e; o->sel[1] = topoSel.w * K * e; o->sel[2] = limita01(topoSel.a);
+  o->foc[0] = TFX(x0 + topoFoc.x) * e; o->foc[1] = topoFoc.w * K * e; o->foc[2] = limita01(topoFoc.a);
+#undef TFX
+#undef TFY
 }
 
 // Uma capsula (A27): a de selecao e so um preenchimento #F3F2EF a 18 %, sem
@@ -1617,6 +1649,7 @@ static void topoDesenhar(void) {
   int k;
   float a, x0, y, fAv;
   int focos = aberto || desliza >= 0.002f || expande > 0.004f;
+  float K = TOPO_K;
   MenuGeo g = { 0 }, gAv = { 0 };
   topoMedir(&t);
   x0 = floorf((NV_TELA_W - t.larg) * 0.5f);   // compacta e centrada na tela
@@ -1639,7 +1672,8 @@ static void topoDesenhar(void) {
     ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, ponteiroFora, 0, 0);
     ponteiro_alvo(g.x, g.y, g.w, g.h, NULL, NULL, 0, 0);
   }
-  desenhaMaterial(&g, a);
+  // Tamanho da barra: o avatar cresce a partir da borda esquerda, a trilha a partir do centro.
+  if (K != 1.0f) gfx_transformar(TOPO_X, TOPO_CY, K, 0.0f, 0.0f);
   desenhaMaterial(&gAv, a);
   // O perfil: o avatar e do tamanho de uma pilula, dentro do seu circulo de
   // trilha (CHIP_D = TAB_PILL_H); em foco ganha o aro claro.
@@ -1647,6 +1681,9 @@ static void topoDesenhar(void) {
   tvAvatar((GfxRect){ gAv.x + TOPO_TRILHA, gAv.y + TOPO_TRILHA, TOPO_PILULA_H, TOPO_PILULA_H }, a);
   if (fAv > 0.01f) gfx_vidro_borda((GfxRect){ gAv.x, gAv.y, gAv.w, gAv.h }, 0.5f, .75f * fAv * a);
   if (ponteiro_ativo() && a > 0.5f) ponteiro_alvo(gAv.x, gAv.y, gAv.w, gAv.h, ponteiroLinha, NULL, MENU_RODAPE, 0);
+  if (K != 1.0f) gfx_sem_transformar();
+  if (K != 1.0f) gfx_transformar(NV_TELA_W * 0.5f, TOPO_CY, K, 0.0f, 0.0f);
+  desenhaMaterial(&g, a);
   gfx_recorte(g.x, g.y, g.w, g.h);
   // As capsulas por BAIXO dos rotulos: selecao, e o foco por cima dela.
   topoCapsula(&topoSel, x0, y, 0, a);
@@ -1664,11 +1701,24 @@ static void topoDesenhar(void) {
     tb = anim_mistura(0xef, 0x16, fm) / 255.0f;
     ta = a * anim_mistura(ajustes_vidro() && !gfx_efeitos_minimos() ? .74f : .80f, 1.0f, fmaxf(sm, fm));
     if (ponteiro_ativo() && a > 0.5f) ponteiro_alvo(r.x, r.y, r.w, r.h, ponteiroLinha, NULL, i, 0);
-    if (i == MENU_BUSCAR) iconeTraco(i, r.x + r.w * 0.5f, y + TOPO_PILULA_H * 0.5f, TOPO_ICONE, tr, tg, tb, ta);
+    if (i == MENU_BUSCAR || ajustes_menu_so_icones())
+      iconeTraco(i, r.x + r.w * 0.5f, y + TOPO_PILULA_H * 0.5f, TOPO_ICONE * ajustes_menu_icone(), tr, tg, tb, ta);
     else {
       TxtLinha l = txt_linha_corta(TOPO_TXT, topoRotulo(i), 255, 255, 255, 255, t.rotMax);
       txt_desenhar_tom(l, r.x + (r.w - l.w) * 0.5f, y + (TOPO_PILULA_H - l.h) * 0.5f, tr, tg, tb, ta);
     }
   }
   gfx_sem_recorte();
+  if (K != 1.0f) gfx_sem_transformar();
+  // So icones: o nome do item em foco, numa pilula logo abaixo da barra, centrada nele.
+  if (ajustes_menu_so_icones() && aberto) {
+    float cxs = NV_TELA_W * 0.5f, yb = TOPO_CY + TOPO_H * 0.5f * K + TK(18.0f), cx = -1.0f;
+    const char *nome = NULL;
+    if (linha == MENU_RODAPE) { cx = TOPO_X + TOPO_H * 0.5f * K; nome = topoRotulo(MENU_PERFIL); }
+    else {
+      int kk = topoIndice(t.ordem, t.n, linha);
+      if (kk >= 0) { cx = cxs + (x0 + topoPilulaX(&t, kk) + t.ws[kk] * 0.5f - cxs) * K; nome = topoRotulo(linha); }
+    }
+    if (nome && cx >= 0.0f) dicaNomeCentro(nome, cx, yb, a);
+  }
 }

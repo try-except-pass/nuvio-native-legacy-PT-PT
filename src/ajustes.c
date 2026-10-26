@@ -742,6 +742,7 @@ typedef enum {
   AJ_FIL_TITULOS,        // Row titles on Home: 0 shown (default). LOCAL
   AJ_MENU_GALERIA,       // Second Home tab ("Galeria") in the sidebar: 0 shown (default). LOCAL
   AJ_HERO_DETALHES_PCT,  // Hero details (year, runtime, IMDb) size, percent; independent of interface zoom. LOCAL
+  AJ_CW_TAM_PCT,         // Continue Watching card size, percent. LOCAL
   AJ_RELOGIO_PCT,        // On-screen clock island size, percent. LOCAL
   AJ_MENU_ICONE_PCT,     // Sidebar icon size, percent. LOCAL
   AJ_GALERIA_EDITAR,     // Settings below edit the Galeria tab's own copy: 1 Off (default, never persisted as On). LOCAL
@@ -1899,9 +1900,10 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Títulos das fileiras na Home", V_LIGA, 2),                                  // local: filTitulosLocal
   ESC("Galeria na barra lateral", V_LIGA, 2),                            // local: menuGaleriaLocal
   NUM("Tamanho dos detalhes do destaque", 70, 200, 10, "%"),            // local: heroDetalhesPctLocal
+  NUM("Tamanho dos cartões de Continuar assistindo", 60, 160, 10, "%"),   // local: cwTamPctLocal
   NUM("Tamanho do relógio", 70, 200, 10, "%"),                         // local: relogioPctLocal
   NUM("Tamanho dos ícones da barra lateral", 70, 200, 10, "%"),         // local: menuIconePctLocal
-  ESC("Ajustar a Galeria", V_LIGA, 2),                                    // local: galeriaEditarLocal
+  ESC("Editar os ajustes da Galeria", V_LIGA, 2),                                    // local: galeriaEditarLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2238,7 +2240,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
-  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "relogioPctLocal", "menuIconePctLocal", "galeriaEditarLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "cwTamPctLocal", "relogioPctLocal", "menuIconePctLocal", "galeriaEditarLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -3176,6 +3178,7 @@ int ajustes_sombra_foco(void) { return lig(AJ_SOMBRA_FOCO); }
 static float pctEntre(int op, int lo, int hi) { int v = valor[op]; return (v < lo ? lo : v > hi ? hi : v) / 100.0f; }
 int ajustes_borda_foco_busca(void) { return lig(AJ_BORDA_FOCO_BUSCA); }
 float ajustes_menu_tamanho(void) { return pctEntre(AJ_MENU_TAM_PCT, 50, 200); }
+float ajustes_cw_tamanho(void) { return pctEntre(AJ_CW_TAM_PCT, 60, 160); }
 float ajustes_relogio_escala(void) { return pctEntre(AJ_RELOGIO_PCT, 70, 200); }
 float ajustes_menu_icone(void) { return pctEntre(AJ_MENU_ICONE_PCT, 70, 200); }
 float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
@@ -3724,7 +3727,8 @@ void ajustes_definir_salvos_destino(int destino) {
   desc_repetir();   // o mesmo que a linha de Ajustes faz ao mudar
 }
 int ajustes_data_completa(void)       { return lig(AJ_DET_DATA_CHEIA); }
-float ajustes_detalhe_veu(void)       { int v = valor[AJ_DET_VEU]; return (v < 0 ? 0 : v > 100 ? 100 : v) / 100.0f; }
+// dono (2026-10-26): o veu escuro a esquerda do titulo, na pagina do titulo, saiu; o ajuste fica sem efeito.
+float ajustes_detalhe_veu(void)       { return 0.0f; }
 int   ajustes_trailer_auto(void)      {
 #ifdef NV_TIZEN3_LITE
   return 0;
@@ -5276,7 +5280,7 @@ static const int GAL_OPS[] = {
   AJ_COLECAO_EXIBICAO, AJ_BORDA_FOCO, AJ_SOMBRA_FOCO,
 };
 #define GAL_N ((int)(sizeof GAL_OPS / sizeof *GAL_OPS))
-static int galAjVal[GAL_N], galAjTrocado, galAjRun, galAjEdit;
+static int galAjVal[GAL_N], galAjTrocado, galAjRun, galAjEdit, galAjPronta;   // Pronta: galAjCarregar ja rodou (gravar() de migracoes vem antes)
 static void galAjSync(void) {
   int quer = galAjRun || galAjEdit, i;
   if (quer == galAjTrocado) return;
@@ -5296,6 +5300,7 @@ static void galAjCarregar(void) {
   for (i = 0; i < GAL_N; i++) galAjVal[i] = valor[GAL_OPS[i]];
   galAjArquivo(c, sizeof c);
   f = fopen(c, "r");
+  galAjPronta = 1;
   if (!f) return;
   while (fgets(l, sizeof l, f)) {
     char k[64]; int v;
@@ -5321,7 +5326,7 @@ static int gravar(void) {
   int r, run = galAjRun;
   galAjRun = galAjEdit = 0; galAjSync();   // grava o conjunto principal em valor[] e o da Galeria em galAjVal[]
   r = gravarBase();
-  if (r) galAjGravar();
+  if (r && galAjPronta) galAjGravar();
   galAjEdit = valor[AJ_GALERIA_EDITAR] == 0;   // o interruptor "Ajustar a Galeria" so vale depois deste gravar
   galAjRun = run; galAjSync();
   return r;
@@ -6131,7 +6136,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
     case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
-    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_GALERIA_EDITAR: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_GALERIA_EDITAR: case AJ_CW_TAM_PCT: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -7565,7 +7570,7 @@ static int inativa(int op) {
     case AJ_DESCANSO_ESTILO: return valor[AJ_ESMAECER] == 0;
     case AJ_DESCANSO_FONTE:  return valor[AJ_ESMAECER] == 0 || ajustes_descanso_estilo() != 0;
     case AJ_CW_OK: case AJ_CW_FONTE: case AJ_CW_PROXIMO:
-    case AJ_CW_ESTILO: case AJ_CW_THUMB: case AJ_CW_FURTHEST:
+    case AJ_CW_ESTILO: case AJ_CW_THUMB: case AJ_CW_FURTHEST: case AJ_CW_TAM_PCT:
     case AJ_CW_NAO_EXIBIDOS: case AJ_CW_ORDEM: case AJ_CW_CONCLUIDO: case AJ_CW_MINIMO: case AJ_CW_RETIDO_TAMBEM:
       return !ajustes_cw_ligado();
     case AJ_CW_BLUR_PROX: return !ajustes_cw_ligado() || !ajustes_cw_thumb_episodio();
@@ -8091,9 +8096,10 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_MENU_SO_ICONES: return i18n("A barra lateral fica sempre uma faixa estreita de ícones e nunca abre para mostrar os nomes.");
     case AJ_BUSCA_ESPACO_PCT: return i18n("Espaço entre o teclado, o campo e as fileiras de resultados na aba Pesquisar. Menor é mais apertado.");
     case AJ_FIL_TITULOS: return i18n("Mostra ou esconde os títulos acima das fileiras da Home.");
+    case AJ_CW_TAM_PCT: return i18n("Tamanho dos cartões da fileira Continuar assistindo. 100% é o padrão.");
     case AJ_RELOGIO_PCT: return i18n("Tamanho do relógio e dos avisos que saem dele. 100% é o padrão.");
     case AJ_MENU_ICONE_PCT: return i18n("Tamanho dos ícones da barra lateral, sem mudar o resto da barra. 100% é o padrão.");
-    case AJ_GALERIA_EDITAR: return i18n("Ligado: os ajustes de aparência das fileiras (títulos, espaços, formato dos cartazes, anel de foco…) mudam só a Galeria. Desligado: voltam a mudar a aba principal.");
+    case AJ_GALERIA_EDITAR: return i18n("Ligado: tudo o que mexer em Fileiras, cartazes e anel de foco muda só a Galeria (a Galeria tem a sua própria cópia). Desligado: volta a mexer na Home.");
     case AJ_HERO_DETALHES_PCT: return i18n("Tamanho do ano, da duração e da nota do IMDb no destaque da Home. Não muda com o tamanho da interface. 100% é o padrão.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";

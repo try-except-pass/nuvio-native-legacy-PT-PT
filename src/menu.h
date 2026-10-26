@@ -113,6 +113,7 @@ typedef struct {
   float trilha[4], avatar[4], sel[3], foc[3];
 } MenuTopoGeo;
 void menu_topo_geo(MenuTopoGeo *g);
+float menu_topo_baixo(void);   // base da barra do topo em px reais, 0 se ela nao esta na tela
 
 // --- PILULA DO LAYOUT DINAMICA (barra estilo Apple TV) ----------------------
 // No layout Dinamica da home nao ha rail: fechada, a barra e uma pilula

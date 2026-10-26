@@ -457,7 +457,10 @@ static int homeVista;   // 0 Home, 1 segunda aba (Galeria); ver home_definir_vis
 static int heroLigado(void) { return ajustes_hero_ligado() && !homeVista; }
 #undef NV_LEGACY_ROW_HEAD_H
 #define NV_LEGACY_ROW_HEAD_H (ajustes_fil_titulos() ? 64.0f : 22.0f)   // sem titulo, so a folga ate os cartazes
-#define HOME_HERO_LISTA 10
+// O destaque percorre ate HOME_HERO_LISTA titulos de uma vez (dono, 2026-10-26: sem a janela de 10 que
+// repetia); o automatico (sem fonte escolhida) segue com os 10 primeiros.
+#define HOME_HERO_LISTA 200
+#define HERO_AUTO_MAX 10
 #define HOME_HERO_SIN_LINHAS 12   // teto pratico: sinopse inteira (shortcut: texto acima de 12 linhas e cortado)
 static int heroAtual = 0, heroAnterior = 0;
 // Candidato a heroi e desde quando ele e o candidato. Ver NV_HERO_REPOUSO_MS.
@@ -1187,10 +1190,10 @@ static void heroMontarSet(void) {
     // Fileira escolhida que nao existe (addon saiu): cai no automatico, abaixo.
     if (heroSetN) return;
   }
-  for (i = 0; i < total && heroSetN < HOME_HERO_LISTA; i++)
+  for (i = 0; i < total && heroSetN < HERO_AUTO_MAX; i++)
     if (!filmeVistoOculto(cat_item(i)) && heroItemNaVista(i)) heroSet[heroSetN++] = i;
   if (!heroSetN)   // nenhuma fileira desta aba tem item ainda: o de sempre, o catalogo todo
-    for (i = 0; i < total && heroSetN < HOME_HERO_LISTA; i++)
+    for (i = 0; i < total && heroSetN < HERO_AUTO_MAX; i++)
       if (!filmeVistoOculto(cat_item(i))) heroSet[heroSetN++] = i;
 }
 
@@ -1922,6 +1925,8 @@ static float alargaPosterG(int r) {
 static float escalaFil(int r) {
   float e = (r >= 0 && r < MAX_FIL) ? fileiras[r].escala : 0.0f;
   e = e > 0.05f ? e : 1.0f;
+  // Tamanho dos cartoes de Continuar assistindo (Ajustes).
+  if (r >= 0 && r < MAX_FIL && (fileiras[r].tipo == FILEIRA_CONTINUE || fileiras[r].tipo == FILEIRA_RETORNO)) e *= ajustes_cw_tamanho();
   // O teto dos 4:3 maiores vale tambem para a fileira de colecao vestida de
   // 4:3: o card e o mesmo do catalogo.
   if (r >= 0 && r < MAX_FIL && fileiras[r].fator > 1.0f &&
@@ -2846,7 +2851,8 @@ static void home_evento_(const SDL_Event *e) {
       // Mesma regra do resto da home: esquerda na PRIMEIRA posicao chama o menu
       // lateral. O destaque nao da a volta justamente para que essa saida
       // exista sempre no mesmo lugar.
-      if (heroPosDe(heroIntencao()) <= 0) { pedidoMenu = 1; return; }
+      // Com a barra no topo o menu e CIMA, nao a esquerda: aqui a seta nao faz nada (dono, 2026-10-26).
+      if (heroPosDe(heroIntencao()) <= 0) { if (!ajustes_menu_topo()) pedidoMenu = 1; return; }
       heroAutoDesligado = 1;   // voltou um titulo: navega a mao, o carrossel para
       heroPasso(-1); return;
     }
@@ -2894,7 +2900,12 @@ static void home_evento_(const SDL_Event *e) {
     // por exemplo) nao tinha como abrir o menu sem antes descer. O carrossel
     // continua acessivel pela direita e pela troca automatica.
     // Por isso a esquerda nunca bate na borda: a coluna 0 e a porta do menu.
-    if (foco.coluna == 0) { pedidoMenu = 1; return; }
+    // Com a barra no topo a esquerda fica nos cartoes visiveis: o menu se alcanca por cima (cima/baixo).
+    if (foco.coluna == 0) {
+      if (!ajustes_menu_topo()) pedidoMenu = 1;
+      else if (foco.fileira >= 0 && foco.fileira < MAX_FIL) anim_borda_bater(&bordaFil[foco.fileira], -NV_BORDA_AMP);
+      return;
+    }
     if (!focus_mover(&foco, -1, 0) && foco.fileira < MAX_FIL)
       anim_borda_bater(&bordaFil[foco.fileira], -NV_BORDA_AMP);
   }
@@ -3742,6 +3753,14 @@ void home_ir_topo(void) {
 // SEGUNDA ABA (dono, 2026-10-26): a mesma tela com outro conjunto de fileiras. Cada fileira
 // diz em qual aba aparece (fileiras.h, fil_na_vista); a vista so filtra o que a Home monta.
 int home_vista(void) { return homeVista; }
+#ifdef NV_SHOT_HOOKS
+int home_teste_hero(int *out, int cap, int *atual) {
+  int i, n = heroNLista();
+  for (i = 0; i < n && i < cap; i++) out[i] = heroSet[i];
+  if (atual) *atual = heroAtual;
+  return n;
+}
+#endif
 void home_definir_vista(int v) {
   v = v ? 1 : 0;
   if (v == homeVista) return;
@@ -4204,6 +4223,15 @@ static void home_atualizar_(float dt, Uint32 agora) {
     // trocado — a mola que ja existe faz a ida e a volta, e nao ha um segundo
     // relogio para descasar do primeiro.
     alvoY = -fmaxf(empurraHero(), folgaUma);
+    // Com o destaque em foco, ~10 % dos cartoes da primeira fileira ficam visiveis em QUALQUER tamanho
+    // de interface (dono, 2026-10-26): quanto o topo dos cartoes passar de (altura - 10 % do cartao),
+    // a fileira sobe esse excesso.
+    if (nFileiras > 0 && heroLigado()) {
+      float topoCartao = topoFileiras() + NV_LEGACY_ROW_HEAD_H;
+      float limite = NV_TELA_H - 0.10f * alturaFil(0);
+      float sobe = topoCartao - alvoY - limite;   // topo efetivo dos cartoes = topoCartao - alvoY
+      if (sobe > 0.0f) alvoY += sobe;
+    }
   } else {
     int r = foco.fileira;
     for (int i = 0; i < r && i < nFileiras; i++)
@@ -4446,7 +4474,7 @@ static int heroNomeLogo(const CatItem *ci, const char *url, int loaded,
 
 // Hero size (Settings): 0 Normal, 1 Grande, 2 Muito grande. The logo and the
 // information lines scale together; the layout below measures everything.
-static float heroMetaLinha(void) { return NV_LD_HERO_META * ajustes_hero_escala_info(); }
+static float heroMetaLinha(void) { return fmaxf(NV_LD_HERO_META, BADGE_H) * ajustes_hero_escala_info(); }   // cabe o selo na mesma linha
 static float heroSecLinha(void) {
   return (ajustes_hero_tamanho() ? fmaxf(NV_LD_HERO_SEC, BADGE_H) : NV_LD_HERO_SEC) * ajustes_hero_escala_info();
 }
@@ -4699,8 +4727,11 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   // no outro caso ele vai para o fim da linha de meta.
   char destaque[64];
   destaque[0] = 0;
-  if (contHero) snprintf(destaque, sizeof destaque, i18n("CONTINUAR DE ONDE PAROU  \xc2\xb7  %d MIN"),
-                         ci->restanteMin);
+  // dono (2026-10-26): quanto JA se viu em minutos, nao quanto falta. Total = restante / (1 - progresso).
+  if (contHero) {
+    int vistos = ci->progresso < 100 ? ci->restanteMin * ci->progresso / (100 - ci->progresso) : 0;
+    snprintf(destaque, sizeof destaque, i18n("CONTINUAR DE ONDE PAROU  \xc2\xb7  %d MIN"), vistos < 1 ? 1 : vistos);
+  }
   else if (seguirHero) {
     // O FUTURO DIZ QUANDO (issue #127): "ESTREIA 21 OUT", nao o "A SEGUIR" do
     // episodio que ja pode tocar. Mesma decisao e mesma data do card
@@ -4720,6 +4751,9 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   // secundaria (nota[0] fica 0 e temSec nao conta com ela).
   if (ajustes_hero_notas() && imdbRating > 0) { snprintf(nota, sizeof nota, "%.1f", imdbRating / 10.0f); idioma_decimal_texto(nota, ajustes_idioma()); }
   int temSec = (destaque[0] || selo || nota[0]);
+  // dono (2026-10-26): ano, duracao e nota na MESMA linha (selo e IMDb depois do texto da meta); com "A SEGUIR"/"ESTREIA" a linha propria fica.
+  const int fundeLinha = metaLinha[0] && (selo || nota[0]);
+  const int temSecLay = destaque[0] ? 1 : (temSec && !fundeLinha);   // "CONTINUAR..."/"A SEGUIR" segue em linha propria
 
   // "Mostrar sinopse no destaque" desligado: hSin fica 0 e o layout (heroCopyLayout)
   // recolhe o espaco — o que esta embaixo sobe, sem buraco.
@@ -4781,7 +4815,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   int temAmigos = ci && ci->imdb[0] && amigostitulo_obter(ci->imdb, &amigos);
   float friendsH = temAmigos ? NV_AMIGOS_HERO_H : 0.0f;
   if (vitTeto > minTop) minTop = vitTeto;
-  HeroCopyLayout copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSec,
+  HeroCopyLayout copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSecLay,
                                       captionH, logoH, btnH, btnGap, minTop, slot, friendsH);
   TxtLinha tituloTelefone = {0};
   if (ajustes_hero_tamanho() && !heroCompactoTelefone()) {
@@ -4791,7 +4825,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
       hSin = txt_bloco_corta(heroSinEstilo(), sinopse, 255, 255, 255, -1, 0,
                              sinW, heroSinEntrelinha(), 0, sinLinhas);
       hSin += txt_linha(heroSinEstilo(), "Ag", 255, 255, 255, 255).h - heroSinEntrelinha();
-      copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSec,
+      copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSecLay,
                             captionH, logoH, btnH, btnGap, minTop, slot, friendsH);
     }
   }
@@ -4805,7 +4839,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     while (copy.logo + copy.logoHeight - minTop < minLogo && (hSin > 0.0f || friendsH > 0.0f)) {
       if (hSin > 0.0f) hSin = fmaxf(0.0f, hSin - heroSinEntrelinha());
       else friendsH = 0.0f, temAmigos = 0;
-      copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSec,
+      copy = heroCopyLayout(base, hSin, metaLinha[0] != 0, temSecLay,
                             captionH, logoH, btnH, btnGap, minTop, slot, friendsH);
     }
     sinLinhas = (int)ceilf(hSin / heroSinEntrelinha());
@@ -4824,7 +4858,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
       minTop += base - ANC(NV_PAD_BANNER_H - NV_PAD_TEXTO_BASE);
     else if (lay == HOME_LAYOUT_DINAMICA)
       minTop += base - (alturaTextoHeroDin() - ANC(NV_DIN_TEXTO_BASE));
-    copy = heroCopyTelefone(base, &hSin, metaLinha[0] != 0, temSec, &captionH,
+    copy = heroCopyTelefone(base, &hSin, metaLinha[0] != 0, temSecLay, &captionH,
                             logoH * 0.75f, btnH, btnGap, minTop, slot, &friendsH, minLogo);
     sinLinhas = hSin > 0.0f ? (int)ceilf(hSin / heroSinEntrelinha()) : 0;
     temAmigos = friendsH > 0.0f;
@@ -4904,19 +4938,37 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   }
 
   if (metaLinha[0] && aCopy > 0.004f) {
-    float badgeW=ci?badges_desenhar(badges_provedor(ci->provNome),x,yMeta,150,24,aCopy):0;
-    TxtLinha lm = txt_linha_corta(heroMetaEstilo(), metaLinha, 179, 179, 179, 255,
-                                  sinW-badgeW);
+    // UMA LINHA: [selo do provedor] texto da meta (tipo, generos, ano, duracao) [classificacao] [IMDb].
+    // O tamanho dos detalhes escala a linha inteira (texto e selos juntos).
+    float scale = ajustes_hero_escala_info();
+    // A linha unica pode passar um pouco da coluna da sinopse (tipo, generos, ano, duracao e a nota nao cabem em 600 px).
+    float rowW = fminf(sinW * 1.45f, NV_TELA_W * 0.62f - x) / scale;
+    float linhaH = fmaxf((float)NV_LD_HERO_META, BADGE_H);
+    float seloW = (fundeLinha && selo) ? badge_largura(selo) + 14.0f : 0.0f;
+    float notaW = (fundeLinha && nota[0] && imdbRating > 0) ? badge_imdb_largura(imdbRating) + 14.0f : 0.0f;
+    float badgeW, cx;
+    TxtLinha lm;
+    if (scale != 1.0f) gfx_transformar(x, yMeta, scale, 0, 0);
+    badgeW = ci ? badges_desenhar(badges_provedor(ci->provNome), x, yMeta + (linhaH - 24.0f) * 0.5f, 150, 24, aCopy) : 0;
+    lm = txt_linha_corta(heroMetaEstilo(), metaLinha, 179, 179, 179, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
     // META E SINOPSE TROCAM NA HORA, sem esvanecer com a arte. MEDIDO: no
     // quadro a 205 ms, com a arte antiga ainda a 85%, a linha de meta e a
     // sinopse ja eram as do titulo NOVO, com o texto opaco. Multiplicar por um
     // alfa de troca aqui era invencao nossa — e, com o rasterizador fazendo 2
     // linhas por quadro (text.c:40), esvanecer texto que ainda esta assentando
     // e o pior caso possivel.
-    txt_desenhar_alpha(lm, x+badgeW, yMeta, aCopy);
+    txt_desenhar_alpha(lm, x + badgeW, yMeta + (linhaH - lm.h) * 0.5f, aCopy);
+    cx = x + badgeW + lm.w + 14.0f;
+    if (fundeLinha) {
+      if (selo && cx + seloW - 14.0f <= x + rowW)
+        cx += badge_desenhar(cx, yMeta + (linhaH - BADGE_H) * 0.5f, selo, BADGE_NEUTRO, aCopy) + 14.0f;
+      if (nota[0] && imdbRating > 0 && cx + notaW - 14.0f <= x + rowW)
+        badge_imdb(cx, yMeta + (linhaH - BADGE_H) * 0.5f, imdbRating, 0, aCopy);
+    }
+    if (scale != 1.0f) gfx_sem_transformar();
   }
 
-  if (temSec && aCopy > 0.004f) {
+  if (temSecLay && aCopy > 0.004f) {
     float cx = x;
     float a = aCopy;
     float scale = ajustes_hero_escala_info();
@@ -4928,7 +4980,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
                          NV_FT_HERO_SEC * 0.04f);
       cx += 14.0f;
     }
-    if (selo) {
+    if (selo && !fundeLinha) {
       // O mesmo selo de 28 px da aba Salvos e do detalhe; classificacao nao
       // ganha uma caixa vermelha propria em cada superficie.
       float bw = badge_largura(selo);
@@ -4936,7 +4988,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
         cx += badge_desenhar(cx, ySec + (heroSecLinha() / scale - BADGE_H) * 0.5f,
                              selo, BADGE_NEUTRO, a) + 14.0f;
     }
-    if (nota[0] && imdbRating > 0) {
+    if (nota[0] && imdbRating > 0 && !fundeLinha) {
       float bw = badge_imdb_largura(imdbRating);
       if (cx + bw <= x + rowW)
         badge_imdb(cx, ySec + (heroSecLinha() / scale - BADGE_H) * 0.5f,

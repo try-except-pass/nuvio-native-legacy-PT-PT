@@ -1306,9 +1306,8 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "    else          uv.x = (uv.x - 0.5) * ra + 0.5;\n"
   "  }\n"
   "  vec3 c = texture2D(uTex, clamp(uv, 0.0, 1.0)).rgb;\n"
-  "  float ge = smoothstep(0.62, 0.0, vUv.x) * 0.80 * uFoco;\n"
-  "  float gb = smoothstep(uCor.r > 0.0 ? uCor.r : 0.38, 1.0, vUv.y) * 0.72 * uFoco;\n"
-  "  c *= 1.0 - clamp(ge + gb - ge * gb, 0.0, 1.0);\n"
+  "  float gb = smoothstep(uCor.r > 0.0 ? uCor.r : 0.38, 1.0, vUv.y) * 0.72 * uFoco;\n"   // dono (2026-10-26): sem o veu escuro atras do titulo, a esquerda; so o da base
+  "  c *= 1.0 - clamp(gb, 0.0, 1.0);\n"
   "  float d = smoothstep(0.66, 1.0, vUv.y);\n"
   "  float a = uCor.a * m * dentro * (1.0 - uPar.y * d * d);\n"
   "  gl_FragColor = (uLeve > 0.5 && a > 0.5) ? vec4(c, a) : nv_dither(c, a);\n"   // see GFX_VITRINE_DIN
@@ -1605,9 +1604,8 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "    else          uv.x = (uv.x - 0.5) * ra + 0.5;\n"
   "  }\n"
   "  vec3 c = texture2D(uTex, clamp(uv, 0.0, 1.0)).rgb;\n"
-  "  float ge = smoothstep(0.62, 0.0, vUv.x) * 0.80 * uFoco;\n"
   "  float gb = smoothstep(uCor.r > 0.0 ? uCor.r : 0.38, 1.0, vUv.y) * 0.72 * uFoco;\n"
-  "  c *= 1.0 - clamp(ge + gb - ge * gb, 0.0, 1.0);\n"
+  "  c *= 1.0 - clamp(gb, 0.0, 1.0);\n"
   "  float d = smoothstep(0.66, 1.0, vUv.y);\n"
   "  float a = clamp(uCor.a * m * dentro * (1.0 - uPar.y * d * d), 0.0, 1.0);\n"
   "  vec3 bg = uDin.rgb * mix(1.0, uDin.a, smoothstep(0.0, 1.0, 1.0 - vAmb.y));\n"

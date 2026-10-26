@@ -4608,7 +4608,8 @@ static int    sinVistoInit;
 static Uint32 sinTrocaDesde;
 // Linhas da sinopse no heroi: o texto inteiro (Ajustes > Sinopse na pagina do
 // titulo; a pilha sobe pela altura medida; 0 = sem teto) ou as 3 do dono, com o resto em "...".
-static int detSinLinhas(void) { return ajustes_sinopse_completa() ? 0 : NV_DETW2_SIN_LINHAS; }
+// dono (2026-10-26): a sinopse da pagina do titulo nunca e cortada, qualquer que seja o ajuste (0 = sem teto).
+static int detSinLinhas(void) { return 0; }
 static float  hSinVis;            // altura reservada, suavizada
 static int    hSinInit;
 static Uint32 hSinTick;

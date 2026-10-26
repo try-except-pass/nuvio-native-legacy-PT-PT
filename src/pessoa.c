@@ -92,7 +92,7 @@ static int mesmoNome(const char *a, const char *b) {
 }
 
 static long resolverId(const char *nomeAlvo, const char *imdb, const char *tipo) {
-  const char *chave = desc_chave_tmdb();
+  const char *chave = desc_chave_tmdb_reserva();
   char url[700], enc[300], *corpo = NULL;
   long idPessoa = 0, idTitulo = 0;
   int serie = !strcmp(tipo, "series");
@@ -161,7 +161,7 @@ static const char *traduzArea(const char *s) {
 static void buscarPedido(const Pedido *pedido) {
   char url[400], *corpo;
   long id = pedido->id;
-  const char *chave = desc_chave_tmdb();
+  const char *chave = desc_chave_tmdb_reserva();
 
   if (!chave || !chave[0]) return;
   if (id <= 0)

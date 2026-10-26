@@ -2256,8 +2256,15 @@ static void ilha_desenharCorpo_(Uint32 agora) {
     // At rest (no modal, no body) the island is the A27 top chrome: the same
     // material and tint as the bar and the avatar chip (gfx_chrome).
     // dono (2026-10-26): o relogio em repouso usa o mesmo frost da barra lateral (vidro), nao o cromado da barra do topo.
+    // gfx_vidro_camada: sobre vidro de pagina (botoes, abas) o relogio tambem pega o frost do fundo,
+    // como a barra do topo; sem isso ele virava uma pilula chapada escura (dono, 2026-10-26).
     if (repouso && !ajustes_vidro()) gfx_chrome(R, raio, A);
-    else if (ajustes_vidro()) gfx_vidro_material(R, raio, fundo, A);
+    else if (ajustes_vidro()) {
+      gfx_vidro_camada = 1;
+      if (repouso) gfx_chrome(R, raio, A);   // o mesmo material da barra do topo
+      else gfx_vidro_material(R, raio, fundo, A);
+      gfx_vidro_camada = 0;
+    }
     else {
       // MATERIAL SOLIDO: a pilula em repouso tem de LER como pilula em paginas
       // escuras. Com 0,055 de cinza ela ficava igual ao fundo da pagina (0,051)
