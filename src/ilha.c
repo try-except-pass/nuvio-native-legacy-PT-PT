@@ -2296,6 +2296,12 @@ static void ilha_desenharCorpo_(Uint32 agora) {
       gfx_cor(R, raio, c0, c1, c2, (solido + 0.06f * em) * A);
       if (em > 0.01f) gfx_anel(R, raio, 1.5f, 1.0f, 1.0f, 1.0f, 0.085f * em * A);
     }
+    // dono (2026-10-26): aberta (modal ou painel de Salvos) a ilha usa a cor do acento, 90 % opaca.
+    if (modalT > 0.0f || corpoT > 0.0f) {
+      float ar, ag, ab, ka = modalT > corpoT ? modalT : corpoT;
+      ajustes_acento(&ar, &ag, &ab);
+      gfx_cor(R, raio, ar, ag, ab, 0.90f * (ka > 1.0f ? 1.0f : ka) * A);
+    }
     desenharFocoRelogio(R, raio, A);
     // O "vidro": um brilho largo e fraco por cima, branco no relogio e na cor
     // do aviso quando ele abre.

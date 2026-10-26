@@ -1333,9 +1333,11 @@ static void ilhaCtx(GfxRect p, float raioPx, float a) {
                  0, 0, 0, .42f * a, p, raioPx, vid ? 0.0f : .98f * a);
   // Frost on: the shared glass material alone. The old .985 opaque base under it
   // hid the blur, so the quick menu read flat.
-  if (vid) gfx_vidro_folha(p, raio, a);
-  else gfx_cor(p, raio, .071f, .075f, .086f, .98f * a);
-  if (!vid) gfx_luz_canto(p, raio, p.w * .25f, -p.h * .25f, p.w * .9f, 1, 1, 1, .04f * a);
+  // dono (2026-10-26): o menu do cartaz (segurar OK) abre na cor do acento, 90 % opaco.
+  { float ar, ag, ab;
+    ajustes_acento(&ar, &ag, &ab);
+    gfx_cor(p, raio, ar, ag, ab, .90f * a); }
+  (void)vid;
 }
 
 // KICKER das ilhas: 15/700 em caixa alta (a do idioma), espacado .14em,
@@ -1378,7 +1380,7 @@ static void linhaCtxTinta(GfxRect r, const char *rot, const char *icone, float f
     txt_desenhar_alpha(t, r.x + 20.0f + CTX_ICONE + 18.0f, r.y + (r.h - t.h) * 0.5f, lum * a); }
 }
 static void linhaCtx(GfxRect r, const char *rot, const char *icone, float f, float a) {
-  linhaCtxTinta(r, rot, icone, f, a, -1.0f);
+  linhaCtxTinta(r, rot, icone, f, a, ajustes_acento_tinta(NULL, NULL, NULL));
 }
 
 // --- A MESMA ILHA, PARA OS MENUS QUE NAO SAO DE CARTAZ ----------------------
