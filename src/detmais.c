@@ -128,19 +128,26 @@ void detmais_desenhar(GfxRect anc, float a) {
   raio = anc.h * 0.5f + (DM_RAIO - anc.h * 0.5f) * p;
   ponteiro_camada();
   if (aberto) ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, ptrFora, 0, 0);
-  plrui_cartao(r, raio, a * anim_clamp(p * 2.0f, 0.0f, 1.0f));
+  // dono (2026-10-26): 90 % opaca e na cor do acento.
+  { float ar, ag, ab, rf = r.h > 1.0f ? raio / r.h : 0.5f, af = a * anim_clamp(p * 2.0f, 0.0f, 1.0f);
+    ajustes_acento(&ar, &ag, &ab);
+    if (rf > 0.5f) rf = 0.5f;
+    gfx_rect((GfxRect){ r.x - 20.0f, r.y - 6.0f, r.w + 40.0f, r.h + 40.0f }, 0, GFX_SOMBRA,
+             1.0f, 0, 0, 0.5f, 0, 0, 0, 0.36f * af);
+    gfx_cor(r, rf, ar, ag, ab, 0.90f * af); }
   pc = anim_clamp((p - 0.45f) / 0.55f, 0.0f, 1.0f) * a;
   if (pc <= 0.002f) return;
   gfx_recorte(r.x, r.y, r.w, r.h);
   for (i = 0; i < n; i++) {
     GfxRect l = { fim.x + DM_PAD, fim.y + DM_PAD + (float)i * (DM_LINHA + DM_GAP),
                   fim.w - DM_PAD * 2.0f, DM_LINHA };
-    float f = focoAnim[i], lum = .72f + .28f * f;
+    float f = focoAnim[i], lum = .72f + .28f * f, tt = ajustes_acento_tinta(NULL, NULL, NULL);
+    int tc = (int)(tt * 255.0f);
     TxtLinha t;
-    if (f > 0.01f) plrui_linha_foco(l, DM_LINHA * 0.5f, f * pc);
+    if (f > 0.01f) gfx_cor(l, 0.5f, tt, tt, tt, 0.20f * f * pc);
     gfx_icone((GfxRect){ l.x + 20.0f, l.y + (l.h - DM_ICONE) * 0.5f, DM_ICONE, DM_ICONE },
-              detmais_icone(linhas[i]), .953f, .949f, .937f, lum * pc);
-    t = txt_linha_corta(TXT_PG_ROTULO, i18n(detmais_rotulo(linhas[i])), 243, 242, 239, 255,
+              detmais_icone(linhas[i]), tt, tt, tt, lum * pc);
+    t = txt_linha_corta(TXT_PG_ROTULO, i18n(detmais_rotulo(linhas[i])), tc, tc, tc, 255,
                         l.w - 20.0f - DM_ICONE - 18.0f - 20.0f);
     txt_desenhar_alpha(t, l.x + 20.0f + DM_ICONE + 18.0f, l.y + (l.h - t.h) * 0.5f, lum * pc);
     if (aberto && p > 0.85f) ponteiro_alvo(l.x, l.y, l.w, l.h, ptrFocar, NULL, i, 0);

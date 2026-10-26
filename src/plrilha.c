@@ -6,6 +6,7 @@
 #include "central.h"
 #include "horafmt.h"
 #include "plrilha.h"
+#include "pausao.h"
 #include "plrui.h"
 #include "ajustes.h"
 #include "anim.h"
@@ -310,7 +311,14 @@ static void cartaoCentro(Uint32 agora) {
 
 void plrilha_desenhar(Uint32 agora) {
   ESCALA_INI();
-  plrilha_desenharCorpo_(agora);
+  // dono (2026-10-26): com o video em pausa a bolha do canto cresce (Ajustes > tamanho da bolha ao pausar).
+  { static float k = 1.0f;
+    float alvo = pausao_visivel() ? ajustes_pausa_ilha_escala() : ajustes_relogio_escala();   // guia/player: o relogio segue o tamanho dos Ajustes
+    k += (alvo - k) * (ajustes_animacoes_reduzidas() ? 1.0f : 0.25f);
+    if (fabsf(k - alvo) < 0.005f) k = alvo;
+    if (k != 1.0f) gfx_transformar(plrilha_direita() ? NV_TELA_W - X_ESQ : X_ESQ, Y_TOPO, k, 0.0f, 0.0f);
+    plrilha_desenharCorpo_(agora);
+    if (k != 1.0f) gfx_sem_transformar(); }
   cartaoCentro(agora);
   ESCALA_FIM();
 }

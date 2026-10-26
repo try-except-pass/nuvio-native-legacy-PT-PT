@@ -1854,6 +1854,11 @@ void player_abrir(int indiceCatalogo, const char *url) {
   // A ficha e do titulo que a tela de detalhe abriu, que e por onde a
   // reproducao passa. Quem manda tocar direto da home sem abrir o detalhe
   // chega aqui com a ficha vazia — e ai o certo e mesmo nao trocar nada.
+  // dono (2026-10-26): a ficha pode ser de OUTRO titulo (tocar da home sem abrir o detalhe) ou ainda nao ter
+  // chegado; pede a deste titulo (nao refaz se ja e ela) e, se o idioma original chegar depois, player_atualizar
+  // refaz a escolha de audio.
+  { const CatItem *pc = cat_item(indiceCatalogo);
+    if (pc && pc->imdb[0]) extras_pedir(pc->imdb, !strcmp(pc->tipo, "series"), pc->tmdb); }
   ling_definir_original(extras_idioma_original());
 
   int ficaMini = querMini; querMini = 0;
@@ -4501,6 +4506,10 @@ void player_atualizar(float dt, Uint32 agora) {
 #endif
   if (retido) { player_validar_retido(agora); return; }
   if (aberto || mini) atualizarIdentidade();
+  if ((aberto || mini) && !ling_original()[0] && extras_idioma_original()[0]) {
+    ling_definir_original(extras_idioma_original());
+    video_reaplicar_audio();
+  }
 #ifdef NV_TPK
   // A TV recusou um seek e o arquivo nao tem indice nenhum (mkvfix.h): diz,
   // em vez de o video seguir como se a tecla nao tivesse feito nada.

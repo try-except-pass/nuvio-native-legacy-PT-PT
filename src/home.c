@@ -1160,6 +1160,7 @@ static void heroMontarSet(void) {
   int total = nAcervoHero();
   int i;
   heroSetN = 0;
+  if (!fonte[0]) fonte = "*";   // dono (2026-10-26): o automatico tambem e a lista de 200 sorteados, nao os 10 primeiros
   if (fonte[0]) {
     // Janela sem repeticao entre as janelas: o conjunto escolhido (catalogo todo
     // no "*"), menos o que ja foi oferecido nesta sessao. Uma fileira so mantem
@@ -1203,6 +1204,7 @@ static void heroMontarSet(void) {
         heroMarcarVisto(h);
         heroSet[heroSetN++] = baralho[i];
       }
+      if (heroSetN < n && filtro && fonte[0] == '*') { filtro = 0; continue; }   // faltam titulos: completa com o resto do catalogo
       if (heroSetN > 0 || total <= 0) break;
       heroVistosN = heroVistosBase = 0;   // esgotou: recomeca
       if (!tentou) tentou = 1;
@@ -3957,12 +3959,15 @@ static void home_atualizar_(float dt, Uint32 agora) {
     // Com o destaque em foco a regra continua valendo e continua necessaria:
     // ali o contador "3 / 10" tem de corresponder a arte, e um `heroAtual`
     // fora do conjunto nao tem posicao para mostrar.
+    // dono (2026-10-26): voltar das fileiras ao destaque retoma o ultimo titulo escolhido nele, nao o primeiro.
+    static int heroUltNoDestaque = -1;
+    if (!heroOculto && focoHero && heroNLista() > 0 && heroPosDe(heroAtual) >= 0) heroUltNoDestaque = heroAtual;
     if (!heroOculto && focoHero && heroNLista() > 0 && heroPosDe(heroAtual) < 0
 #ifdef NV_TOUCH_UI
         && !toqueHero.estado
 #endif
         ) {
-      int primeiro = heroIdxEm(0);
+      int primeiro = heroPosDe(heroUltNoDestaque) >= 0 ? heroUltNoDestaque : heroIdxEm(0);
       if (primeiro >= 0) heroAtual = heroAnterior = heroPendente = primeiro;
       heroDesliza = 1.0f;
     }
@@ -4878,6 +4883,12 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     temAmigos = friendsH > 0.0f;
     caption = captionH > 0.0f;
   }
+  if (lay == HOME_LAYOUT_MODERNA && !heroCompactoTelefone() && vitTeto <= 0.0f) {
+    // dono (2026-10-26): com o foco nas fileiras (sem botao) o bloco sobe ate o canto superior esquerdo, sem encostar nele.
+    float dy = (1.0f - fminf(1.0f, fmaxf(0.0f, slot))) * fminf(0.0f, ANC(130.0f) - copy.logo);
+    copy.logo += dy; copy.caption += dy; copy.friends += dy; copy.meta += dy;
+    copy.secondary += dy; copy.synopsis += dy; copy.action += dy;
+  }
   logoH = copy.logoHeight;
   float ySin = copy.synopsis, ySec = copy.secondary, yMeta = copy.meta;
   float logoY = copy.logo - cin * NV_CINEMA_DESCE;
@@ -4971,9 +4982,6 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     // alfa de troca aqui era invencao nossa — e, com o rasterizador fazendo 2
     // linhas por quadro (text.c:40), esvanecer texto que ainda esta assentando
     // e o pior caso possivel.
-    // dono (2026-10-26): sem a rampa escura da esquerda, uma sombra no texto garante a leitura sobre arte clara.
-    { TxtLinha sh = txt_linha_corta(heroMetaEstilo(), metaLinha, 0, 0, 0, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
-      txt_desenhar_alpha(sh, x + badgeW + 2.0f, yMeta + (linhaH - lm.h) * 0.5f + 2.0f, 0.75f * aCopy); }
     txt_desenhar_alpha(lm, x + badgeW, yMeta + (linhaH - lm.h) * 0.5f, aCopy);
     cx = x + badgeW + lm.w + 14.0f;
     if (fundeLinha) {
@@ -5070,7 +5078,7 @@ static GfxRect heroArtworkOverlayRect(GfxRect r, GfxRect hero) {
 static float heroBaseCopia(int lay, GfxRect r, float empurra, float descida) {
   if (lay == HOME_LAYOUT_PADRAO) return r.y + r.h - ANC(NV_PAD_TEXTO_BASE) + descida;
   if (lay == HOME_LAYOUT_DINAMICA) return r.y + alturaTextoHeroDin() - ANC(NV_DIN_TEXTO_BASE) + descida;
-  return ANC(NV_SHELF_TOP - NV_HERO_COPY_GAP - 24.0f) + empurra + descida;
+  return ANC(NV_SHELF_TOP - NV_HERO_COPY_GAP - 24.0f + 30.0f) + empurra + descida;   // dono (2026-10-26): titulo e detalhes um pouco mais abaixo
 }
 static GfxRect heroEditorialRect(int editorial, float aspect) {
   float largura = NV_TELA_W;

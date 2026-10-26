@@ -384,3 +384,5 @@
   0, /* Galeria copy: COLECAO_EXIBICAO */
   0, /* Galeria copy: BORDA_FOCO */
   0, /* Galeria copy: SOMBRA_FOCO */
+  1, /* Galeria copy: HOME_LAYOUT (Padrao) */
+  150, /* paused player bubble size, percent */

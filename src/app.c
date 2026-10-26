@@ -887,7 +887,7 @@ static int saiuPorEsquerda, saiuPorCima;   // a ultima tecla foi ESQUERDA ou CIM
 // um canal minimizado. Manter a regra aqui evita que cada tela invente sua
 // propria nocao de PiP/Guia.
 static int sidebar_permitida(void) {
-  return tela != TELA_GUIA && !player_mini_ativo();
+  return tela == TELA_GUIA || !player_mini_ativo();   // o guia mostra a barra mesmo com a previa tocando
 }
 #ifdef NV_TOUCH_UI
 static int sidebarToquePode(void) {

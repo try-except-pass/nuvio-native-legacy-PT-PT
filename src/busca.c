@@ -28,6 +28,7 @@
 // no maximo 5+6 toques e ~5 em media.
 #include "menu.h"
 #include "busca.h"
+#include "addons.h"
 #include "posterprov.h"
 #include "idioma.h"
 #include "gfx.h"
@@ -140,7 +141,7 @@ static float buTopoEsq(void) {
 #define BU_MAX_POR_FIL  DESC_BUSCA_POR_ALVO
 // Rotulo em caixa alta (15/700) 18 acima do conteudo; melhor resultado 226 de
 // altura (capa 330x186 + padding 20); cartaz 180x270, nome 17 a 10 abaixo.
-#define BU_KICK_H       34.0f
+#define BU_KICK_H       64.0f   // dono (2026-10-26): titulo da categoria maior e mais folga ate os cartazes
 #define BU_MELHOR_H    fmaxf(226.0f, 186.0f * gfx_poster_k() + 40.0f)
 #define BU_CARTAZ_W    (180.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_CARTAZ_GAP  (12.0f * ajustes_busca_cartaz_gap())
@@ -563,7 +564,10 @@ static void refiltrar(void) {
     int *idxNovos = NULL;
     for (passo = 0; passo < (nuvioDepois ? 2 : 1); passo++)
      for (alvoIdx = 0; alvoIdx < nAlvos && nFil < BU_MAX_FILEIRAS; alvoIdx++) {
-      int nRem = desc_busca_alvo_n(alvoIdx, consulta), i, achou = 0;
+      int nRem, i, achou = 0;
+      // dono (2026-10-26): so os resultados do PRIMEIRO addon (o do catalogo).
+      if (addons_n() > 0 && strcmp(desc_busca_alvo_addon(alvoIdx), addons_nome(0))) continue;
+      nRem = desc_busca_alvo_n(alvoIdx, consulta);
       if (nRem <= 0) continue;
       if (nuvioDepois && (desc_busca_alvo_nuvio(alvoIdx) != 0) != (passo == 1)) continue;
       for (i = 0; i < nRem && achou < BU_MAX_POR_FIL; i++) {
@@ -637,6 +641,7 @@ static void refiltrar(void) {
     const CatFileira *cf = cat_fileira(r);
     if (!cf) break;
     if (desc_busca_base_oculta(cf->base)) continue;   // "Buscar no Cinemeta" desligado
+    if (addons_n() > 0 && strcmp(cf->base, addons_base(0))) continue;   // so o primeiro addon (dono, 2026-10-26)
     int achou = 0;
     for (int i = 0; i < cf->n && achou < BU_MAX_POR_FIL; i++) {
       const CatItem *ci = cat_item(cf->ini + i);
@@ -1631,12 +1636,14 @@ static void buCabecalho(int r, float y, float larg) {
   }
 #endif
   {
-  float kw = ajustes_ui_kicker(titulo, BU_RES_X, y, 1.0f);
+  TxtLinha tk = txt_linha_corta(TXT_HEADLINE, titulo, BU_TX, fmaxf(1.0f, larg - 40.0f));
+  float kw = (float)tk.w;
+  txt_desenhar_alpha(tk, BU_RES_X, y, 0.9f);
   if (!fil[r].melhor && fil[r].origem) {
     char org[96];
     snprintf(org, sizeof org, i18n("de %s"), fil[r].origem);
     TxtLinha ts = txt_linha_corta(TXT_ILHA_APOIO, org, BU_TX, larg - kw - 16.0f);
-    txt_desenhar_alpha(ts, BU_RES_X + kw + 16.0f, y, 0.36f);
+    txt_desenhar_alpha(ts, BU_RES_X + kw + 16.0f, y + (float)(tk.h - ts.h) * 0.5f, 0.36f);
   }
   }
 }
@@ -2127,7 +2134,7 @@ static void desenhaResultados(Uint32 agora) {
 static void desenhaTituloFoco(void) {
   float larg = BU_DIR - BU_RES_X;
   if (buUmaColuna() || painel != 1 || !temItemFoco || !itemFoco.titulo || larg < 100.0f) return;
-  { TxtLinha t = txt_linha_corta(TXT_HEADLINE, itemFoco.titulo, BU_TX, larg);
+  { TxtLinha t = txt_linha_corta(TXT_TITULO2, itemFoco.titulo, BU_TX, larg);
     txt_desenhar(t, BU_RES_X, buTopoEsq()); }
 }
 

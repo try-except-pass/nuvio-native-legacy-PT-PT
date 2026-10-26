@@ -876,7 +876,7 @@ static void menu_desenharCorpo_(Uint32 agora) {
 // titulos das fileiras da Home lerem ATRAVES do vidro na TCL (captura
 // fotos1014/tcl-sidebar-now.png: "Continuar assistindo" por baixo dos
 // rotulos). Sem frost o piso e o que garante legibilidade.
-#define TV_MIOLO_MIN    0.88f
+#define TV_MIOLO_MIN    0.50f   // dono (2026-10-26): quase opaco demais; mais transparente
 // O CHIP: na foto da referencia (appletv-sidebar.jpg) cada icone de linha mora
 // num circulo translucido, quase apagado quando a pilula branca do foco assume
 // e a tinta do icone/rotulo escurece.

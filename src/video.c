@@ -1181,27 +1181,7 @@ static int eventoPayload(const char *p, unsigned minhaSessao) {
         return 1;
       }
     }
-    if (nAudio > 1) {
-      AudioCand c[NV_FAIXA_MAX];
-      int i, o, k;
-      for (i = 0; i < nAudio; i++) {
-        c[i].idioma = faixaAudio[i].idioma; c[i].codec = faixaAudio[i].codec;
-        c[i].rotulo = faixaAudio[i].rotulo; c[i].canais = faixaAudio[i].canais;
-        c[i].dts = audioesc_dts_truehd(faixaAudio[i].codec, faixaAudio[i].rotulo); c[i].pode = 1;
-        c[i].numero = faixaAudio[i].numero;
-      }
-      k = audioesc_escolher(c, nAudio, &o);
-      if (k >= 0 && k != audioAtual) {
-        printf("[video] audio pela ordem (%s): %s (faixa %d de %d)\n", audioesc_origem_nome(o),
-               faixaAudio[k].rotulo, k + 1, nAudio);
-        fflush(stdout);
-        // Direto, e nao por audioAoCarregar: aquele campo e da RECUPERACAO
-        // (pipeline morto) e sobrescreve-lo aqui apagaria a faixa que a
-        // pessoa tinha escolhido antes da queda. O sourceInfo chega com o
-        // pipeline ja carregado, entao o selectTrack vale agora.
-        if (audioAoCarregar < 0) video_escolher_audio(k);
-      }
-    }
+    video_reaplicar_audio();
 
     // O PIPELINE NAO DA IDIOMA DE LEGENDA. Medido nesta TV, num arquivo com 43
     // legendas: o audioTrackInfo vem com "en"/"es"/"fr"/"it" e TODA entrada do
@@ -4010,3 +3990,25 @@ int video_legenda_nativa(char *d, int t) {
 #endif
 
 #endif  /* !__EMSCRIPTEN__ */
+
+// A ordem de audio (audioescolha.h) sobre as faixas atuais. Chamada ao chegar o sourceInfo e de novo
+// quando o idioma original do titulo chega depois (dono, 2026-10-26: o audio nem sempre era o original).
+void video_reaplicar_audio(void) {
+  AudioCand c[NV_FAIXA_MAX];
+  int i, o, k;
+  if (nAudio < 2) return;
+  for (i = 0; i < nAudio; i++) {
+    c[i].idioma = faixaAudio[i].idioma; c[i].codec = faixaAudio[i].codec;
+    c[i].rotulo = faixaAudio[i].rotulo; c[i].canais = faixaAudio[i].canais;
+    c[i].dts = audioesc_dts_truehd(faixaAudio[i].codec, faixaAudio[i].rotulo); c[i].pode = 1;
+    c[i].numero = faixaAudio[i].numero;
+  }
+  k = audioesc_escolher(c, nAudio, &o);
+  if (k >= 0 && k != audioAtual) {
+    printf("[video] audio pela ordem (%s): %s (faixa %d de %d)\n", audioesc_origem_nome(o),
+           faixaAudio[k].rotulo, k + 1, nAudio);
+    fflush(stdout);
+    // Direto, e nao por audioAoCarregar: aquele campo e da RECUPERACAO (pipeline morto).
+    if (audioAoCarregar < 0) video_escolher_audio(k);
+  }
+}

@@ -16,6 +16,7 @@
 #include "extras.h"
 #include "notasui.h"
 #include "imdbnota.h"
+#include "badges.h"
 #include "agendaui.h"
 #include "comentordem.h"
 #include "idiomacod.h"
@@ -212,7 +213,7 @@ static float metaPontos(const char *meta, float x, float y, float maxW, float a)
     x += l.w; prim = 0;
     q = f ? f + 4 : NULL;
   }
-  return (float)txt_linha(TXT_CAPTION2, "Ag", 0, 0, 0, 255).h;
+  return x - x0;
 }
 
 // PONTEIRO (#99): a ficha nao tem item focavel (o player para de registrar os
@@ -230,9 +231,10 @@ void pausao_desenhar(Uint32 agora, const PausaoCena *cena) {
 }
 static void pausao_desenharCorpo_(Uint32 agora, const PausaoCena *cena) {
   const CatItem *c;
-  float a = anim, y, sobe, alt = 0.0f, hSin = 0.0f, hMeta = 0.0f, lw = 0.0f, lh = 0.0f;
-  const char *marca, *sin;
+  float a = anim, y, sobe, alt = 0.0f, hMeta = 0.0f, lw = 0.0f, lh = 0.0f;
+  const char *marca;
   GLuint logo = 0;
+  int notaImdb = 0;
   TxtLinha lEp = { 0 };
   int temEp = 0, temCast, nCom, i;
   NotasPlano notas;
@@ -259,6 +261,8 @@ static void pausao_desenharCorpo_(Uint32 agora, const PausaoCena *cena) {
     plrilha_pedir(&p); }
 
   // --- FICHA: medida antes, ancorada na base -----------------------------------
+  if (ajustes_pausa_notas() && epEp <= 0)
+    notaImdb = imdbnota_obter(c->imdb, c->nota, !strcmp(c->tipo, "series"));
   marca = artehero_logo_sessao(c);
   logo = marca ? tex_obter_larg_qualquer(marca, 420) : 0;
   if (logo) {
@@ -272,51 +276,11 @@ static void pausao_desenharCorpo_(Uint32 agora, const PausaoCena *cena) {
     temEp = 1;
     alt += 20.0f + (float)lEp.h;
   }
-  if (c->meta[0]) { hMeta = 25.0f; alt += 12.0f + hMeta; }
-  { int f, cru[EX_NFONTES];
-    unsigned char querer[EX_NFONTES];
-    float disp = PAUSAO_LARG;
-    memset(cru, 0, sizeof cru);
-    for (f = 0; f < EX_NFONTES; f++)
-      querer[f] = epEp > 0 ? ajustes_nota_episodio(f) : ajustes_nota_titulo(f);
-    if (!ajustes_pausa_notas()) {
-      /* desligado nas Opcoes: sem fileira, sem pedido */
-    } else if (epEp > 0) {
-      // EPISODIO: so o que existe POR EPISODIO (IMDb e TMDB, no catalogo). A nota
-      // da serie nao e a do episodio, e uma fonte sem nota nao aparece.
-      int k;
-      for (k = 0; k < cat_n_episodios(idxItem); k++) {
-        const CatEp *ep = cat_episodio(idxItem, k);
-        if (ep && ep->temporada == epTemp && ep->episodio == epEp) {
-          cru[EX_IMDB] = ep->notaImdb;      // x10, como o IMDb do titulo
-          cru[EX_TMDB] = ep->nota * 10;     // a escala do site (79 = 7,9 -> 790)
-          break;
-        }
-      }
-    } else {
-      ExResumo r;
-      if (idItem[0] && extras_resumo_obter(idItem, &r))
-        for (f = 0; f < EX_NFONTES; f++) cru[f] = r.cru[f];
-      if (!cru[EX_IMDB] && ajustes_mdblist_fonte(EX_IMDB) && c->imdb[0])
-        cru[EX_IMDB] = imdbnota_obter(c->imdb, c->nota, !strcmp(c->tipo, "series"));
-    }
-    notasui_modo_icone(1);
-    // O plano encaixa com o vao de 24; com o de 40 pode passar: aperta o espaco
-    // ate caber (cai uma nota), em vez de juntar as que ficam.
-    do {
-      notasui_planejar(&notas, cru, disp, 0.0f, querer);
-      disp -= 16.0f;
-    } while (notas.n > 0 && notasui_plano_largura(&notas, PAUSAO_NOTAS_VAO) > PAUSAO_LARG);
-    notasui_modo_icone(0);
-    if (notas.n > 0) alt += 14.0f + PAUSAO_NOTAS_H; }
-  sin = epSinopse[0] ? epSinopse : c->sinopse;
-  if (sin[0]) {
-    hSin = sinopse_bloco_corta(TXT_DET_META2, sin, 0, 0, 0, -1.0f, 0.0f,
-                           PAUSAO_LARG, PAUSAO_LD_SIN, 0.0f, PAUSAO_SIN_LINHAS);
-    alt += 16.0f + hSin;
-  }
-  temCast = c->nElenco > 0 && ajustes_pausa_elenco();
-  nCom = comProntos ? pausacom_n() : 0;
+  if (c->meta[0] || notaImdb > 0) { hMeta = 34.0f; alt += 12.0f + hMeta; }
+  notas.n = 0;   // dono (2026-10-26): a nota entra na mesma linha do ano e da duracao
+
+  temCast = 0;
+  nCom = 0;
   if (nCom > 0) alt += 16.0f + PAUSAO_COM_H;
   if (temCast) alt += 28.0f + 18.0f + 14.0f + PAUSAO_CARTA_H;
   // Escala de interface/texto grande encolhe a tela virtual (escala.h): a ficha
@@ -337,19 +301,23 @@ static void pausao_desenharCorpo_(Uint32 agora, const PausaoCena *cena) {
   } else txt_desenhar_alpha(txt_linha_corta(TXT_TITULO2, c->titulo, 255, 255, 255, 255, PAUSAO_LARG), PAUSAO_X, y, a);
   y += lh;
   if (temEp) { y += 20.0f; txt_desenhar_alpha(lEp, PAUSAO_X, y, a); y += lEp.h; }
-  if (hMeta > 0.0f) { y += 12.0f; metaPontos(c->meta, PAUSAO_X, y, PAUSAO_LARG, a); y += hMeta; }
+  if (hMeta > 0.0f) {
+    // ano, duracao e nota na MESMA linha (como no destaque da Home)
+    float fim;
+    y += 12.0f;
+    fim = metaPontos(c->meta, PAUSAO_X, y, PAUSAO_LARG, a);
+    if (notaImdb > 0) {
+      float bx = PAUSAO_X + fim + (fim > 0.0f ? 16.0f : 0.0f);
+      if (bx + badge_imdb_largura(notaImdb) <= PAUSAO_X + PAUSAO_LARG) badge_imdb(bx, y - 4.0f, notaImdb, 0, a);
+    }
+    y += hMeta;
+  }
   if (notas.n > 0) {
     y += 14.0f;
     notasui_modo_icone(1);
     notasui_desenhar_linha_vao(&notas, PAUSAO_X, y + PAUSAO_NOTAS_H * 0.5f, PAUSAO_NOTAS_VAO, a);
     notasui_modo_icone(0);
     y += PAUSAO_NOTAS_H;
-  }
-  if (hSin > 0.0f) {
-    y += 16.0f;
-    sinopse_bloco_corta(TXT_DET_META2, sin, 243, 242, 239, PAUSAO_X, y, PAUSAO_LARG,
-                    PAUSAO_LD_SIN, a * 0.78f, PAUSAO_SIN_LINHAS);
-    y += hSin;
   }
 
   // COMENTARIO DO TRAKT: um por vez, o cartao tem altura fixa (duas linhas) para

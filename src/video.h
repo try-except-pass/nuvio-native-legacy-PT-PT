@@ -407,6 +407,7 @@ int  video_dts_estado(void);
 int  video_legenda_atual(void);   // -1 = desligada
 
 void video_escolher_audio(int i);
+void video_reaplicar_audio(void);   // refaz a escolha de audio pela ordem (o idioma original chegou depois)
 void video_escolher_legenda(int i);   // -1 desliga
 // Texto da legenda EMBUTIDA em vigor quando o player nativo nao a desenha
 // (Samsung: o AVPlay so entrega o texto no onsubtitlechange, issue #122).

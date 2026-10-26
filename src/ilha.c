@@ -2021,6 +2021,13 @@ void ilha_desenhar(Uint32 agora) {
   { float k = ajustes_relogio_escala();
     float ox = ancDef ? ancX : NV_TELA_W - NV_ILHA_MARGEM_D / gfx_escala_txt();
     float oy = ancDef ? ancY : NV_ILHA_Y / gfx_escala_txt();
+    // dono (2026-10-26): a janela aberta nunca passa da tela. Com o "Tamanho da interface" e o do relogio
+    // grandes, a escala do modal encolhe o quanto for preciso ate ele caber (40 px de folga); a pilula mantem o tamanho.
+    if (modalT > 0.0f) {
+      float Mh = fmaxf(MD_H, modalAvisoH) + modalSinopseExtra();
+      float fit = fminf((ox - 40.0f) / MD_W, (NV_TELA_H - 40.0f - oy) / Mh);
+      if (fit > 0.2f && fit < k) k += (fit - k) * (modalT > 1.0f ? 1.0f : modalT);
+    }
     if (k != 1.0f) gfx_transformar(ox, oy, k, 0.0f, 0.0f);
     ilha_desenharCorpo_(agora);
     if (k != 1.0f) gfx_sem_transformar(); }
@@ -2261,7 +2268,7 @@ static void ilha_desenharCorpo_(Uint32 agora) {
     if (repouso && !ajustes_vidro()) gfx_chrome(R, raio, A);
     else if (ajustes_vidro()) {
       gfx_vidro_camada = 1;
-      if (repouso) gfx_chrome(R, raio, A);   // o mesmo material da barra do topo
+      if (repouso) gfx_vidro_material(R, raio, 0.50f, A);   // dono (2026-10-26): o frost da barra lateral, bem mais transparente
       else gfx_vidro_material(R, raio, fundo, A);
       gfx_vidro_camada = 0;
     }

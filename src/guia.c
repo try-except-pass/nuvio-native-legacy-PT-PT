@@ -120,8 +120,8 @@
 // direita) e o video, que se mexe, nao precisa de leitura: e o olho que vai
 // ate ele. Com o preview a esquerda o titulo do programa caia no meio da
 // tela, longe da coluna de canais da grade, que e onde a pessoa esta.
-#define G_AREA_X   NV_MARGEM_X
-#define G_AREA_W   (NV_TELA_W - 2.0f * NV_MARGEM_X)
+#define G_AREA_X   fmaxf(NV_MARGEM_X, ajustes_conteudo_x())   // dono (2026-10-26): a barra lateral tambem fica no guia
+#define G_AREA_W   (NV_TELA_W - G_AREA_X - NV_MARGEM_X)
 #define G_AREA_DIR (G_AREA_X + G_AREA_W)
 static int gRetrato(void) {
 #ifdef NV_TOUCH_UI
@@ -133,7 +133,7 @@ static int gRetrato(void) {
 static float gTopoFim = 80.0f;
 static void gTopoMedir(void);
 static float gPreviewLargura(void);
-#define G_HERO_Y   (gRetrato() ? gTopoFim + 60.0f : 204.0f)
+#define G_HERO_Y   (gRetrato() ? gTopoFim + 60.0f : 340.0f)   // dono (2026-10-26): titulo centrado no espaco abaixo da busca
 // PREVIEW: 800x450 e 41,7% da largura, 16:9 exato. Os MESMOS numeros furam a
 // superficie GL (desenharHero) e posicionam o plano de video (a sessao "mini
 // no guia" do player recebe estes numeros por guia_preview_rect) — um lugar
@@ -6160,8 +6160,11 @@ static float desenharTopo(float a) {
 #endif
     int ct;
     if (i != G_TOPO_BUSCAR) continue;   // dono (2026-10-26): so o botao de busca, maior
-    { float k = 1.45f, cx = r.x + r.w * 0.5f; r.w *= k; r.h *= k; r.x = G_AREA_X; r.y = G_CHIPS_Y - (r.h - G_TOPO_H) * 0.5f; (void)cx; }
-    if (!overlay && !guiaCamadaAberta() && a > 0.99f) ponteiro_alvo(r.x, r.y, r.w, r.h, ponteiroTopo, NULL, i, 0);
+    // dono (2026-10-26): maior e mais abaixo; o chip inteiro (icone e texto) escala junto.
+    const float kBusca = 1.8f;
+    r.x = G_AREA_X; r.y = 150.0f;
+    if (!overlay && !guiaCamadaAberta() && a > 0.99f) ponteiro_alvo(r.x, r.y, r.w * kBusca, r.h * kBusca, ponteiroTopo, NULL, i, 0);
+    gfx_transformar(r.x, r.y, kBusca, 0.0f, 0.0f);
     if (seg) {
       // Segmento: so o escolhido tem superficie, 3 px para dentro do trilho.
       GfxRect ir = { r.x + 3.0f, r.y + 3.0f, r.w - 6.0f, r.h - 6.0f };
@@ -6208,6 +6211,7 @@ static float desenharTopo(float a) {
         tx = gx + 26.0f;
       }
       txt_desenhar_alpha(t, tx, r.y + (r.h - (float)t.h) * 0.5f, a); }
+    gfx_sem_transformar();
   }
   return gRetrato() ? tituloDir : xs[G_TOPO_BUSCAR];
 }

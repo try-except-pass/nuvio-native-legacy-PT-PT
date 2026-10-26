@@ -120,6 +120,8 @@ static int legOverlayEsperando = -1;
 // decisao (ligou, nao havia o que ligar, ou a pessoa escolheu na folha).
 // `legAutoDesde` e o instante em que o video ficou pronto, base dos prazos.
 static int legAuto;
+static int legTentativas;      // novas buscas da legenda automatica (dono, 2026-10-26)
+static Uint32 legRetentaEm;
 static Uint32 legAutoDesde;
 
 // NO-GO PASSAGEIRO x DEFINITIVO. Um Range que falhou (rede, timeout, 5xx,
@@ -426,7 +428,7 @@ static void reiniciarFaixas(int preservarPrebusca) {
   legOverlayTV = legOverlayColhidos = 0;
   if (!preservarPrebusca) mkvass_parar();
   legenda_desligar(); legenda_pre_reiniciar();
-  legAuto = 1; legAutoDesde = 0; pilZerar(); pil.espera = 0;
+  legAuto = 1; legAutoDesde = 0; legTentativas = 0; legRetentaEm = 0; pilZerar(); pil.espera = 0;
   legendasui_reiniciar();   // F04: the second subtitle belongs to the session too
   // #202: speed is per playback: a new title starts at 1x.
   velFoco = 0; velPedidaUi = VEL_NORMAL; video_velocidade(VEL_NORMAL);
@@ -1013,6 +1015,8 @@ static void legendaAutomatica(Uint32 agora) {
   int nEmb, nAdd = 0, embFechado, addFechado = 1, i, r, soForcada, origem, forcadaAuto;
   Uint32 passou;
   if (!legAuto || aberta || !player_aberto() || !player_com_video()) return;
+  if (legRetentaEm && (Sint32)(agora - legRetentaEm) < 0) return;
+  legRetentaEm = 0;
   // Canal ao vivo nao tem legenda de addon nem idioma no arquivo que valha.
   if (player_id_canal()[0]) { legAuto = 0; return; }
   // A lista de faixas so existe depois do sourceInfo (LG) / lerFaixas (Tizen).
@@ -1101,6 +1105,19 @@ static void legendaAutomatica(Uint32 agora) {
   if (r == LING_AUTO_ESPERA) {
     // Passou do primeiro instante e ainda procura: a ilha diz o que esta fazendo.
     if (!soForcada && passou >= 1200u && pref[0] && strcasecmp(pref, "none")) pilBuscando(pref, agora);
+    return;
+  }
+  // dono (2026-10-26): sem legenda no idioma pedido (a busca dos addons falhou ou veio vazia) nao se desiste:
+  // refaz a busca e a escolha ate 6 vezes, de 8 em 8 s, para garantir uma legenda quando existir.
+  if (r == LING_AUTO_NADA && !soForcada && pref[0] && strcasecmp(pref, "none") && ci && ci->imdb[0] &&
+      legTentativas < 6) {
+    legTentativas++;
+    printf("[legenda] automatica: nada em '%s'; nova tentativa %d de 6\n", pref, legTentativas);
+    fflush(stdout);
+    addons_legendas_reiniciar();
+    if (ci->imdb[0]) addons_buscar_legendas(ci->imdb, ci->tipo);
+    legAutoDesde = 0;
+    legRetentaEm = agora + 8000u;
     return;
   }
   legAuto = 0;

@@ -759,6 +759,8 @@ typedef enum {
   AJ_GAL_COLECAO_EXIBICAO,
   AJ_GAL_BORDA_FOCO,
   AJ_GAL_SOMBRA_FOCO,
+  AJ_GAL_HOME_LAYOUT,
+  AJ_PAUSA_ILHA_PCT,     // Player island (top-right bubble) size while paused, percent. LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1930,6 +1932,8 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Exibição padrão das coleções (Galeria)", V_COLECAO_EXIBICAO, VT_LAY_N),   // local: galeriaColecaoExibicaoLocal
   ESC("Borda no cartaz em foco (Galeria)",    V_LIGA, 2),   // local: galeriaBordaFocoLocal
   ESC("Sombra no cartaz em foco (Galeria)", V_LIGA, 2),   // local: galeriaSombraFocoLocal
+  ESC("Layout da home (Galeria)", V_HOME_LAYOUT, 3),   // local: galeriaHomeLayoutLocal
+  NUM("Tamanho da bolha ao pausar", 70, 300, 10, "%"),   // local: pausaIlhaPctLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2266,7 +2270,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
-  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "cwTamPctLocal", "relogioPctLocal", "menuIconePctLocal", "buscaCartazGapPctLocal", "galeriaLandscapeLocal", "galeriaItensFileiraLocal", "galeriaEspacoFileirasLocal", "galeriaEspacoTitulosLocal", "galeriaFilTitulosLocal", "galeriaNotasHomeLocal", "galeriaSeloVistoLocal", "galeriaAbasEstiloLocal", "galeriaOcultarFilmesVistosLocal", "galeriaAmigosEstiloLocal", "galeriaColecaoExibicaoLocal", "galeriaBordaFocoLocal", "galeriaSombraFocoLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "cwTamPctLocal", "relogioPctLocal", "menuIconePctLocal", "buscaCartazGapPctLocal", "galeriaLandscapeLocal", "galeriaItensFileiraLocal", "galeriaEspacoFileirasLocal", "galeriaEspacoTitulosLocal", "galeriaFilTitulosLocal", "galeriaNotasHomeLocal", "galeriaSeloVistoLocal", "galeriaAbasEstiloLocal", "galeriaOcultarFilmesVistosLocal", "galeriaAmigosEstiloLocal", "galeriaColecaoExibicaoLocal", "galeriaBordaFocoLocal", "galeriaSombraFocoLocal", "galeriaHomeLayoutLocal", "pausaIlhaPctLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -3204,6 +3208,7 @@ static float pctEntre(int op, int lo, int hi) { int v = valor[op]; return (v < l
 int ajustes_borda_foco_busca(void) { return lig(AJ_BORDA_FOCO_BUSCA); }
 float ajustes_menu_tamanho(void) { return pctEntre(AJ_MENU_TAM_PCT, 50, 200); }
 float ajustes_cw_tamanho(void) { return pctEntre(AJ_CW_TAM_PCT, 60, 160); }
+float ajustes_pausa_ilha_escala(void) { return pctEntre(AJ_PAUSA_ILHA_PCT, 70, 300); }
 float ajustes_relogio_escala(void) { return pctEntre(AJ_RELOGIO_PCT, 70, 200); }
 float ajustes_menu_icone(void) { return pctEntre(AJ_MENU_ICONE_PCT, 70, 200); }
 float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
@@ -5311,6 +5316,7 @@ static const int GAL_OPS[][2] = {
   { AJ_COLECAO_EXIBICAO, AJ_GAL_COLECAO_EXIBICAO },
   { AJ_BORDA_FOCO, AJ_GAL_BORDA_FOCO },
   { AJ_SOMBRA_FOCO, AJ_GAL_SOMBRA_FOCO },
+  { AJ_HOME_LAYOUT, AJ_GAL_HOME_LAYOUT },
 };
 #define GAL_N ((int)(sizeof GAL_OPS / sizeof *GAL_OPS))
 static int galAjTrocado, galAjRun;
@@ -6134,7 +6140,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
     case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
-    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_BUSCA_CARTAZ_GAP_PCT: case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO: case AJ_CW_TAM_PCT: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_BUSCA_CARTAZ_GAP_PCT: case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO: case AJ_GAL_HOME_LAYOUT: case AJ_PAUSA_ILHA_PCT: case AJ_CW_TAM_PCT: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -8095,10 +8101,11 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_BUSCA_ESPACO_PCT: return i18n("Espaço entre o teclado, o campo e as fileiras de resultados na aba Pesquisar. Menor é mais apertado.");
     case AJ_FIL_TITULOS: return i18n("Mostra ou esconde os títulos acima das fileiras da Home.");
     case AJ_CW_TAM_PCT: return i18n("Tamanho dos cartões da fileira Continuar assistindo. 100% é o padrão.");
+    case AJ_PAUSA_ILHA_PCT: return i18n("Tamanho da bolha do canto superior direito quando o vídeo está em pausa. 150% é o padrão.");
     case AJ_RELOGIO_PCT: return i18n("Tamanho do relógio e dos avisos que saem dele. 100% é o padrão.");
     case AJ_MENU_ICONE_PCT: return i18n("Tamanho dos ícones da barra lateral, sem mudar o resto da barra. 100% é o padrão.");
     case AJ_BUSCA_CARTAZ_GAP_PCT: return i18n("Espaço entre os cartazes dos resultados na aba Pesquisar. 0% encosta-os uns nos outros.");
-    case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO:
+    case AJ_GAL_LANDSCAPE: case AJ_GAL_ITENS_FILEIRA: case AJ_GAL_ESPACO_FILEIRAS: case AJ_GAL_ESPACO_TITULOS: case AJ_GAL_FIL_TITULOS: case AJ_GAL_NOTAS_HOME: case AJ_GAL_SELO_VISTO: case AJ_GAL_ABAS_ESTILO: case AJ_GAL_OCULTAR_FILMES_VISTOS: case AJ_GAL_AMIGOS_ESTILO: case AJ_GAL_COLECAO_EXIBICAO: case AJ_GAL_BORDA_FOCO: case AJ_GAL_SOMBRA_FOCO: case AJ_GAL_HOME_LAYOUT:
       return i18n("A Galeria tem a sua própria cópia deste ajuste, separada da Home. Só muda a aba Galeria.");
     case AJ_HERO_DETALHES_PCT: return i18n("Tamanho do ano, da duração e da nota do IMDb no destaque da Home. Não muda com o tamanho da interface. 100% é o padrão.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");

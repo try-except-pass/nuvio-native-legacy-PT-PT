@@ -108,6 +108,10 @@ static int detalheRetrato(void) {
 static float larguraTextoHero(void) {
   return detalheRetrato() ? fminf(NV_DETW2_TEXTO_W, NV_TELA_W - 192.0f) : NV_DETW2_TEXTO_W;
 }
+// A sinopse nao passa do meio da tela (dono, 2026-10-26).
+static float larguraSinopse(void) {
+  return fminf(larguraTextoHero(), fmaxf(240.0f, NV_TELA_W * 0.5f - NV_DETW2_X));
+}
 static float larguraLogoHero(void) {
   return detalheRetrato() ? fminf(NV_DETW_LOGO_MAXW, larguraTextoHero()) : NV_DETW_LOGO_MAXW;
 }
@@ -308,9 +312,11 @@ static GfxRect maisAncora;  // onde o "..." foi desenhado (ilha detmais.h)
 // nela, baixo nela entra nas secoes, cima volta aos botoes. OK pede ao roteador
 // (app.c) para abrir o painel Social na atividade deste titulo.
 static int  focoAmigos = 0;
+static int  focoSinopse = 0;   // foco na sinopse (abaixo dos botoes e dos amigos); OK abre o texto inteiro
 static int  pedAmigos = 0;
 static int  pedExplorar = 0;   // circular "Explorar": o roteador abre a toca neste titulo
 #define DET_PTR_AMIGOS 99
+#define DET_PTR_SINOPSE 98
 #define NV_DETW_AMIGOS_H   76.0f
 #define NV_DETW_AMIGOS_GAP 18.0f
 static int  amigosDoTitulo(AmigosTitulo *t) {
@@ -1570,7 +1576,7 @@ static void abrirInterno(const HomeItem *it) {
   trocaarte_fechar();
   audAberta = 0; audTempAberta = -1; audTempVista = -1; frasesAberta = 0;
   item = *it;
-  aberto = 1; saindo = 0; nivel = 0; botao = 0; focoAmigos = 0;
+  aberto = 1; saindo = 0; nivel = 0; botao = 0; focoAmigos = 0; focoSinopse = 0;
   amtui_fechar();
   detmais_zerar();
   heroReiniciar();
@@ -3088,7 +3094,10 @@ static void detail_evento_(const SDL_Event *e) {
     if (!okDesceEm) return;
     dur = ponteiro_ok_longo() ? NV_HOLD_MS : SDL_GetTicks() - okDesceEm;
     okDesceEm = 0;
-    if (nivel == 0 && focoAmigos) {
+    if (nivel == 0 && focoSinopse) {
+      const CatItem *ci = cat_item(idx);
+      sinopse_abrir(ci ? ci->titulo : "", sinopseDe(idx));
+    } else if (nivel == 0 && focoAmigos) {
       // A lista do que cada amigo achou, AQUI (dono, 06/10/2026), e nao mais a
       // aba Atividade do painel — que repetia so "viu".
       AmigosTitulo at;
@@ -3315,14 +3324,21 @@ static void detail_evento_(const SDL_Event *e) {
     // Up opens the existing rating card; rated titles can edit their stars.
     // CIMA na ilha de amigos volta ao botao em que estava; BAIXO entra nas secoes;
     // ESQUERDA pede o menu lateral como o primeiro botao.
-    if (focoAmigos) {
+    if (focoSinopse) {
+      if (k == SDLK_UP) { AmigosTitulo at; focoSinopse = 0; focoAmigos = amigosDoTitulo(&at); return; }
+      if (k == SDLK_LEFT) { pediuMenu = 1; return; }
+      if (k != SDLK_DOWN) return;
+      focoSinopse = 0;
+    } else if (focoAmigos) {
       if (k == SDLK_UP) { focoAmigos = 0; return; }
       if (k == SDLK_LEFT) { pediuMenu = 1; return; }
       if (k != SDLK_DOWN) return;
       focoAmigos = 0;
+      if (sinopseDe(idx)) { focoSinopse = 1; return; }
     } else if (k == SDLK_DOWN && !(carro && !carCheia)) {
       AmigosTitulo at;
       if (amigosDoTitulo(&at)) { focoAmigos = 1; return; }
+      if (sinopseDe(idx)) { focoSinopse = 1; return; }
     }
     // #407: Up focuses the clock; only OK opens its panel.
     if (k == SDLK_UP && !e->key.repeat) { pediuRelogio = 1; return; }
@@ -4067,7 +4083,7 @@ static void detail_atualizar_(float dt, Uint32 agora) {
     int alvoHold = (nivel >= 1 && (foco.fileira == SEC_EPISODIOS ||
                                    (foco.fileira == SEC_TEMPORADAS && !ehShuffle(foco.coluna)))) ||
                    (nivel >= 1 && foco.fileira == SEC_COMENTARIOS && ehSerie() && foco.coluna == 1) ||
-                   (nivel == 0 && !focoAmigos && acaoEm(botao) == ACAO_PRIMARIO);
+                   (nivel == 0 && !focoAmigos && !focoSinopse && acaoEm(botao) == ACAO_PRIMARIO);
     if (alvoHold && dur >= 150u) {
       float p = (float)(dur - 150u) / (float)(NV_HOLD_MS - 150);
       if (p > 1.0f) p = 1.0f;
@@ -4609,7 +4625,7 @@ static Uint32 sinTrocaDesde;
 // Linhas da sinopse no heroi: o texto inteiro (Ajustes > Sinopse na pagina do
 // titulo; a pilha sobe pela altura medida; 0 = sem teto) ou as 3 do dono, com o resto em "...".
 // dono (2026-10-26): a sinopse da pagina do titulo nunca e cortada, qualquer que seja o ajuste (0 = sem teto).
-static int detSinLinhas(void) { return 0; }
+static int detSinLinhas(void) { return 6; }   // dono (2026-10-26): 6 linhas; o texto inteiro abre com OK na sinopse
 static float  hSinVis;            // altura reservada, suavizada
 static int    hSinInit;
 static Uint32 hSinTick;
@@ -4724,7 +4740,7 @@ static void heroWeb(float a, float desloc) {
   float temRetom = 0.0f;
   float hSin = 0.0f;
   if (sin) hSin = sinopse_bloco_corta(TXT_DET_SIN, sin, 255, 255, 255, -1.0f, 0.0f,
-                            larguraTextoHero(), NV_DETW2_LD_SIN, 0.0f,
+                            larguraSinopse(), NV_DETW2_LD_SIN, 0.0f,
                             detSinLinhas());
   // DADO A CAMINHO: sinopse e meta chegam da rede depois que a pagina abre.
   // Enquanto o pedido esta em voo desenha-se o ESQUELETO do texto no lugar e
@@ -4777,6 +4793,7 @@ static void heroWeb(float a, float desloc) {
   AmigosTitulo amg;
   int temAmg = amigosDoTitulo(&amg);
   if (!temAmg) focoAmigos = 0;
+  if (!sin) focoSinopse = 0;
   float hAmg = temAmg ? NV_DETW_AMIGOS_H + NV_DETW_AMIGOS_GAP : 0.0f;
   float hAcoesExtra = detalheRetrato() ? NV_DETW2_CIRC + NV_DETW2_BTN_GAP : 0;
   float yAcoes = ySin - NV_DETW2_GAP_ACOES - NV_DETW2_BTN_H - hAcoesExtra - hCaption - hAmg;
@@ -5163,14 +5180,22 @@ static void heroWeb(float a, float desloc) {
     }
     if (f < 1.0f) {   // o que saiu esvanece por baixo do que entra
       if (sinAnt[0]) sinopse_bloco_corta(TXT_DET_SIN, sinAnt, 255, 255, 255, NV_DETW2_X, ySin,
-                               larguraTextoHero(), NV_DETW2_LD_SIN, a * (1.0f - f),
+                               larguraSinopse(), NV_DETW2_LD_SIN, a * (1.0f - f),
                                detSinLinhas());
       else esqueletoSinopse(NV_DETW2_X, ySin, a * (1.0f - f));
     }
     if (sin) sinopse_bloco_corta(TXT_DET_SIN, sin, 255, 255, 255, NV_DETW2_X, ySin,
-                       larguraTextoHero(), NV_DETW2_LD_SIN, a * f,
+                       larguraSinopse(), NV_DETW2_LD_SIN, a * f,
                        detSinLinhas());
-    else if (esqSin) esqueletoSinopse(NV_DETW2_X, ySin, a * f); }
+    else if (esqSin) esqueletoSinopse(NV_DETW2_X, ySin, a * f);
+    if (sin && nivel == 0 && focoSinopse) {   // foco: painel de vidro atras do bloco
+      GfxRect rs = { NV_DETW2_X - 18.0f, ySin - 10.0f, larguraSinopse() + 36.0f, hSin + 20.0f };
+      plrui_material(rs, 22.0f, 0, a);
+      sinopse_bloco_corta(TXT_DET_SIN, sin, 255, 255, 255, NV_DETW2_X, ySin,
+                          larguraSinopse(), NV_DETW2_LD_SIN, a, detSinLinhas());
+      if (a > 0.3f) ponteiro_alvo(rs.x, rs.y, rs.w, rs.h, ponteiroDetalhe, NULL, -1, DET_PTR_SINOPSE);
+    } else if (sin && a > 0.3f)
+      ponteiro_alvo(NV_DETW2_X, ySin, larguraSinopse(), hSin, ponteiroDetalhe, NULL, -1, DET_PTR_SINOPSE); }
 
   // --- meta linha 1: generos • generos  ·  ano  ·  [IMDb] nota ---------------
   //
@@ -7275,9 +7300,10 @@ static float desenhaFrases(float x, float y, float a) {
 // c (nivel 1) — as mesmas variaveis que as setas mexem em detail_evento.
 static void ponteiroDetalhe(int r, int c) {
   if (corpoSobArte()) return;
-  if (r < 0 && c == DET_PTR_AMIGOS) { nivel = 0; focoAmigos = 1; return; }
+  if (r < 0 && c == DET_PTR_AMIGOS) { nivel = 0; focoAmigos = 1; focoSinopse = 0; return; }
+  if (r < 0 && c == DET_PTR_SINOPSE) { nivel = 0; focoAmigos = 0; focoSinopse = 1; return; }
   if (r < 0) {
-    focoAmigos = 0;
+    focoAmigos = 0; focoSinopse = 0;
     if (c < 0 || c >= nBotoes()) return;
     nivel = 0; botao = c;
     return;
@@ -7696,27 +7722,22 @@ static void desenhaPessoa(float a) {
       gfx_cor(r, raioCartaz(PES_FOTO_W, PES_FOTO_H), 0.13f, 0.13f, 0.13f, a);
     } }
 
+  // dono (2026-10-26): so o nome, inteiro (quebra em linhas), sem area nem biografia.
   { float y = 96.0f + PES_FOTO_H + 32.0f;
-    TxtLinha ln = txt_linha_corta(TXT_TITULO3, pessoa_nome(), 245, 248, 255, 255,
-                                  PES_FOTO_W);
-    txt_desenhar_alpha(ln, ANC(NV_DETP_X), y, a);
-    y += ln.h + 10.0f;
-    if (pessoa_area()[0]) {
-      TxtLinha la = txt_linha(TXT_DET_META2, pessoa_area(), 150, 154, 163, 255);
-      txt_desenhar_alpha(la, ANC(NV_DETP_X), y, a * 0.9f);
-      y += la.h + 18.0f;
-    }
-    if (pessoa_bio()[0])
-      txt_bloco(TXT_DET_META2, pessoa_bio(), 190, 195, 205, ANC(NV_DETP_X), y,
-                PES_FOTO_W, 32.0f, a * 0.9f, 6);
+    float lh = (float)txt_linha(TXT_TITULO3, "Ag", 245, 248, 255, 255).h;
+    txt_bloco(TXT_TITULO3, pessoa_nome(), 245, 248, 255, ANC(NV_DETP_X), y, PES_FOTO_W, lh, a, 0);
   }
 
   { int n = pessoa_n_creditos(), i;
     float x0 = PES_COL_X;
-    TxtLinha lt = txt_linha(TXT_HEADLINE, "Filmografia", 245, 248, 255, 255);
-    txt_desenhar_alpha(lt, x0, 96.0f, a);
+    // dono (2026-10-26): o titulo em foco no topo da tela, grande, muda a cada cartaz.
+    float ltH = (float)txt_linha(TXT_TITULO2, "Ag", 245, 248, 255, 255).h;
+    const char *ft = (pessoaFoco >= 0 && pessoaFoco < n && pessoa_credito_titulo(pessoaFoco)[0])
+                   ? pessoa_credito_titulo(pessoaFoco) : "Filmografia";
+    TxtLinha lt = txt_linha_corta(TXT_TITULO2, ft, 245, 248, 255, 255, NV_TELA_W - x0 - 96.0f);
+    txt_desenhar_alpha(lt, x0, 48.0f, a);
 #ifdef NV_TOUCH_UI
-    float topo = 96.0f + lt.h + 28.0f, area = NV_TELA_H - 24.0f - topo;
+    float topo = 96.0f + ltH + 28.0f, area = NV_TELA_H - 24.0f - topo;
     if (telefoneui_ativo()) {
       if (!toquerol_livre(&toquePessoa)) toquePessoaOffset = pessoaLinha * (PES_CARD_H + 92.0f);
       toquerol_vincular(&toquePessoa, (GfxRect){x0, topo, NV_TELA_W - x0, area}, gfx_escala(),
@@ -7728,7 +7749,7 @@ static void desenhaPessoa(float a) {
     for (i = 0; i < n; i++) {
       int col = i % pessoaColunas(), lin = i / pessoaColunas();
       float x = x0 + col * (PES_CARD_W + PES_CARD_GAP);
-      float y = 96.0f + lt.h + 28.0f + (lin - pessoaLinha) * (PES_CARD_H + 92.0f);
+      float y = 96.0f + ltH + 28.0f + (lin - pessoaLinha) * (PES_CARD_H + 92.0f);
 #ifdef NV_TOUCH_UI
       if (telefoneui_ativo()) {
         y = topo + lin * (PES_CARD_H + 92.0f) - toquePessoaOffset;
@@ -7737,8 +7758,13 @@ static void desenhaPessoa(float a) {
 #endif
       if (lin < pessoaLinha) continue;
       GfxRect r = { x, y, PES_CARD_W, PES_CARD_H };
-      const char *po = posterprov_card(pessoa_credito_imdb(i), pessoa_credito_tmdb(i),
-                                        pessoa_credito_tipo(i), pessoa_credito_poster(i));
+      // dono (2026-10-26): o cartaz do addon do catalogo quando o titulo esta nele; senao o de sempre.
+      int ic = pessoa_credito_imdb(i)[0] ? cat_indice_por_imdb(pessoa_credito_imdb(i)) : -1;
+      const CatItem *cc = ic >= 0 ? cat_item(ic) : NULL;
+      const char *po = (cc && cc->poster[0])
+        ? posterprov_card_addon(cc->origem, cc->imdb, cc->tmdb, cc->tipo, cc->poster)
+        : posterprov_card(pessoa_credito_imdb(i), pessoa_credito_tmdb(i),
+                          pessoa_credito_tipo(i), pessoa_credito_poster(i));
       GLuint t = po[0] ? tex_obter_larg(po, PES_CARD_W) : 0;
 #ifdef NV_TOUCH_UI
       if (telefoneui_ativo())
@@ -7763,20 +7789,6 @@ static void desenhaPessoa(float a) {
       } else {
         gfx_cor(r, raioCartaz(PES_CARD_W, PES_CARD_H), 0.13f, 0.13f, 0.13f, a);
       }
-      { TxtLinha lc = txt_linha_corta(TXT_DET_META2, pessoa_credito_titulo(i),
-                                      230, 234, 242, 255, PES_CARD_W);
-        txt_desenhar_alpha(lc, x, y + PES_CARD_H + 12.0f, a);
-        { const char *ano = pessoa_credito_ano(i);
-          const char *pap = pessoa_credito_papel(i);
-          char sub[96];
-          snprintf(sub, sizeof sub, "%s%s%s", ano,
-                   (ano[0] && pap[0]) ? "  \xc2\xb7  " : "", pap);
-          if (sub[0]) {
-            TxtLinha ls = txt_linha_corta(TXT_MINI, sub, 140, 144, 153, 255,
-                                          PES_CARD_W);
-            txt_desenhar_alpha(ls, x, y + PES_CARD_H + 12.0f + lc.h + 6.0f,
-                               a * 0.9f);
-          } } }
     }
 #ifdef NV_TOUCH_UI
     if (telefoneui_ativo()) gfx_sem_recorte();
