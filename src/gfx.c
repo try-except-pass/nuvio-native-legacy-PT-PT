@@ -35,7 +35,7 @@ static const char *const VID_NOMES[VID_NU] = {
 typedef struct {
   GLuint prog;
   GLint rect, tela, tex, foco, reflexo, par, raio, cor, asp, texAsp, forcarCover, veuTela, heroiVeu, borda, varre, veu, desl, fundo,
-        grad0, grad1, grad2, tempo, reg0, reg1, reg2, reg3, vaza, acento;
+        sombra, sombraCy, sombraR, grad0, grad1, grad2, tempo, reg0, reg1, reg2, reg3, vaza, acento;
   GLint amb, ambOn;         // uAmb/uAmbOn: so os tres modos de arte com rampa
   GLint texB, texAspB, alfaB;   // camadas do destaque (gfx_hero_camadas)
   GLint alt;     // uAlt: altura do rect em pixels do alvo (a rampa de 1 px do SDF)
@@ -99,6 +99,11 @@ int gfx_veu_na_arte = 0;
 // rampas/veu ficam paradas; o que sai do retangulo nao pinta. 0 = no lugar.
 // Mesmo regime do rebordo: global, e quem mexe devolve a 0.
 float gfx_desliza_atual = 0.0f;
+// A sombra do canto do destaque (nv_sombra_canto). Quem muda devolve com gfx_hero_sombra_padrao().
+float gfx_hero_sombra_cy = 1.0f;   // centro vertical (UV): 1 = base do destaque
+float gfx_hero_sombra_r = 0.75f;
+float gfx_hero_sombra = 0.75f;
+void gfx_hero_sombra_padrao(void) { gfx_hero_sombra_cy = 1.0f; gfx_hero_sombra_r = 0.75f; gfx_hero_sombra = ajustes_hero_sombra(); }
 float gfx_opacidade_grupo = 1.0f;
 float gfx_osd_mult = 1.0f;
 float gfx_hdr_ui = 1.0f;
@@ -290,6 +295,9 @@ static const char *FS_CABECA =
   "uniform float uVarre;\n"
   "uniform vec4  uVeu;     // GFX_CARD: dois veus da base (fracao, alfa)\n"
   "uniform float uDesliza;\n"
+  "uniform float uSombra;   // forca da sombra do canto do destaque\n"
+  "uniform float uSombraCy; // centro vertical (UV) da sombra: acompanha o bloco do titulo\n"
+  "uniform float uSombraR;  // raio vertical (UV) da sombra\n"
   "#if !defined(GL_ES) || defined(GL_FRAGMENT_PRECISION_HIGH)\n"
   "uniform highp vec2 uPar;\n"
   "#else\n"
@@ -412,6 +420,10 @@ static const char *FS_CABECA =
   // over opaque GL content the separate alpha blend still yields one.
   "  float ad = (a > 0.0 && a < 1.0) ? clamp(a + 2.0*n, 0.0, 1.0) : a;\n"
   "  return vec4(clamp(c + n / max(a, 0.004), 0.0, 1.0), ad);\n"
+  "}\n"
+  // A sombra do canto do destaque: miolo cheio ate 55 % do raio (home.c dimensiona uSombraR por isso), some ate a borda.
+  "float nv_sombra_canto(){\n"
+  "  return uSombra * (1.0 - smoothstep(0.55, 1.0, length(vec2(vUv.x / 0.70, (vUv.y - uSombraCy) / uSombraR))));\n"
   "}\n"
   // uAlt = altura do rect em PIXELS DO ALVO. O SDF mede em fracao da altura,
   // entao 1 px la e 1/uAlt; e o que deixa a rampa da borda com 1 px em
@@ -628,13 +640,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "  float av = clamp((y-0.820)/0.072,0.0,1.0)*0.25\n"
   "           + clamp((y-0.892)/0.063,0.0,1.0)*0.40\n"
   "           + clamp((y-0.955)/0.045,0.0,1.0)*0.35;\n"
-  "  float t = vUv.x/0.45;\n"
-  "  float ah = 1.0 - clamp(t/0.22,0.0,1.0)*0.14\n"
-  "                 - clamp((t-0.22)/0.24,0.0,1.0)*0.30\n"
-  "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.40\n"
-  "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.16;\n"
-  "  ah *= step(vUv.x, 0.45);\n"
-  "  ah = 0.8 * (1.0 - smoothstep(0.0, 1.0, length(vec2(vUv.x / 0.55, (1.0 - vUv.y) / 0.85))));\n"   // dono (2026-10-26): sombra so no canto inferior esquerdo, atras do titulo e dos detalhes
+  "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
   // uPar.x > 0.5 = SO AS RAMPAS, como veu com alpha: por cima do trailer que
   // toca atras do canvas no lugar da arte (trailer.h). Mesma regra do
   // GFX_DETALHE.
@@ -839,13 +845,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "  float av = clamp((y-0.640)/0.108,0.0,1.0)*0.35\n"
   "           + clamp((y-0.748)/0.108,0.0,1.0)*0.40\n"
   "           + clamp((y-0.856)/0.144,0.0,1.0)*0.25;\n"
-  "  float t = vUv.x/0.65;\n"
-  "  float ah = 1.0 - clamp(t/0.22,0.0,1.0)*0.10\n"
-  "                 - clamp((t-0.22)/0.24,0.0,1.0)*0.10\n"
-  "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.38\n"
-  "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.42;\n"
-  "  ah *= step(vUv.x, 0.65);\n"
-  "  ah = 0.8 * (1.0 - smoothstep(0.0, 1.0, length(vec2(vUv.x / 0.55, (1.0 - vUv.y) / 0.85))));\n"   // dono (2026-10-26): sombra so no canto inferior esquerdo, atras do titulo e dos detalhes
+  "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
   "  if (uPar.x > 0.5) { vec3 vb = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "    gl_FragColor = nv_dither(vb, clamp(ah + av - ah*av, 0.0, 1.0) * uCor.a); return; }\n"
   "  if (uAmbOn > 0.5) { vec3 amb = texture2D(uAmb, vAmb).rgb;\n"
@@ -1354,13 +1354,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "  float av = clamp((y-0.820)/0.072,0.0,1.0)*0.25\n"
   "           + clamp((y-0.892)/0.063,0.0,1.0)*0.40\n"
   "           + clamp((y-0.955)/0.045,0.0,1.0)*0.35;\n"
-  "  float t = vUv.x/0.45;\n"
-  "  float ah = 1.0 - clamp(t/0.22,0.0,1.0)*0.14\n"
-  "                 - clamp((t-0.22)/0.24,0.0,1.0)*0.30\n"
-  "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.40\n"
-  "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.16;\n"
-  "  ah *= step(vUv.x, 0.45);\n"
-  "  ah = 0.8 * (1.0 - smoothstep(0.0, 1.0, length(vec2(vUv.x / 0.55, (1.0 - vUv.y) / 0.85))));\n"   // dono (2026-10-26): sombra so no canto inferior esquerdo, atras do titulo e dos detalhes
+  "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
   "  float rampa = clamp(ah + av - ah*av, 0.0, 1.0);\n"
   "  vec3 dst = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "  vec3 cB = texture2D(uTexB, clamp(coverAsp(vec2(xd, vUv.y), uTexAspB), 0.0, 1.0)).rgb;\n"
@@ -1380,13 +1374,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "  float av = clamp((y-0.640)/0.108,0.0,1.0)*0.35\n"
   "           + clamp((y-0.748)/0.108,0.0,1.0)*0.40\n"
   "           + clamp((y-0.856)/0.144,0.0,1.0)*0.25;\n"
-  "  float t = vUv.x/0.65;\n"
-  "  float ah = 1.0 - clamp(t/0.22,0.0,1.0)*0.10\n"
-  "                 - clamp((t-0.22)/0.24,0.0,1.0)*0.10\n"
-  "                 - clamp((t-0.46)/0.30,0.0,1.0)*0.38\n"
-  "                 - clamp((t-0.76)/0.24,0.0,1.0)*0.42;\n"
-  "  ah *= step(vUv.x, 0.65);\n"
-  "  ah = 0.8 * (1.0 - smoothstep(0.0, 1.0, length(vec2(vUv.x / 0.55, (1.0 - vUv.y) / 0.85))));\n"   // dono (2026-10-26): sombra so no canto inferior esquerdo, atras do titulo e dos detalhes
+  "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
   "  float rampa = clamp(ah + av - ah*av, 0.0, 1.0);\n"
   "  vec3 dst = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "  vec3 cB = texture2D(uTexB, clamp(coverAsp(vec2(xd, vUv.y), uTexAspB), 0.0, 1.0)).rgb;\n"
@@ -1798,6 +1786,9 @@ static int progMontar(int m) {
   progs[m].varre  = glGetUniformLocation(p, "uVarre");
   progs[m].veu    = glGetUniformLocation(p, "uVeu");
   progs[m].desl   = glGetUniformLocation(p, "uDesliza");
+  progs[m].sombra = glGetUniformLocation(p, "uSombra");
+  progs[m].sombraCy = glGetUniformLocation(p, "uSombraCy");
+  progs[m].sombraR = glGetUniformLocation(p, "uSombraR");
   progs[m].fundo  = glGetUniformLocation(p, "uFundo");
   progs[m].acento = glGetUniformLocation(p, "uAcento");
   progs[m].grad0  = glGetUniformLocation(p, "uGrad0");
@@ -2711,6 +2702,9 @@ void gfx_rect(GfxRect r, GLuint tex, GfxModo modo, float foco,
     glUniform4fv(P->veu, 1, gfx_veu_na_arte ? zero : gfx_veu_card_atual);
   }
   if (P->desl >= 0)   glUniform1f(P->desl, gfx_desliza_atual);
+  if (P->sombra >= 0) glUniform1f(P->sombra, gfx_hero_sombra);
+  if (P->sombraCy >= 0) glUniform1f(P->sombraCy, gfx_hero_sombra_cy);
+  if (P->sombraR >= 0) glUniform1f(P->sombraR, gfx_hero_sombra_r);
   // So os tres modos de rampa declaram uFundo: e uma chamada por destaque ou
   // fundo de detalhe desenhado, nao por retangulo.
   if (P->fundo >= 0)  glUniform3f(P->fundo, NV_COR_FUNDO_R, NV_COR_FUNDO_G, NV_COR_FUNDO_B);

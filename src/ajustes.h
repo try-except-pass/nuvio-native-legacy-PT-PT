@@ -290,6 +290,8 @@ int  ajustes_definir_p2p_url(const char *texto);
 // tinta do recorte. E a regra de FOCO de layout.h (preenchimento na cor de
 // realce, sem anel) em uma chamada, para todo botao usar a mesma conta.
 float ajustes_acento_tinta(float *r, float *g, float *b);
+// O fundo escuro das ilhas com `k` (0..1) do acento misturado (o menu do cartaz, o "...", a ilha aberta).
+void  ajustes_acento_escuro(float k, float *r, float *g, float *b);
 // A MESMA TINTA EM 0..255, para quem monta txt_linha: principal (255 ou 18)
 // e secundaria (um degrau abaixo: 238 ou 60). Toda superficie pintada de
 // ajustes_acento() escreve com estas duas — nunca com um 20 cravado.
@@ -365,6 +367,7 @@ int   ajustes_home_layout(void);
 float ajustes_cw_tamanho(void);
 float ajustes_relogio_escala(void);
 float ajustes_pausa_ilha_escala(void);
+float ajustes_hero_sombra(void);
 float ajustes_menu_icone(void);
 void  ajustes_galeria_aplicar(int on);   // 1 enquanto a Home desenha a Galeria: troca os ajustes de aparencia pelos dela
 int   ajustes_hero_fonte(void);         // origem local da arte do hero (ARTEHERO_*)

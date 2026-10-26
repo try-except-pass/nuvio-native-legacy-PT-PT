@@ -1634,6 +1634,13 @@ static int lerCatalogoHome(const char *base, const char *tipo, const char *id,
 // Quantos itens cada fileira mostra. A home desenha no maximo MAX_CARDS (41) e
 // buscar mais e trafego que ninguem ve.
 #define MAX_POR_FILEIRA DESC_ITENS_POR_FILEIRA   // ver descoberta.h (#163)
+// Reserva do destaque (dono, 2026-10-26: a lista parava em ~50 titulos; pediu 200): titulos de cada catalogo
+// alem dos que a fileira mostra (~15,6 KB cada, ~3 MB no teto). FOLGA = vagas do CAT_MAX que ficam para as
+// fileiras seguintes e as listas (Trakt, Simkl, servidores).
+#define HERO_CAUDA_FIL   24
+#define HERO_CAUDA_TOTAL 200
+#define HERO_CAUDA_FOLGA 800
+static int heroFonteAutomatica(void) { const char *f = fil_hero_fonte(); return !f[0] || (f[0] == '*' && !f[1]); }
 
 // filsMontadas = as janelas do bloco QUE ESTA PUBLICADO, e nada alem disso.
 // desc_remontar_fileiras republica este vetor por cima do bloco da tela sem
@@ -2783,6 +2790,8 @@ typedef struct {
   char base[NV_ADDON_URL_MAX], tipo[8], id[96];
   CatItem itens[MAX_POR_FILEIRA];
   CatItem *extras;      // #366: cauda crua opcional, so para fileira deficiente
+  CatItem *heroCauda;   // titulos alem da fileira, so para o destaque (fora de toda janela)
+  int nHeroCauda;
   CatItem *primeira;    // resposta boa preservada enquanto o suplemento faz rede
   int nPrimeira;
   int paginavel;
@@ -2938,7 +2947,7 @@ static unsigned long long descAgoraMs(void);
 // Sob catTrava.
 static void rodadaSoltarLocked(RodadaCat *r) {
   if (--r->refs == 0) {
-    for (int i = 0; i < r->nT; i++) { free(r->t[i].extras); free(r->t[i].primeira); }
+    for (int i = 0; i < r->nT; i++) { free(r->t[i].extras); free(r->t[i].primeira); free(r->t[i].heroCauda); }
     free(r->t); free(r);
   }
 }
@@ -2984,11 +2993,23 @@ static void *fioCatalogo(void *u) {
     { int q = ajustes_itens_fileira();
       CatItem *ampliados = NULL, *extras = NULL;
       if (q > MAX_POR_FILEIRA) q = MAX_POR_FILEIRA;
+      CatItem *cauda = NULL;
       if (ajustes_ocultar_filmes_vistos() && !strcmp(t->tipo, "movie"))
         ampliados = malloc(sizeof *ampliados * HOME_VISTOS_MAX);
-      got = lerCatalogoHomeParcial(t->base, t->tipo, t->id, ampliados ? ampliados : t->itens,
-                            ampliados ? HOME_VISTOS_MAX : MAX_POR_FILEIRA,
-                            q, t->paginavel, &respondeu, catalogoPrimeiraGuardar, t);
+      // RESERVA DO DESTAQUE (ver HERO_CAUDA_*): a mesma resposta traz mais que a fileira mostra. Com o destaque no automatico/"*" a cauda fica, em vez de ser descartada.
+      else if (heroFonteAutomatica())
+        cauda = malloc(sizeof *cauda * (size_t)(q + HERO_CAUDA_FIL));
+      got = lerCatalogoHomeParcial(t->base, t->tipo, t->id, ampliados ? ampliados : cauda ? cauda : t->itens,
+                            ampliados ? HOME_VISTOS_MAX : cauda ? q + HERO_CAUDA_FIL : MAX_POR_FILEIRA,
+                            cauda ? q + HERO_CAUDA_FIL : q, t->paginavel, &respondeu, catalogoPrimeiraGuardar, t);
+      if (cauda) {
+        int naFileira = got < q ? got : q;
+        if (naFileira) memcpy(t->itens, cauda, sizeof *cauda * (size_t)naFileira);
+        if (got > naFileira) memmove(cauda, cauda + naFileira, sizeof *cauda * (size_t)(got - naFileira));
+        t->nHeroCauda = got - naFileira;
+        if (t->nHeroCauda > 0) t->heroCauda = cauda; else free(cauda);
+        got = naFileira;
+      }
       if (ampliados) {
         int primeiros = got > MAX_POR_FILEIRA ? MAX_POR_FILEIRA : got;
         if (primeiros) memcpy(t->itens, ampliados, sizeof *ampliados * (size_t)primeiros);
@@ -5035,7 +5056,7 @@ static void *montar(void *u) {
       // nada mais: catalogo que nao respondeu, catalogo vazio e catalogo
       // declarado duas vezes saiam todos como "uma fileira a menos", sem uma
       // linha dizendo qual dos tres foi.
-      int pedidos = 0, responderam = 0, vazios = 0, duplicados = 0;
+      int pedidos = 0, responderam = 0, vazios = 0, duplicados = 0, caudaTotal = 0;
       int cursor = 0, rodadas = 0;
       // Zera POR CICLO. Um contador que so cresce diria, na terceira volta, um
       // numero que e a soma de tres montagens — e a linha [col] existe para
@@ -5214,6 +5235,16 @@ static void *montar(void *u) {
             f->ini = n; f->n = got; f->estado = estadoLinha;
           }
           n += got;
+          // A cauda do destaque entra DEPOIS da janela da fileira: no catalogo, em fileira nenhuma.
+          // origem primeiro: numa tarefa largada o fio ainda pode estar escrevendo heroCauda.
+          if (origem == tarefas[k].itens && tarefas[k].heroCauda && caudaTotal < HERO_CAUDA_TOTAL) {
+            int m = tarefas[k].nHeroCauda;
+            if (m > HERO_CAUDA_TOTAL - caudaTotal) m = HERO_CAUDA_TOTAL - caudaTotal;
+            if (m > CAT_MAX - HERO_CAUDA_FOLGA - n) m = CAT_MAX - HERO_CAUDA_FOLGA - n;   // nunca toma a vaga das fileiras e listas
+            GARANTE(m);
+            if (m > cap - n) m = cap - n;
+            if (m > 0) { memcpy(lote + n, tarefas[k].heroCauda, sizeof(CatItem) * (size_t)m); n += m; caudaTotal += m; }
+          }
           pthread_mutex_lock(&cargaTrava); carga.fileiras++; pthread_mutex_unlock(&cargaTrava);
           printf("[desc] fileira %d: %s (%d)\n", nFil - 1, d->titulo, got);
           // PUBLICA A CADA FILEIRA, em vez de so no fim.
@@ -5337,6 +5368,7 @@ static void *montar(void *u) {
           }
         }
       } }
+      printf("[desc] reserva do destaque: %d titulos alem das fileiras\n", caudaTotal);
       nFilsLote = nFil;
       memcpy(filsLote, fil, sizeof(CatFileira) * (size_t)nFil);
       // UMA LINHA QUE RESPONDE "o que falhou no arranque". As quatro contagens

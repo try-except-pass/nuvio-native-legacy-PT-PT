@@ -333,7 +333,7 @@ static const char *ajVisualIcone(int op) {
 // e mais categoria (Cartazes e trailers e uma so): fica depois de AJS_N como a
 // CENA das opcoes de trailer dentro de Cartazes e trailers.
 enum { AJS_REPRODUCAO = 0, AJS_IDIOMAS, AJS_FONTES, AJS_TVAOVIVO,
-       AJS_HOME, AJS_APARENCIA, AJS_TITULO, AJS_CARTAZES,
+       AJS_HOME, AJS_GALERIA, AJS_APARENCIA, AJS_TITULO, AJS_CARTAZES,
        AJS_CONTAS, AJS_DESEMPENHO, AJS_SOBRE, AJS_N, AJS_TRAILERS = AJS_N };
 static float ajPreviaHome(float x, float y, float w);
 static float ajPreviaHomeArte(float x, float y, float w, int arte);
@@ -357,6 +357,7 @@ static const signed char AJ_ARTE_SEC[AJS_N + 1][AJ_ARTE_BLOCOS] = {
   {  5, 28, 37, 10, -1, -1, -1, -1, -1, -1 },   // Fontes e addons: Addons, Falha na reproducao, Debrid, Servidores
   {  2, 19, 14, 14, -1, -1, -1, -1, -1, -1 },   // TV ao vivo: Contas, Guia de TV, Se o canal nao abre; Mais
   { 12,  0, 29, 20,  1, 31, 12,  0, 20,  1 },   // Tela inicial: Estilo, Fileiras, Colecoes, Continuar, Barra lateral, Escolha de perfil; Mais
+  {  1,  0, -1, -1, -1, -1, -1, -1, -1, -1 },   // Galeria: Barra lateral, Fileiras (a mesma arte da Tela inicial)
   {  9, 36, 39, 38,  6, 11,  9, -1, -1, -1 },   // Aparencia: Cores e vidro, Fileiras, Logo e abertura, Texto e tamanho, Movimento e relogio, Tela de descanso; Mais
   {  3,  4, 17,  4, 17, -1, -1, -1, -1, -1 },   // Pagina do titulo: O que aparece, Notas, Dados do titulo; Mais: notas, dados
   { 13, 35, 27, 15, 16, 13, 35, 27, 15, -1 },   // Cartazes e trailers: Cartaz em foco, Forma, Arte, Trailers, Som e imagem; Mais
@@ -365,7 +366,16 @@ static const signed char AJ_ARTE_SEC[AJS_N + 1][AJ_ARTE_BLOCOS] = {
   { 30, 25, -1, -1, -1, -1, -1, -1, -1, -1 },   // Sobre e ajuda: (guia e) App, Registro
   { 15, 16, -1, -1, -1, -1, -1, -1, -1, -1 },   // (cena) Trailers: Onde toca, Som e imagem
 };
+// AJS_* e a ordem dos SEC() de TELA: inserir uma categoria sem o AJS dela desloca a arte, o valor e a cena de
+// todas as seguintes (a Galeria fez isso na 2.0.15). Diz no registro uma vez, em vez de errar calado.
+static void ajSecoesConferir(void) {
+  static int conferido;
+  if (conferido || !nSecoes) return;
+  conferido = 1;
+  if (nSecoes != AJS_N) { printf("[ajustes] AJS_N=%d mas TELA tem %d categorias: atualize o enum AJS_*\n", AJS_N, nSecoes); fflush(stdout); }
+}
 static int ajCenaArteN(int sec) {
+  ajSecoesConferir();
   return sec >= 0 && sec <= AJS_N ? AJ_ARTE_SEC[sec][0] : 12;
 }
 // A arte do submenu (bloco) da opcao. As opcoes antes do primeiro bloco e as
@@ -477,7 +487,7 @@ static float ajVisualCena(int sec, int op, float x, float y, float w) {
 #define ICON(n,a,b,d,al) ajIcone(n, PX(a), PY(b), (d) * s, al)
 #define TXT(t,px,f,a,b,al) ajTextoMini(t, (px) * s, f, PX(a), PY(b), 243, 242, 239, al)
   ajustes_acento(&ar, &ag, &ab);
-  if (sec == AJS_HOME) {   // a Home dela, em miniatura (o destaque muda com o submenu)
+  if (sec == AJS_HOME || sec == AJS_GALERIA) {   // a Home dela, em miniatura (o destaque muda com o submenu)
     if (op < 0 || A == ajCenaArteN(AJS_HOME)) return ajPreviaHome(x, y, w);
     return ajPreviaHomeArte(x, y, w, A);
   }

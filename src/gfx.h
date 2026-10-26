@@ -326,6 +326,10 @@ int gfx_arte_veu(GfxRect r, GLuint tex, float base, float aEsq, float aDir, floa
 // Deslize da arte do destaque dentro do proprio retangulo, em fracao da largura
 // (so GFX_HERO, GFX_HERO_CHEIO e GFX_VITRINE). Quem define devolve a 0.
 extern float gfx_desliza_atual;
+extern float gfx_hero_sombra_cy;   // centro vertical (UV) da sombra do destaque
+extern float gfx_hero_sombra_r;    // raio vertical (UV) da sombra
+extern float gfx_hero_sombra;   // 0..1: forca da sombra do canto inferior esquerdo do destaque
+void gfx_hero_sombra_padrao(void);   // devolve os tres valores acima ao canto de sempre
 // 1 = o GFX_CARD deve sempre preencher a moldura com cover. Usado pela forma
 // editorial 4:3, que nao pode cair no contain quando recebe arte 16:9.
 extern float gfx_card_forcar_cover_atual;

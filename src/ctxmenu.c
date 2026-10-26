@@ -1331,13 +1331,10 @@ static void ilhaCtx(GfxRect p, float raioPx, float a) {
   float raio = raioPx / p.h;
   gfx_sombra_sob((GfxRect){ p.x - 18.0f, p.y - 8.0f, p.w + 36.0f, p.h + 40.0f }, 1.0f, 0, 0.5f,
                  0, 0, 0, .42f * a, p, raioPx, vid ? 0.0f : .98f * a);
-  // Frost on: the shared glass material alone. The old .985 opaque base under it
-  // hid the blur, so the quick menu read flat.
-  // dono (2026-10-26): o menu do cartaz (segurar OK) abre na cor do acento, 90 % opaco.
-  { float ar, ag, ab;
-    ajustes_acento(&ar, &ag, &ab);
-    gfx_cor(p, raio, ar, ag, ab, .90f * a); }
-  (void)vid;
+  // dono (2026-10-26): o menu do cartaz (segurar OK) leva 30 % de acento sobre o escuro, bem opaco.
+  { float cr, cg, cb;
+    ajustes_acento_escuro(.30f, &cr, &cg, &cb);
+    gfx_cor(p, raio, cr, cg, cb, .94f * a); }
 }
 
 // KICKER das ilhas: 15/700 em caixa alta (a do idioma), espacado .14em,
@@ -1349,11 +1346,9 @@ static void kickerCtx(const char *t, float x, float y, float a) {
 }
 
 // UMA LINHA DE LISTA dentro da ilha (as opcoes do cartaz, as formas da
-// fileira): a .it do mockup — pilula de 60, icone de 24 a 20 da borda, 18 ate
-// o rotulo (22/500 a 72 %). O FOCO = SUPERFICIE UM DEGRAU MAIS CLARA (branco
-// a 14 % no vidro, cinza opaco no solido) e o rotulo acende inteiro, sem
-// pilula cheia nem contorno — como o menu e o painel de Salvos. A pilula
-// cheia no acento fica para botao.
+// fileira, o "..." da pagina do titulo): a .it do mockup — pilula de 60, icone
+// de 24 a 20 da borda, 18 ate o rotulo (22/500 a 72 %). O FOCO = a pilula no
+// acento (dono, 2026-10-26), com o rotulo na tinta que contrasta com ele.
 #define CTX_ICONE 24.0f
 // `tinta` < 0 = a linha da ilha escura (texto claro, foco por superficie). De 0
 // a 1 = a linha SOBRE UMA SUPERFICIE CHEIA (o painel da aba, no realce): texto
@@ -1369,8 +1364,11 @@ static void linhaCtxTinta(GfxRect r, const char *rot, const char *icone, float f
     lum = .80f + .20f * k;
     if (k > 0.01f) gfx_cor(r, 0.5f, tinta, tinta, tinta, .12f * k * a);
   } else if (k > 0.01f) {
-    if (ajustes_vidro()) { if (!gfx_foco_placa(r, 0.5f, k, a)) gfx_cor(r, 0.5f, 1, 1, 1, .14f * k * a); }
-    else gfx_cor(r, 0.5f, .19f, .195f, .215f, k * a);
+    float ar, ag, ab;
+    int tf = ajustes_tinta_foco();
+    ajustes_acento(&ar, &ag, &ab);
+    gfx_cor(r, 0.5f, ar, ag, ab, .85f * k * a);   // o acento destaca a selecao
+    cr = cg = cb = (int)(243.0f + ((float)tf - 243.0f) * k);   // o rotulo anda junto para a tinta que le sobre ele
   }
   if (icone && icone[0])
     gfx_icone((GfxRect){ r.x + 20.0f, r.y + (r.h - CTX_ICONE) * 0.5f, CTX_ICONE, CTX_ICONE },
@@ -1380,7 +1378,7 @@ static void linhaCtxTinta(GfxRect r, const char *rot, const char *icone, float f
     txt_desenhar_alpha(t, r.x + 20.0f + CTX_ICONE + 18.0f, r.y + (r.h - t.h) * 0.5f, lum * a); }
 }
 static void linhaCtx(GfxRect r, const char *rot, const char *icone, float f, float a) {
-  linhaCtxTinta(r, rot, icone, f, a, ajustes_acento_tinta(NULL, NULL, NULL));
+  linhaCtxTinta(r, rot, icone, f, a, -1.0f);
 }
 
 // --- A MESMA ILHA, PARA OS MENUS QUE NAO SAO DE CARTAZ ----------------------

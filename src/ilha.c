@@ -2296,11 +2296,12 @@ static void ilha_desenharCorpo_(Uint32 agora) {
       gfx_cor(R, raio, c0, c1, c2, (solido + 0.06f * em) * A);
       if (em > 0.01f) gfx_anel(R, raio, 1.5f, 1.0f, 1.0f, 1.0f, 0.085f * em * A);
     }
-    // dono (2026-10-26): aberta (modal ou painel de Salvos) a ilha usa a cor do acento, 90 % opaca.
+    // dono (2026-10-26): aberta (modal ou painel de Salvos/Continuar) a ilha fica bem mais opaca, quase neutra
+    // (12 % de acento); o acento destaca so o que se seleciona.
     if (modalT > 0.0f || corpoT > 0.0f) {
-      float ar, ag, ab, ka = modalT > corpoT ? modalT : corpoT;
-      ajustes_acento(&ar, &ag, &ab);
-      gfx_cor(R, raio, ar, ag, ab, 0.90f * (ka > 1.0f ? 1.0f : ka) * A);
+      float er, eg, eb, ka = modalT > corpoT ? modalT : corpoT;
+      ajustes_acento_escuro(.12f, &er, &eg, &eb);
+      gfx_cor(R, raio, er, eg, eb, 0.95f * (ka > 1.0f ? 1.0f : ka) * A);
     }
     desenharFocoRelogio(R, raio, A);
     // O "vidro": um brilho largo e fraco por cima, branco no relogio e na cor

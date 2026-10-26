@@ -386,3 +386,4 @@
   0, /* Galeria copy: SOMBRA_FOCO */
   1, /* Galeria copy: HOME_LAYOUT (Padrao) */
   150, /* paused player bubble size, percent */
+  75, /* hero corner shadow strength, percent */

@@ -680,8 +680,7 @@ static void refiltrar(void) {
   // PESSOAS (mockup): a fileira entra logo depois da primeira de titulos.
   montarPessoas(alvo);
   if (nPess > 0 && nFil < BU_MAX_FILEIRAS) {
-    int pos = nFil < (fil[0].melhor ? 2 : 1) ? nFil : (fil[0].melhor ? 2 : 1);
-    if (nFil == 0) pos = 0;
+    int pos = nFil > 0 && fil[0].melhor ? 1 : 0;   // dono (2026-10-26): pessoas primeiro, logo abaixo do titulo
     memmove(&fil[pos + 1], &fil[pos], (size_t)(nFil - pos) * sizeof fil[0]);
     nFil++;
     memset(&fil[pos], 0, sizeof fil[pos]);
@@ -1380,8 +1379,6 @@ static float filAlt(int r) {
 static float filTopo(int r) {
   float y = sugestao ? sugDesloc : 0.0f;
   for (int i = 0; i < r; i++) y += filAlt(i) + BU_SECAO_GAP;
-  // Pessoas: sobe um pouco, tirando espaco de cima (filmes) e dando ao de baixo (series) (dono, 2026-10-26).
-  if (r >= 0 && r < nFil && fil[r].pessoas) y -= 44.0f;
   return y;
 }
 
@@ -1551,8 +1548,14 @@ static void busca_atualizar_(float dt, Uint32 agora) {
 #ifdef NV_TOUCH_UI
     if (!buTelefone() || !toqueLivreY) {
 #endif
-      if (topo - scrollAlvo < 0.0f)             scrollAlvo = topo;
       if (base - scrollAlvo > BU_RES_AREA_H)    scrollAlvo = base - BU_RES_AREA_H;
+      // A fileira de baixo espia: titulo e pelo menos 10 % dos cartazes (dono, 2026-10-26).
+      if (r + 1 < nFil) {
+        float vis = filTopo(r + 1) + filKickH(r + 1) +
+                    (fil[r + 1].pessoas ? BU_PESS_AV * 0.5f : fil[r + 1].melhor ? BU_MELHOR_H * 0.1f : buCartazW() * 0.15f);
+        if (vis - scrollAlvo > BU_RES_AREA_H)   scrollAlvo = vis - BU_RES_AREA_H;
+      }
+      if (topo - scrollAlvo < 0.0f)             scrollAlvo = topo;
 #ifdef NV_TOUCH_UI
     }
 #endif
@@ -1944,8 +1947,8 @@ static void desenhaResultados(Uint32 agora) {
   }
 
   if (!movel)
-    gfx_recorte(BU_RES_X - 30.0f, BU_RES_Y - 20.0f,
-                (BU_DIR - BU_RES_X) + 60.0f, BU_RES_AREA_H + 40.0f);
+  { float esq = fmaxf(BU_RES_X - 30.0f, buX() + BU_COL_W + 4.0f);   // folga do anel de foco, sem passar por cima do teclado
+    gfx_recorte(esq, BU_RES_Y - 20.0f, BU_DIR + 30.0f - esq, BU_RES_AREA_H + 40.0f); }
   // CAMPO VAZIO: as pilulas das buscas recentes em cima e os Populares logo
   // abaixo, na mesma coluna e na mesma rolagem.
   if (sugestao && recentesVisiveis()) desenhaRecentes(agora, -scrollY);
@@ -2137,7 +2140,7 @@ static void desenhaTituloFoco(void) {
   float larg = BU_DIR - BU_RES_X;
   if (buUmaColuna() || painel != 1 || !temItemFoco || !itemFoco.titulo || larg < 100.0f) return;
   { TxtLinha t = txt_linha_corta(TXT_TITULO2, itemFoco.titulo, BU_TX, larg);
-    txt_desenhar(t, BU_RES_X, buTopoEsq()); }
+    txt_desenhar(t, BU_RES_X, buTopoEsq() + ANC(18.0f)); }
 }
 
 static void busca_desenhar_(Uint32 agora) {

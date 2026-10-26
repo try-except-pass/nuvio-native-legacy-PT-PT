@@ -1086,13 +1086,16 @@ static void heroMarcarVisto(unsigned h) {
   heroVistos[heroVistosN++] = h;
 }
 // O item do catalogo pertence a alguma fileira desta aba? (so o destaque automatico/sorteio usa)
+// Item fora de toda fileira (a reserva do destaque, descoberta.c) conta como desta aba: so a Home tem destaque.
 static int heroItemNaVista(int idx) {
-  int r, n = cat_n_fileiras();
+  int r, n = cat_n_fileiras(), emAlguma = 0;
   for (r = 0; r < n; r++) {
     const CatFileira *cf = cat_fileira(r);
-    if (cf && idx >= cf->ini && idx < cf->ini + cf->n && fil_na_vista(cf->chave, homeVista)) return 1;
+    if (!cf || idx < cf->ini || idx >= cf->ini + cf->n) continue;
+    if (fil_na_vista(cf->chave, homeVista)) return 1;
+    emAlguma = 1;
   }
-  return 0;
+  return !emAlguma;
 }
 // Qualquer fonte explicita (sorteio ou fileiras escolhidas) anda em janelas de
 // HOME_HERO_LISTA titulos sem repeticao ate esgotar, e entao recomeca: sem teto.
@@ -4726,6 +4729,7 @@ void hero_meta_linha(const CatItem *ci, char *dst, size_t n) {
 
 // Teto e topo do bloco da Vitrine da colecao (home_vitrine_texto); 0 = Home.
 static float vitTeto, vitTopoBloco;
+static float heroSombraTopo, heroSombraBase;   // topo e base (px) do bloco do titulo no ultimo desenho
 static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
                              float base, int lay, int cheio, float logoH,
                              float sinW, int sinLinhas, float aTexto,
@@ -4889,6 +4893,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     copy.logo += dy; copy.caption += dy; copy.friends += dy; copy.meta += dy;
     copy.secondary += dy; copy.synopsis += dy; copy.action += dy;
   }
+  if (principal) { heroSombraTopo = copy.logo; heroSombraBase = copy.action + btnH; }   // a sombra do canto acompanha o bloco
   logoH = copy.logoHeight;
   float ySin = copy.synopsis, ySec = copy.secondary, yMeta = copy.meta;
   float logoY = copy.logo - cin * NV_CINEMA_DESCE;
@@ -8984,7 +8989,16 @@ void home_evento(const SDL_Event *e) { ajustes_galeria_aplicar(homeVista); TXT_I
 void home_atualizar(float dt, Uint32 agora) { ajustes_galeria_aplicar(homeVista); TXT_INI(); home_atualizar_(dt, agora); TXT_FIM(); ajustes_galeria_aplicar(0); }
 // heroArteRect is layer px: the trailer step runs in the same layer (#205).
 void home_trailer_passo(int topo, float dt, Uint32 agora) { TXT_INI(); home_trailer_passo_(topo, dt, agora); TXT_FIM(); }
-void home_desenhar(Uint32 agora) { ajustes_galeria_aplicar(homeVista); TXT_INI(); home_desenhar_(agora); TXT_FIM(); ajustes_galeria_aplicar(0); }
+void home_desenhar(Uint32 agora) {
+  gfx_hero_sombra = ajustes_hero_sombra();
+  if (heroArteRect.h > 1.0f && heroSombraBase > heroSombraTopo) {
+    float meio = (heroSombraTopo + heroSombraBase) * 0.5f, meioH = (heroSombraBase - heroSombraTopo) * 0.5f;
+    gfx_hero_sombra_cy = (meio - heroArteRect.y) / heroArteRect.h;
+    gfx_hero_sombra_r = (meioH + 70.0f) / 0.55f / heroArteRect.h;   // 0,55 = o miolo de nv_sombra_canto (gfx.c): cobre o bloco inteiro
+  }
+  ajustes_galeria_aplicar(homeVista); TXT_INI(); home_desenhar_(agora); TXT_FIM(); ajustes_galeria_aplicar(0);
+  gfx_hero_sombra_padrao();   // quem define devolve: o detalhe e as outras telas usam o canto de sempre
+}
 int home_cartao_foco_por_cima(int indice) {
   int r;
   TXT_INI(); r = home_cartao_foco_por_cima_(indice); TXT_FIM();

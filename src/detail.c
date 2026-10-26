@@ -7762,7 +7762,7 @@ static void desenhaPessoa(float a) {
       int ic = pessoa_credito_imdb(i)[0] ? cat_indice_por_imdb(pessoa_credito_imdb(i)) : -1;
       const CatItem *cc = ic >= 0 ? cat_item(ic) : NULL;
       const char *po = (cc && cc->poster[0])
-        ? posterprov_card_addon(cc->origem, cc->imdb, cc->tmdb, cc->tipo, cc->poster)
+        ? posterprov_card_addon(cc->origem, cc->imdb, cc->tmdb, cc->tipo, cc->poster)   // segue "Pôsteres do addon"
         : posterprov_card(pessoa_credito_imdb(i), pessoa_credito_tmdb(i),
                           pessoa_credito_tipo(i), pessoa_credito_poster(i));
       GLuint t = po[0] ? tex_obter_larg(po, PES_CARD_W) : 0;

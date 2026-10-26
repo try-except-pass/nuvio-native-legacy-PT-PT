@@ -213,6 +213,7 @@ static void aj2MenuValor(int sec, char *b, size_t n) {
   b[0] = 0;
   switch (sec) {
     case AJS_HOME: op = AJ_HOME_LAYOUT; break;
+    case AJS_GALERIA: op = AJ_GAL_HOME_LAYOUT; break;
     case AJS_TITULO: {   // as notas ligadas, pelos nomes
       int k, q = 0;
       size_t u = 0;
@@ -679,7 +680,10 @@ static float aj2GradeCabY(void) { return aj2GradeDescY() + AJ2_G_DESC + 22.0f; }
 static float aj2GradeCartaoH(void) {
   GfxRect g = aj2GradeR();
   float util = g.y + g.h - 57.0f - (aj2GradeCabY() + AJ2_G_CAB), h;
-  h = (util - 3 * AJ2_G_VAO_V) / 4.0f;
+  // A coluna mais longa manda (dono, 2026-10-26: a Galeria pos 5 categorias em Telas e a ultima saia do painel).
+  int s, linhas = 4, porGrupo[3] = { 0, 0, 0 }, n = nSecoes > AJ2_NMENU - 2 ? AJ2_NMENU - 2 : nSecoes;
+  for (s = 0; s < n; s++) if (++porGrupo[aj2Grupo(s)] > linhas) linhas = porGrupo[aj2Grupo(s)];
+  h = (util - (float)(linhas - 1) * AJ2_G_VAO_V) / (float)linhas;
   return h > AJ2_G_MAXH ? AJ2_G_MAXH : h;
 }
 static GfxRect aj2GradeCartao(int s) {

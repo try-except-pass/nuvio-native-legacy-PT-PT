@@ -5,6 +5,7 @@
 #include "idioma.h"
 #include "layout.h"
 #include "plrui.h"
+#include "ctxmenu.h"
 #include "ponteiro.h"
 #include "text.h"
 #include <string.h>
@@ -17,7 +18,6 @@
 #define DM_GAP      4.0f
 #define DM_PAD     14.0f
 #define DM_RAIO    32.0f
-#define DM_ICONE   24.0f
 #define DM_VAO     16.0f    // do circular a ilha
 #define DM_BORDA   40.0f    // margem minima da tela
 
@@ -128,28 +128,20 @@ void detmais_desenhar(GfxRect anc, float a) {
   raio = anc.h * 0.5f + (DM_RAIO - anc.h * 0.5f) * p;
   ponteiro_camada();
   if (aberto) ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, ptrFora, 0, 0);
-  // dono (2026-10-26): 90 % opaca e na cor do acento.
-  { float ar, ag, ab, rf = r.h > 1.0f ? raio / r.h : 0.5f, af = a * anim_clamp(p * 2.0f, 0.0f, 1.0f);
-    ajustes_acento(&ar, &ag, &ab);
+  // dono (2026-10-26): 30 % de acento sobre o escuro, bem opaca; o acento destaca a linha em foco.
+  { float cr, cg, cb, rf = r.h > 1.0f ? raio / r.h : 0.5f, af = a * anim_clamp(p * 2.0f, 0.0f, 1.0f);
+    ajustes_acento_escuro(.30f, &cr, &cg, &cb);
     if (rf > 0.5f) rf = 0.5f;
     gfx_rect((GfxRect){ r.x - 20.0f, r.y - 6.0f, r.w + 40.0f, r.h + 40.0f }, 0, GFX_SOMBRA,
              1.0f, 0, 0, 0.5f, 0, 0, 0, 0.36f * af);
-    gfx_cor(r, rf, ar, ag, ab, 0.90f * af); }
+    gfx_cor(r, rf, cr, cg, cb, 0.94f * af); }
   pc = anim_clamp((p - 0.45f) / 0.55f, 0.0f, 1.0f) * a;
   if (pc <= 0.002f) return;
   gfx_recorte(r.x, r.y, r.w, r.h);
   for (i = 0; i < n; i++) {
     GfxRect l = { fim.x + DM_PAD, fim.y + DM_PAD + (float)i * (DM_LINHA + DM_GAP),
                   fim.w - DM_PAD * 2.0f, DM_LINHA };
-    float f = focoAnim[i], lum = .72f + .28f * f, tt = ajustes_acento_tinta(NULL, NULL, NULL);
-    int tc = (int)(tt * 255.0f);
-    TxtLinha t;
-    if (f > 0.01f) gfx_cor(l, 0.5f, tt, tt, tt, 0.20f * f * pc);
-    gfx_icone((GfxRect){ l.x + 20.0f, l.y + (l.h - DM_ICONE) * 0.5f, DM_ICONE, DM_ICONE },
-              detmais_icone(linhas[i]), tt, tt, tt, lum * pc);
-    t = txt_linha_corta(TXT_PG_ROTULO, i18n(detmais_rotulo(linhas[i])), tc, tc, tc, 255,
-                        l.w - 20.0f - DM_ICONE - 18.0f - 20.0f);
-    txt_desenhar_alpha(t, l.x + 20.0f + DM_ICONE + 18.0f, l.y + (l.h - t.h) * 0.5f, lum * pc);
+    ctx_menu_linha(l, i18n(detmais_rotulo(linhas[i])), detmais_icone(linhas[i]), focoAnim[i], pc, -1.0f);
     if (aberto && p > 0.85f) ponteiro_alvo(l.x, l.y, l.w, l.h, ptrFocar, NULL, i, 0);
   }
   gfx_sem_recorte();
