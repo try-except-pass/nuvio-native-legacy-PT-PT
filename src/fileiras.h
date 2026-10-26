@@ -190,6 +190,9 @@ const char *fil_origem_ajuda(int origem);
 // voltar, e apagar em silencio faria a preferencia sumir sem ninguem pedir.
 const char *fil_hero_fonte(void);
 void        fil_definir_hero_fonte(const char *chave);
+// Multi-selecao: fil_hero_fonte() pode trazer varias chaves separadas por '\t'.
+int         fil_hero_tem(const char *chave);
+void        fil_hero_alternar(const char *chave);
 
 // --- limite ------------------------------------------------------------------
 int  fil_limite(void);

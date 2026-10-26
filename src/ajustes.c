@@ -741,6 +741,10 @@ typedef enum {
   AJ_BUSCA_ESPACO_PCT,   // Search tab spacing, percent of the default. LOCAL
   AJ_FIL_TITULOS,        // Row titles on Home: 0 shown (default). LOCAL
   AJ_MENU_GALERIA,       // Second Home tab ("Galeria") in the sidebar: 0 shown (default). LOCAL
+  AJ_HERO_DETALHES_PCT,  // Hero details (year, runtime, IMDb) size, percent; independent of interface zoom. LOCAL
+  AJ_RELOGIO_PCT,        // On-screen clock island size, percent. LOCAL
+  AJ_MENU_ICONE_PCT,     // Sidebar icon size, percent. LOCAL
+  AJ_GALERIA_EDITAR,     // Settings below edit the Galeria tab's own copy: 1 Off (default, never persisted as On). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1894,6 +1898,10 @@ static const Opcao OPCOES[AJ_N] = {
   NUM("Espaçamento da aba Pesquisar", 40, 150, 10, "%"),                           // local: buscaEspacoPctLocal
   ESC("Títulos das fileiras na Home", V_LIGA, 2),                                  // local: filTitulosLocal
   ESC("Galeria na barra lateral", V_LIGA, 2),                            // local: menuGaleriaLocal
+  NUM("Tamanho dos detalhes do destaque", 70, 200, 10, "%"),            // local: heroDetalhesPctLocal
+  NUM("Tamanho do relógio", 70, 200, 10, "%"),                         // local: relogioPctLocal
+  NUM("Tamanho dos ícones da barra lateral", 70, 200, 10, "%"),         // local: menuIconePctLocal
+  ESC("Ajustar a Galeria", V_LIGA, 2),                                    // local: galeriaEditarLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2230,7 +2238,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
-  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal", "menuGaleriaLocal", "heroDetalhesPctLocal", "relogioPctLocal", "menuIconePctLocal", "galeriaEditarLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -2358,6 +2366,7 @@ static void pstTesteRecolher(void);
 static const char *pstTexto(int op);
 static void uxNotificar(const char *s);
 static int gravar(void);
+static void galAjCarregar(void);
 static int dePerfil(int i);
 static int perfilGravarVetor(int perfil, const int *v);
 static int perfilLerVetor(int perfil, int *v, char *tem);
@@ -3167,6 +3176,8 @@ int ajustes_sombra_foco(void) { return lig(AJ_SOMBRA_FOCO); }
 static float pctEntre(int op, int lo, int hi) { int v = valor[op]; return (v < lo ? lo : v > hi ? hi : v) / 100.0f; }
 int ajustes_borda_foco_busca(void) { return lig(AJ_BORDA_FOCO_BUSCA); }
 float ajustes_menu_tamanho(void) { return pctEntre(AJ_MENU_TAM_PCT, 50, 200); }
+float ajustes_relogio_escala(void) { return pctEntre(AJ_RELOGIO_PCT, 70, 200); }
+float ajustes_menu_icone(void) { return pctEntre(AJ_MENU_ICONE_PCT, 70, 200); }
 float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
 int ajustes_menu_so_icones(void) { return lig(AJ_MENU_SO_ICONES); }
 float ajustes_busca_espaco(void) { return pctEntre(AJ_BUSCA_ESPACO_PCT, 40, 150); }
@@ -3651,7 +3662,10 @@ int ajustes_hero_duracao(void) { return lig(AJ_HERO_DURACAO); }
 int ajustes_hero_cheio(void)          { return lig(AJ_HERO_CHEIO); }
 int ajustes_hero_sinopse_grande(void) { return valor[AJ_HERO_SINOPSE_TAM] == 1 || ajustes_hero_tamanho() > 0; }
 float ajustes_hero_escala_logo(void) { static const float e[3] = { 1.0f, 1.25f, 1.5f }; return e[ajustes_hero_tamanho()]; }
-float ajustes_hero_escala_info(void) { static const float e[3] = { 1.0f, 1.15f, 1.3f }; return e[ajustes_hero_tamanho()]; }
+float ajustes_hero_escala_info(void) {
+  static const float e[3] = { 1.0f, 1.15f, 1.3f };
+  return e[ajustes_hero_tamanho()] * pctEntre(AJ_HERO_DETALHES_PCT, 70, 200);
+}
 int ajustes_hero_tamanho(void) { int v = valor[AJ_HERO_TAMANHO]; return v >= 0 && v <= 2 ? v : 0; }
 int ajustes_home_layout(void) {
   int v = valor[AJ_HOME_LAYOUT];
@@ -5246,10 +5260,73 @@ void ajustes_dir(const char *dir) {
   ajEpgMemoriaAplicar();
   legenda2_atualizar_offset_manual(ajustes_leg2_atraso());
   ppReconciliar();
+  galAjCarregar();
   ajSombraSync();   // o que veio do disco nao e mudanca de ninguem
 }
 
+// GALERIA: copia propria dos ajustes de aparencia da Home. `valor[]` guarda
+// SEMPRE o que esta em vigor; `galAjVal[]` guarda o OUTRO conjunto (o principal
+// enquanto a troca esta ligada, o da Galeria quando desligada). A troca liga
+// enquanto a Home desenha a Galeria (galAjRun) ou enquanto a pessoa ajusta a
+// Galeria nos Ajustes (galAjEdit). gravar() desfaz a troca para nao gravar o
+// conjunto da Galeria como se fosse o principal.
+static const int GAL_OPS[] = {
+  AJ_LANDSCAPE, AJ_ITENS_FILEIRA, AJ_ESPACO_FILEIRAS, AJ_ESPACO_TITULOS, AJ_FIL_TITULOS,
+  AJ_NOTAS_HOME, AJ_SELO_VISTO, AJ_ABAS_ESTILO, AJ_OCULTAR_FILMES_VISTOS, AJ_AMIGOS_ESTILO,
+  AJ_COLECAO_EXIBICAO, AJ_BORDA_FOCO, AJ_SOMBRA_FOCO,
+};
+#define GAL_N ((int)(sizeof GAL_OPS / sizeof *GAL_OPS))
+static int galAjVal[GAL_N], galAjTrocado, galAjRun, galAjEdit;
+static void galAjSync(void) {
+  int quer = galAjRun || galAjEdit, i;
+  if (quer == galAjTrocado) return;
+  for (i = 0; i < GAL_N; i++) { int t = valor[GAL_OPS[i]]; valor[GAL_OPS[i]] = galAjVal[i]; galAjVal[i] = t; }
+  galAjTrocado = quer;
+}
+void ajustes_galeria_aplicar(int on) { galAjRun = on ? 1 : 0; galAjSync(); }
+static void galAjArquivo(char *c, size_t n) { snprintf(c, n, "%s/galeria.txt", dirAjustes); }
+// Chamada depois de ler ajustes.txt: o conjunto da Galeria vem do arquivo; sem
+// arquivo comeca igual ao principal.
+static void galAjCarregar(void) {
+  char c[600], l[160];
+  FILE *f;
+  int i;
+  galAjRun = galAjEdit = galAjTrocado = 0;
+  valor[AJ_GALERIA_EDITAR] = 1;
+  for (i = 0; i < GAL_N; i++) galAjVal[i] = valor[GAL_OPS[i]];
+  galAjArquivo(c, sizeof c);
+  f = fopen(c, "r");
+  if (!f) return;
+  while (fgets(l, sizeof l, f)) {
+    char k[64]; int v;
+    if (sscanf(l, "%63s %d", k, &v) != 2) continue;
+    for (i = 0; i < GAL_N; i++)
+      if (CHAVE[GAL_OPS[i]] && !strcmp(k, CHAVE[GAL_OPS[i]])) galAjVal[i] = v;
+  }
+  fclose(f);
+}
+static void galAjGravar(void) {   // chamado com a troca desfeita: galAjVal e o conjunto da Galeria
+  char c[600];
+  FILE *f;
+  int i;
+  galAjArquivo(c, sizeof c);
+  f = fopen(c, "w");
+  if (!f) return;
+  for (i = 0; i < GAL_N; i++)
+    if (CHAVE[GAL_OPS[i]]) fprintf(f, "%s %d\n", CHAVE[GAL_OPS[i]], galAjVal[i]);
+  fclose(f);
+}
+static int gravarBase(void);
 static int gravar(void) {
+  int r, run = galAjRun;
+  galAjRun = galAjEdit = 0; galAjSync();   // grava o conjunto principal em valor[] e o da Galeria em galAjVal[]
+  r = gravarBase();
+  if (r) galAjGravar();
+  galAjEdit = valor[AJ_GALERIA_EDITAR] == 0;   // o interruptor "Ajustar a Galeria" so vale depois deste gravar
+  galAjRun = run; galAjSync();
+  return r;
+}
+static int gravarBase(void) {
   char caminho[600], tmp[600];
   FILE *f;
   int i, vv[AJ_N];
@@ -6054,7 +6131,7 @@ static int somenteDesteAparelho(int op) {
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
     case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
-    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS: case AJ_MENU_GALERIA: case AJ_HERO_DETALHES_PCT: case AJ_GALERIA_EDITAR: case AJ_RELOGIO_PCT: case AJ_MENU_ICONE_PCT:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -8014,6 +8091,10 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_MENU_SO_ICONES: return i18n("A barra lateral fica sempre uma faixa estreita de ícones e nunca abre para mostrar os nomes.");
     case AJ_BUSCA_ESPACO_PCT: return i18n("Espaço entre o teclado, o campo e as fileiras de resultados na aba Pesquisar. Menor é mais apertado.");
     case AJ_FIL_TITULOS: return i18n("Mostra ou esconde os títulos acima das fileiras da Home.");
+    case AJ_RELOGIO_PCT: return i18n("Tamanho do relógio e dos avisos que saem dele. 100% é o padrão.");
+    case AJ_MENU_ICONE_PCT: return i18n("Tamanho dos ícones da barra lateral, sem mudar o resto da barra. 100% é o padrão.");
+    case AJ_GALERIA_EDITAR: return i18n("Ligado: os ajustes de aparência das fileiras (títulos, espaços, formato dos cartazes, anel de foco…) mudam só a Galeria. Desligado: voltam a mudar a aba principal.");
+    case AJ_HERO_DETALHES_PCT: return i18n("Tamanho do ano, da duração e da nota do IMDb no destaque da Home. Não muda com o tamanho da interface. 100% é o padrão.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";
     case AJ_TAMANHO_UI: return "Aumenta os controles do player, os painéis e os avisos. Os Ajustes têm um tamanho próprio.";
@@ -8611,6 +8692,13 @@ static const char *heroFonteRotulo(void) {
   if (!f[0]) return i18n("Automático");
   if (f[0] == '*' && !f[1]) return i18n("Aleatório do catálogo");
   n = fil_n();
+  if (strchr(f, '\t')) {   // multi-selecao: quantas ainda existem
+    static char r[64];
+    int q = 0;
+    for (i = 0; i < n; i++) if (fil_hero_tem(fil_chave(i))) q++;
+    snprintf(r, sizeof r, "%d %s", q, i18n("catálogos"));
+    return r;
+  }
   for (i = 0; i < n; i++)
     if (!strcmp(fil_chave(i), f)) return fil_titulo(i);
   // A fileira saiu (addon removido). A escolha NAO e apagada aqui — ver
@@ -9474,11 +9562,10 @@ static void hcMontar(void) {
   if (!hcFocavel(hcFoco)) hcFoco = 0;
 }
 static void hcAbrir(void) {
-  const char *f = fil_hero_fonte();
   int i;
   hcAberta = 1; hcBusca[0] = 0; hcFoco = 0; hcMontar();
   for (i = 0; i < hcN; i++)
-    if (hcL[i].tipo == HC_CAT && !strcmp(fil_chave(hcL[i].idx), f)) { hcFoco = i; break; }
+    if (hcL[i].tipo == HC_CAT && fil_hero_tem(fil_chave(hcL[i].idx))) { hcFoco = i; break; }
 }
 static void hcEscolher(int i) {
   if (!hcFocavel(i)) return;
@@ -9489,7 +9576,11 @@ static void hcEscolher(int i) {
     return;
   }
   if (hcL[i].tipo == HC_FIXA) fil_definir_hero_fonte(hcL[i].idx ? "*" : "");
-  else fil_definir_hero_fonte(fil_chave(hcL[i].idx));
+  else {   // fileira: marca/desmarca e a folha continua aberta (varias podem alimentar o destaque)
+    fil_hero_alternar(fil_chave(hcL[i].idx));
+    sync_proteger_ajustes_locais();
+    return;
+  }
   sync_proteger_ajustes_locais();
   hcAberta = 0;
 }
@@ -10838,7 +10929,7 @@ static AjPreview familiaPreviaOpcao(int op) {
       return AJPV_REPRO;
     case AJ_HOME_LAYOUT:
     case AJ_PALCO_FUNDO:
-    case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO: case AJ_SINOPSE_COMPLETA:
+    case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO: case AJ_SINOPSE_COMPLETA: case AJ_HERO_DETALHES_PCT:
     case AJ_LANDSCAPE: case AJ_HERO_CHEIO: case AJ_FUNDO_DIN: case AJ_FUNDO_DIN_COR: case AJ_HERO_FUNDO:
     case AJ_HERO_ARTE_DIF: case AJ_HERO_TRAILER: case AJ_FIL_LIMITE:
     case AJ_ESPACO_FILEIRAS: case AJ_ESPACO_TITULOS: case AJ_FIL_TITULOS:
@@ -11558,8 +11649,47 @@ char *ajustes_web_esquema(void) {
     }
   }
   if (emSec) webjLit(&w, "]}");
-  webjLit(&w, "]}");
+  webjLit(&w, "]");
+  // Fileiras da Home: quais aparecem, em que aba e quais alimentam o destaque
+  // (as folhas que so existem na TV). Colecoes ficam de fora, como no seletor do destaque.
+  { int n = fil_n(), q = 0;
+    const char *hf = fil_hero_fonte();
+    webjF(&w, ",\"hs\":%d,\"r\":[", hf[0] == 0 ? 0 : (hf[0] == '*' && !hf[1]) ? 1 : 2, 0);
+    for (i = 0; i < n; i++) {
+      if (fil_origem_de(fil_chave(i)) == FIL_ORIGEM_COLECAO) continue;
+      if (q++) webjLit(&w, ",");
+      webjLit(&w, "{\"k\":");
+      webjStr(&w, fil_chave(i));
+      webjLit(&w, ",\"t\":");
+      webjStr(&w, fil_titulo(i));
+      webjLit(&w, ",\"a\":");
+      webjStr(&w, fil_linha_addon(i));
+      webjF(&w, ",\"h\":%d,\"g\":%d", fil_linha_oculta(i) ? 0 : 1, fil_linha_galeria(i));
+      webjF(&w, ",\"d\":%d}", fil_hero_tem(fil_chave(i)), 0);
+    }
+    webjLit(&w, "]");
+  }
+  webjLit(&w, "}");
   return w.p;
+}
+
+// "@fil\t<campo>\t<chave>\t<valor>": h = aparece na Home (0/1), g = aba (0 Home, 1 Galeria, 2 ambas),
+// d = alimenta o destaque (0/1), s = fonte do destaque (0 automatico, 1 aleatorio; chave ignorada).
+int ajustes_web_fileira(char campo, const char *chave, int v) {
+  int i, n = fil_n();
+  if (campo == 's') {
+    fil_definir_hero_fonte(v == 1 ? "*" : "");
+    protegerLocais();
+    return 1;
+  }
+  for (i = 0; i < n; i++) if (!strcmp(fil_chave(i), chave)) break;
+  if (i >= n) return 0;
+  if (campo == 'h') { if ((fil_linha_oculta(i) ? 0 : 1) != (v ? 1 : 0)) fil_alternar(i); }
+  else if (campo == 'g') { int k; for (k = 0; k < 3 && fil_linha_galeria(i) != v; k++) fil_ciclar_galeria(i); if (fil_linha_galeria(i) != v) return 0; }
+  else if (campo == 'd') { if (fil_hero_tem(chave) != (v ? 1 : 0)) fil_hero_alternar(chave); }
+  else return 0;
+  protegerLocais();
+  return 1;
 }
 
 // 1 = gravou. Mesmas regras de validacao da folha de Ajustes (definirValorDireto).

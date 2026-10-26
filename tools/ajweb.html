@@ -103,6 +103,47 @@ function linha(o){
   if(mudou(o)&&!off){var rs=el("button","rs","↺");rs.title="Reset to default ("+txt(o,o.d)+")";rs.onclick=function(){enviar(o,o.d)};c.appendChild(rs)}
   r.appendChild(c);return r;
 }
+function enviarFil(campo,k,v,ok){
+  fila=fila.then(function(){
+    return fetch("api/settings",{method:"POST",headers:{"Content-Type":"text/plain"},body:"@fil\t"+campo+"\t"+k+"\t"+v+"\n"})
+      .then(function(r){if(!r.ok)throw 0;return r.json()})
+      .then(function(j){if(j.ok){ok();toast("Saved on the TV","okk")}else toast("The TV did not accept this change","er");desenhar()})
+      .catch(function(){toast("No answer from the TV (is it on? same network?)","er");desenhar()});
+  });
+}
+function paginaFileiras(m){
+  m.appendChild(el("h2","","Home rows"));
+  m.appendChild(el("div","av","Which rows appear, on which tab, and which ones feed the hero. Changes apply on the TV right away."));
+  m.appendChild(el("h3","","Hero source"));
+  var r0=el("div","row"),n0=el("div","nm","Where the hero takes its titles");var c0=el("div","ctl"),sg=el("div","seg");
+  [["Automatic",0],["Random from the catalog",1],["Selected rows below",2]].forEach(function(p){
+    var b=el("button",D.hs===p[1]?"on":"",p[0]);
+    b.onclick=function(){
+      if(p[1]===2){toast("Tick rows in the “Hero” column below","okk");return}
+      enviarFil("s","-",p[1],function(){D.hs=p[1];D.r.forEach(function(x){x.d=0})});
+    };sg.appendChild(b)});
+  c0.appendChild(sg);r0.appendChild(n0);r0.appendChild(c0);m.appendChild(r0);
+  m.appendChild(el("h3","","Rows"));
+  D.r.forEach(function(x){
+    var r=el("div","row"+(x.h?"":" mu")),nm=el("div","nm",x.t);
+    if(x.a)nm.appendChild(el("small","",x.a));
+    r.appendChild(nm);
+    var c=el("div","ctl");
+    var l1=el("label","chk"),k1=el("input");k1.type="checkbox";k1.checked=!!x.h;
+    k1.onchange=function(){var v=k1.checked?1:0;enviarFil("h",x.k,v,function(){x.h=v})};
+    l1.appendChild(k1);l1.appendChild(document.createTextNode("Shown"));c.appendChild(l1);
+    var tb=el("div","seg");
+    [["Home",0],["Galeria",1],["Both",2]].forEach(function(p){
+      var b=el("button",x.g===p[1]?"on":"",p[0]);
+      b.onclick=function(){if(x.g!==p[1])enviarFil("g",x.k,p[1],function(){x.g=p[1]})};tb.appendChild(b)});
+    c.appendChild(tb);
+    var l2=el("label","chk"),k2=el("input");k2.type="checkbox";k2.checked=!!x.d;
+    k2.onchange=function(){var v=k2.checked?1:0;enviarFil("d",x.k,v,function(){x.d=v;if(v)D.hs=2;else if(!D.r.some(function(y){return y.d}))D.hs=0})};
+    l2.appendChild(k2);l2.appendChild(document.createTextNode("Hero"));c.appendChild(l2);
+    r.appendChild(c);m.appendChild(r);
+  });
+  if(!D.r.length)m.appendChild(el("div","vazio","No rows yet. Open the app on the TV so it can load the catalogs."));
+}
 function desenhar(){
   var q=norm($("#q").value.trim()),m=$("#main"),nav=$("#nav");
   nav.textContent="";
@@ -111,7 +152,9 @@ function desenhar(){
     var a=el("a",i===sec&&!q?"on":"",s.t);if(n)a.appendChild(el("i","",n));
     a.onclick=function(){sec=i;$("#q").value="";desenhar();scrollTo(0,0)};nav.appendChild(a);
   });
+  if(D.r){var ar=el("a",sec===D.s.length&&!q?"on":"","Home rows");ar.onclick=function(){sec=D.s.length;$("#q").value="";desenhar();scrollTo(0,0)};nav.appendChild(ar)}
   m.textContent="";
+  if(sec===D.s.length&&D.r&&!q){paginaFileiras(m);return}
   if(q){
     var achou=0;m.appendChild(el("h2","","Resultados"));
     ops().forEach(function(p){var o=p[1];if(norm(o.l).indexOf(q)<0)return;achou++;
@@ -128,7 +171,7 @@ function desenhar(){
 }
 function ler(){
   return fetch("api/settings",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(j){
-    D=j;$("#pf").textContent=j.perfil||("Profile "+j.pn);if(!D.s||!D.s.length)throw new Error("the TV sent no settings");if(sec>=D.s.length)sec=0;desenhar();
+    D=j;$("#pf").textContent=j.perfil||("Profile "+j.pn);if(!D.s||!D.s.length)throw new Error("the TV sent no settings");if(sec>D.s.length||(sec===D.s.length&&!D.r))sec=0;desenhar();
   }).catch(function(e){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Could not read the settings from the TV ("+(e&&e.message?e.message:e)+"). Is it on, with Nuvio open and this setting switched on?"))});
 }
 $("#q").oninput=function(){desenhar()};

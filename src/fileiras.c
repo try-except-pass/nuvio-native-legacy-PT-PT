@@ -110,7 +110,38 @@ static int   registroSujo;   // ver fil_gravar_registro
 // sabe se ela ainda existe, quem a renomeia e quem a poda quando o addon sai da
 // conta e este arquivo. Em ajustes.txt seria um texto solto que ninguem
 // revisita.
-static char  heroFonte[FIL_CHAVE];
+#define HERO_FONTE_MAX 2048   // varias chaves separadas por tab (multi-selecao)
+static char  heroFonte[HERO_FONTE_MAX];
+// A chave esta entre as escolhidas do destaque? ("" e "*" nunca contam como fileira)
+static int heroTem(const char *chave) {
+  size_t n = strlen(chave);
+  const char *p = heroFonte;
+  if (!n || !heroFonte[0]) return 0;
+  while (*p) {
+    const char *e = strchr(p, '\t');
+    size_t l = e ? (size_t)(e - p) : strlen(p);
+    if (l == n && !strncmp(p, chave, n)) return 1;
+    if (!e) break;
+    p = e + 1;
+  }
+  return 0;
+}
+// Tira `chave` da lista (no-op se ausente).
+static void heroTirar(const char *chave) {
+  char novo[HERO_FONTE_MAX];
+  const char *p = heroFonte;
+  size_t k = 0;
+  novo[0] = 0;
+  while (*p) {
+    const char *e = strchr(p, '\t');
+    size_t l = e ? (size_t)(e - p) : strlen(p);
+    if (!(l == strlen(chave) && !strncmp(p, chave, l)))
+      k += (size_t)snprintf(novo + k, sizeof novo - k, "%s%.*s", k ? "\t" : "", (int)l, p);
+    if (!e) break;
+    p = e + 1;
+  }
+  memcpy(heroFonte, novo, strlen(novo) + 1);
+}
 static char donoAuto[128];
 static unsigned revisao;
 // Lista COMPLETA e identificada da conta deste perfil. So em memoria: impede
@@ -367,7 +398,7 @@ static void gravar(void) {
 }
 
 static void carregar(void) {
-  char caminho[600], buf[900];
+  char caminho[600], buf[2300];
   FILE *f;
   carregado = 1;
   donoAuto[0] = 0;
@@ -543,12 +574,37 @@ void fil_definir_teto_sessao(int teto) {
 // ----------------------------------------------------------------- destaque
 
 const char *fil_hero_fonte(void) {
-  static char copia[FIL_CHAVE];
+  static char copia[HERO_FONTE_MAX];
   pthread_mutex_lock(&trava);
   garantir();
   snprintf(copia, sizeof copia, "%s", heroFonte);
   pthread_mutex_unlock(&trava);
   return copia;
+}
+
+int fil_hero_tem(const char *chave) {
+  int r;
+  pthread_mutex_lock(&trava);
+  garantir();
+  r = heroTem(chave);
+  pthread_mutex_unlock(&trava);
+  return r;
+}
+
+// Marca/desmarca uma fileira na selecao do destaque. Sair de "" ou "*" para uma
+// fileira comeca a selecao do zero.
+void fil_hero_alternar(const char *chave) {
+  pthread_mutex_lock(&trava);
+  garantir();
+  if (heroTem(chave)) heroTirar(chave);
+  else {
+    size_t k = strlen(heroFonte);
+    if (heroFonte[0] == '*') k = heroFonte[0] = 0;
+    if (k + strlen(chave) + 2 < sizeof heroFonte)   // shortcut: cheio (~10 chaves longas) ignora o toque
+      snprintf(heroFonte + k, sizeof heroFonte - k, "%s%s", k ? "\t" : "", chave);
+  }
+  gravar();
+  pthread_mutex_unlock(&trava);
 }
 
 void fil_definir_hero_fonte(const char *chave) {
@@ -756,7 +812,7 @@ void fil_normalizar(void) {
                 linhas[i].oculta != OC_COLECAO &&
                 !linhas[i].visPessoal && !linhas[i].fila &&
                 linhas[i].tipo == FIL_TIPO_AUTO && linhas[i].tam == FIL_TAM_PADRAO &&
-                !(heroFonte[0] && !strcmp(heroFonte, linhas[i].chave));
+                !heroTem(linhas[i].chave);
     if (morto) { mudou = 1; continue; }
     if (w != i) linhas[w] = linhas[i];
     w++;
@@ -880,7 +936,7 @@ int fil_addon_ausente(const char *id, const char *base) {
 
 static int temEscolha(const Linha *l) {
   return l->visPessoal || l->oculta == OC_PESSOA || l->fila || l->tipo != FIL_TIPO_AUTO ||
-         l->tam != FIL_TAM_PADRAO || (heroFonte[0] && !strcmp(heroFonte, l->chave));
+         l->tam != FIL_TAM_PADRAO || heroTem(l->chave);
 }
 
 // #327: o catalogo que a pessoa ADICIONOU a Home nesta TV (visPessoal, ligado)
@@ -909,7 +965,7 @@ int fil_adicionada_na_tv(const char *chave) {
 // da pessoa de um automatico; vale como automatico.
 static int escolhaExplicita(const Linha *l) {
   return l->visPessoal || l->fila || l->tipo != FIL_TIPO_AUTO ||
-         l->tam != FIL_TAM_PADRAO || (heroFonte[0] && !strcmp(heroFonte, l->chave));
+         l->tam != FIL_TAM_PADRAO || heroTem(l->chave);
 }
 
 // Despejavel por "ninguem declara mais": catalogo de addon, sem escolha
@@ -1007,8 +1063,11 @@ static int podarCatalogos(const char *const *ids, const char *const *bases, int 
     if (w != i) linhas[w] = linhas[i];
     w++;
   }
-  if (completa && heroFonte[0] && strcmp(heroFonte, "*") && !catalogoInstalado(heroFonte)) {
-    heroFonte[0] = 0; limpouHero = 1;
+  if (completa && heroFonte[0] && strcmp(heroFonte, "*")) {
+    char copia[HERO_FONTE_MAX], *sv, *t;
+    memcpy(copia, heroFonte, sizeof copia);
+    for (t = strtok_r(copia, "\t", &sv); t; t = strtok_r(NULL, "\t", &sv))
+      if (!catalogoInstalado(t)) { heroTirar(t); limpouHero = 1; }
   }
   if (fora || limpouHero) {
     memset(linhas + w, 0, sizeof *linhas * (size_t)(nLinhas - w));
@@ -1074,7 +1133,7 @@ int fil_marcar_sem_addon(const char *const *ids, const char *const *bases,
                 linhas[i].tipo == FIL_TIPO_AUTO && linhas[i].tam == FIL_TAM_PADRAO &&
                 (linhas[i].oculta == OC_SUGESTAO ||
                  linhas[i].oculta == OC_PESSOA) &&
-                !(heroFonte[0] && !strcmp(heroFonte, linhas[i].chave));
+                !heroTem(linhas[i].chave);
     if (morto) { limpeza++; continue; }
     if (w != i) linhas[w] = linhas[i];
     w++;
@@ -1491,7 +1550,7 @@ void fil_colecoes_reconciliar(const char *const *chaves,
     }
     if (viva) { if (w != i) linhas[w] = linhas[i]; w++; }
     else {
-      if (!strcmp(heroFonte, linhas[i].chave)) heroFonte[0] = 0;
+      heroTirar(linhas[i].chave);
       mudou = 1;
     }
   }

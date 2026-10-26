@@ -5268,9 +5268,16 @@ static void *montar(void *u) {
         int temCat = 0, q, ja = 0;
         for (q = 0; q < nFil; q++) if (fil[q].base[0]) { temCat = 1; break; }
         if (hf[0] && !(hf[0] == '*' && !hf[1])) {
-          for (q = 0; q < nFil && !ja; q++) ja = !strcmp(fil[q].chave, hf);
-          if (!ja) for (q = 0; q < nDecl; q++)
-            if (!strcmp(decls[q].chave, hf)) { dh = &decls[q]; break; }
+          // Multi-selecao (chaves separadas por tab): alimenta so a primeira que
+          // ainda nao veio por uma fileira. shortcut: uma fileira fora da Home por vez.
+          char copia[2048], *sv, *t;
+          snprintf(copia, sizeof copia, "%s", hf);
+          for (t = strtok_r(copia, "\t", &sv); t && !dh; t = strtok_r(NULL, "\t", &sv)) {
+            ja = 0;
+            for (q = 0; q < nFil && !ja; q++) ja = !strcmp(fil[q].chave, t);
+            if (!ja) for (q = 0; q < nDecl; q++)
+              if (!strcmp(decls[q].chave, t)) { dh = &decls[q]; break; }
+          }
         } else if (!temCat) {
           for (q = 0; q < nOrdem && !dh; q++) if (!fil_oculta(decls[ordem[q]].chave)) dh = &decls[ordem[q]];
           for (q = 0; q < nOrdem && !dh; q++) dh = &decls[ordem[q]];

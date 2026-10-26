@@ -70,7 +70,7 @@
 // CIMA da primeira fileira do teclado — e OK nele chama o teclado da TV; o
 // microfone (Falar) e o celular entram dentro do campo, no fim.
 #define BU_MARG        96.0f
-#define BU_COL_BASE    544.0f   // largura da coluna do teclado (8 colunas de teclas de 56)
+#define BU_COL_BASE    352.0f   // largura da coluna do teclado (5 colunas de teclas de 56)
 #define BU_COL_W      buColW()
 #define BU_COL_GAP     (56.0f * ajustes_busca_espaco())   // dono (2026-10-26): espacamento da aba ajustavel
 #define BU_CAMPO_H     buCampoH()
@@ -97,7 +97,8 @@ static int buTecladoNativo(void) { return buTelefone() && st_ime_disponivel(); }
 static int buUmaColuna(void) { return buRetrato() || buTecladoNativo(); }
 static float buCampoH(void) { return buTecladoNativo() ? 104.0f : 76.0f; }
 static float buMargem(void) { return buTelefone() ? 48.0f : ANC(BU_MARG); }
-static float buX(void)   { return ANC(ajustes_rail_largura_fixa()) + buMargem(); }
+// dono (2026-10-26): o teclado sobe mais para a esquerda (sobrava vazio ali).
+static float buX(void)   { return ANC(ajustes_rail_largura_fixa()) + (buTelefone() ? buMargem() : ANC(40.0f)); }
 static float buDir(void) { return NV_TELA_W - (buRetratoTelefone() ? buX() : buMargem()); }
 static float buColW(void) { return buUmaColuna() ? buDir() - buX() : fminf(BU_COL_BASE, ANC(BU_COL_BASE)) * buKbK(); }
 static float buResY(void);
@@ -112,13 +113,13 @@ static float buTopoEsq(void) {
 }
 
 // --- Teclado -----------------------------------------------------------------
-// dono (2026-10-26): teclado revisto — 8 colunas de teclas menores (menos altura), letras MAIUSCULAS e maiores.
+// dono (2026-10-26): teclado revisto — 5 colunas de teclas menores (menos altura), letras MAIUSCULAS e maiores.
 #define BU_TECLA_W     (56.0f * buKbK())
 #define BU_TECLA_GAP   (8.0f * buKbK())
-#define BU_KB_COLS      8
+#define BU_KB_COLS      5
 // FILEIRAS DE TECLAS DE LETRA, no maximo (o layout latino usa 6; o cirilico, 7)
 // mais a de baixo (espaco/apagar/limpar/layout). O numero vivo e kbFil.
-#define BU_KB_MAX_FIL   8
+#define BU_KB_MAX_FIL   14
 #define BU_KB_PASSO   (BU_TECLA_W + BU_TECLA_GAP)
 #define BU_KB_W       (BU_KB_COLS * BU_TECLA_W + (BU_KB_COLS - 1) * BU_TECLA_GAP)
 #define BU_KB_X       buX()
@@ -307,6 +308,7 @@ static float buKbK(void) {
 // teclado). So na tela larga: telefone e retrato seguem com a coluna unica.
 #define BU_HERO_H   ANC(300.0f)
 #define BU_HERO_GAP ANC(30.0f)
+#define BU_TITULO_H ANC(96.0f)   // faixa do titulo em foco, no lugar do antigo destaque
 static int heroIdx = -1;                // indice de catalogo mostrado agora
 static int heroAnt = -1;                // o de antes, esvanecendo
 static Uint32 heroTroca;
@@ -323,11 +325,12 @@ static int heroAlvo(void) {
   for (r = 0; r < nFil; r++) if (heroTitulo(r)) return fil[r].itens[0];
   return -1;
 }
-static int heroAtivo(void) { return !buUmaColuna() && heroAlvo() >= 0; }
+// dono (2026-10-26): a aba Pesquisar nao tem mais destaque; o espaco do topo vira o titulo do cartaz em foco.
+static int heroAtivo(void) { return 0; }
 
 static float buResY(void) {
   if (buTecladoNativo()) return buTopoEsq() + BU_CAMPO_H + 44.0f;
-  if (!buRetrato()) return ANC(64.0f) + (heroAtivo() ? BU_HERO_H + BU_HERO_GAP : 0.0f);
+  if (!buRetrato()) return ANC(64.0f) + (heroAtivo() ? BU_HERO_H + BU_HERO_GAP : 0.0f) + (buUmaColuna() ? 0.0f : BU_TITULO_H);
   return BU_KB_Y + 2.0f * BU_KB_PAD + (kbFil + 1) * BU_TECLA_W
        + kbFil * BU_TECLA_GAP + 92.0f;
 }
@@ -973,9 +976,16 @@ static GfxRect retanguloTecla(int fileira, int coluna) {
     r.x = gx + coluna * BU_KB_PASSO;
     r.w = BU_TECLA_W;
   } else {
-    int n = KB_COLUNAS[kbFil];
-    r.w = (BU_KB_W - (n - 1) * BU_TECLA_GAP) / (float)n;
-    r.x = gx + coluna * (r.w + BU_TECLA_GAP);
+    // Teclas de baixo (espaco, apagar, limpar, ?!#, layout) com largura
+    // proporcional ao rotulo: 5 colunas de 56 nao dariam "espaço" inteiro.
+    static const float PESO[5] = { 1.7f, 1.2f, 1.2f, 0.9f, 0.9f };
+    int n = KB_COLUNAS[kbFil], i;
+    float soma = 0.0f, un, x = 0.0f;
+    for (i = 0; i < n; i++) soma += PESO[i];
+    un = (BU_KB_W - (n - 1) * BU_TECLA_GAP) / soma;
+    for (i = 0; i < coluna; i++) x += PESO[i] * un + BU_TECLA_GAP;
+    r.w = PESO[coluna] * un;
+    r.x = gx + x;
   }
   r.x = gx + (r.x - gx) * fit;
   r.w *= fit;
@@ -1526,8 +1536,8 @@ static void busca_atualizar_(float dt, Uint32 agora) {
   for (int f = 0; f <= kbFil; f++)
     for (int c = 0; c < KB_COLUNAS[f]; c++) {
       float alvo = (painel == 0 && !campoFoco && focus_indice(&focoKb, f, c)) ? 1.0f : 0.0f;
-      animTecla[f][c] = anim_mola(animTecla[f][c], alvo, dt,
-                                  alvo > animTecla[f][c] ? NV_MOLA_FOCO : NV_MOLA_DESFOCO);
+      // dono (2026-10-26): o cursor do teclado seguia lento; mola ~2x mais dura que a das fileiras.
+      animTecla[f][c] = anim_mola(animTecla[f][c], alvo, dt, 2.0f * NV_MOLA_FOCO);
     }
   for (int r = 0; r < BU_MAX_FILEIRAS; r++)
     for (int c = 0; c < BU_MAX_POR_FIL; c++) {
@@ -1949,7 +1959,6 @@ static void desenhaResultados(Uint32 agora) {
     return;
   }
 
-  desenhaHero(agora);
   if (!movel)
     gfx_recorte(BU_RES_X - 30.0f, BU_RES_Y - 20.0f,
                 (BU_DIR - BU_RES_X) + 60.0f, BU_RES_AREA_H + 40.0f);
@@ -2117,7 +2126,9 @@ static void desenhaResultados(Uint32 agora) {
               gfx_esqueleto(p, raio, NV_COR_ESQUELETO_R, NV_COR_ESQUELETO_G, NV_COR_ESQUELETO_B, 1.0f);
             else
               gfx_cor(p, raio, NV_COR_ESQUELETO_R, NV_COR_ESQUELETO_G, NV_COR_ESQUELETO_B, 1.0f); }
-          { TxtLinha tn = txt_linha_corta(buTecladoNativo() ? TXT_ILHA_NOME : TXT_ILHA_GENERO,
+          // dono (2026-10-26): o titulo nao fica mais sob cada cartaz; um so, grande, no topo (desenhaTituloFoco).
+          if (buUmaColuna()) {
+            TxtLinha tn = txt_linha_corta(buTecladoNativo() ? TXT_ILHA_NOME : TXT_ILHA_GENERO,
                                          ci->titulo, BU_TX, cw);
             txt_desenhar_alpha(tn, p.x, p.y + p.h + 10.0f, anim_mistura(0.62f, 1.0f, f)); }
           if (painel == 1 && focus_indice(&focoRes, r, c)) {
@@ -2137,6 +2148,16 @@ static void desenhaResultados(Uint32 agora) {
   gfx_sem_recorte();
 }
 
+// O titulo do cartaz em foco, uma vez, grande, acima das fileiras.
+static void desenhaTituloFoco(void) {
+  float larg = BU_DIR - BU_RES_X;
+  if (buUmaColuna() || painel != 1 || !temItemFoco || !itemFoco.titulo || larg < 100.0f) return;
+  { TxtLinha t = txt_linha_corta(TXT_HEADLINE, itemFoco.titulo, BU_TX, larg);
+    TxtLinha m = txt_linha_corta(TXT_ILHA_META, itemFoco.meta ? itemFoco.meta : "", BU_TX, larg);
+    txt_desenhar(t, BU_RES_X, ANC(64.0f));
+    if (itemFoco.meta && itemFoco.meta[0]) txt_desenhar_alpha(m, BU_RES_X, ANC(64.0f) + t.h + 6.0f, 0.62f); }
+}
+
 static void busca_desenhar_(Uint32 agora) {
   buInterfaceAtualizar();
 #ifdef NV_TOUCH_UI
@@ -2151,6 +2172,7 @@ static void busca_desenhar_(Uint32 agora) {
   desenhaCampo(agora);
   desenhaTeclado();
   desenhaResultados(agora);
+  desenhaTituloFoco();
 }
 
 void busca_evento(const SDL_Event *e) { TXT_INI(); busca_evento_(e); TXT_FIM(); }

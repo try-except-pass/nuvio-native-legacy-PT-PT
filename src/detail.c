@@ -2498,7 +2498,7 @@ static int secaoN(int r) {
     // UMA PARADA SO: o numero grande. Os blocos por fonte nao tomam foco
     // (dono 11/10/2026: "so focar no numero grande e depois ja desce").
     case SEC_NOTAS:
-      return notasui_fontes_n(notasDados()) > 0 ? 1 : 0;
+      return 0;   // dono (2026-10-26): a categoria "Notas" saiu da pagina do titulo (elenco e frases ficam)
     // A grade de episodios virou o cartao "Notas por episodio" do bloco acima.
     case SEC_NOTAS_EP:
       return 0;
@@ -4607,8 +4607,8 @@ static char   sinVisto[900], sinAnt[900];
 static int    sinVistoInit;
 static Uint32 sinTrocaDesde;
 // Linhas da sinopse no heroi: o texto inteiro (Ajustes > Sinopse na pagina do
-// titulo; a pilha sobe pela altura medida) ou as 3 do dono, com o resto em "...".
-static int detSinLinhas(void) { return ajustes_sinopse_completa() ? 14 : NV_DETW2_SIN_LINHAS; }
+// titulo; a pilha sobe pela altura medida; 0 = sem teto) ou as 3 do dono, com o resto em "...".
+static int detSinLinhas(void) { return ajustes_sinopse_completa() ? 0 : NV_DETW2_SIN_LINHAS; }
 static float  hSinVis;            // altura reservada, suavizada
 static int    hSinInit;
 static Uint32 hSinTick;

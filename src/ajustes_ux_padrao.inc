@@ -366,3 +366,7 @@
   100, /* search tab spacing, percent */
   0,   /* row titles on Home: shown */
   0,   /* second Home tab (Galeria) in the sidebar: shown */
+  100, /* hero details size (year, runtime, IMDb), percent */
+  100, /* clock size, percent */
+  100, /* sidebar icon size, percent */
+  1,   /* Galeria settings editing: Off */

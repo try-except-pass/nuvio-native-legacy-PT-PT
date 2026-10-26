@@ -31,6 +31,7 @@ const char *ajweb_url(void) { return ""; }
 
 // Do ajustes.c (o .h dele puxa SDL; so estas duas interessam aqui).
 char *ajustes_web_esquema(void);
+int ajustes_web_fileira(char campo, const char *chave, int v);
 int   ajustes_web_aplicar(const char *chave, int valor);
 
 #define AW_CAB_MAX   8192
@@ -220,8 +221,13 @@ static char *aplicarLinhas(const char *ent) {
   if (!r) { free(copia); return NULL; }
   n = (size_t)snprintf(r, cap, "{\"falhou\":[");
   for (l = strtok_r(copia, "\n", &sv); l; l = strtok_r(NULL, "\n", &sv)) {
-    char chave[96];
+    char chave[200], campo;
     int v;
+    if (!strncmp(l, "@fil\t", 5)) {   // fileiras: "@fil<TAB>campo<TAB>chave<TAB>valor"
+      if (sscanf(l, "@fil\t%c\t%199[^\t]\t%d", &campo, chave, &v) == 3 && ajustes_web_fileira(campo, chave, v)) ok++;
+      else if (n + 120 < cap) { n += (size_t)snprintf(r + n, cap - n, "%s\"@fil\"", nf ? "," : ""); nf++; }
+      continue;
+    }
     if (sscanf(l, "%95s %d", chave, &v) != 2) continue;
     if (ajustes_web_aplicar(chave, v)) { ok++; continue; }
     if (n + 120 < cap) {

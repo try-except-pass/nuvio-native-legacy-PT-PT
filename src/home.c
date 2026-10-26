@@ -1085,75 +1085,106 @@ static int heroItemNaVista(int idx) {
   }
   return 0;
 }
-static int heroEhSorteio(void) { const char *f = fil_hero_fonte(); return f[0] == '*' && !f[1]; }
+// Qualquer fonte explicita (sorteio ou fileiras escolhidas) anda em janelas de
+// HOME_HERO_LISTA titulos sem repeticao ate esgotar, e entao recomeca: sem teto.
+static int heroEhSorteio(void) { return fil_hero_fonte()[0] != 0; }
+
+// Candidatos (indices de catalogo) da fonte: "*" = catalogo todo (filtrado pela
+// aba quando `filtro`); senao as fileiras escolhidas (varias, separadas por tab).
+static int heroCandidatos(const char *fonte, int filtro, int *baralho, int cap) {
+  int m = 0, i, total = nAcervoHero();
+  if (fonte[0] == '*' && !fonte[1]) {
+    for (i = 0; i < total && m < cap; i++) {
+      const CatItem *c = cat_item(i);
+      if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c)) && (!filtro || heroItemNaVista(i))) baralho[m++] = i;
+    }
+    return m;
+  }
+  {
+    char copia[2048], *sv, *t;
+    snprintf(copia, sizeof copia, "%s", fonte);
+    for (t = strtok_r(copia, "\t", &sv); t; t = strtok_r(NULL, "\t", &sv)) {
+      int achou = 0, k;
+      for (i = 0; i < nFileiras && !achou; i++) {
+        if (strcmp(fileiras[i].chave, t)) continue;
+        achou = 1;
+        for (k = 0; k < fileiras[i].n && m < cap; k++) {
+          int idx = fileiraItemIndice(&fileiras[i], k);
+          const CatItem *c = (idx >= 0 && idx < cat_n()) ? cat_item(idx) : NULL;
+          if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = idx;
+        }
+      }
+      // #327: fileira nao desenhada (pasta de colecao / fora da Home): os titulos
+      // estao no catalogo publicado.
+      for (i = 0; i < cat_n_fileiras() && !achou; i++) {
+        const CatFileira *cf = cat_fileira(i);
+        if (!cf || strcmp(cf->chave, t)) continue;
+        for (k = 0; k < cf->n && m < cap; k++) {
+          int idx = cf->ini + k;
+          const CatItem *c = (idx >= 0 && idx < cat_n()) ? cat_item(idx) : NULL;
+          if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = idx;
+        }
+        achou = 1;
+      }
+    }
+  }
+  return m;
+}
+
+// Titulos da MESMA fonte do destaque (Catalogos do destaque: "*" ou fileiras), todos de
+// uma vez e sem consumir o historico do destaque, para a vitrine do descanso.
+// Devolve 0 quando a fonte e o automatico (quem chama usa o catalogo).
+int home_hero_fonte_itens(int *out, int cap) {
+  static int baralho[4096];   // shortcut: mais de 4096 candidatos so usa os 4096 primeiros
+  const char *fonte = fil_hero_fonte();
+  int salvaN = heroVistosN, m, i;
+  if (!fonte[0]) return 0;
+  heroVistosN = 0;   // candidatos sem filtrar pelo que o destaque ja mostrou
+  m = heroCandidatos(fonte, 0, baralho, (int)(sizeof baralho / sizeof *baralho));
+  heroVistosN = salvaN;
+  for (i = 0; i < m && i < cap; i++) out[i] = baralho[i];
+  return i;
+}
 
 static void heroMontarSet(void) {
   const char *fonte = fil_hero_fonte();
   int total = nAcervoHero();
   int i;
   heroSetN = 0;
-  if (fonte[0] == '*' && !fonte[1]) {
-    // Sorteio sem repeticao entre as janelas: o catalogo inteiro (todas as
-    // fileiras juntas), menos o que ja foi oferecido nesta sessao.
-    static int baralho[4096];   // shortcut: catalogo acima de 4096 titulos so sorteia os 4096 primeiros
-
+  if (fonte[0]) {
+    // Janela sem repeticao entre as janelas: o conjunto escolhido (catalogo todo
+    // no "*"), menos o que ja foi oferecido nesta sessao. Uma fileira so mantem
+    // a ordem dela; "*" e varias fileiras embaralham.
+    static int baralho[4096];   // shortcut: mais de 4096 candidatos so usa os 4096 primeiros
+    int embaralha = fonte[0] == '*' || strchr(fonte, '\t');
     unsigned x = heroSemente ? heroSemente : (heroSemente = (unsigned)SDL_GetTicks() | 1u);
-    int tentou = 0, filtro = 1;   // filtro: so itens das fileiras desta aba (cai se nao sobrar nenhum)
+    int tentou = 0, filtro = 1;   // filtro: so itens das fileiras desta aba (so no "*"; cai se nao sobrar nenhum)
     // Refazer a MESMA janela (fileiras que chegam, perfil) nao consome o catalogo: parte do
     // historico fechado na ultima renovacao, com a mesma semente.
     heroVistosN = heroVistosBase;
     for (;;) {
-      int m = 0, n = HOME_HERO_LISTA;
-      for (i = 0; i < total && m < (int)(sizeof baralho / sizeof *baralho); i++) {
-        const CatItem *c = cat_item(i);
-        if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c)) && (!filtro || heroItemNaVista(i))) baralho[m++] = i;
-      }
+      int m = heroCandidatos(fonte, filtro, baralho, (int)(sizeof baralho / sizeof *baralho));
+      int n = HOME_HERO_LISTA;
       for (i = 0; i < m && heroSetN < n; i++) {
-        int j;
         unsigned h;
-        x = x * 1103515245u + 12345u;
-        j = i + (int)((x >> 16) % (unsigned)(m - i));
-        { int t = baralho[i]; baralho[i] = baralho[j]; baralho[j] = t; }
+        if (embaralha) {
+          int j;
+          x = x * 1103515245u + 12345u;
+          j = i + (int)((x >> 16) % (unsigned)(m - i));
+          { int t = baralho[i]; baralho[i] = baralho[j]; baralho[j] = t; }
+        }
         h = heroHashTitulo(cat_item(baralho[i]));
         if (heroVisto(h)) continue;   // o mesmo titulo em outra fileira
         heroMarcarVisto(h);
         heroSet[heroSetN++] = baralho[i];
       }
       if (heroSetN > 0 || total <= 0) break;
-      heroVistosN = heroVistosBase = 0;   // catalogo esgotado: recomeca
+      heroVistosN = heroVistosBase = 0;   // esgotou: recomeca
       if (!tentou) tentou = 1;
       else if (filtro) filtro = 0;
       else break;
     }
-    return;
-  }
-  if (fonte[0]) {
-    // FILEIRA ESCOLHIDA. Nao existir nao apaga a escolha: o addon pode voltar,
-    // e ate la o destaque cai no automatico — que e o comportamento de quem
-    // nunca escolheu nada, nao um estado de erro.
-    for (i = 0; i < nFileiras; i++) {
-      if (strcmp(fileiras[i].chave, fonte)) continue;
-      { int k;
-        for (k = 0; k < fileiras[i].n && heroSetN < HOME_HERO_LISTA; k++) {
-          int idx = fileiraItemIndice(&fileiras[i], k);
-          if (idx >= 0 && idx < cat_n()) heroSet[heroSetN++] = idx;
-        } }
-      break;
-    }
-    // #327: a fileira escolhida pode nao estar DESENHADA (catalogo dentro de
-    // uma pasta de colecao, ou fora da Home): a descoberta a baixa so para
-    // alimentar o destaque. Os titulos dela estao no catalogo publicado.
-    if (!heroSetN) {
-      for (i = 0; i < cat_n_fileiras(); i++) {
-        const CatFileira *cf = cat_fileira(i);
-        int k;
-        if (!cf || strcmp(cf->chave, fonte)) continue;
-        for (k = 0; k < cf->n && heroSetN < HOME_HERO_LISTA; k++)
-          if (cf->ini + k >= 0 && cf->ini + k < cat_n() &&
-              !filmeVistoOculto(cat_item(cf->ini + k))) heroSet[heroSetN++] = cf->ini + k;
-        break;
-      }
-    }
+    // Fileira escolhida que nao existe (addon saiu): cai no automatico, abaixo.
     if (heroSetN) return;
   }
   for (i = 0; i < total && heroSetN < HOME_HERO_LISTA; i++)
@@ -4163,17 +4194,22 @@ static void home_atualizar_(float dt, Uint32 agora) {
   // focada cai exatamente em NV_SHELF_TOP. Continua com mola: o salto seco
   // entre fileiras de alturas diferentes le como corte, nao como navegacao.
   float alvoY = 0.0f;
+  // UMA FILEIRA SO: ela termina rente a borda de baixo da tela em vez de deixar
+  // o vazio embaixo. Rolagem negativa = fileiras descem (como o foco no destaque).
+  float folgaUma = nFileiras == 1
+    ? fmaxf(0.0f, NV_TELA_H - (topoFileiras() + NV_LEGACY_ROW_HEAD_H + alturaTotalFil(0))) : 0.0f;
   if (focoHero) {
     // ROLAGEM NEGATIVA: as fileiras sao desenhadas em NV_SHELF_TOP - scrollY,
     // entao empurra-las para baixo e o mesmo movimento de sempre com o sinal
     // trocado — a mola que ja existe faz a ida e a volta, e nao ha um segundo
     // relogio para descasar do primeiro.
-    alvoY = -empurraHero();
+    alvoY = -fmaxf(empurraHero(), folgaUma);
   } else {
     int r = foco.fileira;
     for (int i = 0; i < r && i < nFileiras; i++)
       alvoY += NV_LEGACY_ROW_HEAD_H + alturaTotalFil(i) + fileiraGap();
     if (layoutHome() == HOME_LAYOUT_DINAMICA) alvoY = dinRolagemCentrada(r, alvoY);
+    alvoY -= folgaUma;
   }
   scrollY = homeScrollYPasso(alvoY, dt, motionReduzido);
   for (int r = 0; r < nFileiras && r < MAX_FIL; r++)
@@ -8864,11 +8900,11 @@ void home_abrir_sessao(void) {
 // As entradas publicas ligam a camada. Os retangulos de foco sao sempre em
 // pixels da tela real (home.h), inclusive durante o desenho de outra camada.
 static float homeUnidade(void) { return gfx_escala_txt(); }
-void home_evento(const SDL_Event *e) { TXT_INI(); home_evento_(e); TXT_FIM(); }
-void home_atualizar(float dt, Uint32 agora) { TXT_INI(); home_atualizar_(dt, agora); TXT_FIM(); }
+void home_evento(const SDL_Event *e) { ajustes_galeria_aplicar(homeVista); TXT_INI(); home_evento_(e); TXT_FIM(); ajustes_galeria_aplicar(0); }
+void home_atualizar(float dt, Uint32 agora) { ajustes_galeria_aplicar(homeVista); TXT_INI(); home_atualizar_(dt, agora); TXT_FIM(); ajustes_galeria_aplicar(0); }
 // heroArteRect is layer px: the trailer step runs in the same layer (#205).
 void home_trailer_passo(int topo, float dt, Uint32 agora) { TXT_INI(); home_trailer_passo_(topo, dt, agora); TXT_FIM(); }
-void home_desenhar(Uint32 agora) { TXT_INI(); home_desenhar_(agora); TXT_FIM(); }
+void home_desenhar(Uint32 agora) { ajustes_galeria_aplicar(homeVista); TXT_INI(); home_desenhar_(agora); TXT_FIM(); ajustes_galeria_aplicar(0); }
 int home_cartao_foco_por_cima(int indice) {
   int r;
   TXT_INI(); r = home_cartao_foco_por_cima_(indice); TXT_FIM();

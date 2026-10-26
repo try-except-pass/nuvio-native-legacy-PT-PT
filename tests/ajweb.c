@@ -9,6 +9,7 @@
 
 char *ajustes_web_esquema(void) { return strdup("{\"perfil\":\"Teste\",\"s\":[]}"); }
 int ajustes_web_aplicar(const char *chave, int v) { return !strcmp(chave, "a") && v == 3; }
+int ajustes_web_fileira(char campo, const char *chave, int v) { return campo == 'h' && !strcmp(chave, "x") && v == 1; }
 
 int main(int argc, char **argv) {
   int i, seg = argc > 1 ? atoi(argv[1]) : 6;

@@ -1826,7 +1826,7 @@ static void desenhaFolhaHeroCat(void) {
           snprintf(ap, sizeof ap, "%s%s%s", fil_linha_addon(ix), fil_linha_addon(ix)[0] && fil_linha_conteudo(ix)[0] ? " · " : "",
                    fil_linha_conteudo(ix));
           apoio = ap;
-          marcado = !strcmp(fil_chave(ix), atual);
+          marcado = fil_hero_tem(fil_chave(ix));
           ajRosto(nome, r.x + 22, y + 16, 48, 14, 0.09f, 0.85f, TXT_ILHA_INICIAL);
         }
         { TxtLinha tl = t == HC_CAT ? txt_linha_corta(TXT_AJ_ROTULO, nome, AJ_TX, tw) : ajTxtC(TXT_AJ_ROTULO, nome, tw);
@@ -1840,7 +1840,7 @@ static void desenhaFolhaHeroCat(void) {
     y += h;
   }
   gfx_sem_recorte();
-  { AjDica d[2] = { { "OK", "Escolher" }, { "Voltar", "Fechar" } };
+  { AjDica d[2] = { { "OK", "Marcar / desmarcar" }, { "Voltar", "Fechar" } };
     ajDicas(d, 2, m.x + 44, m.y + m.h - 36, m.w - 88, 1); }
 }
 

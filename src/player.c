@@ -233,6 +233,16 @@ static int    scrubbing, scrubPassos, scrubTocava, scrubDir, scrubToque;
 static double scrubInicio;
 static Uint32 scrubUltimo;
 static SaltoEst scrubSalto;   // rajada do teclado (salto.h)
+#ifndef NV_TPK
+// SEEK EM VOO fora do .tpk (dono, 2026-10-26): depois de avancar, a posicao que o
+// decodificador informa continua a ANTIGA ate o salto carregar, e a bolinha da
+// barra voltava para la. Segura o destino ate a posicao chegar perto (ou 8 s).
+static int    saltoAtivo;
+static double saltoAlvo;
+static Uint32 saltoDesde;
+#define SALTO_PERTO_S 3.0
+#define SALTO_PRAZO_MS 8000u
+#endif
 #ifdef NV_TPK
 // .tpk SEEK GESTURE (seekgesto.h, owner 20/10): taps and holds share one
 // remembered step; the memory lives until the seek commits (terminarSalto).
@@ -3955,6 +3965,9 @@ static void buscarUsuario(double alvo) {
     if (!xtream_url_limitada(video_url_atual())) seekprobe_iniciar(video_url_atual(), video_cabecalhos());   // #557: own proxies handle Range
   creditosauto_destino(&creditosAuto, alvo);
   video_buscar(alvo);
+#ifndef NV_TPK
+  saltoAtivo = 1; saltoAlvo = alvo; saltoDesde = SDL_GetTicks();
+#endif
 #ifdef NV_TPK
   vooAtivo = 1; vooAlvo = alvo; vooDesde = SDL_GetTicks(); vooLivreEm = vooRetryEm = 0;
   vooTentativas = 0; vooFalhas = video_busca_falhas(); vooGer = fonteAcaoGeracao;
@@ -4024,6 +4037,8 @@ static void iniciarSalto(int toque) {
   // stale position the TV is still reporting (the second half of the bug).
   if (vooAtivo) { scrubInicio = vooAlvo; posSeg = (float)scrubInicio; }
   seekgesto_zerar(&gesto);
+#else
+  if (saltoAtivo) { scrubInicio = saltoAlvo; posSeg = (float)scrubInicio; }
 #endif
   scrubToque = toque;
   scrubbing = 1;
@@ -4669,6 +4684,10 @@ void player_atualizar(float dt, Uint32 agora) {
 #ifdef NV_TPK
     // Seek in flight: the target, never the stale position (vooAtivo).
     if (!scrubbing && vooAtivo) posSeg = (float)vooAlvo;
+    else
+#else
+    if (saltoAtivo && (fabs(video_pos() - saltoAlvo) < SALTO_PERTO_S || (Uint32)(agora - saltoDesde) > SALTO_PRAZO_MS)) saltoAtivo = 0;
+    if (!scrubbing && saltoAtivo) posSeg = (float)saltoAlvo;
     else
 #endif
     if (!scrubbing) posSeg = (float)video_pos();

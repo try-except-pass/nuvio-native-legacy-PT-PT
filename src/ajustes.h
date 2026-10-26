@@ -362,6 +362,9 @@ int   ajustes_hero_cheio(void);         // modernHeroFullScreenBackdropEnabled
 enum { HOME_LAYOUT_MODERNA = 0, HOME_LAYOUT_PADRAO = 1, HOME_LAYOUT_DINAMICA = 2,
        HOME_LAYOUT_N = 3 };
 int   ajustes_home_layout(void);
+float ajustes_relogio_escala(void);
+float ajustes_menu_icone(void);
+void  ajustes_galeria_aplicar(int on);   // 1 enquanto a Home desenha a Galeria: troca os ajustes de aparencia pelos dela
 int   ajustes_hero_fonte(void);         // origem local da arte do hero (ARTEHERO_*)
 // 1 = destaque/detalhe com foto diferente da do card (regra em artehero.h).
 int   ajustes_hero_arte_diferente(void);

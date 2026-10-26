@@ -17,6 +17,7 @@
 #include "ajustes.h"
 #include "idioma.h"
 #include "app.h"
+#include "home.h"
 #endif
 
 int descanso_item_serve(int temFundo, int temTitulo, int naLista, int progresso,
@@ -78,8 +79,16 @@ static void montarFila(unsigned semente) {
     for (i = 0; i < n; i++) if (itemServe(i, fonte)) conta++;
     if (conta < 3) fonte = DESC_FONTE_CATALOGO;
   }
-  for (i = 0; i < n && filaN < DESC_FILA_MAX; i++)
-    if (itemServe(i, fonte)) fila[filaN++] = i;
+  // dono (2026-10-26): a vitrine gira os mesmos titulos do destaque da Home ("Catalogos do destaque").
+  { static int src[512];
+    int k, m = home_hero_fonte_itens(src, (int)(sizeof src / sizeof *src));
+    for (k = 0; k < m && filaN < DESC_FILA_MAX; k++)
+      if (itemServe(src[k], DESC_FONTE_CATALOGO)) fila[filaN++] = src[k]; }
+  if (filaN < 3) {   // automatico (ou pouca coisa): o catalogo, como antes
+    filaN = 0;
+    for (i = 0; i < n && filaN < DESC_FILA_MAX; i++)
+      if (itemServe(i, fonte)) fila[filaN++] = i;
+  }
   // Fisher-Yates sobre o que entrou.
   for (i = filaN - 1; i > 0; i--) {
     int j = (int)(sorteio(&semente) % (unsigned)(i + 1)), t = fila[i];

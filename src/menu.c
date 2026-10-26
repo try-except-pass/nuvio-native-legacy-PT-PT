@@ -353,6 +353,17 @@ static void desenhaMaterial(const MenuGeo *g, float a) {
 
 static void desenhaRodape(const MenuGeo *g, float e, float alpha, float foco, float aTexto);
 
+// So icones: o nome da secao em foco aparece numa pilula ao lado do icone.
+static void dicaNome(const char *nome, float x, float cy, float a) {
+  TxtLinha l;
+  GfxRect r;
+  if (a <= 0.01f || !nome) return;
+  l = txt_linha(TXT_BODY, nome, 243, 242, 239, 255);
+  r = (GfxRect){ x, cy - (l.h + 22.0f) * 0.5f, l.w + 36.0f, l.h + 22.0f };
+  gfx_vidro_ou_solido(r, 0.5f, 0.8f, a, 0.08f, 0.09f, 0.10f, 0.92f);
+  txt_desenhar_alpha(l, r.x + 18.0f, cy - l.h * 0.5f, a);
+}
+
 // O PAINEL nas duas larguras. `e` vai de 0 (rail: so icones) a 1 (aberto, com
 // rotulos; passa um pouco no repique); `a` e a opacidade do painel todo;
 // `focos` diz se as molas de foco valem (a rail parada nao tem foco: a
@@ -366,7 +377,8 @@ static void desenhaBarra(float e, float a, int focos, float entrada) {
   // contra o icone.
   float aRot = ec * ec * a;
   float icx = g.x + anim_mistura(NV_MENU_ICONE_RAIL, NV_MENU_ICONE_ABRE, ec);
-  int k = 0;
+  int k = 0, dicaI = -1;
+  float dicaY = 0.0f;
   ajustes_acento(&ar, &ag, &ab);
   desenhaMaterial(&g, a);
 
@@ -381,6 +393,7 @@ static void desenhaBarra(float e, float a, int focos, float entrada) {
     float cy = y + NV_MENU_ITEM_H * 0.5f;
     GfxRect linhaR = linhaRect(&g, y, NV_MENU_ITEM_H, e);
     int atual = (i == destino);
+    if (ajustes_menu_so_icones() && aberto && focos && f > 0.01f) { dicaI = i; dicaY = cy; }
     focoLinha(linhaR, f, a);
     // ONDE VOCE ESTA: um ponto de 5 px no acento (regra 4: acento so para
     // estado). Aberto, a 6 px da ponta esquerda da linha, no meio da altura
@@ -404,7 +417,7 @@ static void desenhaBarra(float e, float a, int focos, float entrada) {
       float bw = br > f ? br : f;
       float tr = anim_mistura(NV_MENU_FG_R, 1.0f, bw), tg = anim_mistura(NV_MENU_FG_G, 1.0f, bw),
             tb = anim_mistura(NV_MENU_FG_B, 1.0f, bw);
-      iconeTraco(i, icx, cy, NV_MENU_ICONE, tr, tg, tb, op * a);
+      iconeTraco(i, icx, cy, NV_MENU_ICONE * ajustes_menu_icone(), tr, tg, tb, op * a);
       if (aRot > 0.01f) {
         // Texto ja rasterizado nao muda de cor: troca no meio da mola, e a
         // opacidade anda com ela.
@@ -422,6 +435,7 @@ static void desenhaBarra(float e, float a, int focos, float entrada) {
     gfx_cor((GfxRect){ fx, g.fioY, fw, MK(1.0f) }, 0, 1, 1, 1, anim_mistura(.10f, .08f, ec) * a); }
   desenhaRodape(&g, e, a, focos ? animFoco[MENU_RODAPE] : 0.0f, aRot);
   gfx_sem_recorte();
+  if (dicaI >= 0) dicaNome(ROTULOS[dicaI], g.x + g.w + 10.0f, dicaY, a * animFoco[dicaI]);
 }
 
 int menu_iniciar(void) {
@@ -831,7 +845,8 @@ static void menu_desenharCorpo_(Uint32 agora) {
 //   logo da pasta em circulo de 48.
 #define TV_PAINEL_X     38.0f
 #define TV_PAINEL_Y     38.0f
-#define TV_PAINEL_W    355.0f
+// So icones (Ajustes): o painel encolhe para a coluna dos icones e nenhum texto e desenhado.
+#define TV_PAINEL_W    (ajustes_menu_so_icones() ? 2.0f * (TV_PAD_X + TV_COL_CX) : 355.0f)
 #define TV_RAIO         40.0f
 #define TV_CAB_H       120.0f    // cabecalho: avatar, nome, relogio
 #define TV_LINHA_H      79.0f
@@ -986,6 +1001,7 @@ static GfxRect tvPainel(void) {
 #define TV_PIL_SETA (NV_MENU_PILULA_SETA / gfx_escala_txt())
 // A PILULA FECHADA: "‹" + circulo + rotulo da secao atual.
 static float tvPilulaLargura(void) {
+  if (ajustes_menu_so_icones()) return 7.0f + TV_PIL_CIRC + 7.0f;
   return 7.0f + TV_PIL_CIRC + 14.0f + (float)txt_largura(TXT_BODY, tvRotulo(destino)) + 24.0f;
 }
 static GfxRect tvPilula(void) {
@@ -1116,15 +1132,16 @@ static GfxRect tvPillFoco(GfxRect p, float f) {
 static void tvChip(float cx, float cy, float foco, float alfa) {
   float c = 1.0f - limita01(foco);   // branco no repouso, escuro no foco
   float a = anim_mistura(TV_CHIP_REPOUSO, TV_CHIP_FOCO, limita01(foco));
-  gfx_cor((GfxRect){ cx - TV_CHIP * 0.5f, cy - TV_CHIP * 0.5f, TV_CHIP, TV_CHIP },
-          0.5f, c, c, c, a * alfa);
+  GfxRect r = { cx - TV_CHIP * 0.5f, cy - TV_CHIP * 0.5f, TV_CHIP, TV_CHIP };
+  if (ajustes_vidro() && foco < 0.5f) gfx_vidro_chip(r, 0.5f, 0.55f, alfa);   // icones da barra no frost
+  else gfx_cor(r, 0.5f, c, c, c, a * alfa);
 }
 
 // Icone de linha, sem bolha atras: branco a 85% em repouso, a tinta escura
 // sobre a pilula branca do foco.
 static void tvIcone(int d, float cx, float cy, float foco, float alfa) {
   float lum = foco > 0.5f ? 0.08f : 1.0f;
-  icone(d, cx, cy, TV_ICONE, lum, lum, lum, alfa * (foco > 0.5f ? 1.0f : 0.85f));
+  icone(d, cx, cy, TV_ICONE * ajustes_menu_icone(), lum, lum, lum, alfa * (foco > 0.5f ? 1.0f : 0.85f));
 }
 
 // Circulo da PASTA de Streaming: a capa dela recortada em circulo (cover).
@@ -1209,7 +1226,7 @@ static void tvDica(GfxRect Q, float y, float a) {
   if (a <= 0.01f) return;
   gfx_icone((GfxRect){ Q.x + TV_PAD_X + TV_COL_CX - ic * 0.5f, cy - ic * 0.5f, ic, ic }, "aj_chevrons-down",
             .78f, .79f, .82f, a * 0.85f);
-  txt_bloco_corta(TXT_DET_META2, "Role para baixo para os streamings", 200, 202, 208, x, cy - h * 0.5f, larg, 28.0f, a, 2);
+  if (!ajustes_menu_so_icones()) txt_bloco_corta(TXT_DET_META2, "Role para baixo para os streamings", 200, 202, 208, x, cy - h * 0.5f, larg, 28.0f, a, 2);
 }
 
 static void tvDesenhar(void) {
@@ -1294,7 +1311,8 @@ static void tvDesenhar(void) {
       { GfxRect c = { P.x + 7.0f, cy - TV_PIL_CIRC * 0.5f, TV_PIL_CIRC, TV_PIL_CIRC };
         gfx_cor(c, 0.5f, 1.0f, 1.0f, 1.0f, 0.22f * ap);
         icone(destino, c.x + TV_PIL_CIRC * 0.5f, cy, 24.0f, 0.97f, 0.97f, 0.98f, ap); }
-      { TxtLinha l = txt_linha(TXT_BODY, tvRotulo(destino), 245, 245, 248, 255);
+      if (!ajustes_menu_so_icones()) {
+        TxtLinha l = txt_linha(TXT_BODY, tvRotulo(destino), 245, 245, 248, 255);
         txt_desenhar_alpha(l, P.x + 7.0f + TV_PIL_CIRC + 14.0f, cy - l.h * 0.5f, ap); }
     } }
 
@@ -1336,8 +1354,9 @@ static void tvDesenhar(void) {
       rel = txt_linha(TXT_DET_META2, hora, cRel, cRel, cRel, 255);
       nome = txt_linha_corta(TXT_PG_RELOGIO, p ? p->nome : "Sua conta", c, c, c, 255,
                              Q.x + Q.w - 24.0f - rel.w - 16.0f - (Q.x + TV_PAD_X + TV_ROT_X));
-      txt_desenhar_alpha(nome, Q.x + TV_PAD_X + TV_ROT_X, cyCab - nome.h * 0.5f, ac);
-      txt_desenhar_alpha(rel, Q.x + Q.w - 24.0f - rel.w, cyCab - rel.h * 0.5f, ac);
+      if (!ajustes_menu_so_icones()) {
+        txt_desenhar_alpha(nome, Q.x + TV_PAD_X + TV_ROT_X, cyCab - nome.h * 0.5f, ac);
+        txt_desenhar_alpha(rel, Q.x + Q.w - 24.0f - rel.w, cyCab - rel.h * 0.5f, ac); }
       if (aberto && ponteiro_ativo() && cyCab - TV_PILULA_H * 0.5f >= Q.y - 1.0f)
         ponteiro_alvo(Q.x, cyCab - TV_PILULA_H * 0.5f, Q.w, TV_PILULA_H, ponteiroLinha, NULL, MENU_RODAPE, 0); }
 
@@ -1349,7 +1368,7 @@ static void tvDesenhar(void) {
       TxtLinha l = txt_linha(TXT_TV_SECAO, "STREAMING", 235, 237, 243, 255);
       // The hint hands over to the label: it fades where the label rises.
       if (tvStT < TV_ST_DUR) tvDica(Q, topo + yRot, ac * (1.0f - tvExpo(tvStT / 0.10f)));
-      txt_tracking(TXT_TV_SECAO, "STREAMING", 235, 237, 243,
+      if (!ajustes_menu_so_icones()) txt_tracking(TXT_TV_SECAO, "STREAMING", 235, 237, 243,
                    Q.x + TV_PAD_X + TV_COL_CX - TV_ICONE * 0.5f,
                    topo + yRot + TV_ROTULO_H - l.h - 6.0f + TV_ST_DY * (1.0f - e), ac * e, TV_SECAO_TRK);
     }
@@ -1358,6 +1377,8 @@ static void tvDesenhar(void) {
       tvDica(Q, topo + tvDicaY + TV_ST_DY * 0.5f * (1.0f - e), ac * e);
     }
 
+    int dicaD = -1;
+    float dicaY = 0.0f, dicaAc = 0.0f;
     for (i = 0; i < MENU_N + np; i++) {
       int d = i < MENU_N ? TV_ORDEM[i] : MENU_ST0 + (i - MENU_N);
       int atual = (d == destino);
@@ -1390,14 +1411,19 @@ static void tvDesenhar(void) {
           tvCirculoPasta(pf, ccx, cy, ac);
           rot = pf ? pf->title : "";
         }
-        { TxtLinha l = txt_linha_corta(TXT_TV_ROTULO, rot, c, c, c, 255,
+        if (!ajustes_menu_so_icones()) {
+          TxtLinha l = txt_linha_corta(TXT_TV_ROTULO, rot, c, c, c, 255,
                                        pill.w - TV_ROT_X - 16.0f);
           txt_desenhar_alpha(l, pill.x + TV_ROT_X, cy - l.h * 0.5f, ac); } }
       ac = ac0;
+      if (ajustes_menu_so_icones() && aberto && d < MENU_N && animFoco[d] > 0.01f && y >= Q.y - 1.0f && y + TV_LINHA_H <= Q.y + Q.h + 1.0f) {
+        dicaD = d; dicaY = cy; dicaAc = ac * animFoco[d];
+      }
       if (aberto && ponteiro_ativo() && y >= Q.y - 1.0f && y + TV_LINHA_H <= Q.y + Q.h + 1.0f)
         ponteiro_alvo(Q.x, y, Q.w, TV_LINHA_H, ponteiroLinha, NULL, d, 0);
     }
     gfx_sem_recorte();
+    if (dicaD >= 0) dicaNome(menu_rotulo(dicaD), Q.x + Q.w + 10.0f, dicaY, dicaAc);
   }
 }
 

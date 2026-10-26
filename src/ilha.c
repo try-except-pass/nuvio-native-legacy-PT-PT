@@ -2017,7 +2017,13 @@ static void horaNoLugar(float x, int dir, float y, float a) {
 
 void ilha_desenhar(Uint32 agora) {
   ESCALA_INI();
-  ilha_desenharCorpo_(agora);
+  // Tamanho do relogio (Ajustes): escala em torno do canto onde a pilula ancora.
+  { float k = ajustes_relogio_escala();
+    float ox = ancDef ? ancX : NV_TELA_W - NV_ILHA_MARGEM_D / gfx_escala_txt();
+    float oy = ancDef ? ancY : NV_ILHA_Y / gfx_escala_txt();
+    if (k != 1.0f) gfx_transformar(ox, oy, k, 0.0f, 0.0f);
+    ilha_desenharCorpo_(agora);
+    if (k != 1.0f) gfx_sem_transformar(); }
   ESCALA_FIM();
 }
 static void ilha_desenharCorpo_(Uint32 agora) {
@@ -2249,7 +2255,8 @@ static void ilha_desenharCorpo_(Uint32 agora) {
                1.0f, 0, 0, 0.5f, 0, 0, 0, (0.34f + 0.16f * k) * A); }
     // At rest (no modal, no body) the island is the A27 top chrome: the same
     // material and tint as the bar and the avatar chip (gfx_chrome).
-    if (repouso) gfx_chrome(R, raio, A);
+    // dono (2026-10-26): o relogio em repouso usa o mesmo frost da barra lateral (vidro), nao o cromado da barra do topo.
+    if (repouso && !ajustes_vidro()) gfx_chrome(R, raio, A);
     else if (ajustes_vidro()) gfx_vidro_material(R, raio, fundo, A);
     else {
       // MATERIAL SOLIDO: a pilula em repouso tem de LER como pilula em paginas
