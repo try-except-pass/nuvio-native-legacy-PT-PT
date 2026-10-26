@@ -55,6 +55,9 @@ static int privado(in_addr_t a) {
   return (h >> 24) == 10 || (h >> 20) == 0xAC1 || (h >> 16) == 0xC0A8 || (h >> 24) == 127;
 }
 
+// Quem pode pedir: rede local ou Tailscale (100.64.0.0/10, so alcancavel dentro da tailnet).
+static int parOk(in_addr_t a) { return privado(a) || (ntohl(a) >> 22) == 0x191; }
+
 // A rota padrao diz qual interface a TV usa (connect num UDP so escolhe a rota,
 // nao manda pacote); sem rota, a primeira interface IPv4 privada de pe.
 static int ipLan(char *dst, size_t n) {
@@ -242,7 +245,7 @@ static void atender(int c) {
   size_t n = 0, fimCab, tem;
   char *sep, *q;
   memset(cab, 0, sizeof cab);
-  if (getpeername(c, (struct sockaddr *)&par, &pl) || par.sin_family != AF_INET || !privado(par.sin_addr.s_addr)) {
+  if (getpeername(c, (struct sockaddr *)&par, &pl) || par.sin_family != AF_INET || !parOk(par.sin_addr.s_addr)) {
     responder(c, 403, NULL, "Forbidden", NULL);
     return;
   }

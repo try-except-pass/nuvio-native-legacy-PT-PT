@@ -70,10 +70,11 @@
 // CIMA da primeira fileira do teclado — e OK nele chama o teclado da TV; o
 // microfone (Falar) e o celular entram dentro do campo, no fim.
 #define BU_MARG        96.0f
+#define BU_COL_BASE    544.0f   // largura da coluna do teclado (8 colunas de teclas de 56)
 #define BU_COL_W      buColW()
-#define BU_COL_GAP     56.0f
+#define BU_COL_GAP     (56.0f * ajustes_busca_espaco())   // dono (2026-10-26): espacamento da aba ajustavel
 #define BU_CAMPO_H     buCampoH()
-#define BU_ILHA_GAP    22.0f
+#define BU_ILHA_GAP    (22.0f * ajustes_busca_espaco())
 static float buKbK(void);
 #define BU_KB_PAD      (20.0f * buKbK())
 #define BU_CAMPO_PADX  28.0f
@@ -98,12 +99,12 @@ static float buCampoH(void) { return buTecladoNativo() ? 104.0f : 76.0f; }
 static float buMargem(void) { return buTelefone() ? 48.0f : ANC(BU_MARG); }
 static float buX(void)   { return ANC(ajustes_rail_largura_fixa()) + buMargem(); }
 static float buDir(void) { return NV_TELA_W - (buRetratoTelefone() ? buX() : buMargem()); }
-static float buColW(void) { return buUmaColuna() ? buDir() - buX() : fminf(520.0f, ANC(520.0f)) * buKbK(); }
+static float buColW(void) { return buUmaColuna() ? buDir() - buX() : fminf(BU_COL_BASE, ANC(BU_COL_BASE)) * buKbK(); }
 static float buResY(void);
 // A coluna da esquerda desce quando a pilula da Dinamica ocupa o canto. A
 // pilula vem em px REAIS e esta tela mede pela virtual (real / escala de
 // texto): sem a conversao o campo colava na pilula com texto menor que 100%.
-#define BU_TOPO_VAO 28.0f
+#define BU_TOPO_VAO (28.0f * ajustes_busca_espaco())
 static float buTopoEsq(void) {
   float px, py, pw, ph;
   if (menu_pilula_rect(&px, &py, &pw, &ph)) return ANC(fmaxf(64.0f, py + ph + BU_TOPO_VAO));
@@ -111,9 +112,10 @@ static float buTopoEsq(void) {
 }
 
 // --- Teclado -----------------------------------------------------------------
-#define BU_TECLA_W     (66.0f * buKbK())
-#define BU_TECLA_GAP   (10.0f * buKbK())
-#define BU_KB_COLS      6
+// dono (2026-10-26): teclado revisto — 8 colunas de teclas menores (menos altura), letras MAIUSCULAS e maiores.
+#define BU_TECLA_W     (56.0f * buKbK())
+#define BU_TECLA_GAP   (8.0f * buKbK())
+#define BU_KB_COLS      8
 // FILEIRAS DE TECLAS DE LETRA, no maximo (o layout latino usa 6; o cirilico, 7)
 // mais a de baixo (espaco/apagar/limpar/layout). O numero vivo e kbFil.
 #define BU_KB_MAX_FIL   8
@@ -125,7 +127,7 @@ static float buTopoEsq(void) {
 #define BU_MAX_CONSULTA 48
 
 // --- Coluna da direita --------------------------------------------------------
-#define BU_RES_X       (buUmaColuna() ? buX() : buX() + ANC(520.0f * buKbK() + BU_COL_GAP))
+#define BU_RES_X       (buUmaColuna() ? buX() : buX() + ANC(BU_COL_BASE * buKbK() + BU_COL_GAP))
 #define BU_RES_Y       buResY()
 #define BU_DIR         buDir()
 #define BU_RES_AREA_H  (NV_TELA_H - 48.0f - BU_RES_Y)
@@ -140,7 +142,7 @@ static float buTopoEsq(void) {
 #define BU_CARTAZ_W    (180.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_CARTAZ_H    (270.0f * gfx_poster_k() * ajustes_busca_cartaz())
 #define BU_NOME_ALT     (buTecladoNativo() ? 50.0f : 30.0f)
-#define BU_SECAO_GAP    34.0f
+#define BU_SECAO_GAP    (34.0f * ajustes_busca_espaco())
 
 // --- Buscas recentes (campo vazio; regras em buscasrec.h) ---------------------
 // Chips de 56 (o .chip do mockup) a partir de BU_RES_Y + 34, em LINHAS que
@@ -294,9 +296,9 @@ static int  KB_COLUNAS[BU_KB_MAX_FIL + 1] = { 6, 6, 6, 6, 6, 6, 3 };
 static float buKbK(void) {
   float k = ajustes_busca_teclado(), alt, larg;
   if (k <= 1.0f || buUmaColuna()) return buUmaColuna() ? 1.0f : k;
-  alt = (kbFil + 1) * 66.0f + kbFil * 10.0f + 40.0f + 16.0f + 2.0f * 20.0f + 36.0f;   // ilha + dicas
+  alt = (kbFil + 1) * 56.0f + kbFil * 8.0f + 40.0f + 16.0f + 2.0f * 20.0f + 36.0f;   // ilha + dicas
   alt = (NV_TELA_H - 24.0f - (buTopoEsq() + buCampoH() + BU_ILHA_GAP)) / alt;
-  larg = (0.55f * NV_TELA_W - buX()) / fminf(520.0f, ANC(520.0f));
+  larg = (0.55f * NV_TELA_W - buX()) / fminf(BU_COL_BASE, ANC(BU_COL_BASE));
   return fmaxf(1.0f, fminf(k, fminf(alt, larg)));
 }
 // --- HERO (coluna da direita, acima dos resultados) ----------------------------
@@ -313,7 +315,8 @@ static int heroTitulo(int r) { return r >= 0 && r < nFil && !fil[r].pessoas && f
 // O indice de catalogo que o hero deve mostrar, ou -1.
 static int heroAlvo(void) {
   int r;
-  if (sugestao || nFil <= 0) return -1;
+  // dono (2026-10-26): o hero tambem aparece com o campo vazio (sobre os Populares)
+  if (nFil <= 0) return -1;
   if (painel == 1 && heroTitulo(focoRes.fileira) && focoRes.coluna >= 0 && focoRes.coluna < fil[focoRes.fileira].n)
     return fil[focoRes.fileira].itens[focoRes.coluna];
   if (heroIdx >= 0 && painel != 0) return heroIdx;   // foco em pessoas/recentes: mantem o ultimo
@@ -334,6 +337,27 @@ static int idiomaCirilico(void) {
   const char *l = desc_tmdb_idioma();
   return l && (!strncmp(l, "ru", 2) || !strncmp(l, "uk", 2) || !strncmp(l, "be", 2) ||
                !strncmp(l, "bg", 2) || !strncmp(l, "sr", 2) || !strncmp(l, "mk", 2));
+}
+
+// Rotulo da tecla em MAIUSCULA (so o desenho; o que se digita continua minusculo,
+// e buscanorm.c dobra tudo na hora de casar). Latim basico, Latin-1 e cirilico.
+static void kbMaiuscula(char *dst, size_t n, const char *src) {
+  const unsigned char *p = (const unsigned char *)src;
+  size_t k = 0;
+  while (*p && k + 3 < n) {
+    unsigned char a = p[0], b = p[1];
+    if (a >= 'a' && a <= 'z') { dst[k++] = (char)(a - 32); p++; }
+    else if (a == 0xC3 && b >= 0xA0 && b <= 0xBE && b != 0xB7) { dst[k++] = (char)a; dst[k++] = (char)(b - 32); p += 2; }
+    else if (a == 0xD0 && b >= 0xB0 && b <= 0xBF) { dst[k++] = (char)a; dst[k++] = (char)(b - 32); p += 2; }
+    else if (a == 0xD1 && b >= 0x80 && b <= 0x8F) { dst[k++] = (char)0xD0; dst[k++] = (char)(b + 0x20); p += 2; }
+    else if (a == 0xD1 && b == 0x91) { dst[k++] = (char)0xD0; dst[k++] = (char)0x81; p += 2; }
+    else if (a == 0xD1 && b == 0x94) { dst[k++] = (char)0xD0; dst[k++] = (char)0x84; p += 2; }
+    else if (a == 0xD1 && b == 0x96) { dst[k++] = (char)0xD0; dst[k++] = (char)0x86; p += 2; }
+    else if (a == 0xD1 && b == 0x97) { dst[k++] = (char)0xD0; dst[k++] = (char)0x87; p += 2; }
+    else if (a == 0xD2 && b == 0x91) { dst[k++] = (char)0xD2; dst[k++] = (char)0x90; p += 2; }
+    else { dst[k++] = (char)*p++; }
+  }
+  dst[k] = 0;
 }
 
 // Separa `texto` (UTF-8) em teclas de uma casa cada.
@@ -748,10 +772,10 @@ static float buCartazW(void);
 // viu ainda e o que ele buscou), ou refez pela pilula. O limite de 2
 // caracteres e o dedupe ficam em buscasrec.c.
 static void registrarConsulta(void) {
-  if (nConsulta >= 2 && nFil > 0) buscasrec_registrar(consulta);
 }
 
-static int recentesVisiveis(void) { return nConsulta == 0 && buscasrec_n() > 0; }
+// dono (2026-10-26): sem buscas recentes na aba; o resto do codigo de chips fica inerte
+static int recentesVisiveis(void) { return 0; }
 // Resultados DE VERDADE (e nao as sugestoes do campo vazio).
 static int temResultados(void) { return !sugestao && nFil > 0; }
 
@@ -1744,7 +1768,7 @@ static void desenhaTeclado(void) {
       buPilulaAcento(t, BU_TECLA_RAIO, k);
       const char *s;
       if (f < kbFil) {
-        snprintf(rotulo, sizeof rotulo, "%s", kbTeclas[f * BU_KB_COLS + c]);
+        kbMaiuscula(rotulo, sizeof rotulo, kbTeclas[f * BU_KB_COLS + c]);
         s = rotulo;
       } else s = (c == 0) ? i18n("espaço") : (c == 1 ? i18n("apagar")
                : (c == 2 ? i18n("limpar") : c == 3 ? (pagSim ? "abc" : "?!#")
@@ -1752,27 +1776,12 @@ static void desenhaTeclado(void) {
       // The tone eases every frame while focus moves: tint the cached white
       // line at draw time instead of rasterizing one line per tone.
       float tom = anim_mistura(243.0f, (float)ajustes_tinta_foco(), k) / 255.0f;
-      TxtLinha l = f < kbFil ? txt_linha(buKbK() < 1.2f ? TXT_G26B : buKbK() < 1.55f ? TXT_G30B : TXT_G52B, s, 255, 255, 255, 255)
+      TxtLinha l = f < kbFil ? txt_linha(buKbK() < 1.55f ? TXT_G30B : TXT_G52B, s, 255, 255, 255, 255)
                              : txt_linha_corta(TXT_AJ_SEG, s, 255, 255, 255, 255, t.w - 8.0f);
       txt_desenhar_tom(l, t.x + (t.w - l.w) * 0.5f, t.y + (t.h - l.h) * 0.5f, tom, tom, tom, 1.0f);
     }
   }
-  // Dicas do controle, 16 px a 16 abaixo da ilha (o texto mudo do mockup).
-  { float y = ilha.y + ilha.h + 16.0f;
-    const char *d1 = campoFoco == 1 ? i18n("OK   Teclado da TV")
-                   : campoFoco == 2 ? i18n("OK   Falar")
-                   : campoFoco == 3 ? i18n("OK   Digitar pelo celular")
-                   : temResultados() ? i18n("→   Resultados")
-                   : recentesVisiveis() ? i18n("→   Buscas recentes")
-                   : nFil ? i18n("→   Populares")
-                   : st_ime_disponivel() ? i18n("↑   Campo de busca")
-                   : celb_disponivel() ? i18n("↑   Digitar pelo celular")
-                   : i18n("OK   Digitar");
-    const char *d2 = i18n("Voltar   Menu");
-    TxtLinha a1 = txt_linha(TXT_ILHA_APOIO, d1, BU_TX);
-    TxtLinha a2 = txt_linha(TXT_ILHA_APOIO, d2, BU_TX);
-    txt_desenhar_alpha(a1, BU_KB_X + 12.0f, y, 0.42f);
-    txt_desenhar_alpha(a2, BU_KB_X + 12.0f, y + a1.h + 6.0f, 0.42f); }
+  // dono (2026-10-26): as dicas de controle ("Voltar   Menu" etc.) sairam
 }
 
 static void desenhaVazio(void) {
@@ -1884,7 +1893,19 @@ static void desenhaHero(Uint32 agora) {
   GfxRect t = { BU_RES_X, ANC(64.0f), BU_DIR - BU_RES_X, BU_HERO_H };
   const CatItem *ci;
   float f = 1.0f;
-  if (buUmaColuna() || alvo < 0) return;
+  if (buUmaColuna()) return;
+  if (alvo < 0) {
+    // DIAGNOSTICO (o hero da busca some): diz por que, uma vez por mudanca de motivo.
+    static int visto = -2;
+    int motivo = nFil <= 0 ? 0 : 1;
+    if (motivo != visto) {
+      visto = motivo;
+      printf("[busca-hero] sem hero: nFil=%d sugestao=%d painel=%d motivo=%s\n", nFil, sugestao, painel,
+             motivo ? "nenhuma fileira de titulos" : "sem fileiras");
+      fflush(stdout);
+    }
+    return;
+  }
   if (alvo != heroIdx) { heroAnt = heroIdx; heroIdx = alvo; heroTroca = agora; }
   if (heroAnt >= 0 && !anim_politica_reduzida) {
     f = (float)(agora - heroTroca) / (float)HERO_FUNDIDO_MS;
@@ -2073,7 +2094,7 @@ static void desenhaResultados(Uint32 agora) {
           gfx_opacidade_grupo = grupo * entra;
           // Mesmo foco da Home (focoprof.h): brilho e anel na cor de destaque.
           foco_sombra(p.x, p.y, p.w, p.h, f, 1.0f);
-          foco_anel(p, raio, f, 1.0f);
+          foco_anel_se(ajustes_borda_foco_busca(), p, raio, f, 1.0f);
           if (f > 0.01f)
             gfx_rect((GfxRect){ p.x - 16, p.y - 4, p.w + 32, p.h + 40 }, 0, GFX_SOMBRA, 1.0f, 0, 0, 0.5f,
                      0, 0, 0, 0.50f * f);

@@ -359,3 +359,9 @@
   0,   /* title page synopsis: full text */
   0,   /* focused poster glow: On (V_LIGA 0) */
   1,   /* settings from the browser page: Off (V_LIGA 1) */
+  0,   /* focus ring on Search results: On */
+  100, /* sidebar size, percent */
+  100, /* sidebar item spacing, percent */
+  1,   /* sidebar icons only: Off */
+  100, /* search tab spacing, percent */
+  0,   /* row titles on Home: shown */

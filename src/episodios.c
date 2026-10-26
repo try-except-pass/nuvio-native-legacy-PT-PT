@@ -292,7 +292,7 @@ static void menuAbrir(int idx, int t, int e, const char *nome, int so) {
       }
   }
   vmAcoes[vmN++] = VM_TEMP;
-  if (so && e > 0) vmAcoes[vmN++] = VM_NOTA;
+  // dono (2026-10-26): sem avaliacao propria; VM_NOTA nao entra mais no menu
   if (so) vmAcoes[vmN++] = VM_FONTES;
   vmSinopse[0] = 0;
   if (e > 0) {

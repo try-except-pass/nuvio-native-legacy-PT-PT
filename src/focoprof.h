@@ -24,15 +24,19 @@ static inline GfxRect foco_zoom(GfxRect r, float f) {
 }
 
 // Anel de foco. `raio` na convencao do gfx_cor (fracao do MENOR lado).
-static inline void foco_anel(GfxRect r, float raio, float f, float a) {
+static inline void foco_anel_se(int ligado, GfxRect r, float raio, float f, float a) {
   float menor = r.w < r.h ? r.w : r.h, ar, ag, ab;
-  if (f <= 0.01f || !ajustes_borda_foco()) return;
+  if (f <= 0.01f || !ligado) return;
   if (ajustes_vidro()) { gfx_vidro_cartao(r, raio, f, a); return; }
   ajustes_acento(&ar, &ag, &ab);
   gfx_cor((GfxRect){ r.x - NV_ANEL_FOCO, r.y - NV_ANEL_FOCO,
                      r.w + 2 * NV_ANEL_FOCO, r.h + 2 * NV_ANEL_FOCO },
           (raio * menor + NV_ANEL_FOCO) / (menor + 2 * NV_ANEL_FOCO),
           ar, ag, ab, f * a);
+}
+
+static inline void foco_anel(GfxRect r, float raio, float f, float a) {
+  foco_anel_se(ajustes_borda_foco(), r, raio, f, a);
 }
 
 // SOMBRA DE FOCO (Ajustes > Sombra no cartaz em foco): uma mancha difusa na cor de

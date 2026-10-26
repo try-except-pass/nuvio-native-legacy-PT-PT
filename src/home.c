@@ -452,7 +452,10 @@ static Uint32 heroUltTecla;
 // atravessava o catalogo inteiro (281 titulos na conta do dono) — invisivel
 // enquanto ninguem contava, mentira assim que aparece um "3 / 281" na tela e a
 // pessoa tenta chegar ao fim.
+#undef NV_LEGACY_ROW_HEAD_H
+#define NV_LEGACY_ROW_HEAD_H (ajustes_fil_titulos() ? 64.0f : 22.0f)   // sem titulo, so a folga ate os cartazes
 #define HOME_HERO_LISTA 10
+#define HOME_HERO_SIN_LINHAS 12   // teto pratico: sinopse inteira (shortcut: texto acima de 12 linhas e cortado)
 static int heroAtual = 0, heroAnterior = 0;
 // Candidato a heroi e desde quando ele e o candidato. Ver NV_HERO_REPOUSO_MS.
 static int    heroPendente = 0;
@@ -1049,30 +1052,62 @@ static int heroSetCat, heroSetNFil;
 // quer dizer para quem esta no sofa.
 static unsigned heroSemente;
 
+// SEM REPETIDOS no sorteio "*" (dono, 2026-10-26): hashes dos titulos ja
+// oferecidos nesta sessao. O mesmo filme em varias fileiras do catalogo conta
+// como UM (hash do imdb, ou do titulo quando nao ha). Esgotado o catalogo, zera.
+#define HERO_VISTOS_MAX 8192
+static unsigned heroVistos[HERO_VISTOS_MAX];
+static int heroVistosN, heroVistosBase;   // Base = o que ja ficou para tras ao abrir a janela atual
+static unsigned heroHashTitulo(const CatItem *c) {
+  const unsigned char *p = (const unsigned char *)(c->imdb[0] ? c->imdb : c->titulo);
+  unsigned h = 2166136261u;
+  while (*p) h = (h ^ *p++) * 16777619u;
+  return h ? h : 1u;
+}
+static int heroVisto(unsigned h) {
+  int i;
+  for (i = 0; i < heroVistosN; i++) if (heroVistos[i] == h) return 1;
+  return 0;
+}
+static void heroMarcarVisto(unsigned h) {
+  if (heroVistosN >= HERO_VISTOS_MAX) heroVistosN = heroVistosBase = 0;   // shortcut: catalogo > 8192 titulos recomeca o historico
+  heroVistos[heroVistosN++] = h;
+}
+static int heroEhSorteio(void) { const char *f = fil_hero_fonte(); return f[0] == '*' && !f[1]; }
+
 static void heroMontarSet(void) {
   const char *fonte = fil_hero_fonte();
   int total = nAcervoHero();
   int i;
   heroSetN = 0;
   if (fonte[0] == '*' && !fonte[1]) {
-    // Sorteio sem repeticao: embaralha os `total` indices por Fisher-Yates
-    // parcial, usando so os HOME_HERO_LISTA primeiros passos.
-    int n = total < HOME_HERO_LISTA ? total : HOME_HERO_LISTA;
-    static int baralho[512];
-    int m = total < (int)(sizeof baralho / sizeof *baralho)
-          ? total : (int)(sizeof baralho / sizeof *baralho);
+    // Sorteio sem repeticao entre as janelas: o catalogo inteiro (todas as
+    // fileiras juntas), menos o que ja foi oferecido nesta sessao.
+    static int baralho[4096];
     unsigned x = heroSemente ? heroSemente : (heroSemente = (unsigned)SDL_GetTicks() | 1u);
-    int candidatos = 0;
-    for (i = 0; i < m; i++)
-      if (!filmeVistoOculto(cat_item(i))) baralho[candidatos++] = i;
-    m = candidatos;
-    if (n > m) n = m;
-    for (i = 0; i < n && i < m; i++) {
-      int j;
-      x = x * 1103515245u + 12345u;
-      j = i + (int)((x >> 16) % (unsigned)(m - i));
-      { int t = baralho[i]; baralho[i] = baralho[j]; baralho[j] = t; }
-      heroSet[heroSetN++] = baralho[i];
+    int tentou = 0;
+    // Refazer a MESMA janela (fileiras que chegam, perfil) nao consome o catalogo: parte do
+    // historico fechado na ultima renovacao, com a mesma semente.
+    heroVistosN = heroVistosBase;
+    for (;;) {
+      int m = 0, n = HOME_HERO_LISTA;
+      for (i = 0; i < total && m < (int)(sizeof baralho / sizeof *baralho); i++) {
+        const CatItem *c = cat_item(i);
+        if (c && !filmeVistoOculto(c) && !heroVisto(heroHashTitulo(c))) baralho[m++] = i;
+      }
+      for (i = 0; i < m && heroSetN < n; i++) {
+        int j;
+        unsigned h;
+        x = x * 1103515245u + 12345u;
+        j = i + (int)((x >> 16) % (unsigned)(m - i));
+        { int t = baralho[i]; baralho[i] = baralho[j]; baralho[j] = t; }
+        h = heroHashTitulo(cat_item(baralho[i]));
+        if (heroVisto(h)) continue;   // o mesmo titulo em outra fileira
+        heroMarcarVisto(h);
+        heroSet[heroSetN++] = baralho[i];
+      }
+      if (heroSetN > 0 || tentou || total <= 0) break;
+      heroVistosN = heroVistosBase = 0; tentou = 1;   // catalogo esgotado: recomeca
     }
     return;
   }
@@ -1123,6 +1158,14 @@ static void heroSetGarantir(void) {
   // Os candidatos ja sao conhecidos: completa em segundo plano a sinopse dos
   // que vieram rasos (lista do Trakt), antes de o carrossel chegar a eles.
   desc_sinopse_hero(heroSet, heroSetN);
+}
+
+// Nova janela do sorteio quando a anterior acabou (a seta ou o carrossel
+// chegaram ao fim): zera a assinatura para heroSetGarantir refazer a lista.
+static void heroRenovar(void) {
+  heroVistosBase = heroVistosN;
+  heroSemente = (heroSemente * 1664525u + 1013904223u) | 1u;
+  heroSetRev = 0;
 }
 
 // Quantos titulos o destaque oferece.
@@ -1438,6 +1481,18 @@ static const char *arte_por_identidade(int indice, int deitado) {
   return NULL;
 }
 
+// O proximo titulo do carrossel automatico. No sorteio "*", ao fim da janela
+// sorteia outra (sem repetir) em vez de voltar ao primeiro.
+static int heroProximoAuto(void) {
+  int total = heroNLista();
+  int pos = heroPosDe(heroAtual), p;
+  if (total <= 0) return 0;
+  if (heroEhSorteio() && pos >= 0 && pos + 1 >= total) { heroRenovar(); total = heroNLista(); pos = -1; }
+  p = pos < 0 ? 0 : (pos + 1) % total;
+  p = heroIdxEm(p);
+  return p < 0 ? 0 : p;
+}
+
 // UM PASSO DO DESTAQUE, pela seta. Anuncia o desejo do mesmo jeito que o
 // carrossel automatico: quem efetiva a troca continua sendo o desenho, quando a
 // arte estiver pronta (ou quando a espera estourar). Assim o gesto tem a mesma
@@ -1451,6 +1506,7 @@ static void heroPasso(int d) {
   int pos = heroPosDe(heroIntencao());
   int alvo;
   if (pos < 0) pos = 0;
+  if (heroEhSorteio() && d > 0 && n > 0 && pos + d >= n) { heroRenovar(); n = heroNLista(); pos = -d; }
   alvo = heroIdxEm(pos + d);
   if (n <= 0 || alvo < 0) return;
   heroPendente = alvo;
@@ -1646,12 +1702,12 @@ static void desenhaFaixaAberta(const CatItem *ci, int r, float px, float py,
 
   // Da direita para a esquerda, cada chip devolve a largura que ocupou.
   // 1. Tendencia.
-  if (temTend && (novo || delta != 0)) {
+  // dono (2026-10-26): o chip "Novo" saiu; ficam so as setas de subida/queda
+  if (temTend && !novo && delta != 0) {
     char rot[24];
     float cr, cg, cb;
     TxtLinha l;
-    if (novo) { ajustes_acento(&cr, &cg, &cb); snprintf(rot, sizeof rot, "%s", i18n("Novo")); }
-    else if (delta > 0) { cr = 0.30f; cg = 0.78f; cb = 0.45f;
+    if (delta > 0) { cr = 0.30f; cg = 0.78f; cb = 0.45f;
                           snprintf(rot, sizeof rot, "\xe2\x86\x91 %d", delta); }
     else { cr = 0.90f; cg = 0.36f; cb = 0.36f;
            snprintf(rot, sizeof rot, "\xe2\x86\x93 %d", -delta); }
@@ -2663,7 +2719,13 @@ static void home_evento_(const SDL_Event *e) {
         const Fileira *fl = &fileiras[foco.fileira];
         // "Proximos episodios" (issue #127) NAO toca: o episodio ainda nao foi
         // ao ar, e nenhum addon tem fonte para ele. OK abre a pagina.
-        if (ajustes_cw_ok_toca() && strcmp(fl->chave, "upcoming_section") &&
+        int tocaCw = ajustes_cw_ok_toca();
+        if (ajustes_cw_ok_auto()) {   // dono (2026-10-26): filme toca, serie abre a pagina
+          int ix = fileiraItemIndice(fl, foco.coluna);
+          const CatItem *cx = ix >= 0 ? cat_item_exato(ix) : NULL;
+          tocaCw = cx && !strcmp(cx->tipo, "movie");
+        }
+        if (tocaCw && strcmp(fl->chave, "upcoming_section") &&
             (fl->tipo == FILEIRA_CONTINUE || fl->tipo == FILEIRA_RETORNO ||
              !strcmp(fl->chave, "continue_watching")))
           pedidoTocar = 1;
@@ -3885,10 +3947,7 @@ static void home_atualizar_(float dt, Uint32 agora) {
       // A MESMA LISTA QUE A SETA PERCORRE. O carrossel andava pelo catalogo
       // inteiro; com o contador na tela isso viraria um "3 / 281" que ninguem
       // atravessa e que contradiz o que a seta faz.
-      int total = heroNLista();
-      int pos = heroPosDe(heroAtual);
-      int proximo = total > 0 ? heroIdxEm(((pos < 0 ? 0 : pos) + 1) % total) : 0;
-      if (proximo < 0) proximo = 0;
+      int proximo = heroProximoAuto();
       heroPendente = proximo;
       heroTempoInicio(proximo);
       heroPendenteEm = agora - NV_HERO_REPOUSO_MS;
@@ -3923,10 +3982,7 @@ static void home_atualizar_(float dt, Uint32 agora) {
       if (alvo < 0 && heroDesejado < 0 && !heroAutoDesligado && janela &&
           (!focoHero || agora + NV_HERO_PRE_MS - heroUltTecla >= HOME_HERO_OCIO_MS) &&
           (!seg || !tocando)) {
-        int total = heroNLista();
-        int pos = heroPosDe(heroAtual);
-        int proximo = total > 0 ? heroIdxEm(((pos < 0 ? 0 : pos) + 1) % total) : 0;
-        if (proximo < 0) proximo = 0;
+        int proximo = heroProximoAuto();
         if (proximo != heroAtual) heroPreItem = proximo;
       }
       // DIAGNOSTICO: a janela abriu e a pre-busca nao saiu — diz quem a
@@ -4657,7 +4713,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   TxtLinha tituloTelefone = {0};
   if (ajustes_hero_tamanho() && !heroCompactoTelefone()) {
     // Keep the enlarged block above the same row boundary and below the header.
-    while (copy.logo + copy.logoHeight - minTop < logoH && sinopse[0] && sinLinhas > 1) {
+    while (copy.logo + copy.logoHeight - minTop < logoH && sinopse[0] && sinLinhas > HOME_HERO_SIN_LINHAS) {   // nunca: a sinopse nao perde linhas
       sinLinhas--;
       hSin = txt_bloco_corta(heroSinEstilo(), sinopse, 255, 255, 255, -1, 0,
                              sinW, heroSinEntrelinha(), 0, sinLinhas);
@@ -5064,14 +5120,15 @@ static void desenhaHero(Uint32 agora, float saida) {
   float dinY = 0.0f, aVis = 1.0f;
   float logoH = NV_LOGO_HERO_H, sinW = NV_HERO_SIN_W;
   float btnH = NV_HERO_BOTAO_COMPACTO_H, btnGap = NV_HOME_HERO_BOTAO_GAP;
-  int sinLinhas = 3;
+  // dono (2026-10-26): sinopse do destaque SEMPRE inteira, fonte fixa; o bloco cresce para cima
+  int sinLinhas = HOME_HERO_SIN_LINHAS;
   if (lay == HOME_LAYOUT_PADRAO) {
     // TELA CHEIA NA LARGURA (dono, 30/09): sem cartao, sem canto. A arte vai de
     // borda a borda e do topo da tela e se DISSOLVE na base para o fundo, onde
     // comecam as fileiras (o texto fica no trecho ainda opaco, com o veu).
     cheio = 0; modoHero = GFX_VITRINE;
     heroVeuLayout(lay, r.h);
-    logoH = NV_PAD_LOGO_H; sinW = NV_PAD_SIN_W; sinLinhas = 3;
+    logoH = NV_PAD_LOGO_H; sinW = NV_PAD_SIN_W; sinLinhas = HOME_HERO_SIN_LINHAS;
     btnH = NV_HERO_BOTAO_COMPACTO_H; btnGap = 22.0f;
   } else if (lay == HOME_LAYOUT_DINAMICA) {
     cheio = 0; modoHero = GFX_VITRINE;
@@ -7982,7 +8039,8 @@ static void home_desenhar_(Uint32 agora) {
         int cg = 173 + (int)((246 - 173) * k + 0.5f);
         int cb = 181 + (int)((249 - 181) * k + 0.5f);
         const float maxW = homeRetratoTelefone() ? homeLarguraUtil() - 76.0f : NV_TELA_W - homeConteudoX() - 180.0f;
-        const int mudo = tipo == FILEIRA_SOCIAL && ajustes_amigos_estilo() == 3 && !amigosfil_convite();
+        const int mudo = (tipo == FILEIRA_SOCIAL && ajustes_amigos_estilo() == 3 && !amigosfil_convite()) ||
+                         !ajustes_fil_titulos();
         const float og = gfx_opacidade_grupo;
         if (tipo == FILEIRA_HEROI_DIVIDIDO) gfx_opacidade_grupo = og * divididoRotuloAlfa(k);
         fimTit = desenhaTituloFil(r, y, rotFil, cr, cg, cb, k, maxW, !mudo, &tl);
@@ -7994,7 +8052,9 @@ static void home_desenhar_(Uint32 agora) {
         TxtLinha ai=txt_linha(TXT_HERO_META,"AI-powered",183,192,219,255);
         txt_desenhar(ai,fimTit+22,y+(tl.h-ai.h)*.5f);
       }
-      if (foco.fileira == r && !focoHero && tipo == FILEIRA_PALCO) {
+      if (!ajustes_fil_titulos()) {
+        /* dono (2026-10-26): sem titulos de fileira, tambem sem contador no lugar dele */
+      } else if (foco.fileira == r && !focoHero && tipo == FILEIRA_PALCO) {
         char current[32], total[32];
         snprintf(current, sizeof current, "%d", colunaDaFileira(r) + 1);
         snprintf(total, sizeof total, " / %d", fileiras[r].n);

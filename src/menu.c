@@ -47,7 +47,7 @@ static float tvAumento(void) {
   return ajustes_home_layout() == HOME_LAYOUT_DINAMICA && gfx_escala_ui_base() <= 0.9f + 0.001f ? 1.2f : 1.0f;
 }
 static float menuEscala(void) {
-  return NV_MENU_ESCALA_BASE * (ajustes_home_layout() == HOME_LAYOUT_MODERNA ? NV_MENU_MODERNA_AUMENTO : 1.0f) * tvAumento() * fminf(gfx_escala_ui_base(), 1.0f) * gfx_escala_txt();
+  return NV_MENU_ESCALA_BASE * (ajustes_home_layout() == HOME_LAYOUT_MODERNA ? NV_MENU_MODERNA_AUMENTO : 1.0f) * tvAumento() * fminf(gfx_escala_ui_base(), 1.0f) * gfx_escala_txt() * ajustes_menu_tamanho();
 }
 #define NV_MENU_ESCALA (menuEscala())
 #define MK(v) ((v) / NV_MENU_ESCALA_BASE)
@@ -93,7 +93,8 @@ static float menuEscala(void) {
 #define NV_MENU_RAIO_RAIL   MK(44.0f)
 #define NV_MENU_RAIO_ABERTO MK(32.0f)
 #define NV_MENU_ITEM_H      MK(60.0f)
-#define NV_MENU_ITEM_VAO     MK(4.0f)
+// 4 px a 100 %; o controle de espacamento leva de 0 (colados) a 40 px (400 %).
+#define NV_MENU_ITEM_VAO     MK(fmaxf(0.0f, 4.0f + 12.0f * (ajustes_menu_espaco() - 1.0f)))
 #define NV_MENU_ICONE       MK(26.0f)
 // Centro do icone a partir da borda do painel: na rail o meio do circulo de
 // 60 (14 + 30); aberta, 14 de padding + 20 de recuo + meio icone. O icone anda
@@ -132,7 +133,7 @@ static float menuEscala(void) {
 // "Inicio" sem acento era erro de portugues NA TELA. E "Busca", nao "Buscar":
 // os outros tres sao substantivos (Biblioteca, Ajustes) e o verbo destoava.
 // Rotulos e ordem conferidos na referencia.
-static const char *ROTULOS[MENU_N] = { "Início", "Explorar", "Guia TV", "Busca", "Biblioteca", "Agenda", "Perfil e Stats", "Ajustes" };
+static const char *ROTULOS[MENU_N] = { "Início", "Explorar", "Guia TV", "Pesquisar", "Biblioteca", "Agenda", "Perfil e Stats", "Ajustes" };
 
 // ITEM ESCONDIDO (#162): Explorar, Guia, Agenda e Perfil somem da barra quando
 // desligados nos Ajustes. Inicio, Busca, Biblioteca e Ajustes ficam sempre —
@@ -144,6 +145,7 @@ static int mostra(int i) {
     case MENU_GUIA:     return ajustes_menu_guia();
     case MENU_AGENDA:   return ajustes_menu_agenda();
     case MENU_PERFIL:   return ajustes_menu_perfil();
+    case MENU_BIBLIOTECA: return 0;  // dono (2026-10-26): Biblioteca fora da barra; a tela segue acessivel por Ajustes
     default:            return 1;
   }
 }
@@ -583,8 +585,9 @@ void menu_atualizar(float dt, Uint32 agora) {
     desliza = 0.0f; expande = 0.0f; expandeV = 0.0f;
     return;
   }
-  float alvo = aberto ? 1.0f : 0.0f;
-  float ms   = aberto ? NV_MENU_ABRIR_MS : NV_MENU_FECHAR_MS;
+  // So icones: o painel fica na largura da rail e nunca mostra rotulos.
+  float alvo = (aberto && !ajustes_menu_so_icones()) ? 1.0f : 0.0f;
+  float ms   = alvo > 0.0f ? NV_MENU_ABRIR_MS : NV_MENU_FECHAR_MS;
   desliza = anim_rampa(desliza, alvo, dt, ms);
   // A MOLA DA ILHA (ilha.c, molaIlhaWZ): quatro subpassos, dt no maximo 50 ms.
   // Com Animacoes reduzidas vai direto ao alvo.

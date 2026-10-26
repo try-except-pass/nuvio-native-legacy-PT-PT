@@ -734,6 +734,12 @@ typedef enum {
   AJ_SINOPSE_COMPLETA,   // Title page synopsis: 0 full text (default), 1 short (3 lines). LOCAL
   AJ_SOMBRA_FOCO,        // Accent-colored glow behind the focused poster: 0 On (default). LOCAL
   AJ_WEB_AJUSTES,        // LAN page to tweak these settings from a browser: 1 Off (default). LOCAL
+  AJ_BORDA_FOCO_BUSCA,   // Focus ring on the Search tab results (the Home ring is AJ_BORDA_FOCO): 0 On. LOCAL
+  AJ_MENU_TAM_PCT,       // Sidebar size, percent. LOCAL
+  AJ_MENU_ESPACO_PCT,    // Gap between sidebar items, percent of the default. LOCAL
+  AJ_MENU_SO_ICONES,     // Sidebar shows icons only, never expands to labels: 1 Off (default). LOCAL
+  AJ_BUSCA_ESPACO_PCT,   // Search tab spacing, percent of the default. LOCAL
+  AJ_FIL_TITULOS,        // Row titles on Home: 0 shown (default). LOCAL
   AJ_N
 } OpcaoId;
 _Static_assert(DEBRID_RD == 0 && DEBRID_TB == 1 && DEBRID_PM == 2 && DEBRID_AD == 3,
@@ -1077,7 +1083,7 @@ static const int   LINK_PRAZO_H[] = { 1, 2, 3, 6, 12, 24, 48, 72, 168 };
 // O que o toque curto de OK faz num card da retomada (issue #93): abre o
 // episodio direto no player, ou abre a pagina do titulo como sempre fez.
 // Local, como cwFonteLocal — o app oficial nao tem esta escolha.
-static const char *V_CW_OK[]     = { "Retomar", "Abrir página" };
+static const char *V_CW_OK[]     = { "Retomar", "Abrir página", "Movies play, series open" };
 // `discoverLocation`, validado contra estes tres.
 static const char *V_DESCOBRIR[] = { "Mostrar na Busca", "Na barra lateral", "Desligado" };
 // `homeImdbRatingsVisibility` — normalizeHomeImdbRatingsVisibility so aceita
@@ -1431,7 +1437,7 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Gradiente de foco clássico", V_LIGA, 2),   // classicFocusGradientEnabled
 
   ESC("Mostrar \"Continuar assistindo\"", V_LIGA, 2), // continueWatchingEnabled
-  ESC("OK no card",                     V_CW_OK, 2),  // local, ver V_CW_OK
+  ESC("OK no card",                     V_CW_OK, 3),  // local, ver V_CW_OK
   ESC("Fonte do \"Continuar assistindo\"", V_CW_FONTE, 4),   // local, ver V_CW_FONTE
   ESC("Estilo do \"Continuar assistindo\"", V_CW, 3), // continueWatchingCardStyle
   ESC("Miniatura do episódio",      V_LIGA, 2),   // useEpisodeThumbnailsInCw
@@ -1880,6 +1886,12 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Sinopse na página do título", V_SINOPSE_MODO, 2),                 // local: sinopseCompletaLocal
   ESC("Sombra no cartaz em foco", V_LIGA, 2),                            // local: sombraFocoLocal
   ESC("Ajustar pelo navegador", V_LIGA, 2),                              // local: ajustesWebLocal
+  ESC("Focus ring on Search results", V_LIGA, 2),                        // local: bordaFocoBuscaLocal
+  NUM("Sidebar size", 50, 200, 5, "%"),                                  // local: menuTamPctLocal
+  NUM("Sidebar item spacing", 0, 400, 25, "%"),                          // local: menuEspacoPctLocal
+  ESC("Sidebar icons only", V_LIGA, 2),                                  // local: menuSoIconesLocal
+  NUM("Search tab spacing", 40, 150, 10, "%"),                           // local: buscaEspacoPctLocal
+  ESC("Row titles on Home", V_LIGA, 2),                                  // local: filTitulosLocal
 };
 
 // Nome de cada opcao no arquivo. O formato era POSICIONAL — uma linha por
@@ -2216,6 +2228,7 @@ static const char *CHAVE[] = {
   "sinopseCompletaLocal",
   "sombraFocoLocal",
   "ajustesWebLocal",
+  "bordaFocoBuscaLocal", "menuTamPctLocal", "menuEspacoPctLocal", "menuSoIconesLocal", "buscaEspacoPctLocal", "filTitulosLocal",
 };
 // QUATRO VETORES PARALELOS indexados pelo mesmo enum AJ_*: OPCOES, CHAVE,
 // valor e as secoes. OPCOES ja e declarado [AJ_N], e `valor` aceita inicializacao
@@ -2911,7 +2924,7 @@ int ajustes_pausa_overlay(void)       { return lig(AJ_PAUSA_OVERLAY); }
 int ajustes_pausa_comentarios(void)   { return lig(AJ_PAUSA_COMENTARIOS); }
 int ajustes_pausa_notas(void)         { return lig(AJ_PAUSA_NOTAS); }
 int ajustes_pausa_elenco(void)        { return lig(AJ_PAUSA_ELENCO); }
-int ajustes_reacao_creditos(void)     { return lig(AJ_REACAO_CREDITOS); }
+int ajustes_reacao_creditos(void)     { return 0; }  // dono (2026-10-26): sem pergunta "o que achou" nos creditos
 int ajustes_plr_codec(void)           { return lig(AJ_PLR_CODEC); }
 int ajustes_plr_formato_pos(void)     { int v = valor[AJ_PLR_FORMATO_POS]; return v >= 0 && v < PLR_POS_N ? v : PLR_POS_CANTO; }
 int ajustes_plr_formato(void)         { int v = valor[AJ_PLR_FORMATO]; return v >= 0 && v < PLR_FMT_N ? v : PLR_FMT_MARCAS; }
@@ -3149,6 +3162,13 @@ float ajustes_tamanho_ui(void) {
   return ui_size_choice(v, v == UI_SIZE_AUTO ? tamanhoUiAutomatico() : 1.0f);
 }
 int ajustes_sombra_foco(void) { return lig(AJ_SOMBRA_FOCO); }
+static float pctEntre(int op, int lo, int hi) { int v = valor[op]; return (v < lo ? lo : v > hi ? hi : v) / 100.0f; }
+int ajustes_borda_foco_busca(void) { return lig(AJ_BORDA_FOCO_BUSCA); }
+float ajustes_menu_tamanho(void) { return pctEntre(AJ_MENU_TAM_PCT, 50, 200); }
+float ajustes_menu_espaco(void) { return pctEntre(AJ_MENU_ESPACO_PCT, 0, 400); }
+int ajustes_menu_so_icones(void) { return lig(AJ_MENU_SO_ICONES); }
+float ajustes_busca_espaco(void) { return pctEntre(AJ_BUSCA_ESPACO_PCT, 40, 150); }
+int ajustes_fil_titulos(void) { return lig(AJ_FIL_TITULOS); }
 int ajustes_sinopse_completa(void) { return valor[AJ_SINOPSE_COMPLETA] == 0; }
 // A busca nao entra na camada de escala da interface (so Explorar e o teclado a
 // usam), entao o "Tamanho da interface" entra aqui, multiplicando o ajuste proprio.
@@ -3827,6 +3847,7 @@ int ajustes_descobrir_na_busca(void)  { return valor[AJ_DESCOBRIR] == 0; }
 
 int ajustes_cw_ligado(void)           { return lig(AJ_CW_LIGADO); }
 int ajustes_cw_ok_toca(void)          { return valor[AJ_CW_OK] == 0; }
+int ajustes_cw_ok_auto(void)          { return valor[AJ_CW_OK] == 2; }   // filme toca, serie abre a pagina
 int ajustes_cw_estilo(void)           { return valor[AJ_CW_ESTILO]; }
 int ajustes_cw_fonte(void)            { return valor[AJ_CW_FONTE]; }
 int ajustes_cw_thumb_episodio(void)   { return lig(AJ_CW_THUMB); }
@@ -3907,8 +3928,8 @@ float ajustes_rail_largura_fixa(void) {
   // Layout Dinamica: a barra e a pilula da Apple TV (menu.c), sem rail fixa.
   if (ajustes_home_layout() == HOME_LAYOUT_DINAMICA) return 0.0f;
   if (ajustes_rail_recolhida() || ajustes_menu_topo()) return 0.0f;
-  borda = ajustes_home_layout() == HOME_LAYOUT_PADRAO ? NV_MENU_RAIL_BORDA_PADRAO
-                                                      : NV_MENU_RAIL_BORDA_MODERNA;
+  borda = ajustes_home_layout() == HOME_LAYOUT_PADRAO ? NV_MENU_RAIL_BORDA_PADRAO * ajustes_menu_tamanho()
+                                                      : 48.0f + (NV_MENU_RAIL_BORDA_MODERNA - 48.0f) * ajustes_menu_tamanho();   // a margem de 48 nao muda com o tamanho da barra
   // The menu grows with the text scale (menuEscala, menu.c): real-space callers
   // (diagnostico, social) get that real width; a layer that already carries
   // the text scale (every layer when it is on) keeps the constants in its own
@@ -6029,6 +6050,8 @@ static int somenteDesteAparelho(int op) {
     case AJ_CW_PROXIMO:
     case AJ_BORDA_FOCO:
     case AJ_SOMBRA_FOCO:
+    case AJ_BORDA_FOCO_BUSCA: case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES:
+    case AJ_BUSCA_ESPACO_PCT: case AJ_FIL_TITULOS:
     case AJ_FONTE_UI:
     case AJ_FONTE_MANUAL:
     case AJ_FONTE_AUTO:
@@ -7980,6 +8003,12 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_GPU_EFEITOS: return "Efeitos funcionam em qualquer resolução. Automático adapta; Completos mantém tudo; Leves reduz brilho e desfoque; Mínimos reduz mais.";
     case AJ_FONTE_UI: return "Altera a tipografia dos menus. A fonte das legendas é escolhida separadamente no player.";
     case AJ_HERO_TAMANHO: return "Aumenta a logo e as informações do destaque da Home: tipo, gênero, ano, duração, nota do IMDb e sinopse. Vale só nesta TV.";
+    case AJ_BORDA_FOCO_BUSCA: return i18n("The coloured ring around the focused card in Search results. Independent from the Home ring.");
+    case AJ_MENU_TAM_PCT: return i18n("Size of the sidebar, icons and labels. 100% is the default.");
+    case AJ_MENU_ESPACO_PCT: return i18n("Space between the sidebar items. 0% packs them together; 100% is the default.");
+    case AJ_MENU_SO_ICONES: return i18n("The sidebar stays a slim icon strip and never expands to show labels.");
+    case AJ_BUSCA_ESPACO_PCT: return i18n("Space between the keyboard, the field and the result rows in the Search tab. Lower is tighter.");
+    case AJ_FIL_TITULOS: return i18n("Show or hide the titles above the Home rows.");
     case AJ_SINOPSE_COMPLETA: return i18n("Texto inteiro mostra a sinopse completa na página do título e sobe o conteúdo conforme for preciso. Resumida mantém três linhas; o resto vira … e pode ser lido em Mais opções › Ler sinopse.");
     case AJ_HERO_SINOPSE_TAM: return "Aumenta apenas as sinopses. Na página do título, abra Mais opções › Ler sinopse para ler o texto completo.";
     case AJ_TAMANHO_UI: return "Aumenta os controles do player, os painéis e os avisos. Os Ajustes têm um tamanho próprio.";
@@ -10806,7 +10835,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_HERO_SINOPSE_TAM: case AJ_HERO_TAMANHO: case AJ_SINOPSE_COMPLETA:
     case AJ_LANDSCAPE: case AJ_HERO_CHEIO: case AJ_FUNDO_DIN: case AJ_FUNDO_DIN_COR: case AJ_HERO_FUNDO:
     case AJ_HERO_ARTE_DIF: case AJ_HERO_TRAILER: case AJ_FIL_LIMITE:
-    case AJ_ESPACO_FILEIRAS: case AJ_ESPACO_TITULOS:
+    case AJ_ESPACO_FILEIRAS: case AJ_ESPACO_TITULOS: case AJ_FIL_TITULOS:
     case AJ_HERO_TRAILER_SOM: case AJ_HERO_TRAILER_ESPERA: case AJ_HERO_TRANSICAO: case AJ_LOGO_TRAILER:
     case AJ_ADDON_FUNDO: case AJ_ADDON_LOGO:
     case AJ_FIL_ORDEM: case AJ_RAIL: case AJ_RAIL_MODERNA: case AJ_MENU_TOPO: case AJ_ABAS_ESTILO:
@@ -10829,7 +10858,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_TRAILER_AUDIO:
       return AJPV_DETALHE;
     case AJ_EXPANDIR: case AJ_EXPANDIR_ATRASO: case AJ_NAV_RAPIDA:
-    case AJ_BORDA_FOCO: case AJ_SOMBRA_FOCO:
+    case AJ_BORDA_FOCO: case AJ_SOMBRA_FOCO: case AJ_BORDA_FOCO_BUSCA:
       return AJPV_FOCO;
     case AJ_PROF: case AJ_PROF_BORDA: case AJ_PROF_BRILHO:
     case AJ_PROF_COBERTURA: case AJ_PROF_POSTERS: case AJ_PROF_CW:
@@ -10841,6 +10870,7 @@ static AjPreview familiaPreviaOpcao(int op) {
     case AJ_COR_LOGO: case AJ_FONTE_UI: case AJ_VIDRO: case AJ_VIDRO_CONTORNO: case AJ_FOCO_ACENTO:
     case AJ_RELOGIO: case AJ_RELOGIO_POS: case AJ_SAIDA_PLAYER: case AJ_RELOGIO_12H:
     case AJ_TAMANHO_UI_PCT: case AJ_ESCALA_TEXTO_PCT: case AJ_BUSCA_TECLADO_PCT: case AJ_BUSCA_CARTAZ_PCT:
+    case AJ_MENU_TAM_PCT: case AJ_MENU_ESPACO_PCT: case AJ_MENU_SO_ICONES: case AJ_BUSCA_ESPACO_PCT:
     case AJ_TAMANHO_UI: case AJ_ESCALA_TEXTO: case AJ_DET_ESPACO: case AJ_TAMANHO_AJUSTES: case AJ_LAYOUT_AJUSTES: case AJ_INTERFACE_MODO: case AJ_TECLADO_ANDROID: case AJ_FUNDO: case AJ_VIDRO_OPAC: case AJ_VIDRO_FOSCO: case AJ_VIDRO_QUALIDADE:
     case AJ_AVANCADAS: case AJ_LOGO_APP: case AJ_ABERTURA:
     case AJ_ESMAECER: case AJ_BRILHO_PLAYER: case AJ_HDR_UI: case AJ_MANTER_VIDEO:

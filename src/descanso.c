@@ -260,35 +260,7 @@ static void desenharRelogio(unsigned agora, float a) {
   }
 }
 
-// --- VITRINE -----------------------------------------------------------------
-static void metaDe(const CatItem *c, char *dst, size_t n) {
-  // "2022 · 3 temporadas · Drama · Mistério": o meta do catalogo e os dois
-  // primeiros generos, sem o "Programa de TV"/"Filme" que abre a lista.
-  char g[160], *p, *q;
-  int k = 0;
-  snprintf(dst, n, "%s", c->meta);
-  snprintf(g, sizeof g, "%s", c->genero);
-  for (p = g; p && *p && k < 2; p = q) {
-    size_t z;
-    q = strstr(p, "\xc2\xb7");
-    if (q) { *q = 0; q += 2; }
-    // O catalogo separa com " · " ou "  ·  ": apara os dois lados.
-    while (*p == ' ') p++;
-    z = strlen(p);
-    while (z > 0 && p[z - 1] == ' ') p[--z] = 0;
-    if (!*p || !strcmp(p, "Programa de TV") || !strcmp(p, "Filme") || !strcmp(p, "S\xc3\xa9rie")) continue;
-    if (dst[0]) strncat(dst, " \xc2\xb7 ", n - strlen(dst) - 1);
-    strncat(dst, i18n(p), n - strlen(dst) - 1);
-    k++;
-  }
-}
 
-static void primeiraFrase(const char *s, char *dst, size_t n) {
-  const char *f = strstr(s, ". ");
-  size_t k = f ? (size_t)(f - s) + 1 : strlen(s);
-  if (k >= n) k = n - 1;
-  memcpy(dst, s, k); dst[k] = 0;
-}
 
 static void desenharVitrine(unsigned agora, float a) {
   const CatItem *c = atual >= 0 ? cat_item(atual) : NULL;
@@ -322,42 +294,9 @@ static void desenharVitrine(unsigned agora, float a) {
   gfx_rect((GfxRect){ 0, 0, NV_TELA_W, 240.0f }, 0, GFX_VEU_TOPO,
            0, 0, 0, 0, 0, 0, 0, 0.55f * vis);
 
-  // O texto entra em cascata: cada linha 0,45 s depois da anterior.
-  { float y = DESC_BASE, k[5];
-    int i, okHome = app_na_home();
-    char meta[256], sin[400];
-    TxtLinha lMeta, lSin, lFonte, lOk = { 0 };
-    for (i = 0; i < 5; i++) {
-      float e = suave((t - 1.6f - (float)i * 0.45f) / 0.8f);
-      k[i] = e * (1.0f - sai) * a;
-    }
-    metaDe(c, meta, sizeof meta);
-    primeiraFrase(c->sinopse, sin, sizeof sin);
-    lFonte = txt_linha(TXT_CAPTION2, c->naLista ? i18n("Na sua lista")
-                                     : c->progresso > 0 ? i18n("Continuar assistindo")
-                                     : i18n("No seu catálogo"), 190, 194, 204, 255);
-    lMeta = txt_linha_corta(TXT_HERO_META, meta, 226, 228, 234, 255, DESC_TEXTO_W);
-    lSin = sin[0] ? txt_linha_corta(sinopse_estilo(TXT_HERO_SIN), sin, 200, 204, 212, 255, DESC_TEXTO_W)
-                  : (TxtLinha){ 0 };
-    if (okHome) lOk = txt_linha(TXT_CAPTION2, i18n("OK para abrir"), 240, 242, 246, 255);
-    // De baixo para cima: dica, sinopse, meta, titulo, origem.
-    if (lOk.tex) {
-      float pw = (float)lOk.w + 44.0f, ph = 46.0f;
-      GfxRect pill = { DESC_X, y - ph, pw, ph };
-      float sobe = (1.0f - k[4]) * 12.0f;
-      pill.y += sobe;
-      gfx_cor(pill, 0.5f, 1, 1, 1, 0.16f * k[4]);
-      txt_desenhar_alpha(lOk, DESC_X + 22.0f, pill.y + (ph - (float)lOk.h) * 0.5f, k[4]);
-      y -= ph + 34.0f;
-    }
-    if (lSin.tex) {
-      y -= (float)lSin.h;
-      txt_desenhar_alpha(lSin, DESC_X, y + (1.0f - k[3]) * 12.0f, k[3]);
-      y -= 16.0f;
-    }
-    y -= (float)lMeta.h;
-    txt_desenhar_alpha(lMeta, DESC_X, y + (1.0f - k[2]) * 12.0f, k[2]);
-    y -= 26.0f;
+  // dono (2026-10-26): so o titulo, no canto inferior esquerdo; nada de origem,
+  // meta, sinopse nem dica de OK.
+  { float y = DESC_BASE, k = suave((t - 1.0f) / 0.8f) * (1.0f - sai) * a;
     if (texLogo) {
       float ap = tex_aspecto(c->logo), w, h;
       if (ap <= 0.0f) ap = 4.0f;
@@ -365,15 +304,13 @@ static void desenharVitrine(unsigned agora, float a) {
       if (w > DESC_LOGO_W) { w = DESC_LOGO_W; h = w / ap; }
       y -= h;
       { GfxModo m = tex_marca_escura(c->logo) ? GFX_MARCA : GFX_TEXTO;
-        gfx_rect((GfxRect){ DESC_X, y + (1.0f - k[1]) * 14.0f, w, h }, texLogo, m,
-                 0, 0, 0, 0.0f, 1, 1, 1, k[1]); }
+        gfx_rect((GfxRect){ DESC_X, y + (1.0f - k) * 14.0f, w, h }, texLogo, m,
+                 0, 0, 0, 0.0f, 1, 1, 1, k); }
     } else {
       TxtLinha lt = txt_linha_corta(TXT_TITULO1, c->titulo, 255, 255, 255, 255, DESC_TEXTO_W);
       y -= (float)lt.h;
-      txt_desenhar_alpha(lt, DESC_X, y + (1.0f - k[1]) * 14.0f, k[1]);
+      txt_desenhar_alpha(lt, DESC_X, y + (1.0f - k) * 14.0f, k);
     }
-    y -= 22.0f + (float)lFonte.h;
-    txt_desenhar_alpha(lFonte, DESC_X, y + (1.0f - k[0]) * 10.0f, 0.8f * k[0]);
   }
 
   // Sem hora na Vitrine (05/10, dono): numero parado no mesmo canto por

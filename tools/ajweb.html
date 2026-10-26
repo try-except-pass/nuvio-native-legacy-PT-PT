@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="pt-PT"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b0c0f">
-<title>Nuvio · Ajustes pelo navegador</title>
+<title>Nuvio · Settings from the browser</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#0b0c0f;--card:#15161b;--line:rgba(255,255,255,.09);--tx:#f3f3f1;--mu:rgba(255,255,255,.58);--ac:#7aa7ff;--ok:#5ad19a;--er:#ff7a7a}
@@ -45,15 +45,15 @@ input[type=range]{width:180px;accent-color:var(--ac)}
 @media(max-width:760px){nav{display:none}.ctl{max-width:100%}.row{flex-direction:column;align-items:flex-start}.ctl{justify-content:flex-start}.seg{justify-content:flex-start}}
 </style></head><body>
 <header>
-  <h1>Nuvio · Ajustes</h1>
-  <span class="perfil">Perfil em uso na TV: <b id="pf">…</b></span>
-  <input id="q" type="search" placeholder="Procurar um ajuste…" autocomplete="off">
-  <label class="chk"><input id="tv" type="checkbox"> Permitir ajustes que valem para a TV toda</label>
-  <button id="re" title="Voltar a ler os valores da TV">Atualizar</button>
-  <button id="ex">Exportar</button>
-  <label class="bt">Importar<input id="im" type="file" accept="application/json" hidden></label>
+  <h1>Nuvio · Settings</h1>
+  <span class="perfil">Profile in use on the TV: <b id="pf">…</b></span>
+  <input id="q" type="search" placeholder="Search settings…" autocomplete="off">
+  <label class="chk"><input id="tv" type="checkbox"> Allow settings that apply to the whole TV</label>
+  <button id="re" title="Re-read the values from the TV">Refresh</button>
+  <button id="ex">Export</button>
+  <label class="bt">Import<input id="im" type="file" accept="application/json" hidden></label>
 </header>
-<div class="layout"><nav id="nav"></nav><main id="main"><div class="vazio">A ler os ajustes da TV…</div></main></div>
+<div class="layout"><nav id="nav"></nav><main id="main"><div class="vazio">Reading the TV settings…</div></main></div>
 <div id="t"></div>
 <script>
 "use strict";
@@ -72,15 +72,15 @@ function enviar(o,v){
       .then(function(r){if(!r.ok)throw 0;return r.json()})
       .then(function(j){
         if(j.ok){o.v=v;toast(o.l+": "+txt(o,v),"okk")}
-        else{o.v=ant;toast("A TV não aceitou esta mudança","er")}
+        else{o.v=ant;toast("The TV did not accept this change","er")}
         desenhar();
-      }).catch(function(){o.v=ant;toast("Sem resposta da TV (ligada? na mesma rede?)","er");desenhar()});
+      }).catch(function(){o.v=ant;toast("No answer from the TV (is it on? same network?)","er");desenhar()});
   });
 }
 function linha(o){
   var off=o.c==="t"&&!tvOk;
   var r=el("div","row"+(mudou(o)?" ch":"")+(off?" mu":""));
-  var nm=el("div","nm",o.l),b=el("span","bd"+(o.c==="t"?" t":""),o.c==="t"?"TV":o.c==="p"?"Perfil · só nesta TV":"Perfil · conta");
+  var nm=el("div","nm",o.l),b=el("span","bd"+(o.c==="t"?" t":""),o.c==="t"?"TV":o.c==="p"?"Profile · this TV only":"Profile · account");
   nm.appendChild(b);r.appendChild(nm);
   var c=el("div","ctl");
   if(o.y==="e"){
@@ -100,7 +100,7 @@ function linha(o){
     rg.oninput=function(){go(rg.value)};nb.onchange=function(){go(nb.value)};
     c.appendChild(rg);c.appendChild(nb);c.appendChild(u);
   }
-  if(mudou(o)&&!off){var rs=el("button","rs","↺");rs.title="Repor o padrão ("+txt(o,o.d)+")";rs.onclick=function(){enviar(o,o.d)};c.appendChild(rs)}
+  if(mudou(o)&&!off){var rs=el("button","rs","↺");rs.title="Reset to default ("+txt(o,o.d)+")";rs.onclick=function(){enviar(o,o.d)};c.appendChild(rs)}
   r.appendChild(c);return r;
 }
 function desenhar(){
@@ -116,37 +116,37 @@ function desenhar(){
     var achou=0;m.appendChild(el("h2","","Resultados"));
     ops().forEach(function(p){var o=p[1];if(norm(o.l).indexOf(q)<0)return;achou++;
       var h=el("div","av",D.s[p[0]].t);m.appendChild(h);m.appendChild(linha(o))});
-    if(!achou)m.appendChild(el("div","vazio","Nenhum ajuste encontrado."));
+    if(!achou)m.appendChild(el("div","vazio","No settings found."));
     return;
   }
   var s=D.s[sec];m.appendChild(el("h2","",s.t));
   var av=false;
   s.i.forEach(function(o){
-    if(o.g!=null){m.appendChild(el("h3","",o.g+(o.a?" · avançadas":"")));return}
+    if(o.g!=null){m.appendChild(el("h3","",o.g+(o.a?" · advanced":"")));return}
     m.appendChild(linha(o));
   });
 }
 function ler(){
   return fetch("api/settings",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
-    D=j;$("#pf").textContent=j.perfil||("Perfil "+j.pn);if(sec>=D.s.length)sec=0;desenhar();
-  }).catch(function(){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Não consegui ler a TV. Está ligada, com o Nuvio aberto e este ajuste ligado?"))});
+    D=j;$("#pf").textContent=j.perfil||("Profile "+j.pn);if(sec>=D.s.length)sec=0;desenhar();
+  }).catch(function(){$("#main").textContent="";$("#main").appendChild(el("div","vazio","Could not reach the TV. Is it on, with Nuvio open and this setting switched on?"))});
 }
 $("#q").oninput=function(){desenhar()};
 $("#tv").onchange=function(){tvOk=this.checked;desenhar()};
-$("#re").onclick=function(){ler().then(function(){toast("Valores lidos da TV","okk")})};
+$("#re").onclick=function(){ler().then(function(){toast("Values read from the TV","okk")})};
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&D)ler()});
 $("#ex").onclick=function(){
   var v={};ops().forEach(function(p){var o=p[1];if(mudou(o))v[o.k]=o.v});
   var b=new Blob([JSON.stringify({nuvio:1,perfil:D.perfil,valores:v},null,1)],{type:"application/json"});
-  var a=el("a");a.href=URL.createObjectURL(b);a.download="nuvio-ajustes-"+(D.perfil||"perfil")+".json";a.click();
+  var a=el("a");a.href=URL.createObjectURL(b);a.download="nuvio-settings-"+(D.perfil||"profile")+".json";a.click();
 };
 $("#im").onchange=function(){
   var f=this.files[0];if(!f)return;var rd=new FileReader();
   rd.onload=function(){
     try{var j=JSON.parse(rd.result),n=0;
       ops().forEach(function(p){var o=p[1];if(j.valores&&o.k in j.valores&&(o.c!=="t"||tvOk)&&o.v!==j.valores[o.k]){n++;enviar(o,j.valores[o.k])}});
-      toast(n+" ajustes a aplicar"+(tvOk?"":" (os da TV toda ficam de fora)"),"okk");
-    }catch(e){toast("Ficheiro inválido","er")}
+      toast(n+" settings to apply"+(tvOk?"":" (whole-TV settings are skipped)"),"okk");
+    }catch(e){toast("Invalid file","er")}
   };rd.readAsText(f);this.value="";
 };
 ler();

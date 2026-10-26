@@ -557,6 +557,12 @@ int ajustes_sombra_foco(void);       // glow behind the focused poster (accent c
 int ajustes_sinopse_completa(void);   // title page: 1 = whole synopsis (default), 0 = 3 lines + reader
 float ajustes_busca_teclado(void);
 float ajustes_busca_cartaz(void);
+int   ajustes_borda_foco_busca(void);   // focus ring on Search results
+float ajustes_menu_tamanho(void);       // sidebar size factor 0.5..2
+float ajustes_menu_espaco(void);        // sidebar item gap factor 0..4
+int   ajustes_menu_so_icones(void);     // sidebar never expands to labels
+float ajustes_busca_espaco(void);       // Search tab spacing factor 0.4..1.5
+int   ajustes_fil_titulos(void);        // row titles on Home
 #ifdef AJUSTES_TESTE
 void ajustes_teste_busca(int tecladoPct, int cartazPct);
 #endif
@@ -661,6 +667,7 @@ void  ajustes_definir_ocultar_filmes_vistos(int ligado);
 // avisa a pessoa. Sem efeito nas builds de teste (nada em prova, nada a avisar).
 void  ajustes_seguro_iniciar(int caiu);
 int   ajustes_cw_ligado(void);          // continueWatchingEnabled
+int   ajustes_cw_ok_auto(void);         // OK no card: 1 = filme toca, serie abre a pagina
 int   ajustes_cw_ok_toca(void);         // OK no card: 1 = toca direto (cwOkLocal)
 int   ajustes_cw_estilo(void);          // 0 card, 1 largo (wide), 2 poster
 int   ajustes_cw_thumb_episodio(void);  // useEpisodeThumbnailsInCw

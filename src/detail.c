@@ -1247,7 +1247,7 @@ static const NotasSecao *notasDados(void) {
   int i;
   for (i = 0; i < EX_NFONTES; i++) s.cru[i] = extras_nota(i);
   if (!s.cru[EX_IMDB] && ajustes_mdblist_fonte(EX_IMDB)) s.cru[EX_IMDB] = notaDe(idx);
-  s.notaPessoal = reacao_nota(cat_item(idx)->imdb);
+  s.notaPessoal = 0;  // dono (2026-10-26): sem nota propria
   s.nTemp = ehSerie() ? extras_n_temporadas() : 0;
   s.tempNum = extras_temporada_numero;
   s.nEps = extras_n_eps;
@@ -3324,7 +3324,6 @@ static void detail_evento_(const SDL_Event *e) {
       AmigosTitulo at;
       if (amigosDoTitulo(&at)) { focoAmigos = 1; return; }
     }
-    if (k == SDLK_UP && reacao_detalhe_abrir(cat_item(idx))) return;
     // #407: Up focuses the clock; only OK opens its panel.
     if (k == SDLK_UP && !e->key.repeat) { pediuRelogio = 1; return; }
     // CARROSSEL: a primeira seta para baixo so estica o cartao (ver carCheia).
@@ -4792,8 +4791,8 @@ static void heroWeb(float a, float desloc) {
   { const CatItem *ciAg = cat_item(idx);
     if (ehSerie() && ciAg && ciAg->imdb[0])
       agenda_frase(ciAg->imdb, agLinha, sizeof agLinha);
-    else if (ciAg && !strcmp(ciAg->tipo, "movie") && temLembrar())
-      snprintf(agLinha, sizeof agLinha, "%s", rotuloLembrar()); }
+    // dono (2026-10-26): o "Avisar quando sair" de filme acima da sinopse saiu
+  }
   float yEstado = yAcoes - NV_DETW_GAP_RETOM;
   float yRetom = yEstado, yAgenda = yEstado;
   if (temRetom > 0.0f) { yEstado -= NV_DETW_RETOM_H; yRetom = yEstado; }
@@ -5272,17 +5271,6 @@ static void heroWeb(float a, float desloc) {
         algo = 1;
       }
     }
-    { char mine[96], value[24];
-      int n = reacao_nota(cat_item(idx)->imdb);
-      if (n) { snprintf(value, sizeof value, "%d.%d", n / 2, n % 2 * 5); plrui_decimal(value); }
-      else snprintf(value, sizeof value, "—");
-      snprintf(mine, sizeof mine, "%s  %s", i18n("Sua nota"), value);
-      float ar, ag, ab;
-      ajustes_acento(&ar, &ag, &ab);
-      x += 24;
-      gfx_icone((GfxRect){x, yc - 10, 20, 20}, "pl_star", ar, ag, ab, a);
-      plrui_kicker(mine, x + 28, yc - 9, 208, 195, 181, a);
-    }
     // QUANTO DA SERIE VOCE JA VIU, no fim da linha de meta.
     //
     // Fica AQUI e nao no bloco de estado logo acima dos botoes porque aquilo
@@ -5641,28 +5629,6 @@ static void desenhaAssistidoEpisodio(GfxRect th, float a) {
                      selo.y + (h - texto.h) * .5f, a);
 }
 
-// A NOTA DO USUARIO NO EPISODIO (reacao.h): estrela + "4,5", embaixo do selo
-// "Assistido", no mesmo canto da miniatura.
-static void desenhaMinhaNotaEpisodio(GfxRect th, const char *imdb, int temp, int epi, float a) {
-  char id[40], tx[16];
-  int n;
-  TxtLinha l;
-  float w, x, y;
-  snprintf(id, sizeof id, "%s:%d:%d", imdb, temp, epi);
-  n = reacao_nota(id);
-  if (n <= 0) return;
-  snprintf(tx, sizeof tx, "%d.%d", n / 2, (n % 2) * 5);
-  plrui_decimal(tx);
-  l = txt_linha(TXT_G18M, tx, 243, 242, 239, 255);
-  w = 14 + 20 + 8 + (float)l.w + 14;
-  x = th.x + th.w - w - 18;
-  y = th.y + NV_DETP_EP_VISTO_Y + NV_DETP_EP_VISTO_H + 10;
-  float ar, ag, ab;
-  ajustes_acento(&ar, &ag, &ab);
-  gfx_cor((GfxRect){x, y, w, 40}, .5f, .071f, .075f, .086f, .96f * a);
-  gfx_icone((GfxRect){x + 14, y + 10, 20, 20}, "pl_star-f", ar, ag, ab, a);
-  txt_desenhar_alpha(l, x + 42, y + (40 - (float)l.h) * .5f, a);
-}
 
 static void desenhaEpisodioCorpo(GfxRect r, int c, float f, float a, Uint32 agora);
 static void desenhaEpisodio(GfxRect r, int c, float f, float a, Uint32 agora) {
@@ -5748,7 +5714,6 @@ static void desenhaEpisodioCorpo(GfxRect r, int c, float f, float a, Uint32 agor
     if (!mergedVeil) gfx_cor(th, raioTh, 0, 0, 0, .12f * a);
     desenhaAssistidoEpisodio(th, a);
   }
-  desenhaMinhaNotaEpisodio(th, serie->imdb, ep->temporada, ep->episodio, a);
 
   // NADA DE RESERVA INVENTADA. Aqui as quatro linhas caiam numa tabela de
   // demonstracao (nome, duracao, data e sinopse de "Shrinking"), entao um
@@ -7924,16 +7889,6 @@ static void carFundo(void) {
   gfx_janela_atual[2] = gfx_janela_atual[3] = 1.0f;
 }
 
-// "O QUE ACHOU?" AINDA SEM RESPOSTA (reacao.h): uma linha discreta no canto
-// inferior direito, so no topo da pagina e sem nada aberto por cima. CIMA na
-// linha de botoes abre o cartao (detail_evento); aberto, ele desenha aqui.
-static void reacaoPendente(float s) {
-  int livre = nivel == 0 && scrollY < 1.0f && !pessoaAberta && !colListaAberta && !amtui_aberta() &&
-              !detmais_aberto() &&
-              !episodios_menu_aberto() && trocaarte_visivel() < 0.005f;
-  if (!livre && !reacao_aberta()) return;
-  reacao_detalhe_dica(cat_item(idx), livre ? s : 0.0f);
-}
 
 // O FUNDO DA PAGINA DO TITULO, inteiro, numa funcao so.
 //
@@ -8160,7 +8115,6 @@ static void detail_desenhar_(Uint32 agora) {
     if (pessoaAberta) { ponteiro_camada(); desenhaPessoa(s); }
     if (colListaAberta) { ponteiro_camada(); desenhaListaColecao(s); }
     if (episodios_menu_aberto()) ponteiro_camada();
-    reacaoPendente(s);
     maisDesenhar();
     if (amtui_aberta()) { ponteiro_camada(); amtui_desenhar(agora); }
   if (sinopse_aberta()) sinopse_desenhar();
@@ -8179,7 +8133,6 @@ static void detail_desenhar_(Uint32 agora) {
   if (colListaAberta) { ponteiro_camada(); desenhaListaColecao(s); }
   // E o menu de visto por cima da ficha tambem: ele e o ultimo a abrir.
   if (episodios_menu_aberto()) ponteiro_camada();
-  reacaoPendente(s);
   menuDeVisto(agora);
   maisDesenhar();
   if (amtui_aberta()) { ponteiro_camada(); amtui_desenhar(agora); }
