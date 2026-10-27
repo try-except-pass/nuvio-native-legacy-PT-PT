@@ -178,6 +178,19 @@ static const Lingua LINGUAS[] = {
   { "uk", { "ukrainian", "ukr", NULL }, { "UA", NULL } },
   { "vi", { "vietnamese", "vie", NULL }, { "VN", NULL } },
   { "fi", { "finnish", "suomi", "fin", NULL }, { "FI", NULL } },
+  // Amostra de fontes publicas (2026-10-27): filmes tamil/telugu/persa nunca casavam o audio original porque
+  // a lingua nao estava aqui ("Telugu.720p" passava em branco). Sem os codigos curtos que sao palavra comum
+  // ("per", "ben", "tel", "mal", "fil"). "cn" e o cantones do TMDB, que nao casa com "zh".
+  { "cn", { "cantonese", "yue", NULL }, { "HK", NULL } },
+  { "ta", { "tamil", "tam", NULL }, { NULL } },
+  { "te", { "telugu", NULL }, { NULL } },
+  { "ml", { "malayalam", NULL }, { NULL } },
+  { "kn", { "kannada", NULL }, { NULL } },
+  { "fa", { "persian", "farsi", "fas", NULL }, { "IR", NULL } },
+  { "bn", { "bengali", "bangla", NULL }, { "BD", NULL } },
+  { "mr", { "marathi", NULL }, { NULL } },
+  { "tl", { "tagalog", "filipino", NULL }, { "PH", NULL } },
+  { "ms", { "malay", "melayu", NULL }, { "MY", NULL } },
 };
 
 // A MENCAO E DE LEGENDA? "English Subs", "Subs: English", "ENG-SUB": a palavra
