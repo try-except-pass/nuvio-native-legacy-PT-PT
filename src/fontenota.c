@@ -150,7 +150,9 @@ static int audioDe(const char *t) {
 typedef struct { const char *cod; const char *palavras[9]; const char *bandeiras[4]; } Lingua;
 static const Lingua LINGUAS[] = {
   { "en", { "english", "eng", "ingles", "inglês", NULL }, { "GB", "US", NULL } },
-  { "ja", { "japanese", "jpn", "japones", "japonês", NULL }, { "JP", NULL } },
+  // "JAP"/"JP" (anime: "JAP+Sub", "Eng Jap"): amostra 2026-10-27, titulos japoneses com fonte etiquetada
+  // 26 -> 35 de 35; 0 mudancas nas outras linguas (nenhum titulo nao japones tem o token).
+  { "ja", { "japanese", "jpn", "japones", "japonês", "jap", "jp", NULL }, { "JP", NULL } },
   { "pt", { "portuguese", "português", "portugues", "pt-br", "ptbr", "brazilian", "nacional", "dublado", NULL },
           { "BR", "PT", NULL } },
   { "es", { "spanish", "español", "espanol", "castellano", "latino", "doblado", "spa", NULL }, { "ES", "MX", NULL } },

@@ -206,15 +206,27 @@ typedef struct {
   LegendaDocumentoInfo info;
 } Meta;
 
+// TEXTO QUEBRADO NA ORIGEM: o arquivo ja chega com "�" (U+FFFD) no lugar dos acentos ("N�o quer levar uma
+// sandu�che?"). Amostra de 125 legendas PT do OpenSubtitles (2026-10-27): 1 assim (Batman Forever, 881 de
+// 1257 linhas), 0 falsos alarmes com este corte; a mesma fila tinha outra PT boa. Conta como download que
+// falhou: faixas.c troca pela seguinte do mesmo idioma.
+static int textoQuebrado(const char *c) {
+  size_t n = strlen(c), rep = 0;
+  for (const char *q = c; (q = strstr(q, "\xef\xbf\xbd")) != NULL; q += 3) rep++;
+  return rep >= 20 && rep * 200 > n;
+}
+
 // Fio do download (legenda.c). Monta o documento FORA do lock e publica so se
 // esta escolha ainda e a vigente.
 static void aoBaixar(const char *corpo, unsigned g, int vigente, void *u) {
   Meta *m = u; LegendaDocumento *doc = NULL, *velho = NULL;
-  if (corpo && vigente) doc = legenda_documento_criar(corpo, &m->info);
+  int quebrado = corpo && textoQuebrado(corpo);
+  if (quebrado) printf("[legenda] texto quebrado na origem (U+FFFD): tentando outra\n");
+  if (corpo && vigente && !quebrado) doc = legenda_documento_criar(corpo, &m->info);
   pthread_mutex_lock(&M);
   if (L.criado && m->token == L.primToken) {
     velho = L.primDoc; L.primDoc = NULL;
-    L.falhaDownload = !corpo; // recusa do parser de análise não é falha da rede
+    L.falhaDownload = !corpo || quebrado; // recusa do parser de análise não é falha da rede
     if (doc && (legenda_documento_info(doc)->flags & LEGENDA_DOC_COMPLETO)) {
       L.primDoc = legenda_documento_reter(doc); L.primGer = g; L.primFase = 1;
       legenda_documento_dados(doc, &L.primN);
