@@ -5231,8 +5231,6 @@ static void heroWeb(float a, float desloc) {
   {
     float a = aHero * fMeta;   // o texto de meta entra esvanecendo quando chega
     float x = NV_DETW2_X, yc = yMeta1 + NV_DETW2_M1_H * 0.5f;
-    const CatItem *badgeItem=cat_item(idx);
-    if(badgeItem)x+=badges_desenhar(badges_provedor(badgeItem->provNome),x,yc-14,150,28,a);
     int algo = 0;
     // GENEROS sem o primeiro campo. `genero` vem do catalogo como
     // "Programa de TV · Ação · Aventura" e o primeiro trecho e sempre o TIPO

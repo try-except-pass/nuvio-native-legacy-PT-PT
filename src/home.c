@@ -5003,7 +5003,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
   }
 
   if (metaLinha[0] && aCopy > 0.004f) {
-    // UMA LINHA: [selo do provedor] texto da meta (tipo, generos, ano, duracao) [classificacao] [IMDb].
+    // UMA LINHA: texto da meta (tipo, generos, ano, duracao) [classificacao] [IMDb].
     // O tamanho dos detalhes escala a linha inteira (texto e selos juntos).
     float scale = ajustes_hero_escala_info();
     // A linha unica pode passar um pouco da coluna da sinopse (tipo, generos, ano, duracao e a nota nao cabem em 600 px).
@@ -5014,7 +5014,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     float badgeW, cx;
     TxtLinha lm;
     if (scale != 1.0f) gfx_transformar(x, yMeta, scale, 0, 0);
-    badgeW = ci ? badges_desenhar(badges_provedor(ci->provNome), x, yMeta + (linhaH - 24.0f) * 0.5f, 150, 24, aCopy) : 0;
+    badgeW = 0;   // sem selo do provedor (Disney+, HBO...) no destaque: o dono nao o quer (2026-10-27)
     lm = txt_linha_corta(heroMetaEstilo(), metaLinha, 179, 179, 179, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
     // META E SINOPSE TROCAM NA HORA, sem esvanecer com a arte. MEDIDO: no
     // quadro a 205 ms, com a arte antiga ainda a 85%, a linha de meta e a
