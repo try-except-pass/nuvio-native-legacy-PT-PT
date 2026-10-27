@@ -97,6 +97,8 @@ int ajustes_fonte_prioridade(void) { return prioridadeTeste; }
 int ajustes_fonte_hdr(void) { return 1; }
 int ajustes_fonte_manual(void) { return 0; }
 int ajustes_fonte_idioma_audio(void) { return 0; }
+const char *extras_idioma_original_de(const char *imdb, int serie) { (void)imdb; (void)serie; return ""; }
+const char *extras_idioma_original_esperar(const char *i, int s, int p, int (*f)(void *), void *u) { (void)i; (void)s; (void)p; (void)f; (void)u; return ""; }
 int ajustes_fonte_preparar(void) { return 1; }
 int ajustes_fonte_precarregar(void) { return 1; }
 int ajustes_buffer_preset(void) { return 0; }
@@ -312,6 +314,23 @@ static void limiteNativoIndependente(void) {
   assert(nPedidos == 10 && fontefalha_tentativas(s) == 10);
   fontefalha_sessao_liberar(s);
 }
+// Audio no idioma pedido vai na frente na politica de falha, como no automatico antigo (dono, 2026-10-27).
+static void audioOriginalPrimeiro(void) {
+  resetar(); FonteFalhaConfig c = cfg(1, 0, 1);
+  Stream l[] = {fonte(&c, 0, "italiano", 0), fonte(&c, 0, "ingles", 0)};
+  snprintf(l[0].rotulo, sizeof l[0].rotulo, "1080p Italian");
+  snprintf(l[1].rotulo, sizeof l[1].rotulo, "720p English");
+  l[0].altura = 1080; l[1].altura = 720;
+  snprintf(l[0].audioIdiomas, sizeof l[0].audioIdiomas, "it"); snprintf(l[1].audioIdiomas, sizeof l[1].audioIdiomas, "en");
+  ling_local_audio("en");
+  stream_definir_lista(l, 2);
+  FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 2, -1); assert(s);
+  int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
+  assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+  assert(idx == 1);   // a de menor qualidade, mas com o audio pedido
+  ling_local_audio("");
+  fontefalha_sessao_liberar(s);
+}
 static void decoderAprendido(void) {
   resetar(); FonteFalhaConfig c = cfg(1, 0, 1);
   Stream l[] = {fonte(&c, 0, "same-movie", 0), fonte(&c, 0, "same-movie", 1), fonte(&c, 1, "other-4k", 0)};
@@ -324,6 +343,9 @@ static void decoderAprendido(void) {
   int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
   assert(stream_falha_verificar(s, ger, 0, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
   assert(idx == 0 && serv == DEBRID_RD && nPedidos == 1);
+  // a conferencia de sincronia le a fila por aqui: este caminho tem de deixa-la pronta (era vazia: nunca trocava)
+  { int fila[16], lemb = -2; unsigned g = 0; unsigned char orig[16];
+    assert(stream_sinc_fila(nv_perfil_sessao_ler(), &g, &lemb, fila, orig, 16) >= 1 && g == ger && fila[0] == 0); }
   fontefalha_marcar_aberta(s);
   stream_automatico_erro_decoder(idx, 4005, 0);
   // Initial explicit choice is allowed; after a real video decoder failure,
@@ -553,7 +575,7 @@ static void ordemSemPrioridade(void) {
 int main(int argc, char **argv) {
   assert(argc == 2 && "runner supplies an isolated preference directory");
   ordemETotal(); identidadeEDedup(); missNaoExcluiOutroServico(); semTetosAntigos();
-  limiteNativoIndependente(); decoderAprendido();
+  limiteNativoIndependente(); decoderAprendido(); audioOriginalPrimeiro();
   cachePertenceAoServico(); hashCanonicoEAplicacaoSobreposta();
   geracaoECancelamento(); addonIndependente(); buscaParcial(); escolhaManual();
   resolvedorManual(argv[1]);

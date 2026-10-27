@@ -2011,8 +2011,9 @@ void stream_falha_identidade(const Stream *s, char *dst, unsigned tam) {
     snprintf(dst, tam, "%s:%d", hash, s->fileIdx);
   } else snprintf(dst, tam, "%s\n%s", s->url, s->cabecalhos);
 }
+static void retratoGuardar(uint64_t sessao, unsigned geracao, const int *fila, const unsigned char *original, int n, int lembrada);
 static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteFalhaCandidata **saida,
-                           Stream **fontes, int *quantidade) {
+                           Stream **fontes, int *quantidade, int *lembrada) {
   int total, nf = 0, pref = -1, livres = 0;
   int *ordem = NULL, *fila = NULL, *rk = NULL;
   long *pts = NULL;
@@ -2022,6 +2023,7 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
   FonteFalhaCandidata *c = NULL;
   FonteRegraCfg escopo = regraCfg();
   *saida = NULL; *fontes = NULL; *quantidade = 0;
+  if (lembrada) *lembrada = -1;
   pthread_mutex_lock(&verTrava);
   if (geracao != listaGeracao) { pthread_mutex_unlock(&verTrava); return 0; }
   total = n;
@@ -2064,6 +2066,16 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
                        total, pref, pts, acima, excl, grp, rk,
                        ajustes_fonte_ordem_uso(), total, fila);
   regraBloqueou = !nf && livres > 0;
+  // AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27), a mesma volta de stream_primeira_boa_sessao: as que DIZEM ter
+  // o audio no idioma vao na frente, cada grupo na ordem de antes. Escolha explicita da pessoa nao e mexida.
+  if (escolhida < 0 && nf > 1 && idiomaAudioPedido()[0]) {
+    unsigned char *tem = calloc((size_t)total, 1);
+    if (tem) {
+      for (int q = 0; q < total; q++) tem[q] = (unsigned char)temAudioPedido(&copia[ordem[q]]);
+      fonteauto_idioma_primeiro(fila, nf, tem);
+      free(tem);
+    }
+  }
   for (int q = 0; q < nf; q++) {
     int i = ordem[fila[q]];
     const Stream *s = &copia[i];
@@ -2080,6 +2092,7 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
     snprintf(c[q].addon, sizeof c[q].addon, "%s", s->addonChave);
     c[q].identidade = id;
   }
+  if (lembrada && pref >= 0) *lembrada = ordem[pref];
   *saida = c; c = NULL; *fontes = copia; copia = NULL; *quantidade = nf;
 fim:
   pthread_mutex_unlock(&verTrava);
@@ -2102,24 +2115,41 @@ int stream_falha_tem_proxima(const FonteFalhaSessao *sessao, unsigned geracao) {
   Stream *fontes = NULL;
   FonteFalhaRota rota;
   int nc = 0, tem = 0;
-  if (copia && falhaCandidatas(geracao, -1, 0, &c, &fontes, &nc))
+  if (copia && falhaCandidatas(geracao, -1, 0, &c, &fontes, &nc, NULL))
     tem = fontefalha_proxima(copia, c, nc, 1, &rota) == FONTEFALHA_PROXIMA;
   for (int i = 0; i < nc; i++) free((void *)c[i].identidade);
   free(c); free(fontes); fontefalha_sessao_liberar(copia);
   return tem;
 }
+typedef struct { int (*cancelado)(void *); void *ctx; } EsperaFalha;
+static int falhaSegue(void *u) { const EsperaFalha *e = u; return !(e->cancelado && e->cancelado(e->ctx)); }
 int stream_falha_verificar(FonteFalhaSessao *sessao, unsigned geracao, int escolhida,
                            int (*cancelado)(void *), void *ctx,
                            int *indice, int *servico, char *url, unsigned tam) {
   FonteFalhaCandidata *c = NULL;
   Stream *fontes = NULL;
-  int nc = 0, resultado = FONTEFALHA_FIM;
+  int nc = 0, resultado = FONTEFALHA_FIM, lembrada = -1;
   if (indice) *indice = -1;
   if (servico) *servico = FONTEFALHA_DIRETA;
   if (url && tam) url[0] = 0;
+  // "Original": so escolhe depois da busca do idioma (como stream_primeira_boa_sessao), mas so na 1a escolha: nas
+  // trocas por falha nao vale prender a troca por ate 10 s.
+  if (sessao && escolhida < 0 && fontefalha_tentativas(sessao) == 0 && ling_audio_e_original() && alvoLista[0]) {
+    char alvo[64];
+    EsperaFalha e = { cancelado, ctx };
+    snprintf(alvo, sizeof alvo, "%s", alvoLista);
+    extras_idioma_original_esperar(alvo, strchr(alvo, ':') != NULL, 10000, falhaSegue, &e);
+  }
   if (!sessao || !url || !tam || falhaCancelada(geracao, cancelado, ctx) ||
       !falhaCandidatas(geracao, escolhida, fontefalha_tentativas(sessao) == 0,
-                       &c, &fontes, &nc)) return FONTEFALHA_FIM;
+                       &c, &fontes, &nc, &lembrada)) return FONTEFALHA_FIM;
+  // O RETRATO DA FILA tambem por aqui (HANDOFF item 2): e este o caminho da escolha quando a politica de falha esta
+  // ligada, e sem o retrato a conferencia de sincronia (fontesincapp.c) achava a fila vazia e nao trocava nunca.
+  { int fi[VER_MAX], k = nc < VER_MAX ? nc : VER_MAX;
+    unsigned char orig[VER_MAX] = {0};
+    for (int q = 0; q < k; q++) { fi[q] = c[q].indice; orig[q] = (unsigned char)temAudioPedido(&fontes[c[q].indice]); }
+    retratoGuardar(nv_perfil_sessao_ler(), geracao, fi, orig, k, lembrada);
+  }
   for (;;) {
     FonteFalhaRota r;
     char resolvida[4096] = "", fim[4096], mime[96] = "";
