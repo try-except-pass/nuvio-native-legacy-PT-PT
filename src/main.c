@@ -2605,6 +2605,12 @@ int main(int argc, char **argv) {
         // -DNV_PERF_FINO; as contagens e o `out` existem sempre)
         printf("[quadro-des] rects=%d(p%d,b%d) out=%.1fms/%d fill=%.2fx cheias=%d texto=%.1fms/%d tela=%s trans=%s\n",
                pNRect, pNProg, pNBind, pOutMs, pNOut, pFill, pNCheio, piorTxtMs, piorTxtN, pTela, pTrans);
+        // O VIDRO NO ULTIMO QUADRO (2.0.21: Home e Ajustes presos na GPU, swap 40-120 ms): quantas capturas
+        // do fundo e passadas de desfoque, quantos vidros com fonte borrada e quantos chapados, e se o
+        // governador ja rebaixou. Sem isto "o desfoque roda todo quadro" e chute.
+        printf("[vidro-quadro] capturas=%d passadas=%d com_fonte=%d chapados=%d area=%dpx degradado=%d tela=%s\n",
+               gfx_vidro_capturas, gfx_vidro_passadas, gfx_vidro_com_fonte, gfx_vidro_chapados, gfx_vidro_area,
+               gfx_vidro_degradado(), pTela);
       }
       // Instrumento de campo (gfx.h, gfx_modos_desligados): a lista em
       // /tmp/nuvio-gfx-off desliga modos de desenho; e o preenchimento do
