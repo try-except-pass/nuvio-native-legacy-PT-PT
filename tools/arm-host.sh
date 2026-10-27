@@ -33,7 +33,7 @@ TMPDIR="${TMPDIR%/}"
 # SDK, e a TV so tem /usr/lib/libcurl.so.5 — o binario nem inicia, com
 # "libcurl.so.4 => not found" e nenhuma mensagem visivel na tela.
 set -e
-cd "$(dirname "$0")/.." && source tools/ctr.sh && source /tmp/claude-1000/-workspace/7b30cd4e-2c42-4f01-a2f0-644d3288d74b/scratchpad/host-override.sh
+cd "$(dirname "$0")/.." && source tools/ctr.sh && source tools/lg-host/host-override.sh
 
 TV_IP="${NUVIO_TV_IP:-192.168.1.32}"
 TV_PASS="${NUVIO_TV_PASS:-alpine}"
