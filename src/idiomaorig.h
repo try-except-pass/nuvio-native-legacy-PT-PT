@@ -21,6 +21,7 @@ typedef struct {
   long tmdbId;
   char final[8];          // a decisao da cadeia ("" = desconhecido)
   int  fonteFinal;        // qual regra decidiu (IO_*, ou -1 = voto)
+  int  respostas;         // quantas consultas tiveram corpo (0 = rede fora: nao e "nenhuma fonte sabe")
 } IdiomaOrig;
 
 // Consulta TODAS as fontes (o teste usa isto para medir cada uma) e decide.

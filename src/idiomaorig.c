@@ -69,6 +69,7 @@ static void tmdbFind(const char *imdb, int serie, const char *chave, IdiomaOrig 
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_TMDB_FIND] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   v = js_array(corpo, NULL, serie ? "tv_results" : "movie_results");
   if (!v) v = js_array(corpo, NULL, serie ? "movie_results" : "tv_results");   // tipo trocado no catalogo
   if (v) {
@@ -91,6 +92,7 @@ static void tmdbDetalhes(int serie, const char *chave, IdiomaOrig *r) {
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_TMDB_FALADO] = r->ms[IO_TMDB_PAIS] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   v = js_array(corpo, NULL, "spoken_languages");
   if (v) js_texto(v, js_fim(v), "iso_639_1", r->lang[IO_TMDB_FALADO], sizeof r->lang[IO_TMDB_FALADO]);
   v = js_array(corpo, NULL, "production_countries");
@@ -120,6 +122,7 @@ static void wikidata(const char *imdb, IdiomaOrig *r) {
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_WIKIDATA] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   for (b = js_array(corpo, NULL, "bindings"); b; b = js_prox(js_fim(b))) {
     char c[8] = "";
     const char *f = js_fim(b);
@@ -145,6 +148,7 @@ static void cinemeta(const char *imdb, int serie, IdiomaOrig *r) {
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_CINEMETA_PAIS] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   js_texto(corpo, NULL, "country", paises, sizeof paises);
   free(corpo);
   for (p = strtok_r(paises, ",", &sv); p; p = strtok_r(NULL, ",", &sv)) {
@@ -194,7 +198,7 @@ void idiomaorig_consultar(const char *imdb, int serie, const char *chaveTmdb, Id
 #define IO_FIOS 3
 // estado: IDIOMA_NUNCA, _FILA, _CORRENDO (lang = a do TMDB, provisoria, ou ""), _ACHADO, _SEM (todas falharam: "en").
 // urg: 1 na fila urgente, 2 a cadeia urgente ja corre (nao entra de novo a cada quadro).
-typedef struct { char id[24]; char lang[8]; unsigned char estado, urg; } IoSlot;
+typedef struct { char id[24]; char lang[8]; unsigned char estado, urg; Uint32 tentarApos; } IoSlot;   // tentarApos: rede fora, espera
 typedef struct { char id[24]; int serie; } IoPedido;
 static IoSlot ioTab[IO_SLOTS];
 static pthread_mutex_t ioTrava = PTHREAD_MUTEX_INITIALIZER;
@@ -243,6 +247,7 @@ static void wikidataTmdb(long tmdb, int serie, IdiomaOrig *r) {
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_WIKIDATA] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   for (b = js_array(corpo, NULL, "bindings"); b; b = js_prox(js_fim(b))) {
     char c[8] = "";
     js_texto(b, js_fim(b), "value", c, sizeof c);
@@ -265,6 +270,7 @@ static void tmdbOriginal(long tmdb, int serie, const char *chave, IdiomaOrig *r)
   corpo = rede_baixar(url, IO_PRAZO_S);
   r->ms[IO_TMDB_FIND] = (int)(SDL_GetTicks() - t0);
   if (!corpo) return;
+  r->respostas++;
   js_texto_raiz(corpo, "original_language", r->lang[IO_TMDB_FIND], sizeof r->lang[IO_TMDB_FIND]);
   r->tmdbId = tmdb;
   free(corpo);
@@ -323,6 +329,18 @@ static void ioEtapaFinal(const IoPedido *p, IdiomaOrig *r) {
          r->lang[IO_TMDB_FIND][0] ? r->lang[IO_TMDB_FIND] : "-", r->ms[IO_TMDB_FIND],
          r->wdTodas[0] ? r->wdTodas : "-", r->ms[IO_WIKIDATA]);
   fflush(stdout);
+  if (!r->final[0] && !r->respostas) {
+    // NENHUMA fonte respondeu (rede fora): nao e "tentado". Fica "en" ate la, e o titulo volta a ser pedido
+    // (o Play, dentro dos 10 s, refaz; o catalogo, no proximo lote).
+    IoSlot *s;
+    pthread_mutex_lock(&ioTrava);
+    if ((s = ioSlot(p->id)) != NULL && s->estado < IDIOMA_ACHADO) {
+      if (!s->lang[0]) snprintf(s->lang, sizeof s->lang, "en");
+      s->estado = IDIOMA_NUNCA; s->urg = 0; s->tentarApos = SDL_GetTicks() + 2000;
+    }
+    pthread_mutex_unlock(&ioTrava);
+    return;
+  }
   ioGuardar(p->id, r->final, 1);
 }
 
@@ -420,6 +438,7 @@ static void ioPedir(const char *id, int serie, int urgente) {
   IoSlot *s = ioSlot(id);
   // Urgente entra ate com o fundo ja correndo (o Wikidata do fundo pode estar atras de centenas).
   if (!s || s->estado >= IDIOMA_ACHADO || (urgente ? s->urg : s->estado != IDIOMA_NUNCA)) return;
+  if (s->tentarApos && (int)(SDL_GetTicks() - s->tentarApos) < 0) return;
   if (urgente) {
     if (ioUrgN == IO_URG) {   // sai o mais velho; volta a ser pedido da proxima vez que for olhado
       IoSlot *v = ioSlot(ioUrg[0].id);

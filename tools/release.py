@@ -13,7 +13,6 @@ import sys
 import tarfile
 import tempfile
 import time
-import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -68,28 +67,9 @@ def config():
         return dict(line.split('=', 1) for line in path.read_text().splitlines())
 
 
-def prepare_ass():
-    target = Path(os.environ.get('NUVIO_ASS_ROOT', 'build/ass-wasm'))
-    needed = ['include/ass/ass.h', 'lib/libass.a', 'lib/libharfbuzz.a', 'lib/libfribidi.a', 'lib/libfreetype.a']
-    if all((target / name).is_file() for name in needed):
-        return
-    if 'NUVIO_ASS_ROOT' not in os.environ and not target.exists() and not target.is_symlink():
-        for line in command('git', 'worktree', 'list', '--porcelain').splitlines():
-            if line.startswith('worktree '):
-                other = Path(line[9:]) / 'build/ass-wasm'
-                if all((other / name).is_file() for name in needed):
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.symlink_to(other.resolve(), target_is_directory=True)
-                    print(f'[preflight] ass-wasm reutilizado: {other.resolve()}', flush=True)
-                    return
-    raise RuntimeError('libass WASM incompleta; rode tools/build-ass-wasm.sh ou configure NUVIO_ASS_ROOT')
-
-
 def expected_files(version):
     return [f'space.nuvio.native.legacy_{version}_arm{suffix}.ipk' for suffix in ('', '-highcache')] + [
-        f'Nuvio-{version}-android.apk', f'Nuvio-{version}-android-lite-armv7.apk', f'Nuvio-{version}-android-lite-arm64.apk', f'NuvioTV-{version}-tizen.wgt',
-        *[f'Nuvio-{version}-{p}.tpk' for p in ('NuvioTpk40', 'NuvioTpk60', 'NuvioTpk65', 'NuvioTpk')],
-        f'libnuvio-{version}-tpk-arm.so', f'libnuvio-{version}-tpk40-arm.so']
+        f'Nuvio-{version}-android.apk', f'Nuvio-{version}-android-lite-armv7.apk', f'Nuvio-{version}-android-lite-arm64.apk']
 
 
 def verify_packages(out, version, values):
@@ -124,11 +104,6 @@ def verify_packages(out, version, values):
                     elif name.endswith('-lite-arm64.apk'):
                         abis = ('arm64-v8a',)
                     targets = [f'lib/{abi}/libmain.so' for abi in abis]
-                else:
-                    manifest = 'config.xml' if path.suffix == '.wgt' else 'tizen-manifest.xml'
-                    if ET.fromstring(z.read(manifest)).get('version') != version:
-                        raise RuntimeError(f'{name}: versao do manifesto diverge')
-                    targets = ['index.wasm'] if path.suffix == '.wgt' else ['lib/libnuvio.so']
                 for member in targets:
                     binaries[member] = check_binary(z.read(member), f'{name}/{member}')
         report[name] = {'bytes': path.stat().st_size, 'sha256': digest(path), 'binaries': binaries}
@@ -161,7 +136,6 @@ def main():
     values = config()
     if values['NV_VERSAO'] != args.version:
         raise RuntimeError(f'versao solicitada {args.version} != fontes {values["NV_VERSAO"]}')
-    prepare_ass()
     out = ROOT / f'build/release-{args.version}'
     out.mkdir(parents=True, exist_ok=True)
     lock = ROOT / 'build/.release-lock'
@@ -199,8 +173,7 @@ def main():
             (out / name).unlink(missing_ok=True)
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             futures = [pool.submit(lg),
-                       pool.submit(step, 'android', ['bash', 'tools/release-android.sh']),
-                       pool.submit(step, 'samsung', ['bash', 'tools/release-samsung.sh'])]
+                       pool.submit(step, 'android', ['bash', 'tools/release-android.sh'])]
             errors = []
             for future in futures:
                 try:
