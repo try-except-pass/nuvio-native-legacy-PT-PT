@@ -1,4 +1,5 @@
 #include "fonteauto.h"
+#include <string.h>
 #include "fonteregra.h"
 #include <stddef.h>
 
@@ -139,4 +140,16 @@ int fonteauto_pode_decidir(const FonteautoParcial *p) {
     return !(p->acimaTeto && p->acimaTeto[c]);
   }
   return p->boa && p->boa[c];
+}
+
+int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma) {
+  int com = 0, q;
+  if (!fila || n < 2 || !temIdioma) return fila && n == 1 && temIdioma && temIdioma[fila[0]];
+  int resto[n], nr = 0;
+  for (q = 0; q < n; q++) {
+    if (temIdioma[fila[q]]) fila[com++] = fila[q];
+    else resto[nr++] = fila[q];
+  }
+  memcpy(fila + com, resto, sizeof *resto * (size_t)nr);
+  return com;
 }

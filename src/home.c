@@ -33,10 +33,15 @@
 #include "ctxmenu.h"
 #include "marco.h"
 #include "titulotempo.h"
+#include "extras.h"
 static TituloTempo heroTempo;
 static void heroTempoInicio(int indice) {
   const CatItem *c = cat_item(indice);
-  if (c && strcmp(heroTempo.id, c->imdb)) titulo_tempo_inicio(&heroTempo, "hero", c);
+  if (c && strcmp(heroTempo.id, c->imdb)) {
+    titulo_tempo_inicio(&heroTempo, "hero", c);
+    // O idioma original de quem esta no destaque ja comeca a ser resolvido: OK no Play nao espera por ele.
+    extras_idioma_original_de(c->imdb, !strcmp(c->tipo, "series"));
+  }
 }
 #define NV_TXT_TELA   // NV_TELA_W/H = tela virtual da escala de texto (escala.h)
 #include "escala.h"

@@ -360,6 +360,17 @@ int main(void) {
   CONFERE(fonteauto_tentativas(FONTEAUTO_PRIMEIRA, 8) == 1, "primeira pede mais de 1");
   CONFERE(fonteauto_tentativas(FONTEAUTO_MELHOR, 8) == 8, "melhor mudou de 8");
 
+  // 12) Audio original primeiro: a fila [5 3 9 1 7], so 9 e 7 dizem o idioma -> [9 7 5 3 1].
+  { int f[5] = {5, 3, 9, 1, 7}; unsigned char tem[N] = {0};
+    tem[9] = tem[7] = 1;
+    CONFERE(fonteauto_idioma_primeiro(f, 5, tem) == 2, "idioma: 2 na primeira volta");
+    CONFERE(f[0] == 9 && f[1] == 7 && f[2] == 5 && f[3] == 3 && f[4] == 1,
+            "idioma: fila %d %d %d %d %d", f[0], f[1], f[2], f[3], f[4]);
+    memset(tem, 0, sizeof tem);   // nenhuma etiquetada: a fila de sempre, intacta (segunda volta)
+    CONFERE(fonteauto_idioma_primeiro(f, 5, tem) == 0 && f[0] == 9 && f[4] == 1, "idioma: sem etiqueta mexeu");
+    int um[1] = {4}; tem[4] = 1;
+    CONFERE(fonteauto_idioma_primeiro(um, 1, tem) == 1 && um[0] == 4, "idioma: fila de 1"); }
+
   parcial();
   grupos();
   ordemAddons();

@@ -168,6 +168,9 @@ int         extras_n_estudios(void);
 // Sai do `original_language` do TMDB, no mesmo corpo que a ficha ja baixa.
 // Serve ao ajuste "Áudio: Original" — ver linguas.h.
 const char *extras_idioma_original(void);
+// O idioma original de QUALQUER titulo (nao so o da ficha): ver extras.c. "" = ainda nao se sabe;
+// a primeira chamada poe a consulta na fila e uma seguinte ja devolve a resposta.
+const char *extras_idioma_original_de(const char *imdb, int serie);
 // 1 = a ficha carregada (ou pedida) e do titulo `imdb` (sufixo de episodio ignorado).
 int extras_e_do_titulo(const char *imdb);
 

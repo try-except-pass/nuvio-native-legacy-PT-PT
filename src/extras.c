@@ -18,6 +18,7 @@
 #include "comentordem.h"
 #include "idiomacod.h"
 #include "linguas.h"
+#include "idiomaorig.h"
 extern void cat_historico_definir_id(const char *imdb, const char *tipo, int visto);
 #include <pthread.h>
 #include <stdint.h>
@@ -1729,6 +1730,7 @@ void extras_pedir(const char *imdb, int serie, long tmdbId) {
   char id[24];
   const char *dp;
   if (!imdb || imdb[0] != 't' || !strncmp(imdb, "tmdb:", 5)) { esquecerPedido(); return; }
+  extras_idioma_original_de(imdb, serie);   // a cadeia do idioma original comeca junto com a ficha
   // Sem nenhuma fonte online nao ha o que buscar: o Trakt alimenta vistos,
   // nota, comentarios e related de sobra; a chave TMDB alimenta ficha,
   // produtoras e "Mais como este"; o MDBList alimenta as notas por fonte.
@@ -2349,6 +2351,18 @@ int extras_colecao_nota(int i) { return (i >= 0 && i < nCol) ? col[i].nota : 0; 
 int extras_n_estudios(void) { return nEstudio; }
 // O idioma original do titulo que esta na ficha, ou "" quando nao se sabe.
 const char *extras_idioma_original(void) { return fichaIdiomaOrig; }
+// O de `imdb` (qualquer titulo, aberto ou nao): a cadeia de idiomaorig.c (TMDB + Wikidata, gravada no
+// aparelho) e, enquanto ela nao responde, a ficha do TMDB se for deste titulo. Por fio: o texto e da chamada.
+const char *extras_idioma_original_de(const char *imdb, int serie) {
+  static __thread char r[8];
+  idiomaorig_de(imdb, serie, desc_chave_tmdb_reserva(), r);
+  if (!r[0] && extras_e_do_titulo(imdb)) {
+    pthread_mutex_lock(&trava);
+    snprintf(r, sizeof r, "%s", fichaIdiomaOrig);
+    pthread_mutex_unlock(&trava);
+  }
+  return r;
+}
 // A ficha carregada (ou a caminho) e deste titulo? Compara o id do titulo, sem o sufixo de episodio.
 int extras_e_do_titulo(const char *imdb) {
   size_t n;

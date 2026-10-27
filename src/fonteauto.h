@@ -61,6 +61,12 @@ int fonteauto_fila_o(int modo, int total, int preferida, const long *pontos,
                      const signed char *grupo, const int *rank, int ordemUso,
                      int max, int *fila);
 
+// AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27): primeira volta = a fila inteira, na ordem dela,
+// so as fontes que DIZEM ter o audio no idioma pedido (`temIdioma[indice]`); sem etiqueta ou "multi" ficam
+// para a segunda volta, que e a fila de sempre do topo. Reordena `fila` sem perder nem repetir ninguem e
+// devolve quantas passaram na primeira volta.
+int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma);
+
 // Quantas candidatas o modo pode conferir numa escolha. PRIMEIRA = 1 sempre:
 // a garantia do #130 e que so a fonte que vai tocar e tocada.
 int fonteauto_tentativas(int modo, int pedidas);

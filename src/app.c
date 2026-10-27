@@ -35,6 +35,7 @@
 #include "cacheboost.h"
 #include "retomamorna.h"
 #include "dados.h"
+#include "idiomaorig.h"
 #include "fonteescolha.h"
 #include "fontesonda.h"
 #include "fonteantecipa.h"
@@ -3770,6 +3771,8 @@ int app_iniciar(const char *dirArte) {
   fontesmortas_iniciar();
   arranque_etapa("app_iniciar/addonstats_ler");
   addonstats_ler();   // #202: latencia de cada add-on NESTA TV (addonstats.h)
+  { char arq[600];   // as respostas do idioma original ficam no aparelho: a segunda vez e instantanea
+    idiomaorig_iniciar(dados_caminho(arq, sizeof arq, "idioma-original.txt") ? arq : ""); }
   // A ARTE ESCOLHIDA A MAO (#142) tambem, antes do primeiro destaque: sem ela
   // lida, o hero abriria na foto automatica e trocaria no quadro seguinte.
   arranque_etapa("app_iniciar/arteesc_iniciar");

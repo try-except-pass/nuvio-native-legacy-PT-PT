@@ -1858,8 +1858,8 @@ void player_abrir(int indiceCatalogo, const char *url) {
   // refeita aqui: refazer zerava o idioma original bem na hora de escolher fonte e faixa (dono, 2026-10-26:
   // "tocou uma fonte sem o audio original"). Chegando depois, player_atualizar refaz a escolha de audio.
   { const CatItem *pc = cat_item(indiceCatalogo);
-    if (pc && pc->imdb[0] && !extras_e_do_titulo(pc->imdb)) extras_pedir(pc->imdb, !strcmp(pc->tipo, "series"), pc->tmdb); }
-  ling_definir_original(extras_idioma_original());
+    if (pc && pc->imdb[0] && !extras_e_do_titulo(pc->imdb)) extras_pedir(pc->imdb, !strcmp(pc->tipo, "series"), pc->tmdb);
+    ling_definir_original(pc ? extras_idioma_original_de(pc->imdb, !strcmp(pc->tipo, "series")) : ""); }
 
   int ficaMini = querMini; querMini = 0;
   int n = cat_n(); if (n < 1) n = 1;
@@ -2067,7 +2067,7 @@ static int preTituloCriar(int indiceCatalogo, int t, int e, const Stream *s, uns
   if (proximo ? (!aberto || !comVideo) : (aberto || video_ativo())) return 0;
   // Na ficha sem video, Original pertence ao titulo que sera aberto. O Next
   // apenas copia a politica atual, sem alterar o idioma da sessao em curso.
-  if (!proximo) ling_definir_original(extras_idioma_original());
+  if (!proximo) ling_definir_original(c ? extras_idioma_original_de(c->imdb, !strcmp(c->tipo, "series")) : "");
   pref = ling_legenda();
   player_precarregar_cancelar(0);
   preTitulo.token = token; preTitulo.proximo = proximo; preTitulo.kbps = stream_kbps(s);
@@ -4506,9 +4506,14 @@ void player_atualizar(float dt, Uint32 agora) {
 #endif
   if (retido) { player_validar_retido(agora); return; }
   if (aberto || mini) atualizarIdentidade();
-  if ((aberto || mini) && !ling_original()[0] && extras_idioma_original()[0]) {
-    ling_definir_original(extras_idioma_original());
-    video_reaplicar_audio();
+  // O idioma original pode chegar (ou passar do provisorio do TMDB ao final) com o player ja aberto.
+  if (aberto || mini) {
+    const CatItem *pi = temFixo ? &itemFixo : cat_item(idx);
+    const char *orig = pi ? extras_idioma_original_de(pi->imdb, !strcmp(pi->tipo, "series")) : "";
+    if (orig[0] && strcmp(orig, ling_original())) {
+      ling_definir_original(orig);
+      video_reaplicar_audio();
+    }
   }
 #ifdef NV_TPK
   // A TV recusou um seek e o arquivo nao tem indice nenhum (mkvfix.h): diz,

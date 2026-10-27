@@ -1131,7 +1131,7 @@ static double duracaoDaLista(void) {
 static const char *idiomaPreferidoFonte(void) {
   // "Original" vale o idioma DESTE titulo. O player so o define ao abrir — depois de a fonte ser escolhida —, e
   // ate la ficava o do titulo anterior: as fontes eram ordenadas pelo idioma errado (dono, 2026-10-26).
-  if (alvoLista[0]) ling_definir_original(extras_e_do_titulo(alvoLista) ? extras_idioma_original() : "");
+  if (alvoLista[0]) ling_definir_original(extras_idioma_original_de(alvoLista, strchr(alvoLista, ':') != NULL));
   const char *c = ajustes_fonte_idioma_audio() ? ling_audio() : "";
   return c ? c : "";
 }
@@ -1163,6 +1163,25 @@ static int idiomaDeclaradoNota(const Stream *s, const char *pref, int *nivel) {
     p = f ? f + 1 : fim;
   }
   return lista;
+}
+// A fonte DIZ ter o audio no idioma pedido (o original, com "Áudio: Original")? Vale SEMPRE, com ou
+// sem o ajuste "preferir o idioma do audio" (que e so o desempate na mesma resolucao e vem desligado):
+// a regra do dono e garantir o som original. A mesma leitura da nota: a lista de audio do addon decide
+// quando existe; senao, o texto da fonte ("KOR", "Korean", bandeira). "Multi"/"dual" nao garante.
+static const char *idiomaAudioPedido(void) {
+  const char *c;
+  idiomaPreferidoFonte();   // poe o original DESTE titulo em linguas.c
+  c = ling_audio();
+  return c ? c : "";
+}
+static int temAudioPedido(const Stream *s) {
+  char t[sizeof s->rotulo + sizeof s->descricao + sizeof s->arquivo + 4];
+  const char *pref = idiomaAudioPedido();
+  int nivel;
+  if (!pref[0] || !s) return 0;
+  if (idiomaDeclaradoNota(s, pref, &nivel)) return nivel == FN_IDIOMA_EXPLICITO;
+  snprintf(t, sizeof t, "%s\n%s\n%s", s->rotulo, s->descricao, s->arquivo);
+  return fontenota_idioma(t, pref) == FN_IDIOMA_EXPLICITO;
 }
 static void notaAvaliar(const Stream *s, double dur, const char *idioma, FonteNota *nt) {
   FonteNotaEntrada e;
@@ -2672,9 +2691,31 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
     // LG: o MP4 da mesma faixa na frente, a mesma regra do automatico.
     if (lgMp4Primeiro()) mp4PrimeiroNaFaixa(ordem, pts, grp, excl, total);
     pthread_mutex_unlock(&verTrava);
-    nf = fonteauto_fila_o(modo, total, posPref, pts, acima, excl, grp, rk, ordemUso, tentativas, fila);
+    // A fila INTEIRA (nao so `tentativas`): a primeira volta do audio original percorre a lista toda.
+    nf = fonteauto_fila_o(modo, total, posPref, pts, acima, excl, grp, rk, ordemUso,
+                          total < VER_MAX ? total : VER_MAX, fila);
     for (q = 0; q < nf; q++) fila[q] = ordem[fila[q]];
     free(ordem); }
+  // AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27). Volta 1: de cima para baixo, a primeira fonte
+  // que DIZ ter o audio no idioma (original, com "Áudio: Original"); sem etiqueta pula. Volta 2, se
+  // nenhuma: do topo, a melhor da ordem de sempre. A checagem das faixas no player continua por tras.
+  if (nf > 1) {
+    unsigned char *tem = calloc((size_t)total, 1);
+    const char *pref = idiomaAudioPedido();
+    if (tem && pref[0]) {
+      int com;
+      pthread_mutex_lock(&verTrava);
+      if (listaGeracao == c.geracao)
+        for (q = 0; q < nf; q++)
+          if (fila[q] >= 0 && fila[q] < n) tem[fila[q]] = (unsigned char)temAudioPedido(&lista[fila[q]]);
+      pthread_mutex_unlock(&verTrava);
+      com = fonteauto_idioma_primeiro(fila, nf, tem);
+      printf("[fonte] audio %s: %d de %d fonte(s) dizem ter; %s\n", pref, com, nf,
+             com ? "toca a primeira delas" : "nenhuma diz: a melhor da lista");
+    }
+    free(tem);
+  }
+  if (nf > tentativas) nf = tentativas;
   free(pts); free(acima); free(excl); free(grp); free(rk);
   if (nf < 1) {
     // Nenhuma candidata: dizer por que (so contagens, sem URL) para o log da TV.
@@ -3117,7 +3158,7 @@ int stream_canal_prazo_longo(int idx) {
 static unsigned lgMp4LogGer; static int lgMp4LogIdx = -1;
 static int automaticoCom(int regras) {
   if (!stream_n()) return -1;
-  int melhor = -1, gMelhor = 0, m = 0;
+  int melhor = -1, gMelhor = 0, m = 0, lMelhor = 0;
   long maior = 0;
   int lg = regras && lgMp4Primeiro();
   int *idx = lg ? malloc(sizeof *idx * (size_t)n) : NULL;
@@ -3130,12 +3171,17 @@ static int automaticoCom(int regras) {
     int i = ORD(k), g = regras ? grupoDe(i) : 0;
     if ((regras ? foraDoAuto(i) : automaticaExcluida(i) || ehInformativa(&lista[i])) || g < 0) continue;
     long p = pontos(&lista[i]);
+    int li = regras && temAudioPedido(&lista[i]);
     if (lg) { idx[m] = i; pts[m] = p; grp[m] = (signed char)g; m++; }
-    // O GRUPO das regras (#202) vem antes da pontuacao: permitida primeiro.
+    // AUDIO ORIGINAL ANTES DE TUDO (dono, 2026-10-27; a mesma regra da fila de stream_primeira_boa).
+    // Depois o GRUPO das regras (#202): permitida primeiro.
     // `>` e nao `>=`: em empate fica o PRIMEIRO da lista, que e a ordem em que
     // o addon devolveu — e ele costuma saber algo que a pontuacao nao ve.
-    if (melhor < 0 || g < gMelhor || (g == gMelhor && p > maior)) { maior = p; melhor = i; gMelhor = g; }
+    if (melhor < 0 || li > lMelhor || (li == lMelhor && (g < gMelhor || (g == gMelhor && p > maior)))) {
+      maior = p; melhor = i; gMelhor = g; lMelhor = li;
+    }
   }
+  if (lMelhor) lg = 0;   // o MP4 da LG nao passa uma fonte com o audio pedido para tras
   // LG: o MP4 da mesma faixa na frente (mp4PrimeiroNaFaixa). Mesma escolha,
   // agora sobre os pontos ajustados.
   if (lg && m > 1 && mp4PrimeiroNaFaixa(idx, pts, grp, NULL, m)) {
@@ -3282,9 +3328,19 @@ static int automaticoPrimeira(void) {
       grp[q] = (signed char)grupoDe(i);
       rk[q] = fonteregra_ordem_rank(lista[i].provedor);
     }
-    nf = fonteauto_fila_o(FONTEAUTO_PRIMEIRA, total, -1, pts, acima, excl, grp, rk,
-                          ajustes_fonte_ordem_uso(), 1, fila);
-    if (nf > 0) r = ordem[fila[0]];
+    int *fila2 = malloc(sizeof *fila2 * (size_t)total);
+    if (fila2) {
+      nf = fonteauto_fila_o(FONTEAUTO_PRIMEIRA, total, -1, pts, acima, excl, grp, rk,
+                            ajustes_fonte_ordem_uso(), total, fila2);
+      // Volta 1: a primeira, de cima para baixo, com o audio pedido; senao (volta 2) a primeira da fila.
+      for (q = 0; q < nf && r < 0; q++) if (temAudioPedido(&lista[ordem[fila2[q]]])) r = ordem[fila2[q]];
+      if (r < 0 && nf > 0) r = ordem[fila2[0]];
+      free(fila2);
+    } else {
+      nf = fonteauto_fila_o(FONTEAUTO_PRIMEIRA, total, -1, pts, acima, excl, grp, rk,
+                            ajustes_fonte_ordem_uso(), 1, fila);
+      if (nf > 0) r = ordem[fila[0]];
+    }
   }
   free(pts); free(acima); free(excl); free(grp); free(rk); free(ordem);
   return r;

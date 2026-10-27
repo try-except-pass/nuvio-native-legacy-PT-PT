@@ -3,6 +3,7 @@
 #include "js.h"
 #include "rede.h"
 #include <SDL2/SDL.h>
+#include <pthread.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,4 +181,129 @@ void idiomaorig_consultar(const char *imdb, int serie, const char *chaveTmdb, Id
   wikidata(imdb, r);
   cinemeta(imdb, serie, r);
   idiomaorig_decidir(r);
+}
+
+// ---- No aparelho: tabela na memoria + arquivo + um fio que consulta um titulo por vez. ----
+#define IO_SLOTS 4096   // potencia de 2; cheia, os titulos novos so ficam sem cache (consulta de novo)
+#define IO_FILA 16
+typedef struct { char id[16]; char lang[8]; unsigned char estado; } IoSlot;   // estado: 0 vazio, 1 na fila, 2 provisorio, 3 final
+static IoSlot ioTab[IO_SLOTS];
+static pthread_mutex_t ioTrava = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t ioSinal = PTHREAD_COND_INITIALIZER;
+static struct { char id[16]; int serie; char chave[80]; } ioFila[IO_FILA];
+static int ioFilaN, ioFioVivo;
+static char ioArquivo[512];
+
+static void ioChave(const char *imdb, char id[16]) {
+  size_t n = strcspn(imdb, ":");
+  if (n > 15) n = 15;
+  memcpy(id, imdb, n); id[n] = 0;
+}
+// Com a trava. NULL se a tabela esta cheia.
+static IoSlot *ioSlot(const char *id) {
+  unsigned h = 2166136261u;
+  for (const char *p = id; *p; p++) h = (h ^ (unsigned char)*p) * 16777619u;
+  for (unsigned i = 0; i < IO_SLOTS; i++) {
+    IoSlot *s = &ioTab[(h + i) & (IO_SLOTS - 1)];
+    if (!s->id[0]) { snprintf(s->id, sizeof s->id, "%s", id); return s; }
+    if (!strcmp(s->id, id)) return s;
+  }
+  return NULL;
+}
+
+static void *ioFio(void *u) {
+  (void)u;
+  for (;;) {
+    char id[16], chave[80];
+    int serie;
+    IdiomaOrig r;
+    IoSlot *s;
+    pthread_mutex_lock(&ioTrava);
+    while (!ioFilaN) pthread_cond_wait(&ioSinal, &ioTrava);
+    ioFilaN--;
+    snprintf(id, sizeof id, "%s", ioFila[ioFilaN].id);   // o mais recente primeiro: e o que a pessoa olha
+    snprintf(chave, sizeof chave, "%s", ioFila[ioFilaN].chave);
+    serie = ioFila[ioFilaN].serie;
+    pthread_mutex_unlock(&ioTrava);
+
+    memset(&r, 0, sizeof r);
+    if (chave[0]) {
+      tmdbFind(id, serie, chave, &r);
+      if (r.lang[IO_TMDB_FIND][0]) {
+        pthread_mutex_lock(&ioTrava);
+        if ((s = ioSlot(id)) && s->estado < 3) { snprintf(s->lang, sizeof s->lang, "%s", r.lang[IO_TMDB_FIND]); s->estado = 2; }
+        pthread_mutex_unlock(&ioTrava);
+      }
+      tmdbDetalhes(serie, chave, &r);
+    }
+    wikidata(id, &r);
+    // Os 2 erros que sobraram nas amostras eram o Wikidata estourando o prazo: uma segunda tentativa.
+    if (!r.wdTodas[0] && r.ms[IO_WIKIDATA] >= IO_PRAZO_S * 1000 - 100) wikidata(id, &r);
+    if (!r.lang[IO_TMDB_FIND][0] && !r.lang[IO_WIKIDATA][0]) cinemeta(id, serie, &r);
+    idiomaorig_decidir(&r);
+    printf("[idioma-orig] %s: %s (tmdb=%s %dms, wikidata=%s %dms)\n", id, r.final[0] ? r.final : "?",
+           r.lang[IO_TMDB_FIND][0] ? r.lang[IO_TMDB_FIND] : "-", r.ms[IO_TMDB_FIND],
+           r.wdTodas[0] ? r.wdTodas : "-", r.ms[IO_WIKIDATA]);
+    pthread_mutex_lock(&ioTrava);
+    if ((s = ioSlot(id)) != NULL) {
+      snprintf(s->lang, sizeof s->lang, "%s", r.final);
+      // Sem resposta nenhuma (rede caida) nao vira final: a proxima vez consulta de novo.
+      s->estado = r.final[0] ? 3 : 0;
+      if (r.final[0] && ioArquivo[0]) {
+        FILE *f = fopen(ioArquivo, "a");
+        if (f) { fprintf(f, "%s\t%s\n", id, r.final); fclose(f); }
+      }
+    }
+    pthread_mutex_unlock(&ioTrava);
+  }
+  return NULL;
+}
+
+void idiomaorig_iniciar(const char *arquivo) {
+  FILE *f;
+  char l[64], id[32], lang[8];
+  int n = 0;
+  pthread_mutex_lock(&ioTrava);
+  snprintf(ioArquivo, sizeof ioArquivo, "%s", arquivo ? arquivo : "");
+  if (ioArquivo[0] && (f = fopen(ioArquivo, "r")) != NULL) {
+    while (fgets(l, sizeof l, f))
+      if (sscanf(l, "%31[^\t]\t%7s", id, lang) == 2 && imdbValido(id)) {
+        IoSlot *s = ioSlot(id);
+        if (s) { snprintf(s->lang, sizeof s->lang, "%s", lang); s->estado = 3; n++; }
+      }
+    fclose(f);
+  }
+  pthread_mutex_unlock(&ioTrava);
+  printf("[idioma-orig] %d resposta(s) gravada(s) em %s\n", n, ioArquivo[0] ? ioArquivo : "(memoria)");
+}
+
+int idiomaorig_de(const char *imdb, int serie, const char *chaveTmdb, char out[8]) {
+  char id[16];
+  IoSlot *s;
+  int final = 0;
+  out[0] = 0;
+  if (!imdb || !imdbValido(imdb)) return 0;
+  ioChave(imdb, id);
+  pthread_mutex_lock(&ioTrava);
+  if ((s = ioSlot(id)) != NULL) {
+    if (s->estado >= 2) { snprintf(out, 8, "%s", s->lang); final = s->estado == 3; }
+    else if (s->estado == 0) {
+      if (ioFilaN == IO_FILA) {   // cheia: sai o mais velho, que volta a ser pedido da proxima vez
+        IoSlot *v = ioSlot(ioFila[0].id);
+        if (v && v->estado == 1) v->estado = 0;
+        memmove(ioFila, ioFila + 1, sizeof ioFila[0] * --ioFilaN);
+      }
+      snprintf(ioFila[ioFilaN].id, sizeof ioFila[0].id, "%s", id);
+      snprintf(ioFila[ioFilaN].chave, sizeof ioFila[0].chave, "%s", chaveTmdb ? chaveTmdb : "");
+      ioFila[ioFilaN++].serie = serie;
+      s->estado = 1;
+      if (!ioFioVivo) {
+        pthread_t t;
+        if (!pthread_create(&t, NULL, ioFio, NULL)) { pthread_detach(t); ioFioVivo = 1; }
+      }
+      pthread_cond_signal(&ioSinal);
+    }
+  }
+  pthread_mutex_unlock(&ioTrava);
+  return final;
 }

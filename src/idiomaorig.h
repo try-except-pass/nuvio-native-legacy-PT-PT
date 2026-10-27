@@ -31,4 +31,12 @@ void idiomaorig_decidir(IdiomaOrig *r);
 // Pais (nome em ingles ou ISO 3166-1 alfa-2) -> idioma principal; "" se o pais tem varios.
 const char *idiomaorig_do_pais(const char *pais);
 
+// NO APARELHO. Le as respostas gravadas (uma linha "tt123<TAB>ko" por titulo) e passa a gravar as novas
+// em `arquivo` ("" ou NULL = so na memoria). Chamar uma vez no arranque.
+void idiomaorig_iniciar(const char *arquivo);
+// Nao bloqueia: copia em `out` o idioma original de `imdb` ("" = ainda nao se sabe) e, da primeira vez,
+// poe o titulo na fila de um fio proprio. Antes da resposta final (Wikidata pode levar segundos) devolve
+// a do TMDB, que sozinha acerta 99,2-99,7% (tests/idiomaorig_amostra). Devolve 1 se a resposta e final.
+int idiomaorig_de(const char *imdb, int serie, const char *chaveTmdb, char out[8]);
+
 #endif
