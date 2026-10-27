@@ -69,7 +69,6 @@ void cachearte_limite_bytes(long bytes);
 /* Native cache keeps its existing tex_cache/cachedisco store. These hooks
  * report that store's events and let its existing pruning callback protect
  * URLs marked essential or in use. */
-#ifndef __EMSCRIPTEN__
 void cachearte_nativo_hit(void);
 void cachearte_nativo_miss(void);
 void cachearte_nativo_gravacao(int sucesso);
@@ -96,6 +95,5 @@ long cachearte_nativo_indice_bytes(void);
  * nao esta pronto ou outra poda esta rodando. */
 long cachearte_nativo_podar(long entrada, long teto, uint64_t reserva, int forcar,
                             NvCacheProtegido protegido, void *ctx);
-#endif
 
 #endif

@@ -105,22 +105,10 @@ static void nomesFonte(const char *arq, char *url, size_t nu, char *xml, char *g
 // O teto agora e de MEMORIA RETIDA, nao de tamanho de arquivo (M4). Evento de 16
 // B (int32: o epoch cabe ate 2038) + ~20 B de titulo na arena: 600 mil
 // programas ~ 22 MB na LG/Android, 400 mil no .tpk, 150 mil no .wgt (heap WASM).
-#if defined(__EMSCRIPTEN__)
-#define EPG_MAX_CANAL 6000
-#define EPG_EVS_MAX   150000
-#define EPG_ARENA_MAX (6L << 20)
-#define EPG_REDE_MAX  (48LL << 20)
-#elif defined(NV_TPK)
-#define EPG_MAX_CANAL 16000
-#define EPG_EVS_MAX   400000
-#define EPG_ARENA_MAX (16L << 20)
-#define EPG_REDE_MAX  (300LL << 20)
-#else
 #define EPG_MAX_CANAL 24000
 #define EPG_EVS_MAX   600000
 #define EPG_ARENA_MAX (24L << 20)
 #define EPG_REDE_MAX  (300LL << 20)
-#endif
 #define EPG_EVS_INI   32768
 #define EPG_ARENA_INI (1L << 20)
 #define EPG_MAX_CHAVES 6
@@ -185,9 +173,6 @@ void epg_memoria_definir(int modo, long ramMB) {
   if (modo < EPG_MEMORIA_AUTO || modo > EPG_MEMORIA_COMPLETA) modo = EPG_MEMORIA_AUTO;
   int baixa = modo == EPG_MEMORIA_BAIXA ||
               (modo == EPG_MEMORIA_AUTO && (ramMB <= 0 || ramMB <= 2048));
-#ifdef __EMSCRIPTEN__
-  if (modo == EPG_MEMORIA_AUTO) baixa = 1;
-#endif
   pthread_mutex_lock(&trava);
   if (epgMemoriaBaixa != baixa) {
     epgMemoriaBaixa = baixa; fontesMudaram = 1;

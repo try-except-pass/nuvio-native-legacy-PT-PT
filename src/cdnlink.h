@@ -72,17 +72,6 @@ unsigned cdnlink_validade_ms(void);
 // Host de `url` (sem esquema, porta nem caminho) em `b`. Para logs.
 const char *cdnlink_host(const char *url, char *b, unsigned n);
 
-// O player do .tpk usa o cdnlink por estes ganchos, ligados no tpk.c
-// (video_tpk_cdn_ganchos): sem eles (testes do video_tpk.c, outros alvos) o
-// player abre o link do addon, como sempre.
-typedef struct {
-  int (*origem_ok)(const char *orig);
-  int (*recente)(const char *orig, const char *cabecalhos, unsigned maxMs, char *dst, unsigned tam, unsigned *idadeMs);
-  int (*resolver)(const char *orig, const char *cabecalhos, int segundos,
-                  char *dst, unsigned tam, unsigned *ms);
-  unsigned (*validade_ms)(void);
-} CdnlinkGanchos;
-void video_tpk_cdn_ganchos(const CdnlinkGanchos *g);   // em video_tpk.c
 
 // Para teste: esquece o cache e define o relogio (0 = o de verdade).
 void cdnlink_zerar(void);

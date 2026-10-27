@@ -15,9 +15,6 @@ static const Item TELA[] = {
   SEC("Reprodução", "Qualidade, som e o que o player faz", "aj_circle-play"),
     ROT("Imagem e som"),
       OPC(AJ_QUALIDADE), OPC(AJ_FONTE_HDR), OPC(AJ_DV), OPC(AJ_ATMOS),
-#ifdef NV_TPK
-      OPC(AJ_AUDIO_OFFSET),
-#endif
     ROT("Escolha da fonte"),
       OPC(AJ_FONTE_MANUAL), OPC(AJ_FILTROS_FONTES), OPC(AJ_FONTE_PRIORIDADE), OPC(AJ_FONTE_IDIOMA_AUDIO), OPC(AJ_FONTE_PRAZO),
       OPC(AJ_FONTE_REPOR), OPC(AJ_TAM_MAX),
@@ -47,27 +44,23 @@ static const Item TELA[] = {
 #ifdef NV_ANDROID
       OPC(AJ_TUNNELING),
 #endif
-#if !defined(NV_TPK) && !defined(NV_ANDROID)
+#if !defined(NV_ANDROID)
       OPC(AJ_DV_MKV),
 #ifdef NV_DV7_CONVERSION
       OPC(AJ_DV7),
 #endif
 #endif
       OPC(AJ_CACHE_SEEK), OPC(AJ_MANTER_VIDEO), OPC(AJ_RETOMADA_MORNA), OPC(AJ_MANTER_PRAZO), OPC(AJ_SEEKR_AJUSTE),
-#if defined(NV_ANDROID) || (!defined(NV_TPK) && !defined(__EMSCRIPTEN__))
       OPC(AJ_BUFFER),   // webOS: DTS/Dolby Vision conversion read-ahead
-#endif
 #ifdef NV_ANDROID
       OPC(AJ_PLAYER_EXTERNO),
       OPC(AJ_PLAYER_ANIME),
 #endif
-#ifndef __EMSCRIPTEN__
     // .wgt: sem socket TCP/UDP no navegador, sem motor; P2P escondido (a8e7685d).
     // #205: Android tambem lista o pendrive (NuvioActivity.volumesExternos).
     ROT("P2P"), OPC(AJ_P2P_LIGADO), OPC(AJ_P2P_URL), OPC(AJ_P2P_TESTAR),
 #if !defined(NV_ANDROID) || defined(NV_P2P_MOTOR)
     OPC(AJ_P2P_LIMITE), OPC(AJ_P2P_DESTINO),
-#endif
 #endif
 
   SEC("Idiomas e legendas", "Idioma da interface, áudio, legenda e metadados", "aj_languages"),
@@ -162,9 +155,6 @@ static const Item TELA[] = {
     ROT("Fileiras"), OPC(AJ_ROTULOS), OPC(AJ_NOME_ADDON), OPC(AJ_SUFIXO_TIPO),
     ROT("Continuar assistindo"), OPC(AJ_CW_FURTHEST),
     ROT("Barra lateral"), OPC(AJ_RAIL_BLUR),
-#if (defined(NV_TPK) || defined(__EMSCRIPTEN__)) && !defined(NV_TPK40)
-      OPC(AJ_MIC_BUSCA),
-#endif
 
   SEC("Galeria", "A segunda aba da Home, com os seus próprios ajustes", "aj_layout-dashboard"),
     ROT("Barra lateral"), OPC(AJ_MENU_GALERIA),
@@ -227,12 +217,6 @@ static const Item TELA[] = {
       OPC(AJ_DET_TRAILER),
     ROT("Som e imagem"),
       OPC(AJ_HERO_TRAILER_SOM), OPC(AJ_TRAILER_FONTE),
-#ifdef __EMSCRIPTEN__
-      OPC(AJ_TRAILER_AUDIO),   // the dubbed trailer is a YouTube id: native players cannot play it
-#endif
-#ifdef NV_TPK
-      OPC(AJ_TRAILER_ZOOM_TPK),
-#endif
       OPC(AJ_LOGO_TRAILER),
     MAIS(),
     ROT("Cartaz em foco"), OPC(AJ_GRAD_CLASSICO), OPC(AJ_MURAL_TITULOS),

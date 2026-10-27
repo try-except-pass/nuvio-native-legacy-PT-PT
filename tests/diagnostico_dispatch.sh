@@ -14,5 +14,3 @@ check() {
 }
 check PTV_LG lg
 check PTV_ANDROID android -DNV_ANDROID
-check PTV_TPK tizen_tpk -DNV_TPK
-check PTV_TIZEN tizen_wgt -D__EMSCRIPTEN__

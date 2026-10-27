@@ -195,7 +195,7 @@ static P2pmSondaFn sondaFn = sondaReal;
 // arquivo com 64 bits; se o lstat falhar mesmo assim, apagar tenta o unlink.
 // #297: o webOS (tools/arm.sh) e o mesmo caso. No Android 32 bits o bionic ja
 // usa struct stat 64 (st_size long long), entao la nao precisa.
-#if (defined(NV_TPK) || defined(NV_WEBOS)) && defined(__arm__)
+#if defined(NV_WEBOS) && defined(__arm__)
 _Static_assert(sizeof(off_t) == 8, "p2pmotor.c precisa de -D_FILE_OFFSET_BITS=64 (#297)");
 #endif
 // Limite de trabalho (so para medir, nunca para apagar): entradas e prazo.
@@ -761,57 +761,7 @@ static int orcamento(const char *mae, uint64_t *mole, uint64_t *duro, uint64_t *
 // pedido, nunca o da tela nem o da vigia.
 #define ONDE_MAX_ENTRADAS 5000u
 #define ONDE_MAX_MS 200
-#ifdef NV_TPK
-static int ehSandboxApp(const char *app) {
-  const char *p = strstr(app, "/apps_rw/");
-  if (!p) return 0;
-  p += 9;
-  return *p && !strchr(p, '/');
-}
-static void ondeFoi(const char *mae) {
-  char app[600], f[1200], linha[900];
-  const char *outros[3];
-  size_t n, k = 0;
-  DIR *d;
-  struct dirent *e;
-  unsigned i;
-  LimTrab lim;
-  if (raizInjetada[0]) return;
-  snprintf(app, sizeof app, "%s", mae);
-  n = strlen(app);
-  while (n > 1 && app[n - 1] == '/') app[--n] = 0;
-  { char *b = strrchr(app, '/'); if (!b || b == app) return; *b = 0; }
-  if (!ehSandboxApp(app)) return;
-  memset(&lim, 0, sizeof lim);
-  lim.max = ONDE_MAX_ENTRADAS;
-  lim.ate = agora() + ONDE_MAX_MS / 1000.0;
-  linha[0] = 0;
-  if ((d = opendir(app))) {
-    while ((e = readdir(d)) && !lim.estourou) {
-      uint64_t mb;
-      if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
-      if (snprintf(f, sizeof f, "%s/%s", app, e->d_name) >= (int)sizeof f) continue;
-      mb = percorrerL(f, 0, 0, &lim) >> 20;
-      if (mb && k < sizeof linha - 80)
-        k += (size_t)snprintf(linha + k, sizeof linha - k, " %s=%llu", e->d_name, (unsigned long long)mb);
-    }
-    closedir(d);
-  }
-  outros[0] = "/tmp"; outros[1] = getenv("TMPDIR"); outros[2] = "/opt/usr/home/owner/share";
-  for (i = 0; i < 3 && !lim.estourou; i++) {
-    uint64_t mb;
-    if (!outros[i] || !outros[i][0]) continue;
-    mb = percorrerL(outros[i], 0, 0, &lim) >> 20;
-    if (mb && k < sizeof linha - 80)
-      k += (size_t)snprintf(linha + k, sizeof linha - k, " %s=%llu", outros[i], (unsigned long long)mb);
-  }
-  printf("[p2p-motor] onde (MB) em %s:%s%s\n", app, linha[0] ? linha : " nada acima de 1 MB",
-         lim.estourou ? " (parcial: limite)" : "");
-  fflush(stdout);
-}
-#else
 static void ondeFoi(const char *mae) { (void)mae; }   // so a TV Samsung tem sandbox conhecida
-#endif
 
 static int contem(const char *s, const char *agulha) {   // sem strcasestr
   size_t n = strlen(agulha);
@@ -838,11 +788,7 @@ const char *p2pmotor_motivo_indisponivel(void) {
   // So para o log (a tela diz "sem motor neste pacote", com i18n).
   if (ops()) return "";
   if (p2pmotor_motor_erro()[0]) return p2pmotor_motor_erro();
-#ifdef __EMSCRIPTEN__
-  return "browser has no TCP/UDP sockets (.wgt): no P2P engine";
-#else
   return "package built without the P2P engine (NV_P2P_MOTOR)";
-#endif
 }
 int p2pmotor_resumo(char *detalhe, unsigned n) {
   char raiz[600], mae[600];

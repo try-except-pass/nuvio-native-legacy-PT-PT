@@ -5,102 +5,6 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef __EMSCRIPTEN__
-// ---------------------------------------------------------------- navegador
-#include <emscripten/websocket.h>
-
-typedef struct Msg { struct Msg *prox; char *texto; } Msg;
-
-struct DiscordWs {
-  EMSCRIPTEN_WEBSOCKET_T s;
-  int estado, codigo, morto;
-  Msg *ini, *fim;
-};
-
-static EM_BOOL aoAbrir(int t, const EmscriptenWebSocketOpenEvent *e, void *u) {
-  DiscordWs *w = (DiscordWs *)u;
-  (void)t; (void)e;
-  w->estado = DWS_ABERTO;
-  return EM_TRUE;
-}
-static EM_BOOL aoMensagem(int t, const EmscriptenWebSocketMessageEvent *e, void *u) {
-  DiscordWs *w = (DiscordWs *)u;
-  Msg *m;
-  (void)t;
-  if (!e->isText) return EM_TRUE;   // o gateway com encoding=json so manda texto
-  m = (Msg *)calloc(1, sizeof *m);
-  if (!m) return EM_TRUE;
-  m->texto = (char *)malloc(e->numBytes + 1);
-  if (!m->texto) { free(m); return EM_TRUE; }
-  memcpy(m->texto, e->data, e->numBytes);
-  m->texto[e->numBytes] = 0;
-  if (w->fim) w->fim->prox = m; else w->ini = m;
-  w->fim = m;
-  return EM_TRUE;
-}
-static EM_BOOL aoFechar(int t, const EmscriptenWebSocketCloseEvent *e, void *u) {
-  DiscordWs *w = (DiscordWs *)u;
-  (void)t;
-  w->codigo = e->code;
-  w->estado = DWS_CAIU;
-  return EM_TRUE;
-}
-static EM_BOOL aoErro(int t, const EmscriptenWebSocketErrorEvent *e, void *u) {
-  DiscordWs *w = (DiscordWs *)u;
-  (void)t; (void)e;
-  w->estado = DWS_CAIU;
-  return EM_TRUE;
-}
-
-DiscordWs *dws_abrir(const char *url) {
-  EmscriptenWebSocketCreateAttributes a;
-  DiscordWs *w = (DiscordWs *)calloc(1, sizeof *w);
-  if (!w) return NULL;
-  emscripten_websocket_init_create_attributes(&a);
-  a.url = url;
-  // Callbacks no fio que criou — o principal, o mesmo que chama dws_receber.
-  a.createOnMainThread = EM_FALSE;
-  w->s = emscripten_websocket_new(&a);
-  if (w->s <= 0) { w->estado = DWS_CAIU; return w; }
-  emscripten_websocket_set_onopen_callback(w->s, w, aoAbrir);
-  emscripten_websocket_set_onmessage_callback(w->s, w, aoMensagem);
-  emscripten_websocket_set_onclose_callback(w->s, w, aoFechar);
-  emscripten_websocket_set_onerror_callback(w->s, w, aoErro);
-  return w;
-}
-
-int dws_estado(DiscordWs *w) { return w ? w->estado : DWS_CAIU; }
-int dws_codigo_fechamento(DiscordWs *w) { return w ? w->codigo : 0; }
-
-int dws_enviar(DiscordWs *w, const char *texto) {
-  if (!w || w->estado != DWS_ABERTO) return -1;
-  return emscripten_websocket_send_utf8_text(w->s, texto) == EMSCRIPTEN_RESULT_SUCCESS ? 0 : -1;
-}
-
-char *dws_receber(DiscordWs *w) {
-  Msg *m;
-  char *t;
-  if (!w || !w->ini) return NULL;
-  m = w->ini;
-  w->ini = m->prox;
-  if (!w->ini) w->fim = NULL;
-  t = m->texto;
-  free(m);
-  return t;
-}
-
-void dws_fechar(DiscordWs *w) {
-  char *t;
-  if (!w) return;
-  if (w->s > 0) {
-    emscripten_websocket_close(w->s, 1000, "");
-    emscripten_websocket_delete(w->s);
-  }
-  while ((t = dws_receber(w))) free(t);
-  free(w);
-}
-
-#else
 // ---------------------------------------------------------------- nativo
 #include <pthread.h>
 #include <stdatomic.h>
@@ -434,4 +338,3 @@ void dws_fechar(DiscordWs *w) {
   liberar(w);
 }
 
-#endif

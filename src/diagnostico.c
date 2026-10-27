@@ -1580,11 +1580,7 @@ static MnRes medirNucleo(const VazCand *c, int janelaS, char hosts[][96], int nH
   if (!cab && !vz.rede) {
     if (rede_url_final(c->url, DIAG_TIMEOUT_S, fim, sizeof fim)) alvo = fim;
     else {
-#ifdef __EMSCRIPTEN__
-      *cat = VR_NAVEGADOR;
-#else
       *cat = VR_SEM_RESPOSTA;
-#endif
       *motivo = MOT_RESOLVEU;
       return MN_FALHA;
     }

@@ -108,10 +108,6 @@ void logrede_limpar(char *linha) {
   cortarLongas(linha);
 }
 
-#ifdef __EMSCRIPTEN__
-void logrede_configurar(int ligado, const char *arquivo) { (void)ligado; (void)arquivo; }
-const char *logrede_url(void) { return ""; }
-#else
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -524,4 +520,3 @@ void logrede_configurar(int ligado, const char *arquivo) {
 
 const char *logrede_url(void) { return vivo ? url : ""; }
 
-#endif

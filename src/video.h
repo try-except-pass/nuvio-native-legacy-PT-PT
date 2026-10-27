@@ -181,13 +181,6 @@ int  video_modo_live_consumir(void);
 // Numero da tentativa (1..3) enquanto uma queda esta em curso, esperando ou
 // recarregando; 0 fora disso. Enquanto nao e 0, video_falhou fica em 0.
 int    video_reconectando(void);
-#ifdef NV_TPK
-// Seek sent and not yet confirmed by the TV (video_tpk.c), and a counter of
-// seeks the TV refused (EV_BUSCA_FALHOU). Used by player.c to hold the bar on
-// the target instead of the stale position.
-int      video_busca_em_voo(void);
-unsigned video_busca_falhas(void);
-#endif
 int    video_tocando(void);
 // Pausa comprovada pelo backend da sessao atual, nao a intencao local de
 // video_pausar. Alvos sem confirmacao confiavel devolvem 0.
@@ -282,24 +275,7 @@ int    video_terminou(void); // 1 depois do fim de fluxo (endOfStream) da fonte 
 // 1 depois que OUTRO app tomou o video da TV nesta sessao (so o .tpk sabe:
 // "interrompido: ResourceConflict" do host). Pegajoso ate o fim da sessao.
 int    video_conflito_recurso(void);
-#ifdef NV_TPK
-void   video_tpk_log_host(const char *linha);   // tpk.c repassa cada linha do host
-int    video_tpk_codec_recusado(const char *codecId);  // #313: DTS/TrueHD/MLP, que a Samsung nao toca
-// Zoom/recorte do plano de video (ROI), experimental (#241): liga/desliga em
-// execucao; o padrao e NV_TPK_ZOOM_ROI (0). Loga "[trailer] tpk zoom ROI: ...".
-void   video_tpk_zoom_roi_definir(int ligado);
-int    video_tpk_zoom_roi(void);
-// trailer.c marca que o que toca agora e um trailer (so ele pode ter ROI fora da tela).
-void   video_tpk_trailer_marcar(int sim);
-void   video_tpk_cartao_marcar(int sim);   // o destino e o furo do cartao da home
-int    video_tpk_cartao_cover(void);       // 1 = o cartao recebe cover (recorte de fonte), 0 = encaixe
-void   video_tpk_cartao_destino(float x, float y, float w, float h, float *ox, float *oy, float *ow, float *oh);
-void   video_tpk_cartao_furo(float x, float y, float w, float h, float *ox, float *oy, float *ow, float *oh);
-void   video_tpk_tizen_definir(const char *versao);   // gpunivel.c: platform.version
-int    video_recorte_fonte_trailer(void);   // so o trailer: o ajuste em execucao
-#else
 static inline int video_recorte_fonte_trailer(void) { return video_recorte_fonte(); }
-#endif
 
 // --- ESTATISTICAS AO VIVO (estatvivo.h) ---------------------------------------
 // O que a PLATAFORMA mede da reproducao atual, sem estimativa nenhuma: cada
@@ -368,10 +344,6 @@ typedef struct {
 
 // Identity used by candidates and manual audio memory, separate from selectTrack.
 static inline int video_audio_numero_memoria(const VideoFaixa *f) {
-#ifdef NV_TPK
-  // MKV TrackNumber occupies a separate namespace from native player indices.
-  if (f->numero < 0 && f->stream_id > 0) return 0x40000000 | f->stream_id;
-#endif
   return f->numero;
 }
 
@@ -557,7 +529,7 @@ void video_simular(const VideoSimulacao *s);
 #endif
 
 // One-reply webOS LS2 request; callback runs on the GLib thread.
-#if !defined(NV_TPK) && !defined(NV_ANDROID)
+#if !defined(NV_ANDROID)
 int video_luna(const char *uri, const char *payload, void (*callback)(const char *, void *), void *context);
 #endif
 #endif

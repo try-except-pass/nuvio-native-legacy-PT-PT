@@ -842,46 +842,6 @@ static int cabeNaAltura(const Stream *s) {
   return !teto || !s->altura || s->altura <= teto;
 }
 
-#ifdef NV_VIDAA
-// TABELA DE REGRAS DA VIDAA (Hisense) -----------------------------------------
-//
-// Fonte: medicoes de TERCEIROS contra o navegador dela (NoobyGains /
-// stremio-vidaa-tv), NAO VERIFICADAS neste aparelho — trocar os pesos aqui
-// se a VIDAA de verdade discordar. Aplicada DEPOIS da tabela da LG (logo
-// acima, no corpo de pontos()) e forte o bastante para reverter qualquer
-// bonus que aquela tabela ja tenha somado — a VIDAA discorda da LG em pelo
-// menos um ponto (DV em MP4), entao nao da para so ACRESCENTAR regras.
-//
-//   - DV EM MP4 TRAVA O NAVEGADOR da VIDAA — o oposto exato da LG (onde MP4 e
-//     o container que toca DV de verdade, ver o comentario grande acima).
-//     Penalidade forte o bastante para anular os +100000/+10000 que a tabela
-//     de cima ja somou para esta mesma combinacao.
-//   - DV EM MKV continua com bonus: e a LG que rebaixa DV em MKV para HDR10,
-//     nao a VIDAA — nao ha motivo medido para penalizar aqui.
-//   - AV1 nao decodifica (nem hardware nem software no navegador dela).
-//   - ACIMA DE 4K da tela preta.
-//   - http:// NA URL DO STREAM e conteudo misto — a pagina da VIDAA e https
-//     (rede.c ja reescreve para o proxy quando da, mas a pontuacao nao deve
-//     favorecer uma fonte que so toca as custas de um desvio).
-//   - MP4 SEM DV e o container que o <video> HTML5 toca com mais
-//     confiabilidade: bonus leve, so para desempatar MP4 x MKV equivalentes.
-typedef struct { const char *nome; int (*bate)(const Stream *s); long pontos; } RegraVidaa;
-static int rvDvMp4(const Stream *s)     { return s->mp4 && s->dolbyVision; }
-static int rvDvMkv(const Stream *s)     { return !s->mp4 && s->dolbyVision; }
-static int rvAv1(const Stream *s)       { return s->av1; }
-static int rvAcimaDe4k(const Stream *s) { return s->altura > 2160; }
-static int rvHttp(const Stream *s)      { return !strncmp(s->url, "http://", 7); }
-static int rvMp4SemDv(const Stream *s)  { return s->mp4 && !s->dolbyVision; }
-static const RegraVidaa REGRAS_VIDAA[] = {
-  { "dv-em-mp4 trava o navegador",  rvDvMp4,     -200000 },
-  { "dv-em-mkv ok nesta tv",        rvDvMkv,        10000 },
-  { "av1 nao decodifica",           rvAv1,        -150000 },
-  { "acima de 4k da tela preta",    rvAcimaDe4k,  -150000 },
-  { "http:// e conteudo misto",     rvHttp,       -150000 },
-  { "mp4 sem dv e mais confiavel",  rvMp4SemDv,      3000 },
-};
-#define N_REGRAS_VIDAA (sizeof REGRAS_VIDAA / sizeof REGRAS_VIDAA[0])
-#endif
 // FAIXA DE TAMANHO DA ESCOLHA AUTOMATICA (Ajustes > Reproducao > Imagem e som:
 // "Tamanho maximo" / "Tamanho minimo", em GB). Pedido de quem tem franquia de
 // dados curta: o automatico so pega arquivo dentro da faixa. Mesma regra do
@@ -1056,7 +1016,7 @@ static int perfil5(const Stream *s) {
 }
 
 #ifndef NV_STREAMS_LG
-#if !defined(NV_ANDROID) && !defined(NV_TPK) && !defined(__EMSCRIPTEN__) && !defined(NV_LINUX_DESKTOP)
+#if !defined(NV_ANDROID) && !defined(NV_LINUX_DESKTOP)
 #define NV_STREAMS_LG 1
 #else
 #define NV_STREAMS_LG 0
@@ -1078,12 +1038,8 @@ static int nivelHdr(const Stream *s) {
   if (s->dolbyVision) {
     int toca = ajustes_dolby_vision() && telaDv != 0;
 #ifndef NV_ANDROID
-#ifdef NV_TPK
-    toca = toca && stream_e_mp4(s);
-#else
     // LG: DV em MKV so com o ajuste "Dolby Vision em MKV" ligado.
     toca = toca && (stream_e_mp4(s) || ajustes_dv_mkv());
-#endif
 #endif
     // Profile 5 has no HDR10 base; prefer HDR10 in the same band. Keeping it
     // below HDR10 also prevents the MP4-first rule from promoting it.
@@ -1265,30 +1221,12 @@ static long qualidade(const Stream *s, int modo) {
   return q;
 }
 
-#ifdef NV_TPK
-// SAMSUNG NAO TOCA DTS NEM TRUEHD (#313; specs oficiais 2018+). Fonte cujo
-// unico audio anunciado e DTS/DTS-HD/TrueHD abre mudo no .tpk. O selo vem do
-// nome do arquivo: Atmos fica de fora (pode ser DD+ ou TrueHD) e qualquer selo
-// Dolby Digital junto do DTS (nome com os dois) tira a multa. Pesa mais que um
-// degrau de resolucao (10000) para o 1080p com AC3 passar na frente do 4K mudo,
-// e continua longe das multas de cache/origem (>= 140000): so desempata a fila.
-static long penalAudioTv(const Stream *s) {
-  uint64_t recusa = badges_bit("a-dts") | badges_bit("a-dtshd") | badges_bit("a-dtshdma") |
-                              badges_bit("a-dtsx") | badges_bit("a-truehd") | badges_bit("a-truehd-dv");
-  uint64_t toca = badges_bit("a-dd") | badges_bit("a-ddp") | badges_bit("a-dd-dv") |
-                            badges_bit("a-atmos") | badges_bit("a-atmos-dv");
-  return (s->badges & recusa) && !(s->badges & toca) ? 20000 : 0;
-}
-#endif
 
 // AS MULTAS de pontos() (teto, cache, origem, P2P, StreamFit, sem resolucao),
 // em separado: o "MP4 primeiro" da LG (mp4PrimeiroNaFaixa) so reordena fontes
 // com as MESMAS multas — e desempate, nunca passa por cima delas.
 static long multasDeAlvo(const Stream *s, const char *alvo) {
   long m = 0;
-#ifdef NV_TPK
-  m += penalAudioTv(s);
-#endif
   // ACIMA DO TETO vai para o fim da fila, e nao para fora dela: o teto e
   // preferencia, nao filtro. Uma lista em que so ha 4K e com teto de 1080p tem
   // de continuar tocando — em 4K, com uma linha no log dizendo por que.
@@ -1354,12 +1292,6 @@ static long pontosDoAlvo(const Stream *s, const char *alvo) {
       { FonteNota nt; notaDe(s, &nt); p = fontenota_somar(p, &nt, 0); }
     } else p += qualidade(s, modo);
   }
-#ifdef NV_VIDAA
-  { unsigned k;
-    for (k = 0; k < N_REGRAS_VIDAA; k++)
-      if (REGRAS_VIDAA[k].bate(s)) p += REGRAS_VIDAA[k].pontos;
-  }
-#endif
   p -= multasDeAlvo(s, alvo);
   return p;
 }
@@ -1665,41 +1597,22 @@ static void soltarConf(void *u) {
   if (atomic_fetch_sub(&d->refs, 1) == 1) free(d);
 }
 
-#ifdef NV_VIDAA
-__attribute__((unused))
-#endif
 static int resolverUrl(const char *url, const char *cabecalhos, int segundos,
                         char *fim, unsigned tam, char *mime, unsigned mimeTam, long *corpo) {
   const char *vetor[8];
   char copia[512];
   int nc = 0, http = 0;
-#ifdef __EMSCRIPTEN__
-  int restrito = 0;
-#endif
   if (cabecalhos && *cabecalhos) {
     char *l, *ctx = NULL;
     snprintf(copia, sizeof copia, "%s", cabecalhos);
     for (l = strtok_r(copia, "\n", &ctx); l && nc < 7; l = strtok_r(NULL, "\n", &ctx)) {
       vetor[nc++] = l;
-#ifdef __EMSCRIPTEN__
-      if (!strncasecmp(l, "Referer:", 8) || !strncasecmp(l, "Origin:", 7) ||
-          !strncasecmp(l, "User-Agent:", 11)) restrito = 1;
-#endif
     }
   }
   vetor[nc] = NULL;
   // O tipo e o tamanho do corpo vem da MESMA sonda: nenhum pedido a mais.
   if (rede_url_final_tipo(url, segundos, nc ? vetor : NULL, fim, tam, &http,
                           mime, mimeTam, corpo)) return 1;
-#ifdef __EMSCRIPTEN__
-  // XHR nao manda estes cabecalhos; AVPlay manda. A recusa nao prova que a
-  // fonte morreu (mesmo contrato de playlistVazia). 5xx nao entram aqui.
-  if ((http == 401 || http == 403) && restrito && strlen(url) < tam) {
-    memcpy(fim, url, strlen(url) + 1);
-    printf("[fonte] sonda HTTP %d com cabecalho controlado pelo navegador: quem decide e o player\n", http);
-    return 1;
-  }
-#endif
   return 0;
 }
 
@@ -1765,11 +1678,7 @@ static int verificarUma(int i, Conferencia *c) {
     // bloqueio de conteudo misto ou de CORS e rotineiro ali, nao prova de fonte
     // morta. Mesma politica de playlistVazia: sem como conferir, presume viva.
     // Sem tipo/tamanho do corpo ali (mime vazio, corpo -1): naovideo_mime nao pega.
-#ifdef NV_VIDAA
-    int r = rede_url_final_vidaa(url, 10, fim, sizeof fim);
-#else
     int r = resolverUrl(url, cab, 10, fim, sizeof fim, mime, sizeof mime, &corpo);
-#endif
     if (r < 0) {
       printf("[fonte] %d sem confirmacao (bloqueio de rede na vidaa); presumindo viva\n", i);
       ok = 1;
@@ -1910,11 +1819,7 @@ int stream_torrents_para_p2p(void) {
   int p2p = descartadosP2P;
   if (!debrid_ativo()) p2p += descartadosSemDebrid - descartadosP2P;
   if (p2p <= 0 || p2p_ativo()) return 0;
-#ifdef __EMSCRIPTEN__
-  return 0;
-#else
   return (ajustes_p2p_url()[0] || atomic_load(&motorP2pParaDica)) ? p2p : 0;
-#endif
 }
 
 // #599: explain partial results without changing the empty-sheet diagnosis.
@@ -2807,26 +2712,6 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
          modo == FONTEAUTO_PRIMEIRA ? "primeira da lista" : "melhor fonte",
          tocadas, nf, c.abortou ? ", lista trocada no meio" : "");
   if (escolhida >= 0) { printf("[fonte] %d ok\n", escolhida); logarEscolha(escolhida, pref, modo == FONTEAUTO_PRIMEIRA); }
-#ifdef NV_VIDAA
-  // QUAIS REGRAS DA TABELA DA VIDAA PESARAM na fonte escolhida — sem isto a
-  // pontuacao e uma caixa preta quando alguem perguntar "por que tocou este
-  // MKV e nao aquele MP4 4K". So imprime as que BATERAM (a maioria das
-  // fontes nao bate regra nenhuma, e "nenhuma" tambem e informacao).
-  if (escolhida >= 0 && escolhida < n) {
-    const Stream *s = &lista[escolhida];
-    char motivos[256] = "";
-    size_t u = 0;
-    unsigned k;
-    for (k = 0; k < N_REGRAS_VIDAA; k++) {
-      if (!REGRAS_VIDAA[k].bate(s)) continue;
-      int esc = snprintf(motivos + u, sizeof motivos - u, "%s%s(%+ld)",
-                          u ? "; " : "", REGRAS_VIDAA[k].nome, REGRAS_VIDAA[k].pontos);
-      if (esc < 0 || (size_t)esc >= sizeof motivos - u) break;
-      u += (size_t)esc;
-    }
-    printf("[fonte] vidaa: regras em %d: %s\n", escolhida, motivos[0] ? motivos : "nenhuma");
-  }
-#endif
   { FonteRegraCfg c = regraCfg();
     if (escolhida >= 0 && (fonteregra_ativa(&c) || ordemUso)) {
       static const char *const ESC_[3] = { "all", "addons-only", "plugins-only" };

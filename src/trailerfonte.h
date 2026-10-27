@@ -90,11 +90,7 @@ void trailerfonte_definir_imdb_primeiro_cheia(int sim);
 // a tela cheia seguem as regras de cima. 0 desliga as duas coisas juntas.
 // .wgt e LG: 0, nada muda.
 #ifndef NV_TRAILER_CONTINUA_DETALHE
-#ifdef NV_TPK
-#define NV_TRAILER_CONTINUA_DETALHE 1
-#else
 #define NV_TRAILER_CONTINUA_DETALHE 0
-#endif
 #endif
 int  trailerfonte_ordem_destaque(int ajuste, int tizen, int ordem[3]);
 /* Uses the actual Home order (IMDb first on native TPK), unlike depois(). */

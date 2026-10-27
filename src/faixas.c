@@ -142,14 +142,7 @@ static int legOverlayFalhas, legOverlayRecusas, legOverlayNoGoEstado;
 static int legOverlayTV, legOverlayColhidos;
 
 int faixas_legenda_overlay(void) {
-#ifdef NV_TPK
-  // The .tpk host supplies text callbacks, not a firmware caption plane.
-  // Keep collected cues visible while waiting for callbacks or retrying;
-  // the primary renderer uses callbacks only when no collected cue is active.
-  return 1;
-#else
   return !legOverlayTV;
-#endif
 }
 
 static Uint32 legOverlayRetomar;       // 0 = nada agendado
@@ -167,7 +160,7 @@ static int ehAss(const VideoFaixa *f) {
 #endif
 // PGS: o app decodifica e desenha (imgsub) no .tpk e na LG; as outras seguem.
 static int ehPgs(const VideoFaixa *f) {
-#if defined(NV_TPK) || defined(NV_WEBOS)
+#if defined(NV_WEBOS)
   return f && faixasmkv_imagem_overlay(f->codec);
 #else
   (void)f; return 0;

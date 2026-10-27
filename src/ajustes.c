@@ -113,7 +113,6 @@
 #include "abertura.h"
 #include "apoio.h"
 #include "telefoneui.h"
-#include "dts/dts_hls_tpk.h"
 #ifdef NV_ANDROID
 #include "android.h"
 #endif
@@ -853,13 +852,8 @@ static const char *V_BRILHO_PLAYER[] = { "100%", "80%", "65%", "50%" };
 // DTS/TrueHD e escolhe a saida (gravada em dtsTpkLocal; 1 = 5.1 nos dois, que
 // e o que ajustes_dts_ac3 le). O dtsSaidaLocal e o dtsTpkModoLocal de antes
 // migram na leitura (ver dtsTpkMigrar).
-#ifdef NV_TPK
-static const char *V_DTS_SAIDA[] = { "Desligado", "5.1 (Dolby Digital)", "Estéreo (AAC)" };
-#define N_DTS_SAIDA 3
-#else
 static const char *V_DTS_SAIDA[] = { "Estéreo (AAC)", "5.1 (Dolby Digital)" };
 #define N_DTS_SAIDA 2
-#endif
 static const char *V_PROPORCAO[] = { "Último usado", "Original", "Recortar", "Esticar", "Zoom leve", "Zoom cinema", "Zoom ultra", "Ajustar altura", "Ajustar largura" };
 static const char *V_LOGO_APP[] = { "Novo", "Clássico" };
 static const char *V_BUSCA_NUVIO[] = { "Primeiro", "Por último", "Desligado" };
@@ -914,12 +908,9 @@ static const char *V_P2P_DESTINO[] = { "Interno", "Pendrive USB" };
 // Only the Android player has an app-controlled disk cache (cacheboost.h);
 // LG/Samsung show the row with "Não disponível nesta TV". Compile-time, so the
 // many tests that compile ajustes.c alone need no extra source.
-// DTS -> AC3/AAC conversion: the webOS player (src/dts) and, on the Samsung
-// .tpk, the loopback converter (dts/dts_hls_tpk.c) when FFmpeg is in the .so.
+// DTS -> AC3/AAC conversion: the webOS player (src/dts).
 static int dtsConversaoExiste(void) {
-#if defined(NV_TPK)
-  return dts_tpk_disponivel();
-#elif defined(__APPLE__) || defined(NV_LINUX_DESKTOP) || defined(NV_ANDROID) || defined(__EMSCRIPTEN__)
+#if   defined(__APPLE__) || defined(NV_LINUX_DESKTOP) || defined(NV_ANDROID)
   return 0;
 #else
   return 1;
@@ -2150,11 +2141,7 @@ static const char *CHAVE[] = {
   "proporcaoPadraoLocal",
   "cwRetidoTambemLocal",
   "psContinuarLocal",
-#ifdef NV_TPK
-  "dtsTpkLocal",   // Desligado / 5.1 / Estereo: outro significado que o dtsSaidaLocal da LG
-#else
   "dtsSaidaLocal",
-#endif
   "dvMkvLocal",
   "histContaLocal",
   "socialLocal",
@@ -2941,11 +2928,7 @@ static void interfaceAplicar(void) {
 // Uma variavel daqui (e nao seguro_perfil_ativo()) para os acessores nao puxarem
 // seguro.c: varios testes compilam ajustes.c com uma lista curta de fontes.
 static int perfilSeguro;
-#ifdef NV_TIZEN3_LITE
-#define SEGURO 1  // Experimental lite always uses existing low-cost rendering limits.
-#else
 #define SEGURO perfilSeguro
-#endif
 static int saidaLimitada;
 void ajustes_ui_saida(int w, int h) { saidaLimitada = w > 0 && h > 0 && (w < 3840 || h < 2160); }
 int ajustes_ampliar_app(void) {
@@ -3119,11 +3102,7 @@ int ajustes_vidro(void) {
   return (lig(AJ_VIDRO) || (valor[AJ_VIDRO] == 2 && !gpun_efeito_ativo(4))) && !SEGURO;
 }
 int ajustes_fundo(void) {
-#ifdef NV_TIZEN3_LITE
-  return 0;  // No frost background in the experimental 2017 build.
-#else
   int v = valor[AJ_FUNDO]; return v >= 0 && v < 3 ? v : 0;
-#endif
 }
 int ajustes_vidro_contorno(void) {
   return lig(AJ_VIDRO_CONTORNO);
@@ -3491,21 +3470,12 @@ void ajustes_definir_ocultar_filmes_vistos(int ligado) {
 }
 static void riscoNotar(int op, int antes);
 void ajustes_definir_vidro(int ligado) { int a = valor[AJ_VIDRO]; valor[AJ_VIDRO] = ligado ? 0 : 1; AJ_COM_ORIGEM(AJLOG_CENTRAL, gravar()); riscoNotar(AJ_VIDRO, a); }
-#ifdef __EMSCRIPTEN__
-// .wgt: o navegador nao abre socket TCP/UDP (motor impossivel) e o P2P fica
-// escondido la (ajustes_ux_tela.inc), inclusive o do servidor Stremio
-// (decisao do dono, a8e7685d). Nem um "p2p" ligado de ajustes.txt antigo vale.
-int ajustes_p2p_ligado(void) { return 0; }
-unsigned ajustes_p2p_limite_mb(void) { return 0; }
-int ajustes_p2p_usb(void) { return 0; }
-#else
 int ajustes_p2p_ligado(void) { return lig(AJ_P2P_LIGADO) && !SEGURO; }
 unsigned ajustes_p2p_limite_mb(void) {
   int v = valor[AJ_P2P_LIMITE];
   return v >= 0 && v < (int)(sizeof P2P_LIMITE_MB / sizeof *P2P_LIMITE_MB) ? P2P_LIMITE_MB[v] : 0;
 }
 int ajustes_p2p_usb(void) { return valor[AJ_P2P_DESTINO] == 1; }
-#endif
 // Servidores pessoais: ligado E com HTTP estrito neste backend (o WGT nao tem:
 // jellyfin_disponivel() e 0 la). Fica FORA do #ifdef acima: dentro do #else ela
 // sumia do WASM e o link do .wgt falhava (app.c e descoberta.c a chamam).
@@ -3769,11 +3739,7 @@ int ajustes_data_completa(void)       { return lig(AJ_DET_DATA_CHEIA); }
 // dono (2026-10-26): o veu escuro a esquerda do titulo, na pagina do titulo, saiu; o ajuste fica sem efeito.
 float ajustes_detalhe_veu(void)       { return 0.0f; }
 int   ajustes_trailer_auto(void)      {
-#ifdef NV_TIZEN3_LITE
-  return 0;
-#else
   return lig(AJ_DET_TRAILER_AUTO);
-#endif
 }
 // TRAILER AUTOMATICO DA HOME VETADO PELA GPU. Utgard (Mali-400/450/470) roda
 // a home a 8-24 fps ja no nivel 2 de efeitos (gpunivel.c); o video tocando
@@ -3872,18 +3838,6 @@ int  ajustes_trailer_cartaz(void) {
 // do destaque). Ligado com a dependencia de entao desligada (cartaz em pe sem
 // Expandir) nao tocava nada: continua sem tocar. Chamar com o arquivo inteiro
 // lido (expandir e cartaz deitado podem vir depois da chave velha).
-#ifdef NV_TPK
-// A conversao de DTS/TrueHD do .tpk virou UMA linha (Desligado / 5.1 /
-// Estereo, dtsTpkLocal). Antes eram duas: "DTS convertido em" (dtsSaidaLocal:
-// 0 = Estereo, 1 = 5.1) e o teste de entrega (dtsTpkModoLocal: 5 = Desligado,
-// os outros = algum modo ligado). Desligado continua desligado; senao a saida
-// de antes; sem nada, o padrao (5.1).
-static int dtsTpkMigrar(int modoAntigo, int saidaAntiga) {
-  if (modoAntigo == 5) return 0;
-  if (saidaAntiga == 0) return 2;
-  return 1;
-}
-#endif
 
 static int focoTrailerMigrar(int antigo) {
   if (antigo != 0) return AJ_TRAILER_CARTAZ_DESLIGADO;
@@ -3918,14 +3872,6 @@ int ajustes_cw_ordem(void)            { return valor[AJ_CW_ORDEM]; }
 int ajustes_cw_retido_tambem(void)    { return lig(AJ_CW_RETIDO_TAMBEM); }
 int ajustes_ps_continuar(void)        { return lig(AJ_PS_CONTINUAR); }
 int ajustes_dts_ac3(void)             { return valor[AJ_DTS_AC3] == 1; }
-// .tpk: HLS (o TS continuo e so a troca automatica de video_tpk.c) ou desligado.
-int ajustes_dts_tpk_modo(void) {
-#ifdef NV_TPK
-  return valor[AJ_DTS_AC3] == 0 ? DTSTPK_DESLIGADO : DTSTPK_HLS;
-#else
-  return DTSTPK_DESLIGADO;
-#endif
-}
 int ajustes_dv_mkv(void)              { return lig(AJ_DV_MKV); }
 int ajustes_dv7(void) { return lig(AJ_DV7); }
 int ajustes_hist_conta(void)          { return lig(AJ_HIST_CONTA); }
@@ -4995,11 +4941,6 @@ void ajustes_dir(const char *dir) {
     if (!strcmp(chave, "fontePrazoLocal")) { prazoAntigo = v; continue; }
     // Trailer do cartaz em foco: era V_LIGA (ver focoTrailerMigrar).
     if (!strcmp(chave, "focusedPosterBackdropTrailerEnabled")) { focoAntigo = v; continue; }
-#ifdef NV_TPK
-    // As duas linhas de DTS de antes (ver dtsTpkMigrar).
-    if (!strcmp(chave, "dtsSaidaLocal")) { dtsSaidaAntiga = v; continue; }
-    if (!strcmp(chave, "dtsTpkModoLocal")) { dtsModoAntigo = v; continue; }
-#endif
     if (!strcmp(chave, "idiomaFonteLocal")) {
       if (v >= IDA_TMDB && v <= IDA_PADRAO) idiomaFonteGravada = v;
       continue;
@@ -5062,15 +5003,7 @@ void ajustes_dir(const char *dir) {
     static const int DE_PARA[4] = { 1, 2, 3, 6 };   // 3 s, 5 s, 8 s, Todos
     valor[AJ_FONTE_PRAZO] = prazoAntigo < 4 ? DE_PARA[prazoAntigo] : valorPadrao[AJ_FONTE_PRAZO];
   }
-#ifdef NV_TPK
-  if (!viuDtsTpk && (dtsSaidaAntiga >= 0 || dtsModoAntigo >= 0)) {
-    valor[AJ_DTS_AC3] = dtsTpkMigrar(dtsModoAntigo, dtsSaidaAntiga);
-    printf("[ajustes] DTS/TrueHD: dtsSaidaLocal %d + dtsTpkModoLocal %d -> dtsTpkLocal %d\n", dtsSaidaAntiga, dtsModoAntigo,
-           valor[AJ_DTS_AC3]);
-  }
-#else
   (void)viuDtsTpk; (void)dtsSaidaAntiga; (void)dtsModoAntigo;
-#endif
   if (!viuFoco && focoAntigo >= 0) {
     valor[AJ_FOCO_TRAILER] = focoTrailerMigrar(focoAntigo);
     printf("[ajustes] trailer do cartaz em foco: focusedPosterBackdropTrailerEnabled %d -> trailerCartazModo %d\n",
@@ -5149,23 +5082,6 @@ void ajustes_dir(const char *dir) {
       if (m) { fputs("1\n", m); fclose(m); }
       gravar();
     } }
-#if (defined(__EMSCRIPTEN__) || defined(NV_TPK)) && !defined(NV_TRAILER_AUTO_TIZEN)
-  // MIGRACAO UNICA (1.3.10): o .wgt da 1.3.9 saiu de uma build com
-  // NV_TRAILER_AUTO_TIZEN (a das fotos das notas), entao na Samsung o
-  // autoplay do trailer nasceu LIGADO — e qualquer gravacao de ajustes
-  // naquela versao escreveu "trailerAuto 0" no arquivo, o que o padrao novo
-  // acima nao alcanca. Uma vez, marcada em disco, os dois voltam a
-  // desligado; quem quiser liga de novo e a escolha fica.
-  { char *m = dados_ler("trailer-1310.txt");
-    if (m) free(m);
-    else {
-      // V_LIGA e { Ligado, Desligado }: 1 e DESLIGADO (ver lig()).
-      valor[AJ_DET_TRAILER_AUTO] = 1;
-      valor[AJ_HERO_TRAILER] = 1;
-      dados_gravar("trailer-1310.txt", "1\n");
-      gravar();
-    } }
-#endif
   // MIGRACAO UNICA (2.0.3, dono): o tamanho dos Ajustes volta ao padrao de 80%
   // para quem ainda esta no padrao antigo (90%, ate e87ecb3c). O arquivo grava
   // o indice, entao 90% guardado e quase sempre o padrao que ninguem escolheu.
@@ -5773,20 +5689,7 @@ static void idiomaEscolhido(void) {
 //          resultado em ajustes_idioma_auto_tick.
 // NUNCA chamado por ajustes_dir: os testes que incluem ajustes.c nao dependem
 // do locale de quem os roda.
-#if defined(__EMSCRIPTEN__)
-#include <emscripten.h>
-static void sistemaConsultar(void) {
-  EM_ASM({
-    try {
-      var b = new TextEncoder().encode(navigator.language || '');
-      var n = Math.min(b.length, $1 - 1);
-      HEAPU8.set(b.subarray(0, n), $0);
-      HEAPU8[$0 + n] = 0;
-    } catch (e) { HEAPU8[$0] = 0; }
-  }, sistemaLoc, (int)sizeof sistemaLoc);
-}
-static void sistemaRecolher(void) {}
-#elif defined(NV_WEBOS) || defined(NV_TPK)
+#if   defined(NV_WEBOS)
 // WEBOS AND NATIVE TIZEN: the TV builds. The webOS compiler defines __linux__
 // like any other Linux target and the toolchain has no webOS macro of its
 // own, so the target identity is spelled by the build: -DNV_WEBOS in
@@ -6886,22 +6789,16 @@ static int foraDestaPlataforma(int op) {
   if (op >= AJ_MDB_TRAKT && op <= AJ_MDB_MAL) return 1;
   // #509: um so interruptor de som; AJ_DET_TRAILER_SOM fica so para a migracao.
   if (op == AJ_DET_TRAILER_SOM) return 1;
-#ifndef __EMSCRIPTEN__
   // O trailer dublado e um id do YouTube: o player nativo nao toca.
   if (op == AJ_TRAILER_AUDIO) return 1;
-#endif
-#ifndef NV_TPK
   if (op == AJ_TRAILER_ZOOM_TPK || op == AJ_AUDIO_OFFSET) return 1;
-#endif
   // Botao de microfone das buscas: so onde ha o teclado da Samsung por tras
   // (.tpk de release e .wgt; o NuvioTpk40 do Tizen 4/5 nao tem o host dele).
-#if !(defined(NV_TPK) || defined(__EMSCRIPTEN__)) || defined(NV_TPK40)
   if (op == AJ_MIC_BUSCA) return 1;
-#endif
 #ifndef NV_TECLADO_SIS
   if (op == AJ_TECLADO_ANDROID) return 1;
 #endif
-#if defined(NV_TPK) || defined(NV_ANDROID)
+#if defined(NV_ANDROID)
   if (op == AJ_DV_MKV) return 1;
   if (op == AJ_DV7) return 1;
 #endif
@@ -6910,9 +6807,6 @@ static int foraDestaPlataforma(int op) {
 #endif
 #if defined(NV_ANDROID) && !defined(NV_P2P_MOTOR)
   if (op == AJ_P2P_LIMITE || op == AJ_P2P_DESTINO) return 1;
-#endif
-#ifdef __EMSCRIPTEN__
-  if (op == AJ_P2P_LIGADO || op == AJ_P2P_URL || op == AJ_P2P_TESTAR || op == AJ_P2P_LIMITE || op == AJ_P2P_DESTINO) return 1;
 #endif
   return 0;
 }
@@ -8034,28 +7928,13 @@ static const char *ajudaOpcaoBase(int op) {
 
     // --- Pagina de detalhe
     case AJ_DET_TRAILER:
-#ifdef NV_VIDAA
-      // VIDAA: plain <video> permite som
       return "Mostra o botão de trailer na tela do título, quando existe um trailer conhecido.";
-#elif defined(__EMSCRIPTEN__)
-      // Samsung: a tela cheia e muda (trailerfonte_com_som) — a ajuda diz, em
-      // vez de o botao prometer um som que nao vem.
-      return "Mostra o botão de trailer na tela do título, quando existe um trailer conhecido. Nesta TV o trailer toca sem som.";
-#else
-      return "Mostra o botão de trailer na tela do título, quando existe um trailer conhecido.";
-#endif
     case AJ_DET_SO_CINEMETA: return "Desligado (padrão): a ficha do título vem primeiro do add-on em cujo catálogo ele apareceu, com episódios e ids próprios (Kitsu, Xperience, AIOMetadata…), e o catálogo do Nuvio completa o que faltar (o Cinemeta só entra se o catálogo do Nuvio falhar). Ligado: só o catálogo do Nuvio, sem os add-ons.";
     case AJ_DET_META_EXT: return "Prefere a ficha do addon de metadados à do Cinemeta. Útil quando o seu addon tem sinopse e elenco melhores.";
     case AJ_DET_DATA_CHEIA: return "Escreve a data de estreia por extenso em vez de só o ano.";
     case AJ_DET_VEU: return "Quanto a vinheta escura cobre a arte na tela do título. Cem por cento é o padrão; zero mostra a arte limpa — o texto pode ficar difícil de ler sobre cenas claras.";
     case AJ_DET_TRAILER_AUTO:
-#if defined(NV_TPK) && NV_TRAILER_CONTINUA_DETALHE
-      // O trailer do cartaz continua na pagina (detail_abrir), com o som do
-      // mesmo ajuste.
-      return "Alguns segundos depois de abrir um título, o trailer toca no lugar da arte de fundo; o som segue Som do trailer. Se o trailer do cartaz já estava tocando, ele continua na página. Rolar a página ou sair dela volta para a arte.";
-#else
       return "Alguns segundos depois de abrir um título, o trailer toca no lugar da arte de fundo; o som segue Som do trailer. Rolar a página ou sair dela volta para a arte.";
-#endif
     case AJ_TRAILER_QUAL: return "Definição do vídeo do trailer. Máxima usa a maior que existir para o título; as outras são um teto, para conexões mais lentas.";
     case AJ_TRAILER_AUDIO: return "Idioma do áudio do trailer. Automático segue o idioma da interface; Original usa o idioma do título; ou escolha um idioma. Sem trailer nele, cai no inglês.";
     case AJ_TRAILER_ASPECTO: return "Quanto o trailer é ampliado para encher a tela. Zoom cinema tira a tarja preta de um trailer de cinema; Original mostra o quadro inteiro, com tarja.";
@@ -8063,21 +7942,7 @@ static const char *ajudaOpcaoBase(int op) {
       // O que cada TV toca (trailerfonte.c, existe): a ajuda nomeia a fonte que
       // falta AQUI, senao escolher IMDb na Samsung e ficar sem trailer parece
       // defeito.
-#ifdef NV_VIDAA
-      return "De onde vem o trailer da tela do título e do destaque. Automático tenta a Apple TV e, sem ela, o YouTube (só no modo de compatibilidade); uma fonte escolhida é a única tentada. O IMDb não toca nesta TV.";
-#elif defined(__EMSCRIPTEN__)
-      return "De onde vem o trailer da tela do título e do destaque. Automático tenta a Apple TV, depois o IMDb e, sem os dois, o YouTube (só na tela do título); uma fonte escolhida é a única tentada. Nesta TV o trailer toca sempre sem som.";
-#elif defined(NV_TPK)
-      // .tpk: a Apple toca sem audio (trailerapple.c, varianteMidia), entao o
-      // botao Trailer em Automatico prefere o IMDb (trailerfonte_ordem_cheia).
-#if NV_TRAILER_CONTINUA_DETALHE
-      return "De onde vem o trailer da tela do título e do destaque. Automático tenta a Apple TV e, sem ela, o IMDb; no destaque e no botão de trailer o IMDb vem primeiro, porque o da Apple toca sem som nesta TV. Uma fonte escolhida é a única tentada. O YouTube não toca nesta TV.";
-#else
-      return "De onde vem o trailer da tela do título e do destaque. Automático tenta a Apple TV e, sem ela, o IMDb; no botão de trailer, que toca com som, o IMDb vem primeiro, porque o da Apple toca sem som nesta TV. Uma fonte escolhida é a única tentada. O YouTube não toca nesta TV.";
-#endif
-#else
       return "De onde vem o trailer da tela do título e do destaque. Automático tenta a Apple TV e, sem ela, o IMDb; uma fonte escolhida é a única tentada. O YouTube não toca nesta TV.";
-#endif
 
     // --- Posteres e cards
     case AJ_EXPANDIR: return "O cartaz em foco cresce e abre a arte deitada atrás dele depois de um instante parado.";
@@ -8221,11 +8086,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_AMPLIACAO_ALGO: return "Como o app amplia a interface para a tela. Automático escolhe sozinho; SGSR nítido e FSR 1 usam mais GPU. Vale na hora.";
     case AJ_AMPLIACAO_NITIDEZ: return "Reforço de contorno do SGSR nítido e do FSR 1. 0 desliga.";
     case AJ_TAM_MIN: return "Na escolha automática, fontes menores que este tamanho ficam para o fim da fila. Se for maior que o tamanho máximo, o mínimo é ignorado. Só vale para arquivos com tamanho conhecido; se só houver fontes fora da faixa, a melhor delas ainda toca.";
-#ifdef NV_TPK
-    case AJ_DTS_AC3: return "Esta TV não toca DTS nem TrueHD: o app converte o som na hora. 5.1 (Dolby Digital) mantém o surround para barra de som e receiver; 7.1, Atmos e DTS:X viram 5.1, sem os objetos. Estéreo (AAC) serve qualquer TV. Desligado: esses vídeos tocam sem som, como antes. Vale a partir do próximo vídeo.";
-#else
     case AJ_DTS_AC3: return "Como o áudio DTS é entregue à TV quando o app o converte (só na LG). Estéreo (AAC) é o modo provado e serve qualquer TV. 5.1 (Dolby Digital) mantém o som surround para barra de som e receiver por ARC/eARC; vale a partir do próximo vídeo.";
-#endif
     case AJ_PS_CONTINUAR: return "Ligado, cada perfil mostra na escolha de perfil o cartão com o que ele estava assistindo. Desligado, a tela mostra só os perfis.";
     case AJ_HIST_CONTA: return "Ligado (padrão): o que você assiste neste perfil sobe para a conta Nuvio, com o progresso e os vistos. Desligado: nada disso é enviado à conta; o Trakt e o Simkl vinculados a este perfil continuam recebendo. Vale só para este perfil.";
     case AJ_SOCIAL: return "Ligado (padrão): amigos, atividade deles e recomendações. Desligado: tudo isso some, com a fileira de amigos da Home, e o app para de falar com o serviço social. Salvos e Avisos continuam. Vale só para este perfil.";
@@ -8447,10 +8308,8 @@ static const char *efeitoOpcao(int op) {
       return "Esta nota vem do MDBList: ligar aqui liga também a consulta ao MDBList.";
     case AJ_HERO_TRAILER:
       return "O som do trailer no destaque é uma opção à parte, em Som e imagem.";
-#ifndef __EMSCRIPTEN__
     case AJ_MIC_BUSCA:
       return "Para digitar, continua o teclado do Nuvio: o da Samsung só abre por este botão.";
-#endif
     default: return NULL;
   }
 }
@@ -10443,14 +10302,12 @@ static int nValores(int op) {
   if (op == AJ_PLAYER_EXTERNO) return 3 + ppN();
   if (op == AJ_PLAYER_ANIME) return 4 + ppN();
   if (op == AJ_URL_LISTA) return 1 + urlN;
-#ifndef __EMSCRIPTEN__
   // "YouTube" (o 4o valor) so toca no .wgt da Samsung (trailerfonte.c, existe).
   // Aqui ele era escolhivel e deixava a TV sem trailer nenhum: sem trailer no
   // destaque e sem botao Trailer na pagina (#204, log da 1.6.5: "detalhe: sem
   // trailer (ajuste 3, apple tem, imdb tem, youtube n/a)"). Fora da lista, o 3
   // ja gravado le como fora da faixa e fica o padrao, Automatico (limita).
   if (op == AJ_TRAILER_FONTE) return 3;
-#endif
   return OPCOES[op].n;
 }
 

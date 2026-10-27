@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(NV_WEBOS) || defined(NV_TPK)
+#if defined(NV_WEBOS)
 #include <dlfcn.h>
 #endif
 #ifdef NV_WEBOS
@@ -113,16 +113,6 @@ static int painel4k(void) {
       }
       if (process) dlclose(process);
       width = panel[0]; height = panel[1];
-#elif defined(NV_TPK)
-      void *lib = dlopen("libcapi-system-info.so.0", RTLD_NOW);
-      if (!lib) lib = dlopen("libcapi-system-info.so", RTLD_NOW);
-      int (*get)(const char *, int *) = NULL;
-      if (lib) *(void **)&get = dlsym(lib, "system_info_get_platform_int");
-      if (get && get("http://tizen.org/feature/screen.width", &width) == 0 &&
-          get("http://tizen.org/feature/screen.height", &height) == 0 && width > 0 && height > 0)
-        source = "Tizen system info screen";
-      else width = height = 0;
-      if (lib) dlclose(lib);
 #endif
     }
     if (width <= 0 || height <= 0) width = height = 0;

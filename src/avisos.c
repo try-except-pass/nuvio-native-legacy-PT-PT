@@ -68,7 +68,7 @@
 #define AV_MAX        40
 #define AV_VISTOS_ARQ "avisos-vistos.txt"
 #define AV_MARCA_ARQ  "sessao-viva.txt"
-#if defined(NV_TPK) || defined(NV_ANDROID)
+#if defined(NV_ANDROID)
 // No .tpk (e no Android) o /tmp nao e do app: o anterior fica na pasta de dados (tpk.c).
 #define AV_LOG_ANTERIOR (getenv("NUVIO_LOG_ANTERIOR"))
 #else
@@ -122,37 +122,6 @@ static int  pediuCodigo;
 // Crash da sessao anterior e envio do registro.
 static int   crashDetectado;
 static char  crashQuando[40];
-#ifdef __EMSCRIPTEN__
-// O LOG DA SESSAO ANTERIOR NO TIZEN. Nao ha arquivo: tools/tizen-shell.html
-// guarda as linhas do Module.print em localStorage (nv-log) e, no arranque
-// seguinte, gira para nv-log-anterior. E lido AQUI, no fio principal (o
-// unico com localStorage), em avisos_iniciar; enviarRegistro roda num
-// pthread e so pode usar o que ja esta na memoria. Ate a 1.3.3 o crash da
-// Samsung chegava com 0 bytes de texto — os 5 de #72 nao disseram nada.
-static char *logAnterior;
-#include <emscripten.h>
-static void lerLogAnterior(void) {
-  char *js = (char *)EM_ASM_PTR({
-    try {
-      var t = localStorage.getItem('nv-log-anterior') || '';
-      if (t.length > $0) t = t.slice(t.length - $0);
-      // TextEncoder e nao stringToUTF8: os helpers do runtime nao estao
-      // exportados neste build (so PThread), e com ASSERTIONS chamar um
-      // deles aborta.
-      var b = new TextEncoder().encode(t);
-      var p = _malloc(b.length + 1);
-      if (!p) return 0;
-      HEAPU8.set(b, p);
-      HEAPU8[p + b.length] = 0;
-      return p;
-    } catch (e) { return 0; }
-  }, AV_REGISTRO_MAX);
-  logAnterior = js;
-  if (logAnterior && !logAnterior[0]) { free(logAnterior); logAnterior = NULL; }
-  printf("[avisos] log da sessao anterior: %u bytes\n",
-         logAnterior ? (unsigned)strlen(logAnterior) : 0u);
-}
-#endif
 static int   envioEstado;       // 0 nada, 1 enviando, 2 ok, 3 falhou
 // O RECIBO E O MOTIVO do ultimo envio MANUAL (o automatico so atualiza
 // envAuto*): o painel de envio do registro (registro.c) mostra o codigo, o
@@ -422,15 +391,7 @@ int avisos_enviar_diagnostico(const char *execucao_id, const char *relatorio,
   snprintf(corpo, n * 2 + 640,
            "{\"versao\":\"%s\",\"plataforma\":\"%s\",\"execucao_id\":\"%s\",\"texto\":\"%s\"}",
            NV_VERSAO,
-#ifdef __EMSCRIPTEN__
-#ifdef NV_VIDAA
-           "vidaa",
-#else
-           "tizen",
-#endif
-#elif defined(NV_TPK)
-           "tizen-tpk",
-#elif defined(NV_ANDROID)
+#if   defined(NV_ANDROID)
            "android",
 #elif defined(NV_LINUX_DESKTOP)
            "linux-desktop",
@@ -486,9 +447,6 @@ static const char *agoraTextoAuto(const char *marca) {
            tmv.tm_mon + 1, tmv.tm_mday, tmv.tm_hour, tmv.tm_min, marca);
   return buf;
 }
-#ifdef __EMSCRIPTEN__
-static char *logAtual;
-#endif
 #include "avisos_corte.inc"
 static unsigned ultimoHashAuto;   // so muda depois de um envio que o servidor aceitou
 static void *enviarRegistro(void *u) {
@@ -501,10 +459,6 @@ static void *enviarRegistro(void *u) {
   int manual = (u == &ATUAL || u == &AUTO_ATUAL);
   int automatico = (u == &AUTO_ATUAL || u == &AUTO_ANTERIOR);
   int comAnterior = (u == &ATUAL);
-#ifdef __EMSCRIPTEN__
-  { const char *fonte = manual ? logAtual : logAnterior;
-    if (fonte) { texto = strdup(fonte); if (texto) nTexto = strlen(texto); } }
-#else
   { const char *arq = manual ? registro_arquivo() : (AV_LOG_ANTERIOR && AV_LOG_ANTERIOR[0] ? AV_LOG_ANTERIOR : "");
     FILE *f = (arq && arq[0]) ? fopen(arq, "rb") : NULL;
     if (f) {
@@ -533,7 +487,6 @@ static void *enviarRegistro(void *u) {
       free(cauda);
       fclose(f);
     } }
-#endif
   if (automatico && texto) nTexto = cortarCabecaCauda(texto, nTexto, AV_REGISTRO_AUTO_MAX);
   // ENVIO AUTOMATICO SEM NOVIDADE NAO SOBE (#203). Parado no menu o log nao
   // cresce, e a TV reenviava os mesmos 200 KB a cada 5 min: o D1 recebia
@@ -557,15 +510,7 @@ static void *enviarRegistro(void *u) {
     snprintf(corpo, nTexto * 2 + 512,
              "{\"versao\":\"%s\",\"plataforma\":\"%s\",\"quando\":\"%s\",\"texto\":\"%s\"}",
              NV_VERSAO,
-#ifdef __EMSCRIPTEN__
-#ifdef NV_VIDAA
-             "vidaa",
-#else
-             "tizen",
-#endif
-#elif defined(NV_TPK)
-             "tizen-tpk",
-#elif defined(NV_ANDROID)
+#if   defined(NV_ANDROID)
              "android",
 #elif defined(NV_LINUX_DESKTOP)
            "linux-desktop",
@@ -679,19 +624,7 @@ static void *fioCanalFn(void *u) {
       if (desde[0] && strcmp(hoje, desde) < 0) ok = 0;
       if (ate[0] && strcmp(hoje, ate) > 0) ok = 0;
       if (ateV[0] && versaoMaior(NV_VERSAO, ateV)) ok = 0;
-#ifdef __EMSCRIPTEN__
-#ifdef NV_VIDAA
-      if (plat[0] && strcmp(plat, "todas") && strcmp(plat, "vidaa")) ok = 0;
-#else
-      if (plat[0] && strcmp(plat, "todas") && strcmp(plat, "tizen")) ok = 0;
-#endif
-#elif defined(NV_TPK)
-      // O .tpk tambem e Samsung: vale o "tizen" de sempre, mais o "tizen-tpk"
-      // so dele. O anuncio do proprio preview (id com "tpk-preview") nao faz
-      // sentido dentro dele.
-      if (plat[0] && strcmp(plat, "todas") && strcmp(plat, "tizen") && strcmp(plat, "tizen-tpk")) ok = 0;
-      if (strstr(id, "tpk-preview")) ok = 0;
-#elif defined(NV_ANDROID)
+#if   defined(NV_ANDROID)
       if (plat[0] && strcmp(plat, "todas") && strcmp(plat, "android")) ok = 0;
 #else
       if (plat[0] && strcmp(plat, "todas") && strcmp(plat, "lg")) ok = 0;
@@ -840,9 +773,6 @@ void avisos_iniciar(void) {
     printf("[avisos] a sessao anterior (%s, %s) nao se despediu: marca presente; %s\n",
            v, crashQuando, sinal[0] ? sinal : "no last signal (old mark)");
     fflush(stdout);
-#ifdef __EMSCRIPTEN__
-    lerLogAnterior();
-#endif
     { char id[72], tit[160], txt[420];
       snprintf(id, sizeof id, "crash:%s", crashQuando);
       snprintf(tit, sizeof tit, "%s", i18n("O app fechou sozinho"));
@@ -1858,12 +1788,7 @@ void avisos_envio_auto_passo(Uint32 agora) {
     anteriorFeito = 1;
     (void)agora;
     { int tem;
-#ifdef __EMSCRIPTEN__
-      if (!logAnterior) lerLogAnterior();
-      tem = logAnterior && logAnterior[0];
-#else
       { FILE *f = fopen(AV_LOG_ANTERIOR, "rb"); tem = f != NULL; if (f) fclose(f); }
-#endif
     if (tem) {
       envioEstado = 1;
       if (pthread_create(&fioEnvio, NULL, enviarRegistro, (void *)&AUTO_ANTERIOR) == 0) pthread_detach(fioEnvio);
@@ -1894,23 +1819,6 @@ void avisos_enviar_registro_atual(void) {
     return;
   }
   envMotivo = 0; envPendenteRede = 0;
-#ifdef __EMSCRIPTEN__
-  // Fio principal: e o unico com localStorage. O shell grava nv-log a cada
-  // 10 s, entao o que vai e o log ate a ultima gravacao.
-  free(logAtual);
-  logAtual = (char *)EM_ASM_PTR({
-    try {
-      var t = localStorage.getItem('nv-log') || '';
-      if (t.length > $0) t = t.slice(t.length - $0);
-      var b = new TextEncoder().encode(t);
-      var p = _malloc(b.length + 1);
-      if (!p) return 0;
-      HEAPU8.set(b, p);
-      HEAPU8[p + b.length] = 0;
-      return p;
-    } catch (e) { return 0; }
-  }, AV_REGISTRO_MAX);
-#endif
   fflush(stdout);   // o que este fio ja imprimiu entra no arquivo antes da leitura
   envioEstado = 1;
   if (pthread_create(&fioEnvio, NULL, enviarRegistro, (void *)&ATUAL) == 0) pthread_detach(fioEnvio);

@@ -78433,16 +78433,6 @@ int js_dtoa_max_len(double d, int radix, int n_digits, int flags)
     return max_int(n, 9); /* also include NaN and [-]Infinity */
 }
 
-#if defined(__SANITIZE_ADDRESS__) && 0
-static void *dtoa_malloc(uint64_t **pptr, size_t size)
-{
-    return malloc(size);
-}
-static void dtoa_free(void *ptr)
-{
-    free(ptr);
-}
-#else
 static void *dtoa_malloc(uint64_t **pptr, size_t size)
 {
     void *ret;
@@ -78454,7 +78444,6 @@ static void *dtoa_malloc(uint64_t **pptr, size_t size)
 static void dtoa_free(void *ptr)
 {
 }
-#endif
 
 /* return the length */
 int js_dtoa(char *buf, double d, int radix, int n_digits, int flags,

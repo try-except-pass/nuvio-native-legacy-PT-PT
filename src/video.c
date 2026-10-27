@@ -123,14 +123,7 @@ int video_dv_ativo(void) { return dtsSessao && dtsModoDv; }
 // (Dolby Vision/DTS path handing back to the TV player, audio switch) is not
 // a source that failed to open. Other targets keep 0.
 static int fonteTocou;
-#ifdef NV_TPK
-// .tpk: so o fluxo DTS/TrueHD convertido responde aqui (video_tpk.c); o resto
-// segue 0, como antes.
-int video_tpk_fonte_tocou(void);
-int video_fonte_tocou(void) { return fonteTocou || video_tpk_fonte_tocou(); }
-#else
 int video_fonte_tocou(void) { return fonteTocou; }
-#endif
 static int dvLiberadoNestaTv(void);
 static int dvPronto(void);
 const char *video_dts_saida(void) { return dtsSaida; }
@@ -150,14 +143,8 @@ int video_faixa_dts(const VideoFaixa *f) {
 // So o ramo webOS escreve aqui (PREPARANDO, CONVERTIDO, FALHOU): o resto sai
 // da faixa e do pipeline, igual em todos os alvos. No Mac, video_simular.
 static int dtsEstado;
-#ifdef NV_TPK
-int video_tpk_dts_estado(void);   // video_tpk.c: enquanto o .tpk converte o DTS
-#endif
 int video_dts_estado(void) {
   if (dtsEstado) return dtsEstado;
-#ifdef NV_TPK
-  { int e = video_tpk_dts_estado(); if (e) return e; }
-#endif
   if (!video_pronto() || !video_faixa_dts(video_audio(video_audio_atual()))) return VIDEO_DTS_NENHUM;
   return video_audio_nao_suportado() ? VIDEO_DTS_SEM_SOM : VIDEO_DTS_NATIVO;
 }
@@ -228,7 +215,6 @@ void video_normalizar_url_legenda(const char *url, char *dst, unsigned tam) {
 // a guarda para o topo obrigaria a duplica-los no video_tizen.c, e duas copias
 // de uma tabela e uma copia para divergir da outra.
 // ============================================================================
-#ifndef __EMSCRIPTEN__
 
 // Declarada aqui porque o loadCompleted a chama muito antes de ela ser
 // definida. O clang do Mac aceita a implicita; o gcc do ARM recusa — e o ARM
@@ -246,7 +232,7 @@ static void aplicarEstilo(void);
 // Mesmo limite de Stream.url: o pipeline recebe a URL original, e cortar a
 // copia faria somente a sonda MKV/ASS falhar (inclusive apos tentar de novo).
 static char  urlAtual[4096];
-#if !defined(NV_TPK) && !defined(NV_ANDROID)   // .tpk e Android: video_url_atual vem do video_*.c do alvo
+#if !defined(NV_ANDROID)   // .tpk e Android: video_url_atual vem do video_*.c do alvo
 const char *video_url_atual(void) { return urlAtual; }
 #endif
 // Recuperacao de pipeline destruido: pedida pelo fio de resposta do luna e
@@ -431,7 +417,7 @@ void video_velocidade_recusada(void) { velMac = VEL_NORMAL; }
 // Capturas: o passthrough simulado (cacheboost_ganho_relato) esmaece a linha.
 int  video_velocidade_bloqueada(void) { return cacheboost_ganho_estado() == CB_GANHO_PASSTHROUGH; }
 // .tpk da Samsung: o player e o do host .NET, em video_tpk.c.
-#elif !defined(NV_TPK) && !defined(NV_ANDROID)   // ramo luna (webOS): Android usa video_android.c
+#elif !defined(NV_ANDROID)   // ramo luna (webOS): Android usa video_android.c
 #include <dlfcn.h>
 
 typedef struct LSHandle LSHandle;
@@ -3989,7 +3975,6 @@ int video_legenda_nativa(char *d, int t) {
 
 #endif
 
-#endif  /* !__EMSCRIPTEN__ */
 
 // A ordem de audio (audioescolha.h) sobre as faixas atuais. Chamada ao chegar o sourceInfo e de novo
 // quando o idioma original do titulo chega depois (dono, 2026-10-26: o audio nem sempre era o original).

@@ -972,15 +972,9 @@ static void caminhoCache(const char *dirArte, char *dst, size_t tam) {
 //
 // Fora do Emscripten as tres sao no-op dentro de dados.c; mante-las fora do
 // build nativo evita arrastar dados.c para testes que so querem o catalogo.
-#ifdef __EMSCRIPTEN__
-#define CACHE_FS_TRAVAR()   dados_fs_travar()
-#define CACHE_FS_LIBERAR()  dados_fs_liberar()
-#define CACHE_MARCAR_SUJO() dados_marcar_sujo(0)
-#else
 #define CACHE_FS_TRAVAR()   ((void)0)
 #define CACHE_FS_LIBERAR()  ((void)0)
 #define CACHE_MARCAR_SUJO() ((void)0)
-#endif
 
 static int cacheApagarTemporarios(const char *prefixo) {
   DIR *dir = opendir(dirCache);

@@ -25,17 +25,8 @@ static float entrada;
 int telemetria_aberto(void) { return aberto; }
 
 void telemetria_primeira_vez(void) {
-#ifndef __EMSCRIPTEN__
   decidido = 1;   // so no Tizen
   return;
-#else
-  char *s;
-  if (decidido) return;
-  decidido = 1;
-  s = dados_ler(TL_ARQ);
-  if (s) { free(s); return; }
-  aberto = 1; entrada = 0.0f;
-#endif
 }
 
 static void fechar(int sim) {

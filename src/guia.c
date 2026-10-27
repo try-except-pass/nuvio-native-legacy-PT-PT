@@ -1698,9 +1698,6 @@ static void cacheFonteGravar(int f) {
   cacheNomeFonte(F->chave, nome, sizeof nome);
   if (!dados_caminho(caminho, sizeof caminho, nome)) return;
   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
-#ifdef __EMSCRIPTEN__
-  dados_fs_travar();
-#endif
   fp = fopen(tmp, "wb");
   if (fp) {
     ok = cInt(fp, GC_MAGIA) && cInt(fp, GC_VERSAO) && cInt(fp, F->tipo) && cInt(fp, raw ? sCacheN[f] : F->nCanais) &&
@@ -1747,10 +1744,6 @@ static void cacheFonteGravar(int f) {
     if (!ok || rename(tmp, caminho) != 0) remove(tmp);
   }
   free(originais);
-#ifdef __EMSCRIPTEN__
-  dados_fs_liberar();
-  dados_marcar_sujo(0);
-#endif
 }
 
 typedef struct { const char *p, *fim; int ok; } CLeitor;
@@ -1782,18 +1775,12 @@ static int cacheFonteLer(const char *chave) {
   static char s1[1024], s2[1024], s3[1024];
   cacheNomeFonte(chave, nome, sizeof nome);
   if (!dados_caminho(caminho, sizeof caminho, nome)) return -1;
-#ifdef __EMSCRIPTEN__
-  dados_fs_travar();
-#endif
   fp = fopen(caminho, "rb");
   if (fp) {
     fseek(fp, 0, SEEK_END); n = ftell(fp); fseek(fp, 0, SEEK_SET);
     if (n > 0 && (b = malloc((size_t)n)) != NULL && (long)fread(b, 1, (size_t)n, fp) != n) { free(b); b = NULL; }
     fclose(fp);
   }
-#ifdef __EMSCRIPTEN__
-  dados_fs_liberar();
-#endif
   if (!b) return -1;
   l.p = b; l.fim = b + n; l.ok = 1;
   if (lInt(&l) != GC_MAGIA) { free(b); return -1; }
@@ -1903,9 +1890,6 @@ static void cacheFonteApagar(const char *ch) {
   if (dados_caminho(caminho, sizeof caminho, nome)) remove(caminho);
   snprintf(nome, sizeof nome, "epg-x-%s-p%d.bin", ch, perfis_ativo() > 0 ? perfis_ativo() : 1);
   if (dados_caminho(caminho, sizeof caminho, nome)) remove(caminho);
-#ifdef __EMSCRIPTEN__
-  dados_marcar_sujo(0);
-#endif
 }
 
 // Fonte que saiu da configuracao (addon removido, Xtream/M3U apagado): some

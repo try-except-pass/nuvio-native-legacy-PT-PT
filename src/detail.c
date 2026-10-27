@@ -399,12 +399,6 @@ static int    trailerTentado = 0;
 // proximo degrau uma vez.
 static int    trailerEtapa = 0;
 static Uint32 trailerPrazo = 0;
-#ifdef __EMSCRIPTEN__
-// 1 = the chain began with the dubbed YouTube trailer: fallback is Apple -> IMDb.
-static int    trailerDublado = 0;
-// 1 = the chain is the fullscreen "Watch trailer": same fallback, reopened fullscreen.
-static int    trailerEtapaCheia = 0;
-#endif
 // ESQUERDA no comeco de QUALQUER fileira da pagina (e na coluna 0 da
 // filmografia, e na lista da colecao): o app abre a barra lateral POR CIMA da
 // pagina, que continua viva embaixo — mesmo foco, rolagem e trailer (dono,
@@ -501,9 +495,6 @@ static TrailerCinema trailerCinema;
 // `cheia` 1 = o botao Trailer (tela cheia, com som onde ha): no .tpk, em
 // Automatico, o IMDb vem antes da Apple, porque la a Apple e so video
 // (trailerfonte_escolher_cheia, #178). O fundo passa 0 e nao muda.
-#ifdef NV_TPK
-static char trailerCheiaLogada[32];
-#endif
 static int trailerSemFonteLogado = 0;
 static const char *trailerFonte(int k, int *qual, int cheia) {
   const CatItem *ci = cat_item(idx);
@@ -523,26 +514,12 @@ static const char *trailerFonte(int k, int *qual, int cheia) {
       c.imdbRespondeu = trailerimdb_respondeu(ci->imdb);
     } else c.imdbRespondeu = 1;
   } else c.appleRespondeu = c.imdbRespondeu = 1;   // sem id nao ha o que esperar
-#ifdef __EMSCRIPTEN__
-  if (k >= 0 && k < extras_n_trailers() && extras_trailer_yt(k)[0]) c.youtube = extras_trailer_yt(k);
-  else if (extras_n_trailers() > 0 && extras_trailer_yt(0)[0]) { k = 0; c.youtube = extras_trailer_yt(0); }
-  c.youtubeIdiomaPreferido = extras_trailer_idioma_preferido(k);
-#else
   (void)k;
-#endif
   c.youtubeRespondeu = !extras_carregando();
   d = cheia ? trailerfonte_escolher_cheia(aj, tz, trailerfonte_com_som(tz), &c, &u, &q)
             : trailerfonte_escolher(aj, tz, &c, &u, &q);
   if (d == TRF_ABRE) {
     if (qual) *qual = q;
-#ifdef NV_TPK
-    // UMA linha por titulo: isto roda a cada quadro, e o log do testador da
-    // Samsung (corte de 200 KB) saiu com 1693 copias e nada mais (05/10/2026).
-    if (cheia && ci && strcmp(trailerCheiaLogada, ci->imdb)) {
-      snprintf(trailerCheiaLogada, sizeof trailerCheiaLogada, "%s", ci->imdb);
-      printf("[trailer] detalhe: tela cheia pela fonte %s (ajuste %d)\n", trailerfonte_nome(q), aj); fflush(stdout);
-    }
-#endif
     return u;
   }
   if (d == TRF_NENHUMA && !trailerSemFonteLogado) {
@@ -558,18 +535,6 @@ static const char *trailerFonte(int k, int *qual, int cheia) {
 // A URL que a fonte `qual` tem para o titulo agora, ou NULL. E o degrau
 // seguinte do prazo do fundo (detail_atualizar): la a ordem ja foi decidida,
 // so falta saber se aquela fonte tem o que tocar.
-#ifdef __EMSCRIPTEN__
-static const char *trailerUrlDaFonte(int qual) {
-  const CatItem *ci = cat_item(idx);
-  switch (qual) {
-    case TRF_APPLE: return ci && ci->imdb[0] ? trailerapple_url(ci->imdb) : NULL;
-    case TRF_IMDB:  return ci && ci->imdb[0] && trailerfonte_imdb_tizen() ? trailerimdb_url(ci->imdb, NULL) : NULL;
-    case TRF_YOUTUBE:
-      return extras_n_trailers() > 0 && extras_trailer_yt(0)[0] ? extras_trailer_yt(0) : NULL;
-    default: return NULL;
-  }
-}
-#endif
 static int temporada = 0;            // temporada ESCOLHIDA (nao a focada)
 // Repouso do foco sobre a fileira de temporadas, para trocar de temporada ao
 // PARAR numa pilula em vez de a cada pilula por que se passa.
@@ -2408,13 +2373,9 @@ static int secaoN(int r) {
     // filme: os dados sempre estiveram la (o log mostra "coment=8 rel=12"),
     // mas sem aba e sem secao nao havia como chegar neles.
     case SEC_TRAILERS:
-#ifdef __EMSCRIPTEN__
-      return extras_n_trailers();
-#else
       // #417: no nativo nao ha player de YouTube; todo cartao tocava o MESMO
       // trailer do titulo (Apple/IMDb). Um cartao so, que e o que de fato toca.
       return extras_n_trailers() > 0 ? 1 : 0;
-#endif
     case SEC_RELACIONADOS: {
       int n;
       n = extras_n_relacionados();
@@ -2702,73 +2663,10 @@ static void tocarTrailerCheio(int k) {
     GfxRect tela = { 0, 0, NV_TELA_W, NV_TELA_H };
     trailerEtapa = 0; trailerPrazo = 0;   // tela cheia: so o teclado fecha
     trailer_abrir(u, tela, ajustes_trailer_som(), 1);
-#ifdef __EMSCRIPTEN__
-    // Same deadline/fallback ladder as autoplay (trailerEscada), fullscreen.
-    trailerEtapa = qual;
-    trailerDublado = qual == TRF_YOUTUBE;
-    trailerEtapaCheia = 1;
-    trailerPrazo = SDL_GetTicks() + NV_TRAILER_PREPARA_MS;
-#endif
   }
-#ifdef __EMSCRIPTEN__
-  // SAMSUNG: NUNCA o navegador (#136). O window.open do wgt trocava a
-  // pagina do proprio app pelo youtube.com/watch — tocava, mas sem Voltar
-  // para o Nuvio. Sem fonte na ordem do ajuste (ex.: "IMDb" fixo e o
-  // titulo sem IMDb), o cartao focado ainda e um video do YouTube: toca
-  // AQUI, em tela cheia, e o Voltar fecha (trailer_evento).
-  else if (trailer_suportado() && k < extras_n_trailers() &&
-           extras_trailer_yt(k)[0]) {
-    GfxRect tela = { 0, 0, NV_TELA_W, NV_TELA_H };
-    trailerEtapa = 0; trailerPrazo = 0;
-    trailer_abrir(extras_trailer_yt(k), tela, ajustes_trailer_som(), 1);
-  }
-#else
   else extras_trailer_abrir(k);
-#endif
 }
 
-#ifdef __EMSCRIPTEN__
-static void trailerEscada(Uint32 agora, int topo) {
-  // O PRAZO. Tocou: o prazo morre (buffering depois de `playing` nao e
-  // falha). Nao tocou a tempo, ou o elemento deu erro (trailer_atualizar
-  // ja fechou e marcou trailer_falhou): loga e passa para a PROXIMA fonte da
-  // ordem do ajuste que tem trailer — em Automatico, Apple -> IMDb ->
-  // YouTube (o erro 153 do embed chega como -3 e anda na hora, #136); com
-  // uma fonte fixa nao ha proxima e fica a arte. Tela cheia (trailerEtapaCheia)
-  // entra tambem, fora do topo, e reabre em tela cheia.
-  // trailerEtapa: 0 nada, TRF_* a fonte aberta, -1 acabou.
-  if (trailerEtapa > 0) {
-    int venceu = trailer_aberto() && (trailerEtapaCheia || !trailer_cheia()) && !trailer_tocando() &&
-                 trailerPrazo && (Sint32)(agora - trailerPrazo) >= 0;
-    int errou = !trailer_aberto() && trailer_falhou();
-    if (trailer_aberto() && trailer_tocando()) trailerPrazo = 0;
-    if ((venceu || errou) && (topo || trailerEtapaCheia)) {
-      // A PROXIMA DA ORDEM QUE TEM TRAILER: Apple -> IMDb -> YouTube na
-      // Samsung (#136). Uma fonte da ordem sem trailer para o titulo e
-      // pulada, nao encerra a fila.
-      int (*depois)(int, int, int) = trailerDublado ? trailerfonte_depois_dublado : trailerfonte_depois;
-      int prox = depois(trailerfonte_ajuste(), trailerfonte_tizen(), trailerEtapa);
-      const char *seg = NULL;
-      while (prox && !(seg = trailerUrlDaFonte(prox)))
-        prox = depois(trailerfonte_ajuste(), trailerfonte_tizen(), prox);
-      printf("[trailer] detalhe: %s %d ms (%s, estado %d), %s%s\n",
-             errou ? "erro em" : "sem playing em", NV_TRAILER_PREPARA_MS,
-             trailerfonte_nome(trailerEtapa), trailer_estado(),
-             seg ? "tenta " : "fica a arte", seg ? trailerfonte_nome(prox) : "");
-      fflush(stdout);
-      if (trailer_aberto()) trailer_fechar();
-      if (seg) {
-        GfxRect tela = { 0, 0, NV_TELA_W, NV_TELA_H };
-        trailer_abrir(seg, tela, ajustes_trailer_som(), trailerEtapaCheia);
-        trailerEtapa = prox;
-        trailerPrazo = agora + NV_TRAILER_PREPARA_MS;
-      } else { trailerEtapa = -1; trailerPrazo = 0; }
-    } else if (!trailer_aberto() && !errou) {
-      trailerEtapa = 0; trailerPrazo = 0;   // fechou por fim ou por navegacao
-    }
-  }
-}
-#endif
 
 // ---- segurar OK numa lista da pagina (ctxlista.h) -------------------------
 // A celula em foco aceita o menu? Filmografia e saga: sempre que ha obra (o
@@ -3800,19 +3698,8 @@ static void detail_atualizar_(float dt, Uint32 agora) {
         GfxRect tela = { 0, 0, NV_TELA_W, NV_TELA_H };
         trailerTentado = 1;
         trailer_abrir(u, tela, ajustes_trailer_som(), 0);
-#ifdef __EMSCRIPTEN__
-        // A etapa e a FONTE aberta (TRF_*), para o prazo saber qual e a
-        // proxima na ordem do ajuste (trailerfonte_depois).
-        trailerEtapa = qual;
-        trailerDublado = qual == TRF_YOUTUBE;
-        trailerEtapaCheia = 0;
-        trailerPrazo = agora + NV_TRAILER_PREPARA_MS;
-#endif
       }
     }
-#ifdef __EMSCRIPTEN__
-    trailerEscada(agora, topo);
-#endif
     // trailer_mostra_video: no .tpk a arte fica ate o recorte do zoom
     // assentar (#178); na LG e no .wgt e sempre 1.
     { float alvo = (trailer_aberto() && trailer_tocando() && trailer_mostra_video()) ? 1.0f : 0.0f;

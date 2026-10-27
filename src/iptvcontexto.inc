@@ -13,7 +13,7 @@ typedef struct {
   char nome[64];
   int retry;
 } FonteFio;
-#if defined(NV_TPK40) || defined(NV_UM_FIO)
+#if defined(NV_UM_FIO)
 static pthread_key_t fonteFioChave;
 static pthread_once_t fonteFioUma = PTHREAD_ONCE_INIT;
 static void fonteFioCriar(void) {

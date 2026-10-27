@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <time.h>
 #include <math.h>
-#ifndef __EMSCRIPTEN__
 #include <pthread.h>
 #include <sys/statvfs.h>
 #include <sys/resource.h>
@@ -17,20 +16,12 @@
 #endif
 static void podarSePreciso(long entrada, int forcar);
 static void iniciarGravador(void);
-#endif
 #include "sdlcompat.h"
 #ifdef NV_TEX_TEST_AFTER_POP
 extern void NV_TEX_TEST_AFTER_POP(void);
 #endif
 #ifdef NV_TEX_TEST_BEFORE_DISK_LOCK
 extern void NV_TEX_TEST_BEFORE_DISK_LOCK(void);
-#endif
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#include <pthread.h>
-#include "dados.h"
-static void arqDiscoRegistrar(const char *dst);
-static int arqDiscoTem(const char *dst);
 #endif
 #include "rede.h"
 #include "gfx.h"
@@ -74,18 +65,9 @@ typedef struct {
 } TexFetchTrace;
 // Teto de decodificacao das artes de CARD; a nota que justifica o 640 esta
 // mais abaixo, junto do teto do heroi.
-#ifdef NV_TIZEN3_LITE
-#define NV_TEX_LARG_MAX 320
-#define NV_TEX_HERO_LARG_MAX 640
-#else
 #define NV_TEX_LARG_MAX 640
 // Teto do heroi; a nota com as medidas (LG 1920, Tizen 1280) esta mais abaixo.
-#ifdef __EMSCRIPTEN__
-#define NV_TEX_HERO_LARG_MAX 1280
-#else
 #define NV_TEX_HERO_LARG_MAX 1920
-#endif
-#endif
 
 // FALHOU e um estado de verdade, nao a ausencia de um. Sem ele, um caminho que
 // nao decodifica volta a VAZIO, o desenho pede de novo no quadro seguinte e o
@@ -243,11 +225,7 @@ static int limiteDaVariante(const Item *it) {
 #define NV_TEX_FIOS 2
 // Fios de rede: 4 no LG; 2 no Tizen, onde o fetch de cada um passa pelo fio
 // principal (ver Item.bruto e a nota de ADD_FIOS em addons.c).
-#ifdef __EMSCRIPTEN__
-#define NV_TEX_FIOS_REDE 2
-#else
 #define NV_TEX_FIOS_REDE 4
-#endif
 static SDL_Thread *thrs[NV_TEX_FIOS];
 static SDL_Thread *thrsRede[NV_TEX_FIOS_REDE];
 // FIOS DE REDE ATIVOS, ajustaveis em execucao (tex_definir_fios_rede). Os
@@ -283,12 +261,10 @@ static int nMax = 64;
 static unsigned long relogio = 1;
 
 static SDL_mutex *mtx;
-#ifndef __EMSCRIPTEN__
 // O gravador de disco vive ate o processo sair. Seu callback de poda precisa
 // terminar antes de mtx/itens serem destruidos e observar a proxima
 // inicializacao completa. Ordem: vidaMtx, depois mtx; nunca o inverso.
 static pthread_mutex_t vidaMtx = PTHREAD_MUTEX_INITIALIZER;
-#endif
 static SDL_Thread *thr;
 static int rodando = 0;
 
@@ -368,7 +344,6 @@ __attribute__((unused)) static void publicarCacheDisco(void) {
 // aqui foi a POLITICA, que estava errada independente do numero: ver a nota em
 // podarCacheDisco.
 #define NV_CACHE_DISCO_MAX ((long)cachePerfil().discoMb * 1048576)
-#ifndef __EMSCRIPTEN__
 #define NV_CACHE_DISCO_RESERVA (128UL * 1024UL * 1024UL)
 // TETO PROPORCIONAL AO ESPACO, no LG (22/09/2026). 512 MB fixos era mais da
 // metade do que a C9 tinha: 497 MB de arte em 3309 arquivos numa particao de
@@ -380,7 +355,6 @@ __attribute__((unused)) static void publicarCacheDisco(void) {
 // por cima disso e manda podar antes de o sistema ficar sem espaco.
 #define NV_CACHE_DISCO_FRACAO 15
 #define NV_CACHE_DISCO_PISO (32L * 1024L * 1024L)
-#endif
 static unsigned long quadroAtual = 1;
 
 // ITEM 4 DA PESQUISA PLX: recusa no ponto do pedido.
@@ -446,11 +420,6 @@ static long bytesTexturaMip(int w, int h, int comPiramide) {
 #define NV_TEX_MIP_LARG 1024
 static int temPiramide(int w, int h, int card) {
   if (w >= NV_TEX_MIP_LARG && !card) return 0;
-#ifdef __EMSCRIPTEN__
-  { int lp = (w > 0) && ((w & (w - 1)) == 0);
-    int ap = (h > 0) && ((h & (h - 1)) == 0);
-    if (!lp || !ap) return 0; }
-#endif
   return 1;
 }
 
@@ -1191,19 +1160,7 @@ static int tetoDoHeroi(void) {
   return tetoHeroiPerfil >= 640 && tetoHeroiPerfil < t ? tetoHeroiPerfil : t;
 }
 static int tetoDoHeroiQualidade(void) {
-#ifdef NV_TIZEN3_LITE
-  return NV_TEX_HERO_LARG_MAX;
-#endif
   if (qualidadeImg == 0 || (orcMemTotal > 0 && orcMemTotal <= 1300)) return 1280;
-#ifdef __EMSCRIPTEN__
-  // SAMSUNG: 1280 e o teto de fabrica (heap fixo de 256 MiB, ver a nota das
-  // medidas), e numa TV 4K isso e um fundo esticado 1,5x — "o artwork parece
-  // meio pixelado" (dono, 21/09/2026, emulador Tizen 10). Quem escolheu
-  // qualidade ALTA numa TV com 2 GB ou mais ganha o heroi em 1920, que e o
-  // mesmo custo do LG (8 MB por arte); com 1 GB continua 1280, que e onde o
-  // heap aperta (registro D1 1193: 5,7 MiB livres no arranque).
-  if (qualidadeImg == 2 && orcMemTotal >= 2000) return 1920;
-#endif
   return NV_TEX_HERO_LARG_MAX;
 }
 static float escalaBuf = 1.0f;
@@ -1211,7 +1168,7 @@ static float escalaBuf = 1.0f;
 // not multiply them by 4 (128 MB became 512 and the TCL hit the LMK at 720 MB).
 // Only the desktop preview (Mac retina) scales, so it mirrors the TV scene.
 static float escalaOrc(void) {
-#if defined(NV_ANDROID) || defined(NV_TPK) || defined(NV_WEBOS)
+#if defined(NV_ANDROID) || defined(NV_WEBOS)
   return 1.0f;
 #else
   return escalaBuf > 0.1f ? escalaBuf : 1.0f;
@@ -1235,15 +1192,7 @@ void tex_cache_dir(const char *dir) {
   if (!dir || !*dir) return;
   snprintf(dirCache, sizeof dirCache, "%s", dir);
   mkdir(dirCache, 0777);
-#ifndef __EMSCRIPTEN__
   cachearte_nativo_configurar_diretorio(dirCache);
-#endif
-#ifdef __EMSCRIPTEN__
-  /* Artwork has its own lazy IndexedDB database. Do not put these bodies in
-   * /nuvio IDBFS: syncfs would hydrate the complete image collection at boot. */
-  cachearte_iniciar();
-  cachearte_limite_bytes(NV_CACHE_DISCO_MAX);
-#endif
   // A PASTA PODE EXISTIR E NAO SER GRAVAVEL, e isso ja aconteceu: o tools/arm.sh
   // manda art/ num tar feito no Mac, e o tar extraido como root na TV carimba
   // o dono com o uid do Mac (13888160) e modo 755. O app roda como uid 5152,
@@ -1281,107 +1230,10 @@ void tex_cache_dir(const char *dir) {
   // cachearte.c, lido uma vez pelo fio de gravacao ao nascer (iniciarGravador),
   // sem segurar nada que o desenho ou os fios de rede esperem. Com 3309
   // arquivos no eMMC ela nao e "um stat por arquivo" barato.
-#ifdef __EMSCRIPTEN__
-  { DIR *d = opendir(dirCache);
-    struct dirent *e;
-    long total = 0;
-    int n = 0;
-    if (d) {
-      while ((e = readdir(d)) != NULL) {
-        char caminho[768];
-        struct stat st;
-        if (!arquivoCacheImagem(e->d_name)) continue;
-        snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
-        if (lstat(caminho, &st) == 0 && S_ISREG(st.st_mode)) {
-          total += st.st_size; n++;
-          arqDiscoRegistrar(caminho);
-        }
-      }
-      closedir(d);
-      cacheDiscoBytes = total;
-      publicarCacheDisco();
-      if (n)
-        printf("[tex] cache de disco ja tinha %d arquivo(s), %.1f MB\n",
-               n, total / 1048576.0);
-    } }
-#else
   iniciarGravador();
-#endif
   fflush(stdout);
 }
 
-#ifdef __EMSCRIPTEN__
-// MARCA USO, para que a poda seja mesmo por MENOS USADO.
-//
-// podarCacheDisco ordena por mtime, e sem esta chamada o mtime e a data da
-// ESCRITA. O efeito seria o inverso do pretendido: a arte MAIS lida — a da
-// home, gravada ha semanas e servida do disco desde entao — tem o mtime mais
-// velho e seria a primeira a sair, enquanto um poster aberto uma vez ontem
-// ficaria. Tocar o mtime no acerto de cache transforma "data de escrita" em
-// "data de ultimo uso", que e o que a ordenacao precisa.
-//
-// No IDBFS o mtime e campo em memoria; nao custa viagem a disco.
-static void marcarUso(const char *caminho) { utime(caminho, NULL); }
-
-// PODA O MAIS ANTIGO, e nao o recem-chegado.
-//
-// A versao anterior fazia o contrario: passado o teto, apagava o arquivo que
-// ACABOU de ser baixado ("o mais novo nao fica"). Essa e a pior politica
-// possivel — garante que justamente a arte que esta na tela agora nunca fique
-// em cache, e que ela seja baixada de novo na proxima vez que aparecer. O
-// conjunto "quente" que ela pretendia preservar e exatamente o que ela
-// descartava.
-//
-// O defeito so ficou VISIVEL em 17/09, quando cacheDiscoBytes passou a contar o
-// que ja estava no disco (antes nascia em 0 a cada arranque, o teto nunca era
-// atingido e o ramo nunca rodava). Consertar o contador ligou um caminho que
-// estava errado desde que foi escrito.
-//
-// Agora: ordena por data de modificacao e apaga do mais velho para o mais novo
-// ate voltar a caber, com uma folga de 25% para nao podar a cada arquivo novo.
-static void podarCacheDisco(void) {
-  struct { char nome[64]; long tam; time_t quando; } lista[512];
-  int n = 0, i, j;
-  long alvo = NV_CACHE_DISCO_MAX - NV_CACHE_DISCO_MAX / 4;
-  DIR *d = opendir(dirCache);
-  struct dirent *e;
-  if (!d) return;
-  while ((e = readdir(d)) != NULL && n < (int)(sizeof lista / sizeof *lista)) {
-    char caminho[768];
-    struct stat st;
-    if (e->d_name[0] == '.') continue;
-    snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
-    if (stat(caminho, &st) != 0 || !S_ISREG(st.st_mode)) continue;
-    snprintf(lista[n].nome, sizeof lista[n].nome, "%s", e->d_name);
-    lista[n].tam = (long)st.st_size;
-    lista[n].quando = st.st_mtime;
-    n++;
-  }
-  closedir(d);
-  // Insercao: sao centenas de entradas e isto roda quando o teto estoura, nao
-  // por quadro. Um qsort aqui so acrescentaria um comparador para ler.
-  for (i = 1; i < n; i++) {
-    int k = i;
-    while (k > 0 && lista[k - 1].quando > lista[k].quando) {
-      char nm[64]; long tm; time_t qd;
-      snprintf(nm, sizeof nm, "%s", lista[k - 1].nome); tm = lista[k - 1].tam; qd = lista[k - 1].quando;
-      lista[k - 1] = lista[k];
-      snprintf(lista[k].nome, sizeof lista[k].nome, "%s", nm); lista[k].tam = tm; lista[k].quando = qd;
-      k--;
-    }
-  }
-  for (j = 0; j < n && cacheDiscoBytes > alvo; j++) {
-    char caminho[768];
-    snprintf(caminho, sizeof caminho, "%s/%s", dirCache, lista[j].nome);
-    if (remove(caminho) != 0) continue;
-    cacheDiscoBytes -= lista[j].tam;
-    if (cacheDiscoBytes < 0) cacheDiscoBytes = 0;
-  }
-  printf("[tex] cache de disco podado: %d arquivo(s) antigos, agora %.1f MB\n",
-         j, cacheDiscoBytes / 1048576.0);
-  fflush(stdout);
-}
-#endif
 
 // Nome de arquivo estavel a partir da URL. Hash simples (FNV-1a) e nao o nome
 // da URL porque elas trazem barra, query e caracteres que nao cabem em nome de
@@ -1396,51 +1248,7 @@ static void nomeDeCache(const char *url, char *dst, size_t tam) {
   snprintf(dst, tam, "%s/%08lx%s", dirCache, h, ext);
 }
 
-#ifdef __EMSCRIPTEN__
-// ARQUIVOS QUE JA ESTAO NA PASTA DE CACHE (Tizen, 24/09/2026). No Tizen so GIF
-// vai a arquivo (gif.c le por caminho); o resto vive em Item.bruto. Mas o fio
-// de rede so descobria que era GIF DEPOIS de baixar o corpo inteiro para a
-// memoria — e entao jogava os bytes fora e chamava garantirLocal, que achava o
-// arquivo (download perdido) ou baixava tudo DE NOVO. Registros D1 da TV do
-// rawldon: o avatar GIF de 1 MB (a1edacf2, 498x448) baixado 4 vezes na
-// sessao 2262 (1.4.3: 2929+761+473+377 ms), 3 na 2512 (1.4.4) e 2 na 1839
-// (1.4.1), com o arquivo ja no /nuvio/cache desde a sessao anterior ("cache
-// de disco ja tinha 2 arquivo(s), 2.1 MB"); na 2565 (1.4.5), sem o arquivo,
-// o primeiro pedido baixou DUAS vezes (`image_requests=2 net_ms=3169`). E um
-// dos DOIS fios de rede de arte parado 0,4-3 s por pedido, enquanto a home
-// ja pede os cartazes; eles esperavam atras (`fila-rede wait=2706`). Com
-// este registro o pedido de um arquivo que ja existe vai direto a
-// garantirLocal (um fopen, sem rede).
-//
-// So nomes, em memoria: a varredura do arranque (tex_cache_dir) ja lia a
-// pasta, e garantirLocal registra o que grava. Um nome que a poda apagou
-// continua aqui sem dano: garantirLocal confere o arquivo e baixa se faltar.
-#define NV_ARQ_DISCO_MAX 128
-static unsigned long arqDisco[NV_ARQ_DISCO_MAX];
-static int nArqDisco, proxArqDisco;
-static pthread_mutex_t arqDiscoMtx = PTHREAD_MUTEX_INITIALIZER;
-static void arqDiscoRegistrar(const char *dst) {
-  unsigned long h = hashCaminho(dst);
-  int i;
-  pthread_mutex_lock(&arqDiscoMtx);
-  for (i = 0; i < nArqDisco && arqDisco[i] != h; i++) {}
-  if (i == nArqDisco) {
-    if (nArqDisco < NV_ARQ_DISCO_MAX) arqDisco[nArqDisco++] = h;
-    else { arqDisco[proxArqDisco] = h; proxArqDisco = (proxArqDisco + 1) % NV_ARQ_DISCO_MAX; }
-  }
-  pthread_mutex_unlock(&arqDiscoMtx);
-}
-static int arqDiscoTem(const char *dst) {
-  unsigned long h = hashCaminho(dst);
-  int i, achou = 0;
-  pthread_mutex_lock(&arqDiscoMtx);
-  for (i = 0; i < nArqDisco && !achou; i++) achou = arqDisco[i] == h;
-  pthread_mutex_unlock(&arqDiscoMtx);
-  return achou;
-}
-#endif
 
-#ifndef __EMSCRIPTEN__
 /* Nunca remove o arquivo entre a entrega da rede e a leitura pelo decoder.
  * Ordem de locks: s_native_mtx (cachearte) e mtx sao tomadas separadamente,
  * nunca uma dentro da outra. */
@@ -1688,13 +1496,7 @@ void tex_cache_esperar_gravacoes(void) {
   while (gravIniciado && (gravN || gravAtual.b)) pthread_cond_wait(&gravVazia, &gravMtx);
   pthread_mutex_unlock(&gravMtx);
 }
-#endif
 
-#ifdef __EMSCRIPTEN__
-#ifndef NV_REC_URL
-#define NV_REC_URL ""
-#endif
-#endif
 
 // Baixa UMA url e devolve o corpo so se ele for imagem; NULL com a razao no
 // log. Separado de garantirLocal para a reserva do TMDB passar pelo mesmo
@@ -1757,7 +1559,6 @@ static void negCaminho(char *dst, size_t tam) {
   snprintf(dst, tam, "%s/.arte-negativa", dirCache);
 }
 static void negCarregar(void) {
-#ifndef __EMSCRIPTEN__
   char cam[600];
   FILE *f;
   long agora = (long)time(NULL);
@@ -1775,10 +1576,8 @@ static void negCarregar(void) {
   pthread_mutex_unlock(&negMtx);
   fclose(f);
   if (i) { printf("[tex] arte negativa: %d url(s) sem arte lembradas do disco\n", i); fflush(stdout); }
-#endif
 }
 static void negGravar(void) {
-#ifndef __EMSCRIPTEN__
   char cam[600], tmp[620];
   FILE *f;
   long agora = (long)time(NULL);
@@ -1796,7 +1595,6 @@ static void negGravar(void) {
     }
   pthread_mutex_unlock(&negMtx);
   if (fclose(f) == 0) rename(tmp, cam); else remove(tmp);
-#endif
 }
 static int negTem(const char *url) {
   unsigned long h = hashCaminho(url);
@@ -1852,19 +1650,6 @@ static char *baixarImagem(const char *url, long *n, TexFetchTrace *trace) {
   // dois fios de decode por quase um minuto e a tela inteira parava de receber
   // arte — repetidamente, porque nada guarda a falha.
   { Uint32 t = SDL_GetTicks();
-#ifdef __EMSCRIPTEN__
-    // SAMSUNG (#112): o Chromium do Tizen barra TODO `http://` que sai do app
-    // (log D1 1647: os icones de canal de 24horas.cc, http, nunca chegavam).
-    // O servico de recomendacoes (https) busca por nos e so devolve se o
-    // servidor disser image/* — ver servidor/recomendacoes/src/xtream.js. A
-    // chave do cache continua sendo `url` (quem grava e o chamador): so o
-    // caminho da rede muda. Sem NV_REC_URL na build, direto como antes. A
-    // url vai no CORPO do POST: ha painel que poe usuario/senha no caminho do
-    // icone, e url de entrada o proprio worker registra (ver xtream.js).
-    if (NV_REC_URL[0] && !strncmp(url, "http://", 7))
-      corpo = rede_postar_bin(NV_REC_URL "/v1/xtream", 8, url, n);
-    else
-#endif
     if (posterprov_e_provedor(url)) {
       // PROVEDOR DE POSTER (posterprov.h): no maximo PP_SIMULT juntos, e prazo
       // de 20 s porque um cartaz frio e RENDERIZADO no servidor (medido: ~3 s
@@ -1874,7 +1659,7 @@ static char *baixarImagem(const char *url, long *n, TexFetchTrace *trace) {
       corpo = rede_baixar_bin(url, 20, n);
       posterprov_portao_sair();
     } else {
-#if !defined(__EMSCRIPTEN__) && !defined(rede_baixar_bin)
+#if !defined(rede_baixar_bin)
       // (Os testes trocam rede_baixar_bin por um dublê: sem status ali.)
       // Com o STATUS na mao (rede_baixar_bin devolve so NULL): e ele que
       // separa o 404 do titulo sem arte (24 h) da rede que falhou (2 min).
@@ -1960,98 +1745,6 @@ static int resolverReserva(const char *url, char *saida, size_t tam,
 // Baixa a URL para o cache, se ainda nao estiver la. Devolve 1 se ha arquivo
 // utilizavel no fim. Roda no fio de decodificacao, entao bloquear aqui nao
 // custa quadro nenhum.
-#ifdef __EMSCRIPTEN__
-// Grava `corpo` em `dst` por temporario + rename. 1 se o arquivo ficou.
-static int gravarLocal(const char *dst, const char *corpo, long n,
-                       TexFetchTrace *trace) {
-  char tmp[600];
-  Uint32 persistEm = SDL_GetTicks();
-  int ok = 0, erro = 0;
-  long anterior = 0;
-  struct stat st;
-  size_t esc = 0;
-  int fim = 0;
-  FILE *f;
-  snprintf(tmp, sizeof tmp, "%s.parcial", dst);
-  if (stat(dst, &st) == 0) anterior = (long)st.st_size;
-  errno = 0;
-  f = fopen(tmp, "wb");
-  if (f) {
-    esc = fwrite(corpo, 1, (size_t)n, f);
-    erro = errno;
-    fim = fclose(f);
-    if (fim != 0 && !erro) erro = errno;
-    if (esc == (size_t)n && fim == 0) {
-      if (rename(tmp, dst) == 0) ok = 1;
-      else erro = errno;
-    }
-  } else erro = errno;
-  if (!ok) {
-    if (!erro) erro = EIO;
-    printf("[tex] gravacao incompleta (%zu de %ld B, erro %d: %s): %.70s\n",
-           esc, n, erro, strerror(erro), dst);
-    fflush(stdout);
-    remove(tmp);
-  } else {
-    cacheDiscoBytes += n - anterior;
-    publicarCacheDisco();
-    arqDiscoRegistrar(dst);
-  }
-  if (trace) trace->persistMs += SDL_GetTicks() - persistEm;
-  return ok;
-}
-
-static int garantirLocal(const char *url, char *dst, size_t tam, int *foiRede,
-                         TexFetchTrace *trace) {
-  FILE *f;
-  char *corpo;
-  long n = 0;
-  if (foiRede) *foiRede = 0;
-  if (strncmp(url, "http://", 7) && strncmp(url, "https://", 8)) {
-    snprintf(dst, tam, "%s", url);
-    return 1;
-  }
-  if (!dirCache[0]) return 0;
-  nomeDeCache(url, dst, tam);
-  Uint32 cacheEm = SDL_GetTicks();
-  f = fopen(dst, "rb");
-  if (f) { fseek(f, 0, SEEK_END); n = ftell(f); fclose(f);
-    if (n > 512) {
-      unsigned char sig[12] = {0};
-      FILE *check = fopen(dst, "rb");
-      size_t got = check ? fread(sig, 1, sizeof sig, check) : 0;
-      if (check) fclose(check);
-      { int valid = got >= 4 && (
-          (sig[0] == 0xFF && sig[1] == 0xD8) ||
-          (sig[0] == 0x89 && sig[1] == 0x50 && sig[2] == 0x4E && sig[3] == 0x47) ||
-          (sig[0] == 'G' && sig[1] == 'I' && sig[2] == 'F') ||
-          (sig[0] == 'R' && sig[1] == 'I' && sig[2] == 'F' && sig[3] == 'F' &&
-           got >= 12 && sig[8] == 'W' && sig[9] == 'E' && sig[10] == 'B' && sig[11] == 'P'));
-        if (valid) {
-          marcarUso(dst);   // sem isto a poda vira o contrario de LRU; ver a nota
-          arqDiscoRegistrar(dst);
-          if (trace) trace->cacheMs += SDL_GetTicks() - cacheEm;
-          return 1;
-        }
-      }
-    } }
-  if (trace) trace->cacheMs += SDL_GetTicks() - cacheEm;
-  if (foiRede) *foiRede = 1;
-  corpo = baixarImagem(url, &n, trace);
-  // METAHUB FORA DO AR NAO E CARD CINZA: a mesma imagem existe no TMDB pelo id
-  // do IMDb. So depois de a original falhar, e gravada sob a URL original —
-  // para o resto do app e como se o metahub tivesse respondido.
-  if (!corpo) {
-    char alt[400];
-    if (resolverReserva(url, alt, sizeof alt, trace)) corpo = baixarImagem(alt, &n, trace);
-  }
-  if (!corpo) return 0;
-  if (!gravarLocal(dst, corpo, n, trace)) { free(corpo); return 0; }
-  free(corpo);
-  return 1;
-}
-
-#else
 // ACERTO DE DISCO SEM TRAVA GLOBAL (22/09/2026). Um fopen, 12 bytes de
 // assinatura e o tamanho. Antes isto pegava discoMtx, a mesma trava que o
 // download de outro fio segurava durante a gravacao e as duas varreduras da
@@ -2127,7 +1820,6 @@ static int garantirLocal(const char *url, char *dst, size_t tam, int *foiRede,
   return ok;
 }
 
-#endif
 
 // O QUE O FIO DE REDE ENTREGA AO DE DECODE. Arte baixada agora: os bytes no
 // proprio item (Item.bruto), nas duas plataformas. No LG, arte que ja estava
@@ -2166,93 +1858,6 @@ static int baixarParaItem(int idx, const char *url, char *dst, size_t tam, int *
   char certo[NV_TEX_URL_MAX];
   int limitePedido;
   SDL_LockMutex(mtx); limitePedido = limiteDaVariante(&itens[idx]); SDL_UnlockMutex(mtx);
-#ifdef __EMSCRIPTEN__
-  if (!strncmp(url, "http://", 7) || !strncmp(url, "https://", 8)) {
-    long n = 0;
-    unsigned char *corpo;
-    char menor[600];
-    int variante = NV_CACHE_ARTE_MEDIUM;
-    // O CARD NAO PRECISA DO FUNDO DE 1920 (20/09/2026, #72). O metahub serve
-    // /background/small/ em 480x270 e 12 KB contra 1920x1080 e 600 KB do
-    // /medium/ — o cabecalho de artehero.c mediu medium/big/large/original
-    // iguais, mas nao mediu small. Um card deitado desenha 416 (768 em
-    // foco), e nesta TV cada medium era 600 KB de rede mais um JPEG HD para
-    // decodificar em software. So aqui, so no Tizen, so quando o pedido e de
-    // card (limite <= 640): o item continua com a URL medium como chave, e a
-    // promocao a heroi baixa o medium de novo, que e o que ela ja fazia.
-    { int limite = limitePedido;
-      if (arte_tamanho_fundo_pequeno(limite, qualidadeImg == 2)) {
-        variante = NV_CACHE_ARTE_SMALL;
-        const char *m = strstr(url, "images.metahub.space/background/medium/");
-        if (m) {
-          snprintf(menor, sizeof menor, "%.*simages.metahub.space/background/small/%s",
-                   (int)(m - url), url, m + strlen("images.metahub.space/background/medium/"));
-          url = menor;
-        }
-      } }
-    // O RESTO DA ESCADA (TMDB, still do metahub): artetamanho.h.
-    if (arte_tamanho_url(url, limitePedido, certo, sizeof certo)) url = certo;
-    SDL_LockMutex(mtx);
-    if (mesmoPedido(idx, pedido)) itens[idx].limiteTamanho = url != pedido ? limitePedido : 0;
-    SDL_UnlockMutex(mtx);
-    // JA ESTA NA PASTA (um GIF de outra vez ou desta sessao): o arquivo serve,
-    // sem rede. Ver arqDiscoRegistrar.
-    { char arq[600];
-      nomeDeCache(url, arq, sizeof arq);
-      if (dirCache[0] && arqDiscoTem(arq)) return garantirLocal(url, dst, tam, foiRede, trace); }
-    /* The exact URL, including its query string, remains the key. `variante`
-     * is a second dimension so a small response can never satisfy a hero. */
-    corpo = NULL;
-    if (cachearte_buscar(url, variante, &corpo, &n)) {
-      if (foiRede) *foiRede = 0;
-    } else {
-      if (foiRede) *foiRede = 1;
-      corpo = (unsigned char *)baixarImagem(url, &n, trace);
-    }
-    if (!corpo) {
-      char alt[400];
-      if (resolverReserva(url, alt, sizeof alt, trace)) corpo = (unsigned char *)baixarImagem(alt, &n, trace);
-    }
-    if (!corpo) return 0;
-    if (n >= 6 && !memcmp(corpo, "GIF8", 4)) {
-      // gif.c le por caminho: este continua indo a arquivo. COM OS BYTES QUE
-      // JA VIERAM: ate a 1.4.5 eles eram jogados fora e garantirLocal baixava
-      // o GIF inteiro de novo (ver arqDiscoRegistrar).
-      int ok;
-      if (!dirCache[0]) { free(corpo); return 0; }
-      nomeDeCache(url, dst, tam);
-      ok = gravarLocal(dst, (const char *)corpo, n, trace);
-      free(corpo);
-      return ok;
-    }
-    // WEBP ANIMADO (#141): alem da textura parada de sempre (o Worker le o
-    // primeiro quadro), o arquivo para gif.c animar — ele le por caminho, como
-    // o GIF acima. So quando este build anima WebP; senao nada muda.
-    if (gif_webp_suportado() && gif_webp_animado_bytes(corpo, (size_t)n) && dirCache[0]) {
-      char arq[600];
-      nomeDeCache(url, arq, sizeof arq);
-      gravarLocal(arq, (const char *)corpo, n, trace);
-    }
-    /* JPEG/PNG/WebP bytes are already compressed. Persist the response as-is;
-     * decoding remains the existing worker path and no raw RGBA is stored. */
-    if (foiRede && *foiRede) cachearte_salvar(url, variante, corpo, n, 0);
-    SDL_LockMutex(mtx);
-    if (!mesmoPedido(idx, pedido)) {
-      int salvo = salvarPedidoMovido(pedido, url, limitePedido, corpo, n, variante);
-      SDL_UnlockMutex(mtx);
-      if (!salvo) free(corpo);
-      return -1;
-    }
-    free(itens[idx].bruto);
-    itens[idx].bruto = corpo;
-    itens[idx].nBruto = n;
-    itens[idx].varianteCache = variante;
-    snprintf(itens[idx].urlCache, sizeof itens[idx].urlCache, "%s", url);
-    SDL_UnlockMutex(mtx);
-    snprintf(dst, tam, "%s", url);
-    return 1;
-  }
-#else
   // LG: A ARTE NAO ESPERA O DISCO (22/09/2026). Ordem nova:
   //   1. arquivo no cache -> o decode le o arquivo (sem trava global);
   //   2. bytes ainda na fila de gravacao -> copia, sem rede;
@@ -2319,7 +1924,6 @@ static int baixarParaItem(int idx, const char *url, char *dst, size_t tam, int *
     SDL_UnlockMutex(mtx);
     return 1;
   }
-#endif
   return garantirLocal(url, dst, tam, foiRede, trace);
 }
 
@@ -2700,7 +2304,6 @@ static long subirNiveis(SDL_Surface *base) {
   return bytes;
 }
 
-#ifndef __EMSCRIPTEN__
 // Algumas SDL_image do webOS nao incluem GIF. A foto usa o decoder C ja
 // embarcado: um quadro, limitado, sem iniciar animacao nem fio adicional.
 static SDL_Surface *gifFotoMem(const unsigned char *b, size_t n, int limite,
@@ -2733,7 +2336,6 @@ static SDL_Surface *gifFotoArquivo(const char *caminho, int limite, int *ow, int
   fclose(f);
   return s;
 }
-#endif
 
 /* Android fallbacks allocate the full source before resizing. Only allow
  * sources within the codec's pixel ceiling; unknown bounds fail closed.
@@ -2750,7 +2352,6 @@ static int fallbackCabe(int w, int h) {
 static SDL_Surface *decodeArteMem(const unsigned char *b, size_t n, int limite,
                                   int *ow, int *oh) {
   SDL_Surface *s = jpeg_rapido_carregar_mem(b, n, limite, ow, oh);
-#ifndef __EMSCRIPTEN__
   if (!s && fallbackCabe(*ow, *oh)) {
     s = webp_carregar_larg_mem(b, n, limite, ow, oh);
     if (!s) {
@@ -2760,7 +2361,6 @@ static SDL_Surface *decodeArteMem(const unsigned char *b, size_t n, int limite,
     }
     if (!s) s = gifFotoMem(b, n, limite, ow, oh);
   }
-#endif
   return s;
 }
 
@@ -2773,9 +2373,7 @@ static SDL_Surface *decodeArteArquivo(const char *caminho, int limite,
       s = IMG_Load(caminho);
       if (s) { *ow = s->w; *oh = s->h; }
     }
-#ifndef __EMSCRIPTEN__
     if (!s) s = gifFotoArquivo(caminho, limite, ow, oh);
-#endif
   }
   return s;
 }
@@ -2841,9 +2439,6 @@ static int threadDecode(void *arg) {
     unsigned char *bruto = itens[idx].bruto;
     long nBruto = itens[idx].nBruto;
     int daMemoria = bruto != NULL;
-#ifdef __EMSCRIPTEN__
-    int varianteCache = itens[idx].varianteCache;
-#endif
     char urlCache[NV_TEX_URL_MAX];
     snprintf(urlCache, sizeof urlCache, "%s", itens[idx].urlCache);
     itens[idx].bruto = NULL; itens[idx].nBruto = 0;
@@ -2882,10 +2477,8 @@ static int threadDecode(void *arg) {
     }
     // A MAGICA do arquivo (Item.magica): quem veio direto do disco
     // (discoDireto) nao passou pelo fio de rede, que e quem a lia.
-#ifndef __EMSCRIPTEN__
     { FILE *g = fopen(caminho, "rb");
       if (g) { temMagDec = fread(magDec, 1, 4, g) == 4; fclose(g); } }
-#endif
     // JPEG SAI DO DECODIFICADOR JA REDUZIDO (jpegrapido.h): 1/2, 1/4 ou 1/8
     // dentro da DCT, o que cobre o pedido. srcW/srcH ficam com o tamanho do
     // ARQUIVO — e o que `fonteW` guarda para decidir promocao — e nao com o
@@ -2934,44 +2527,6 @@ static int threadDecode(void *arg) {
       if (!conv && bruta) conv = SDL_ConvertSurfaceFormat(bruta, SDL_PIXELFORMAT_ABGR8888, 0);
       if (bruta) SDL_FreeSurface(bruta);
     }
-#ifdef __EMSCRIPTEN__
-    // O ARQUIVO DE CACHE MORRE AQUI, no alvo Tizen e so nele.
-    //
-    // MEDIDO NA TV: 99 MB de cache-disco so abrindo listas. E RAM — o "disco"
-    // do Emscripten e MEMFS —, nada nunca era apagado, e esse consumo nao
-    // aparecia em nenhum contador: o [mem] mede o heap do malloc e o total de
-    // texturas mede a GPU. Somado ao heap FIXO de 256 MiB, e o que faz o app
-    // engasgar e travar depois de alguma navegacao.
-    //
-    // O cache de disco existe para nao rebaixar a mesma arte quando a textura e
-    // despejada. Aqui ele NAO PRECISA EXISTIR: o download passa pela pilha HTTP
-    // do proprio navegador, que ja mantem cache em DISCO DE VERDADE, com cota
-    // propria e despejo proprio, fora do nosso orcamento. Guardar o arquivo em
-    // MEMFS estava duplicando o cache do Chromium dentro da nossa RAM.
-    //
-    // O arquivo continua sendo o ponto de encontro entre o fio de rede e o de
-    // decode — so deixa de sobreviver a ele. Uma arte pedida de novo depois do
-    // despejo volta a ser baixada, e essa volta e barata porque o navegador
-    // serve do cache dele.
-    //
-    // So no Emscripten: no LG o cache e disco de verdade e apagar ali seria
-    // trocar leitura local por rede.
-    // APAGAR SO QUANDO PASSAR DO TETO, e nao sempre.
-    //
-    // A versao anterior apagava o arquivo depois de TODO decode, e isso foi
-    // REGRESSAO: o cache de disco existe justamente para nao rebaixar a arte
-    // quando a textura e despejada, e sem ele cada despejo virava um download
-    // novo. Com o recuo de 2 s/10 s/60 s em falha, a arte sumia por muito
-    // tempo — o dono viu a home carregando "muito lindo e rapido" no v10 e
-    // quebrada depois. Trocar 200 MB de RAM por arte que nao aparece nao e
-    // troca boa.
-    //
-    // O defeito real nunca foi guardar: era guardar SEM TETO. Agora guarda ate
-    // NV_CACHE_DISCO_MAX e, passando disso, poda os MAIS ANTIGOS ate voltar a
-    // caber — o recem-baixado, que e o que esta na tela, e justamente o que
-    // fica. A politica anterior descartava ele; ver a nota em podarCacheDisco.
-    if (conv && cacheDiscoBytes > NV_CACHE_DISCO_MAX) podarCacheDisco();
-#endif
     // TETO DE LARGURA. Antes a arte vinha do pacote ja reduzida; agora vem da
     // rede no tamanho que o servidor tiver, e um backdrop de 1920 custa 8 MB
     // DECODIFICADO — meia duzia deles estoura o orcamento e o cache passa a
@@ -3249,12 +2804,6 @@ static int threadDecode(void *arg) {
       // continua FALHOU, sem baixar de novo.
       { int ehGif = (mag[0] == 'G' && mag[1] == 'I' && mag[2] == 'F' && mag[3] == '8');
         if (!ehGif) {
-#ifdef __EMSCRIPTEN__
-          /* The decoder is authoritative: signature checks cannot detect a
-           * truncated JPEG with a valid SOI. Remove that exact persistent
-           * variant so the retry can refill it from HTTP. */
-          if (daMemoria && urlCache[0]) cachearte_invalidar(urlCache, varianteCache);
-#else
           /* Bytes da memoria que o decoder recusou: a copia deles ainda pode
            * estar na fila de gravacao; nao deixa virar arquivo envenenado. */
           if (daMemoria) {
@@ -3265,7 +2814,6 @@ static int threadDecode(void *arg) {
             cancelarGravacao(local);
             if (remove(local) == 0) { cachearte_nativo_indice_remover(local); publicarDiscoNativo(); }
           }
-#endif
           // APAGA o arquivo que nao decodifica. Ele so pode ter chegado ao
           // cache corrompido — a assinatura foi conferida no download —, e
           // mante-lo significa que esta arte NUNCA mais carrega, nem depois de
@@ -3277,18 +2825,7 @@ static int threadDecode(void *arg) {
           // delas para a poda passar a apagar tudo e nunca se dar por
           // satisfeita, deixando o cache vazio de vez.
           if (noCache(caminho)) {
-#ifdef __EMSCRIPTEN__
-            long tamAnt = 0;
-            FILE *g = fopen(caminho, "rb");
-            if (g) { fseek(g, 0, SEEK_END); tamAnt = ftell(g); fclose(g); }
-            if (remove(caminho) == 0) {
-              cacheDiscoBytes -= tamAnt;
-              if (cacheDiscoBytes < 0) cacheDiscoBytes = 0;
-              publicarCacheDisco();
-            }
-#else
             if (remove(caminho) == 0) { cachearte_nativo_indice_remover(caminho); publicarDiscoNativo(); }
-#endif
           }
         } else {
           printf("[tex] e um GIF: fica no disco para gif.c, sem baixar de novo\n");
@@ -3307,15 +2844,6 @@ static long memTotalMB(void) {
   const char *ram = getenv("NUVIO_SHOT_RAM_MB");
   if (ram && atol(ram) > 0) return atol(ram);
 #endif
-#ifdef __EMSCRIPTEN__
-  double gb = EM_ASM_DOUBLE({
-    try {
-      var m = (typeof navigator !== 'undefined') ? navigator.deviceMemory : 0;
-      return (typeof m === 'number' && m > 0) ? m : 0;
-    } catch (e) { return 0; }
-  });
-  return (long)(gb * 1024.0 + 0.5);
-#else
   FILE *f = fopen("/proc/meminfo", "r");
   char linha[128];
   long kb = 0;
@@ -3324,7 +2852,6 @@ static long memTotalMB(void) {
     if (sscanf(linha, "MemTotal: %ld kB", &kb) == 1) break;
   fclose(f);
   return kb / 1024;
-#endif
 }
 
 // O ORCAMENTO E DECIDIDO NO ARRANQUE, PELA RAM DA TV — e nao por uma build
@@ -3369,33 +2896,6 @@ static int orcamentoMB(void) {
   const char *porque;
 #ifdef NV_TEX_MB_FIXO
   mb = NV_TEX_MB_FIXO; porque = "NV_TEX_MB_FIXO"; orcFixo = 1;
-#  ifdef __EMSCRIPTEN__
-  // O TETO FIXO NAO VALE NO TIZEN, e este limite existe por MEDICAO.
-  //
-  // 17/09, QN85Q70AAGXZD (2 GB): a variante de cache grande pede 300 MB e ficou
-  // MAIS LENTA que a normal de 96 MB. Mesma arte, mesma saida — o fundo do
-  // metahub 1920x1080 reduzido para 1280x720 levou 1481 ms na normal e 3575 ms
-  // na de 300 MB. O pior quadro foi de 465 ms para 1475 ms.
-  //
-  // NAO E DESPEJO: com 300 MB o contador de despejos fica em ZERO a sessao
-  // inteira, enquanto a normal despeja (180, 68, 48...). E NAO E O HEAP: o
-  // [mem] das duas mostra malloc em 22-31 MiB com 32-40 MiB livres dentro dos
-  // 256 MiB. O mecanismo eu NAO PROVEI — o que esta provado e que o numero
-  // maior piora, e que ninguem mediu um numero maior que ajude nesta TV.
-  //
-  // Na LG o teto fixo continua valendo: la sao 2,2 GB de RAM nativa e a medicao
-  // foi a favor. Aqui a textura vive no processo de GPU do navegador, dentro
-  // dos mesmos 2 GB que a TV inteira usa, e 300 MB e um palpite.
-  //
-  // O limite e o proprio valor que a regra automatica escolheria: quem passar
-  // -DNV_TEX_MB_FIXO alto no alvo Tizen cai nele e o log diz por que.
-  { int aut = ptv_tex_auto_mb(PTV_TIZEN, mem);
-    if (mb > aut) {
-      printf("[tex] NV_TEX_MB_FIXO=%d ignorado no Tizen: %d MB e o que a TV "
-             "suporta (medido: teto maior decodifica mais devagar)\n", mb, aut);
-      mb = aut; porque = "NV_TEX_MB_FIXO > teto Tizen"; orcFixo = 0;
-    } }
-#  else
   // NA LG O TETO FIXO OBEDECE A RAM (20/09/2026, registro 15 do servico de
   // avisos): uma TV de 1350 MB (Mali-G31) instalou a highcache e recebeu 300
   // MB de textura — o dobro do que a regra automatica da a 2 GB. O nome da
@@ -3408,7 +2908,6 @@ static int orcamentoMB(void) {
       printf("[tex] NV_TEX_MB_FIXO=%d acima do que %ld MB de RAM permitem: fica em %d MB\n", mb, mem, teto);
       mb = teto; porque = "NV_TEX_MB_FIXO limitado pela RAM";
     } }
-#  endif
 #else
   // A escada mora em perfiltv.c (ptv_tex_auto_mb), junto dos outros padroes
   // por aparelho; os degraus e os numeros sao os que estavam aqui.
@@ -3441,9 +2940,6 @@ static int orcamentoMB(void) {
 // RAM, sem aparelho aqui — o `rss=` do relatorio de FPS e quem confirma). No
 // Tizen o teto e o proprio automatico (medido: mais e mais lento, ver acima).
 static int tetoPermitidoMB(void) {
-#ifdef NV_TIZEN3_LITE
-  return 32;
-#endif
   return ptv_tex_teto_mb(ptv_plataforma(), orcMemTotal);
 }
 int tex_teto_ram_mb(void) { return tetoPermitidoMB(); }
@@ -3616,10 +3112,6 @@ int tex_iniciar(int max_itens) {
     tetoHeroiPerfil = pf.heroiLarg;
     printf("[tex] padrao do aparelho: %d MB, %d fios de rede, heroi %d px (RAM %ld MB)\n",
            mb, pf.fiosRede, pf.heroiLarg, orcMemTotal); }
-#ifdef __EMSCRIPTEN__
-  /* Recover IDBFS/account data before spending bandwidth on speculative art. */
-  if (dados_modo_recuperacao()) fiosDecode = fiosRede = 1;
-#endif
   nMax = max_itens > 0 && max_itens <= MAX_ITENS_ABS ? max_itens : 64;
   // OS SLOTS ACOMPANHAM O ORCAMENTO. 192 slots foram dimensionados para 96-128
   // MB (~660 KB por cartaz da C9): com 300 MB o cache encheria de slots muito
@@ -3638,17 +3130,13 @@ int tex_iniciar(int max_itens) {
   // esta e nao um numero maior cravado.
   { float e = escalaOrc();
     orcamento = (long)(mb * e * e) * 1024L * 1024L; }
-#ifndef __EMSCRIPTEN__
   pthread_mutex_lock(&vidaMtx);
-#endif
   bytesUsados = 0;
   memset(itens, 0, sizeof itens);
   mtx = SDL_CreateMutex(); cond = SDL_CreateCond();
   condDec = SDL_CreateCond(); condLivre = SDL_CreateCond();
   rodando = 1;
-#ifndef __EMSCRIPTEN__
   pthread_mutex_unlock(&vidaMtx);
-#endif
   // DOIS fios de decode, nao um. A fila e retirada sob o mutex e cada fio leva
   // um indice proprio, entao mais consumidores e seguro sem outra mudanca.
   //
@@ -3689,11 +3177,9 @@ void tex_encerrar(void) {
     for (k = 0; k < NV_TEX_FIOS_REDE; k++)
       if (thrsRede[k]) { SDL_WaitThread(thrsRede[k], NULL); thrsRede[k] = NULL; }
     thr = NULL; }
-#ifndef __EMSCRIPTEN__
   // Nenhum mutex SDL esta tomado aqui: o callback em curso pode termina-lo,
   // e os seguintes so veem mtx NULL depois deste encerramento completo.
   pthread_mutex_lock(&vidaMtx);
-#endif
   if (uplTex) glDeleteTextures(1, &uplTex);
   uplTex = 0; uplIdx = -1; uplSup = NULL; uplY = 0; uplNiveis = 0;
   for (int i = 0; i < nMax; i++) {
@@ -3707,9 +3193,7 @@ void tex_encerrar(void) {
   SDL_DestroyCond(condLivre); SDL_DestroyCond(condDec);
   SDL_DestroyCond(cond); SDL_DestroyMutex(mtx);
   condLivre = condDec = cond = NULL; mtx = NULL;
-#ifndef __EMSCRIPTEN__
   pthread_mutex_unlock(&vidaMtx);
-#endif
 }
 
 // Ver tex_obter_larg_qualquer: 1 durante essa chamada, e a textura menor que
@@ -3755,7 +3239,6 @@ int tex_disco_direto = 0;
 // garantirLocal do decode, que baixa como antes. Fila de decode cheia ou
 // indice ainda nao montado: fila de rede, como sempre foi.
 static int discoDireto(int idx) {
-#ifndef __EMSCRIPTEN__
   char certo[NV_TEX_URL_MAX], dst[600];
   int usar;
   if (!dirCache[0] || !itens[idx].caminho[0]) return 0;
@@ -3768,62 +3251,12 @@ static int discoDireto(int idx) {
   tex_disco_direto++;
   if (itens[idx].urgente == 2) logoOrigem(itens[idx].caminho, "disco-direto", 0);
   return 1;
-#else
-  (void)idx;
-  return 0;
-#endif
 }
 
-#ifdef NV_TPK
-// ARTE DO PACOTE QUE FALTA (#290): ver artefalta.h. A auto-atualizacao do .tpk
-// troca so a .so; o res/art fica o da instalacao. Arquivo de res/art que nao
-// existe vira a URL da mesma tag no GitHub e segue pela fila de rede/cache de
-// disco como qualquer arte remota. O access() roda UMA vez por caminho: a
-// resposta fica numa tabela de hashes (o pedido se repete a cada quadro).
-#ifndef NV_VERSAO
-#define NV_VERSAO "dev"
-#endif
-#define ARTE_VISTA_N 512
-static unsigned long arteVistaH[ARTE_VISTA_N];
-static unsigned char arteVistaE[ARTE_VISTA_N];   // 0 livre, 1 existe, 2 falta
-static int arteFaltas;
-static const char *artePacoteOuRemota(const char *caminho, char *buf, size_t tam) {
-  unsigned long h;
-  int k, slot = -1, estado = 0;
-  if (!caminhoLocal(caminho) || !strstr(caminho, ARTE_RAIZ_PACOTE)) return caminho;
-  h = hashCaminho(caminho);
-  for (k = 0; k < 8; k++) {
-    int j = (int)((h + (unsigned long)k) % ARTE_VISTA_N);
-    if (arteVistaE[j] && arteVistaH[j] == h) { estado = arteVistaE[j]; break; }
-    if (!arteVistaE[j]) { slot = j; break; }
-  }
-  if (!estado) {
-    estado = access(caminho, R_OK) == 0 ? 1 : 2;
-    if (slot >= 0) { arteVistaH[slot] = h; arteVistaE[slot] = (unsigned char)estado; }
-    if (estado == 2 && arteFaltas < 64) {
-      // Uma linha por arquivo (a tabela lembra): e o que diz no log quais
-      // artes a .so nova pede e o pacote instalado nao tem.
-      arteFaltas++;
-      printf("[arte] falta no pacote (%d): %s -> tag v%s\n", arteFaltas,
-             strstr(caminho, ARTE_RAIZ_PACOTE) + strlen(ARTE_RAIZ_PACOTE), NV_VERSAO);
-      fflush(stdout);
-    }
-  }
-  if (estado != 2) return caminho;
-  return arte_url_remota(caminho, NV_VERSAO, buf, tam) ? buf : caminho;
-}
-#endif
 
 static GLuint tex_obter_limite(const char *caminho, int limite, int urgente,
                                int passageiro) {
-#ifdef NV_TIZEN3_LITE
-  if (limite > NV_TEX_HERO_LARG_MAX) limite = NV_TEX_HERO_LARG_MAX;
-#endif
   if (!caminho || !*caminho || strlen(caminho) >= NV_TEX_URL_MAX) return 0;
-#ifdef NV_TPK
-  char arteRemota[NV_TEX_URL_MAX];
-  caminho = artePacoteOuRemota(caminho, arteRemota, sizeof arteRemota);
-#endif
   if (pedidoLogo) urgente = 2;
   if (caminhoInvalido(caminho)) {
     static int avisos;
@@ -4087,17 +3520,6 @@ void tex_cache_marcar_larg(int grupo, const char *url, float largLayout,
   int variante = NV_CACHE_ARTE_MEDIUM;
   if (!url || !*url) return;
   snprintf(urlReal, sizeof urlReal, "%s", url);
-#ifdef __EMSCRIPTEN__
-  if (arte_tamanho_fundo_pequeno(cap, qualidadeImg == 2)) {
-    variante = NV_CACHE_ARTE_SMALL;
-    const char *m = strstr(url, "images.metahub.space/background/medium/");
-    if (m) {
-      snprintf(urlReal, sizeof urlReal, "%.*simages.metahub.space/background/small/%s",
-               (int)(m - url), url,
-               m + strlen("images.metahub.space/background/medium/"));
-    }
-  }
-#endif
   cachearte_marcar_grupo(grupo, urlReal, variante, essencial, emUso);
 }
 
@@ -4517,28 +3939,6 @@ static int publicarEnvio(int alvo, GLuint t, SDL_Surface *sup, Uint32 uploadEm,
   // temPiramide() e a fonte unica desta decisao: a contabilidade de bytes usa a
   // mesma funcao, entao cobranca e geracao nunca divergem.
   int comMip = temPiramide(sup->w, sup->h, itens[alvo].card);
-#ifdef __EMSCRIPTEN__
-  // WEBGL 1 RECUSA MIPMAP EM TEXTURA NAO-POTENCIA-DE-DOIS, e o preco e o card
-  // PRETO. glGenerateMipmap numa NPOT devolve GL_INVALID_OPERATION e nao gera
-  // piramide nenhuma; o MIN_FILTER logo abaixo continua pedindo
-  // GL_LINEAR_MIPMAP_NEAREST, a textura fica INCOMPLETA, e textura incompleta
-  // amostra preto. Sem erro em C, sem erro no log do app: a unica pista fica no
-  // console do navegador, "GL_INVALID_OPERATION: glGenerateMipmap: The texture
-  // is a non-power-of-two texture", que foi o dono quem abriu e viu.
-  //
-  // No webOS isto FUNCIONA porque o driver Mali expoe OES_texture_npot, que
-  // levanta a restricao. O WebGL 1 nao expoe essa extensao de jeito nenhum.
-  // Por isso a guarda e so do alvo Emscripten: mudar o comportamento no LG
-  // custaria a piramide da arte NPOT de la, que hoje serve o desfoque da pagina
-  // de detalhe e nao tem defeito nenhum.
-  //
-  // Coerente com o que o comentario acima ja avisava: "sem mipmap o filtro TEM
-  // de ser GL_LINEAR". Consequencia aceita: no Tizen a arte NPOT nao tem
-  // piramide, entao o desfoque da pagina de detalhe fica mais fraco nela.
-  { int lp = (sup->w > 0) && ((sup->w & (sup->w - 1)) == 0);
-    int ap = (sup->h > 0) && ((sup->h & (sup->h - 1)) == 0);
-    if (!lp || !ap) comMip = 0; }
-#endif
   // CPU mip allocation failure must not schedule GPU generation on the
   // render thread. A linear base texture remains complete and usable.
   if (comMip && mipCpuAtivo() && !sup->userdata) comMip = 0;
@@ -4804,10 +4204,6 @@ void tex_estatisticas(int *nItens, int *nPend, long *bytes,
 }
 
 long tex_cache_disco_bytes(void) {
-#ifndef __EMSCRIPTEN__
   return __atomic_load_n(&cacheDiscoSnapshot, __ATOMIC_ACQUIRE);
-#else
-  return cacheDiscoBytes;
-#endif
 }
 long tex_orcamento_bytes(void) { return orcamento; }

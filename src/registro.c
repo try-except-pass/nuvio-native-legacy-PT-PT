@@ -22,9 +22,6 @@
 #include <time.h>
 #include <math.h>
 #include <sys/stat.h>
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
 
 #ifndef NV_VERSAO
 #define NV_VERSAO "dev"
@@ -106,11 +103,6 @@ static Uint32 ultLeitura;
 static char cru[REG_JANELA + 1];
 
 const char *registro_arquivo(void) {
-#ifdef __EMSCRIPTEN__
-  // Nao ha arquivo util no navegador: o "sistema de arquivos" e MEMFS, morre a
-  // cada recarga, e o log ja esta no console. NULL faz main.c pular o freopen.
-  return NULL;
-#else
   static char caminho[256];
   static int resolvido;
   if (!resolvido) {
@@ -133,7 +125,6 @@ const char *registro_arquivo(void) {
 #endif
   }
   return caminho[0] ? caminho : NULL;
-#endif
 }
 
 // Corta a URL no HOST. Ver a nota de privacidade em registro.h: a chave do
@@ -286,36 +277,13 @@ static void fatiar(char *texto, int parcial) {
   cont[RG_TUDO] = nLidas;
 }
 
-#ifdef __EMSCRIPTEN__
-// As linhas que o shell (tools/tizen-shell.html) guarda em texto puro, a mesma
-// lista que alimenta o painel DOM. -1 = a lista nem existe (shell antigo), 0 =
-// existe e esta vazia: o painel tem frases diferentes para cada um.
-EM_JS(int, nv_registro_js, (char *dst, int tam, int *total), {
-  try {
-    var a = (typeof window !== "undefined") ? window.__nvLinhas : null;
-    if (!a) return -1;
-    HEAP32[total >> 2] = a.length;
-    if (!a.length) return 0;
-    var t = a.slice(-260).join("\n");
-    if (t.length > tam - 8) t = t.slice(-(tam - 8));
-    stringToUTF8(t, dst, tam);
-    return 1;
-  } catch (e) { return 0; }
-});
-#endif
 
 // Tamanho atual da fonte (bytes do arquivo, ou linhas no wasm); -1 sem fonte.
 static long marcaAtual(void) {
-#ifdef __EMSCRIPTEN__
-  int total = 0;
-  if (nv_registro_js(cru, 2, &total) < 0) return -1;
-  return total;
-#else
   struct stat st;
   const char *c = registro_arquivo();
   if (!c || stat(c, &st) != 0) return -1;
   return (long)st.st_size;
-#endif
 }
 
 #ifdef REGISTRO_TESTE
@@ -336,14 +304,6 @@ static void carregar(void) {
     return;
   }
 #endif
-#ifdef __EMSCRIPTEN__
-  { int r, total = 0;
-    cru[0] = 0;
-    r = nv_registro_js(cru, (int)sizeof cru, &total);
-    marcaLida = total;
-    if (r <= 0) { semFonte = (r < 0); return; }
-    fatiar(cru, 0); }
-#else
   { const char *caminho = registro_arquivo();
     FILE *f;
     long tam, comeco;
@@ -361,7 +321,6 @@ static void carregar(void) {
     fclose(f);
     marcaLida = tam;
     fatiar(cru, comeco > 0); }
-#endif
 }
 
 // --- O ESTADO DO PAINEL ------------------------------------------------------
@@ -467,9 +426,6 @@ static void passoAoVivo(void) {
   if (m == marcaLida) return;
   if (!pausado) { recarregar(); return; }
   // Pausado: conta as linhas que chegaram depois da pausa, sem mexer na lista.
-#ifdef __EMSCRIPTEN__
-  novas = (int)(m - marcaPausa);
-#else
   { const char *c = registro_arquivo();
     FILE *f = c ? fopen(c, "rb") : NULL;
     if (f) {
@@ -483,7 +439,6 @@ static void passoAoVivo(void) {
       for (k = 0; k < n; k++) if (buf[k] == '\n') q++;
       novas = q;
     } }
-#endif
   if (novas < 0) novas = 0;
 }
 

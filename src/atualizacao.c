@@ -61,7 +61,7 @@
 // e o host, no proximo arranque, e so depois de reconferir o hash do arquivo
 // encenado. Em QUALQUER duvida o host apaga o staging e volta para a empacotada.
 // No Android o mesmo SHA-256 confere o APK baixado (auto-atualizacao do .apk).
-#if defined(NV_TPK) || defined(NV_ANDROID)
+#if defined(NV_ANDROID)
 #include <stdint.h>
 #include <unistd.h>
 #include <strings.h>
@@ -215,13 +215,6 @@ static char notas[6144];          // texto ja limpo, linhas separadas por \n
 // alvo nao sabe instalar, e ai nem se procura).
 static char ipkUrl[512];
 static char ipkHash[80];          // sha256 em hex; vazio quando a release nao diz
-#ifdef NV_TPK
-// Anexo libnuvio.so desta ABI (auto-atualizacao do .tpk). soUrl/soHash vem do
-// JSON da release; soVer e a tag (== tagNova) que essa .so entrega.
-static char soUrl[512];
-static char soHash[80];
-static char soVer[32];
-#endif
 #ifdef NV_ANDROID
 // Anexo "Nuvio-<versao>-android.apk" da release (auto-atualizacao no Android).
 // apkPerm: o sistema pediu a permissao de instalar apps desta fonte; o cartao
@@ -246,7 +239,7 @@ static int  apkPerm;
 // tools/env.sh e tools/arm.sh), so por tests/atualizacao_shot.sh.
 #if defined(NV_AT_INSTALA)
 #define AT_INSTALA NV_AT_INSTALA
-#elif !defined(__EMSCRIPTEN__) && !defined(__APPLE__) && !defined(NV_LINUX_DESKTOP) && !defined(NV_TPK) && !defined(NV_ANDROID)
+#elif !defined(__APPLE__) && !defined(NV_LINUX_DESKTOP) && !defined(NV_ANDROID)
 #define AT_INSTALA 1
 #else
 #define AT_INSTALA 0
@@ -431,7 +424,7 @@ static int acharIpk(const char *corpo, char *dst, size_t tam,
   return 0;
 }
 
-#if defined(NV_TPK) || defined(NV_ANDROID)
+#if defined(NV_ANDROID)
 // Anexo cujo nome termina em `sufixo` (casamento EXATO, sem o AT_SUFIXO2 do
 // .ipk) e o sha256 do MESMO anexo (hashAntesDe). Sem digest ignora o anexo: sem
 // hash nao ha como confiar em codigo remoto. Serve ao .so do .tpk e ao .apk.
@@ -481,24 +474,6 @@ static int acharApk(const char *corpo, char *dst, size_t tam, char *hash, size_t
 }
 #endif
 
-#ifdef NV_TPK
-// O anexo da libnuvio.so DESTA ABI e o seu sha256. Uma release do .tpk anexa UMA
-// libnuvio.so (a build de tpk.sh e unica, ARMv7 softfp, compartilhada pelos
-// quatro pacotes), com o sufixo AT_SO_SUFIXO. Casa por sufixo EXATO (sem o
-// AT_SUFIXO2 do .ipk) e le o digest do MESMO anexo por hashAntesDe. Sem o
-// digest, ignora o anexo: sem hash nao ha como confiar em codigo nativo remoto.
-// O 4/5 (NV_TPK40) roda a lib SEM TLS, que o carregador ELF exige: baixa o
-// anexo proprio. "-tpk-arm.so" nao casa com "-tpk40-arm.so", entao um pacote
-// nunca pega a lib do outro.
-#ifdef NV_TPK40
-#define AT_SO_SUFIXO "-tpk40-arm.so"
-#else
-#define AT_SO_SUFIXO "-tpk-arm.so"
-#endif
-static int acharSo(const char *corpo, char *dst, size_t tam, char *hash, size_t tamHash) {
-  return acharAnexo(corpo, dst, tam, hash, tamHash, AT_SO_SUFIXO);
-}
-#endif
 
 // Markdown das notas -> linhas de tela. Devolve em `dst`, linhas por \n.
 static void limparNotas(const char *md, char *dst, size_t tam) {
@@ -554,20 +529,11 @@ static int fioConsulta(void *arg) {
   static char body[8192];          // so um fio de consulta por vez (emCurso)
   char tag[48] = "";
   char lIpk[512] = "", lIpkH[80] = "";
-#ifdef NV_TPK
-  char lSo[512] = "", lSoH[80] = "";
-#endif
 #ifdef NV_ANDROID
   char lApk[512] = "", lApkH[80] = "";
 #endif
   (void)arg;
   body[0] = 0;
-#ifdef NV_VIDAA
-  SDL_LockMutex(mtx);
-  pronto = 1;
-  SDL_UnlockMutex(mtx);
-  return 0;  // hosted app e sempre current
-#endif
   corpo = rede_baixar(AT_URL, 12);
   if (!corpo) { printf("[atualizacao] sem resposta do GitHub\n"); fflush(stdout); }
   else {
@@ -576,10 +542,6 @@ static int fioConsulta(void *arg) {
     // Sem anexo da variante desta build, ipkUrl fica vazio e podeInstalar()
     // devolve 0: o cartao aparece so com a URL da pagina.
     if (AT_INSTALA) acharIpk(corpo, lIpk, sizeof lIpk, lIpkH, sizeof lIpkH, AT_SUFIXO);
-#ifdef NV_TPK
-    // Anexo libnuvio.so para a auto-atualizacao do .tpk (staging por hash).
-    acharSo(corpo, lSo, sizeof lSo, lSoH, sizeof lSoH);
-#endif
 #ifdef NV_ANDROID
     acharApk(corpo, lApk, sizeof lApk, lApkH, sizeof lApkH);
 #endif
@@ -594,13 +556,6 @@ static int fioConsulta(void *arg) {
       limparNotas(body, notas, sizeof notas);
       snprintf(ipkUrl, sizeof ipkUrl, "%s", lIpk);
       snprintf(ipkHash, sizeof ipkHash, "%s", lIpkH);
-#ifdef NV_TPK
-      snprintf(soUrl, sizeof soUrl, "%s", lSo);
-      snprintf(soHash, sizeof soHash, "%s", lSoH);
-      // So a versao mais nova entra: soVer marca a .so encenada e o host a
-      // compara com a versao empacotada antes de aplicar.
-      snprintf(soVer, sizeof soVer, "%s", v);
-#endif
 #ifdef NV_ANDROID
       snprintf(apkUrl, sizeof apkUrl, "%s", lApk);
       snprintf(apkHash, sizeof apkHash, "%s", lApkH);
@@ -646,12 +601,6 @@ static int fioInstalar(void *arg) {
 #endif
   char cmd[900];
   (void)arg;
-#ifdef NV_VIDAA
-  SDL_LockMutex(mtx);
-  pronto = 1;
-  SDL_UnlockMutex(mtx);
-  return 0;  // hosted app e sempre current
-#endif
   { char extra[110] = "";
     if (ipkHash[0]) snprintf(extra, sizeof extra, ",\"ipkHash\":\"%s\"", ipkHash);
     snprintf(cmd, sizeof cmd,
@@ -741,84 +690,7 @@ static int podeInstalar(void) {
   return AT_INSTALA && ipkUrl[0] && estado == AT_PARADO && temInstalador();
 }
 
-#ifdef NV_TPK
-// BAIXA E ENCENA a libnuvio.so nova. NUNCA carrega em processo: grava
-// data/libnuvio.staged.so (+ .sha256 e .ver) e o host memfd-carrega no proximo
-// arranque. A barreira e o sha256: baixa para data/libnuvio.download, confere o
-// hash contra soHash (do digest da release, por HTTPS) e so entao renomeia
-// atomicamente. Hash errado, download parcial ou erro de escrita => apaga tudo e
-// nao encena nada. Em duvida, o app segue com a .so empacotada.
-static int fioBaixarSo(void *arg) {
-  char dl[600] = "", so[600] = "", sh[600] = "", vr[600] = "";
-  char hex[65] = "", verLocal[32];
-  char *buf;
-  long n = 0;
-  FILE *f;
-  int ok = 0;
-  (void)arg;
-  SDL_LockMutex(mtx); snprintf(verLocal, sizeof verLocal, "%s", soVer); SDL_UnlockMutex(mtx);
-  if (!dados_caminho(dl, sizeof dl, "libnuvio.download") ||
-      !dados_caminho(so, sizeof so, "libnuvio.staged.so") ||
-      !dados_caminho(sh, sizeof sh, "libnuvio.staged.sha256") ||
-      !dados_caminho(vr, sizeof vr, "libnuvio.staged.ver")) {
-    printf("[atualizacao] sem pasta de dados para encenar a .so\n"); fflush(stdout);
-    SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-    return 0;
-  }
-  printf("[atualizacao] baixando libnuvio.so nova (%s)\n", soUrl); fflush(stdout);
-  buf = rede_baixar_bin(soUrl, 120, &n);
-  if (!buf || n <= 0) {
-    printf("[atualizacao] download da .so falhou\n"); fflush(stdout);
-    free(buf);
-    SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-    return 0;
-  }
-  SDL_LockMutex(mtx); snprintf(instPasso, sizeof instPasso, "Verificando"); SDL_UnlockMutex(mtx);
-  at_sha256_hex((const unsigned char *)buf, (size_t)n, hex);
-  if (strcasecmp(hex, soHash) != 0) {
-    printf("[atualizacao] sha256 NAO confere: baixado %.12s... esperado %.12s...\n", hex, soHash);
-    fflush(stdout);
-    free(buf);
-    SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-    return 0;
-  }
-  // Hash confere: grava o arquivo temporario e renomeia atomicamente. So depois
-  // vem o .sha256 e o .ver — se o processo morrer no meio, faltar o .sha256 faz
-  // o host ignorar o staging (ele reconfere o hash do arquivo encenado).
-  f = fopen(dl, "wb");
-  if (f) {
-    ok = fwrite(buf, 1, (size_t)n, f) == (size_t)n;
-    if (fflush(f) != 0) ok = 0;
-    fclose(f);
-  }
-  free(buf);
-  if (!ok) {
-    printf("[atualizacao] nao consegui gravar %s\n", dl); fflush(stdout);
-    unlink(dl);
-    SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-    return 0;
-  }
-  if (rename(dl, so) != 0) {
-    printf("[atualizacao] rename para staged falhou\n"); fflush(stdout);
-    unlink(dl);
-    SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-    return 0;
-  }
-  { char linha[80]; snprintf(linha, sizeof linha, "%s\n", hex); dados_gravar("libnuvio.staged.sha256", linha); (void)sh; }
-  { char linha[48]; snprintf(linha, sizeof linha, "%s\n", verLocal); dados_gravar("libnuvio.staged.ver", linha); (void)vr; }
-  printf("[atualizacao] libnuvio.so %s encenada; aplica no proximo arranque\n", verLocal);
-  fflush(stdout);
-  SDL_LockMutex(mtx); estado = AT_PRONTO; soEncenada = 1; SDL_UnlockMutex(mtx);
-  return 0;
-}
-
-// 1 quando ha uma libnuvio.so nova para encenar e nada em andamento.
-static int podeAtualizarTpk(void) {
-  return soUrl[0] && soHash[0] && soVer[0] && estado == AT_PARADO;
-}
-#else
 static int podeAtualizarTpk(void) { return 0; }
-#endif
 
 #ifdef NV_ANDROID
 // BAIXA O APK para <dados>/atualizacao/Nuvio-<v>.apk, CONFERE o sha256 contra o
@@ -1160,16 +1032,6 @@ void atualizacao_evento(const SDL_Event *e) {
       else { SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx); }
       return;
     }
-#ifdef NV_TPK
-    if (podeAtualizarTpk() && foco == 0) {
-      SDL_Thread *t;
-      SDL_LockMutex(mtx); estado = AT_INSTALANDO; SDL_UnlockMutex(mtx);
-      t = SDL_CreateThread(fioBaixarSo, "nv-baixar-so", NULL);
-      if (t) { SDL_DetachThread(t); fioInst = t; }
-      else { SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx); }
-      return;
-    }
-#endif
 #ifdef NV_ANDROID
     if (podeAtualizarApk() && foco == 0) {
       SDL_Thread *t;

@@ -66,8 +66,6 @@ int dicascontrole_modo(void) {
   if (telefoneui_ativo()) return DICAS_TOQUE;
 #if defined(NV_WEBOS)
   return DICAS_TV_LG;
-#elif defined(NV_TPK) || defined(NV_TPK40) || defined(__EMSCRIPTEN__)
-  return DICAS_TV_SAM;
 #else
   return DICAS_TV_GTV;
 #endif

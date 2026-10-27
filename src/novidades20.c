@@ -172,16 +172,12 @@ static TelefoneCartao n20Telefone;
 
 // ------------------------------------------------------------------ aparelho
 static int devBuild(void) {
-#if defined(NV_TPK40)
-  return N20_DEV_WGT;
-#else
   switch (ptv_plataforma()) {
     case PTV_ANDROID: return N20_DEV_ANDROID;
     case PTV_TPK: return N20_DEV_TPK;
     case PTV_TIZEN: return N20_DEV_WGT;
     default: return N20_DEV_LG;
   }
-#endif
 }
 static int dev(void) { return devForcado >= 0 && devForcado < N20_NDEV ? devForcado : devBuild(); }
 static int temAqui(int so) { return !so || (so & (1 << dev())); }
@@ -190,11 +186,7 @@ static const char *devNome(void) {
     case N20_DEV_ANDROID: return "Android TV";
     case N20_DEV_TPK: return "Samsung Tizen 6+";
     case N20_DEV_WGT:
-#if defined(NV_TPK40)
-      return "Samsung Tizen 4–5";
-#else
       return "Samsung .wgt";
-#endif
     default: return "LG webOS";
   }
 }

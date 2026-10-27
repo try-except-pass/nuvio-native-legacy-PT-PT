@@ -15,11 +15,7 @@
 #include <time.h>
 
 int partes_disponivel(void) {
-#ifdef NV_TPK
-  return 1;
-#else
   return 0;
-#endif
 }
 
 // ---------------------------------------------------------------- JSON

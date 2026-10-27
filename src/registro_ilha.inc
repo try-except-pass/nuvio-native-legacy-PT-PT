@@ -708,9 +708,7 @@ static void rgAparelho(char *tit, size_t nt, char *sub, size_t ns, char *tvLinha
   char modelo[64] = "", host[48] = "", dot[32] = "", tela[32] = "", os[64] = "";
   int i;
   const char *marca =
-#if defined(NV_TPK) || defined(__EMSCRIPTEN__)
-    "Samsung";
-#elif defined(NV_ANDROID)
+#if   defined(NV_ANDROID)
     "Android TV";
 #elif defined(__APPLE__)
     "";
@@ -737,9 +735,7 @@ static void rgAparelho(char *tit, size_t nt, char *sub, size_t ns, char *tvLinha
   else if (!strncmp(host, "android-", 8)) snprintf(os, sizeof os, "Android %s", host + 8);
   else if (host[0]) snprintf(os, sizeof os, "%s", host);
   else snprintf(os, sizeof os, "%s",
-#if defined(NV_TPK) || defined(__EMSCRIPTEN__)
-    "Tizen"
-#elif defined(NV_ANDROID)
+#if   defined(NV_ANDROID)
     "Android"
 #elif defined(__APPLE__)
     "SDL2"
@@ -1165,13 +1161,7 @@ static void inspAparelho(void) {
     if ((p = strstr(etapas[i].tx, "loader=")) != NULL) sscanf(p, "loader=%47s", carreg);
     if (!strncmp(etapas[i].tx, "libcurl-dlopen · ", strlen("libcurl-dlopen · "))) snprintf(curl, sizeof curl, "%s", etapas[i].tx + strlen("libcurl-dlopen · "));
   }
-#if defined(NV_TPK40)
-  snprintf(v, sizeof v, "NuvioTpk40 · %s", NV_VERSAO);
-#elif defined(NV_TPK)
-  snprintf(v, sizeof v, "NuvioTpk · %s", NV_VERSAO);
-#else
   snprintf(v, sizeof v, "Nuvio %s", NV_VERSAO);
-#endif
   y += rgStat(i18n("Pacote"), v, x, y, w);
   if (carreg[0]) y += rgStat(i18n("Carregador"), carreg, x, y, w);
   if (curl[0]) y += rgStat("libcurl", curl, x, y, w);
@@ -1203,11 +1193,7 @@ static void inspVazio(void) {
   y += rgDevCard(x, y) + 22;
   y += rgStat(i18n("Arquivo de log"), arq ? arq : i18n("nenhum"), x, y, w);
   // Sem arquivo (Mac sem NUVIO_LOG) o envio manda texto vazio: indisponivel.
-#ifdef __EMSCRIPTEN__
-  y += rgStat(i18n("Envio de registro"), env.disponivel ? i18n("disponível") : i18n("indisponível"), x, y, w);
-#else
   y += rgStat(i18n("Envio de registro"), env.disponivel && arq ? i18n("disponível") : i18n("indisponível"), x, y, w);
-#endif
   y += 30;
   rgK2("De onde o painel lê", x, y);
   y += 16 + 10;
@@ -1267,13 +1253,8 @@ static void desenhaVazio(void) {
   float th;
   if (!semFonte) { tit = "Nenhuma linha de log ainda."; txt = NULL; }
   else {
-#ifdef __EMSCRIPTEN__
-    tit = "A página não expôs as linhas do log";
-    txt = "O log completo continua no console do navegador.";
-#else
     tit = "Esta versão manda o log para o terminal";
     txt = "Não há um arquivo para ler aqui. Para ver o registro nesta tela, rode com NUVIO_LOG apontando para um arquivo.";
-#endif
   }
   th = txt ? rgBlocoAltura(TXT_DET_META2, txt, 760, 31.5f, 4) : 0;
   y = RL_TOPO + (RP_Y + RP_H - 73 - RL_TOPO - 60) * 0.5f - (96 + 28 + 41 + (txt ? 12 + th : 0) + (semFonte ? 26 + 56 + 44 + 21 : 0)) * 0.5f;
@@ -1304,7 +1285,6 @@ static void desenhaVazio(void) {
       if (lin1[0]) { TxtLinha l = rgT(TXT_DET_META2, lin1); txt_desenhar_alpha(l, cx - l.w * 0.5f, y + k * 31.5f, 0.6f); k++; }
       y += k * 31.5f; }
   }
-#if !defined(__EMSCRIPTEN__)
   if (semFonte) {
     TxtLinha c = txt_linha(TXT_MONO19, "NUVIO_LOG=/tmp/nuvio.log bash tools/mac.sh", RG_TX, 255);
     y += 26;
@@ -1314,7 +1294,6 @@ static void desenhaVazio(void) {
     { TxtLinha l = rgT(TXT_AJ_ESTADO, "Com arquivo e nenhuma linha ainda, a frase é só: “Nenhuma linha de log ainda.”");
       txt_desenhar_alpha(l, cx - l.w * 0.5f, y, 0.42f); }
   }
-#endif
 }
 
 static void desenhaPainel(void) {
@@ -1477,8 +1456,6 @@ static void desenhaAviso(void) {
   const char *frase =
 #if defined(NV_ANDROID)
     "Aperte Info (i) no controle para abrir e fechar o registro.";
-#elif defined(NV_TPK) || defined(__EMSCRIPTEN__)
-    "Aperte o botão vermelho do controle para abrir e fechar o registro. Nos controles Samsung novos o vermelho não é um botão: aperte (ou segure) o botão de números e cores, abaixo do liga-desliga, até a fileira de cores aparecer na tela.";
 #else
     "Aperte o botão vermelho do controle para abrir e fechar o registro. No controle da LG ele fica na fileira de botões coloridos, quando o controle tiver essa fileira.";
 #endif

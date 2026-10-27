@@ -1,10 +1,6 @@
 // Ver ajweb.h para o porque e as regras.
 #include "ajweb.h"
 
-#ifdef __EMSCRIPTEN__
-void ajweb_configurar(int ligado) { (void)ligado; }
-const char *ajweb_url(void) { return ""; }
-#else
 
 #include "ajweb_pagina.h"
 #include "registro.h"
@@ -486,4 +482,3 @@ void ajweb_configurar(int ligado) {
   atenderCaixa();
 }
 
-#endif

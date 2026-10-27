@@ -40,7 +40,7 @@
 static atomic_int audioOffsetMs;
 void dts_remux_set_audio_offset_ms(int ms) { atomic_store(&audioOffsetMs, audsync_offset_ms(ms)); }
 
-#if !defined(NV_DTS_FFMPEG) || !(defined(NV_TPK) || defined(NV_DTS_REMUX_TEST))
+#if !defined(NV_DTS_FFMPEG) || !defined(NV_DTS_REMUX_TEST)
 int dts_remux_available(void) { return 0; }
 DtsRemux *dts_remux_open(const char *u, const char *h, int t, int s, double g, volatile int *c, char *err, size_t n) {
   (void)u; (void)h; (void)t; (void)s; (void)g; (void)c;

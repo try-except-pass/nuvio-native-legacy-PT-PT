@@ -108,16 +108,6 @@ static inline int nv_ls_passo_buf_prazo(NvLiveStall *s, unsigned agora, double p
       if (recuperou) { s->pos = pos; s->movEm = agora; s->movDesde = 0; }
     } else return (int)(agora - s->quando) < 0 ? NV_LS_ESPERA : NV_LS_REABRIR;
   }
-#ifdef NV_TPK
-  // #302: o primeiro EOF com video e continuidade de live, nao fim de arquivo.
-  // Se a nova abertura morrer antes de ficar firme, passa a gastar o limite.
-  if (pronto && terminou && (s->andou || pos > 0.05)) {
-    if (!s->eofGratis) { s->eofGratis = 1; return NV_LS_REABRIR; }
-    if (s->tentativa >= NV_LS_MAX) return NV_LS_DESISTIR;
-    s->tentativa++;
-    return NV_LS_REABRIR;
-  }
-#endif
 #ifndef NV_ANDROID
   // Media3 can still be playing or loading the next HLS segment with a low
   // reserve. Reporting its buffer must not enable this proactive reopen rule.

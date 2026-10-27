@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#if defined(__EMSCRIPTEN__) || defined(_WIN32)
+#if defined(_WIN32)
 void queda_armar(const char *arquivo) { (void)arquivo; }
 void queda_armar_encadeado(const char *arquivo, void (*antes)(void)) { (void)arquivo; (void)antes; }
 int  queda_relatar(const char *arquivo) { (void)arquivo; return 0; }

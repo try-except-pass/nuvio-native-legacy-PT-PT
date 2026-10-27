@@ -20,17 +20,9 @@ static int existe(int fonte, int tizen) {
   switch (fonte) {
     case TRF_APPLE:   return 1;
     case TRF_IMDB:
-#ifdef NV_VIDAA
-      return !tizen;  // VIDAA: IMDb nao toca (ver ajuda do AJ_TRAILER_FONTE)
-#else
       return !tizen || trailerfonte_imdb_tizen();
-#endif
     case TRF_YOUTUBE:
-#if defined(NV_VIDAA) && !defined(NV_UM_FIO)
-      return 0;  // mt build: YouTube iframe falha com COEP isolado
-#else
       return tizen;  // Tizen e VIDAA st: YouTube habilitado
-#endif
     default:          return 0;
   }
 }
@@ -53,11 +45,7 @@ int trailerfonte_ordem(int ajuste, int tizen, int ordem[3]) {
 }
 
 // .tpk: Apple la e so video (ver trailerfonte.h, trailerfonte_ordem_cheia).
-#ifdef NV_TPK
-static int imdbPrimeiroCheia = 1;
-#else
 static int imdbPrimeiroCheia = 0;
-#endif
 int  trailerfonte_imdb_primeiro_cheia(void) { return imdbPrimeiroCheia; }
 void trailerfonte_definir_imdb_primeiro_cheia(int sim) { imdbPrimeiroCheia = sim ? 1 : 0; }
 
@@ -187,18 +175,10 @@ const char *trailerfonte_nome(int qual) {
 }
 
 int trailerfonte_com_som(int tizen) {
-#ifdef NV_VIDAA
-  return 1;  // VIDAA: plain <video> sem problema de autoplay policy
-#else
   return !tizen;  // Tizen: mudo; LG: som
-#endif
 }
 
 int trailerfonte_ajuste(void) { return ajustes_trailer_fonte(); }
 int trailerfonte_tizen(void) {
-#ifdef __EMSCRIPTEN__
-  return 1;
-#else
   return 0;
-#endif
 }

@@ -56,18 +56,14 @@ REC=$(valor NUVIO_REC_URL)
 # e Public Client, sem segredo no binario.
 DSC=$(valor DISCORD_CLIENT_ID)
 # A versao do app sai do appinfo.json — FONTE UNICA. Ela ja vivia em tres
-# lugares (appinfo.json, tizen-config.xml e um #define em ajustes.c) e o
+# lugares (appinfo.json, o config da Samsung e um #define em ajustes.c) e o
 # terceiro ficou parado em 1.0.44 por nove releases: a tela de Ajustes mentia
 # a versao. O binario recebe -DNV_VERSAO e a conferencia do arm.sh exige
 # encontrar o valor dentro dele, como com as demais chaves.
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 VER=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "$RAIZ/deploy/app/appinfo.json" | head -1)
-VERT=$(grep -v "<?xml" "$RAIZ/tools/tizen-config.xml" | sed -n 's/.*[[:space:]]version="\([0-9.]*\)".*/\1/p' | head -1)
 if [ -z "$VER" ]; then
   echo "env.sh: nao achei \"version\" em deploy/app/appinfo.json" >&2; exit 2
-fi
-if [ "$VER" != "$VERT" ]; then
-  echo "env.sh: appinfo.json diz $VER e tizen-config.xml diz $VERT -- alinhe antes de compilar" >&2; exit 2
 fi
 
 # Release unificada: conta, Trakt, Simkl e TMDB obrigatorios; demais opcionais.

@@ -161,9 +161,6 @@
 #include "audiomemoria.h"
 #include "fontesmortas.h"
 #include "video.h"
-#ifdef NV_TPK
-void video_tpk_cdn_arquivo(const char *url, int usenet, int item, int file);
-#endif
 #include "addons.h"
 #include "legauto.h"
 #include "idioma.h"
@@ -2517,16 +2514,13 @@ static void proximoPreparoPasso(void) {
 // Na pagina do titulo: a API do debrid; quando a lista de fontes chega ou cresce:
 // o host de cada uma das primeiras. Nunca resolve link nem cria arquivo.
 static void aquecerAoAbrirTitulo(void) {
-#ifndef __EMSCRIPTEN__
   const char *api[4];
   int n;
   if (!ajustes_fonte_aquecer()) return;
   n = debrid_origens(api, 4);
   if (n > 0) aquecer_pedir(api, n);
-#endif
 }
 static void aquecerQuandoChegarem(void) {
-#ifndef __EMSCRIPTEN__
   static int visto = -1;
   int sn;
   if (!detail_aberto() || player_aberto() || aguardandoFonte || !ajustes_fonte_aquecer()) { visto = -1; return; }
@@ -2540,7 +2534,6 @@ static void aquecerQuandoChegarem(void) {
     for (k = 0; k < q; k++) p[k] = u[k];
     if (q > 0) aquecer_pedir(p, q);
   }
-#endif
 }
 // TOCAR ENQUANTO CONFERE. O fio que confere publica a primeira candidata da
 // fila (streams.c); aqui ela entra no player na hora, SEM esperar o veredito.
@@ -2663,7 +2656,6 @@ static void *sondarRecusaFio(void *u) {
   return NULL;
 }
 static void sondarAposRecusa(void) {
-#ifndef __EMSCRIPTEN__
   static char ultima[4096];
   const char *url = video_url_atual();
   const Stream *s;
@@ -2679,7 +2671,6 @@ static void sondarAposRecusa(void) {
   if (s) snprintf(p->cab, sizeof p->cab, "%s", s->cabecalhos);
   if (pthread_create(&t, NULL, sondarRecusaFio, p) == 0) pthread_detach(t);
   else free(p);
-#endif
 }
 // ---------------------------------------------------------------- partes
 // UM ARQUIVO DE DENTRO DA FONTE, E O FILME EM PARTES (partes.h).
@@ -2738,10 +2729,6 @@ static void parteTocar(const char *url, double pos) {
   video_definir_cabecalhos("");
   video_definir_mp4(parteMp4);
   definirFonteVOD(url);
-#ifdef NV_TPK
-  video_tpk_cdn_arquivo(url, parteArqLista.usenet, parteArqLista.item,
-                        parteArqK >= 0 && parteArqK < parteArqLista.n ? parteArqLista.arq[parteArqK].id : -1);
-#endif
   parteFase = PF_ABRINDO; parteDesde = SDL_GetTicks(); parteGuardouEm = 0;
   parteProx = -1; parteProxFase = 0; parteProxUrl[0] = 0;
   // O arquivo que toca: a saida do player guarda o ponto dele (partes.h).
@@ -3129,7 +3116,7 @@ static int aberturaVencida(Uint32 desde) {
 #ifdef NV_ANDROID
   g.quadro = video_quadro_visto();
 #endif
-#if defined(NV_ANDROID) || defined(NV_TPK)
+#if defined(NV_ANDROID)
   // Trilhas do player ja provam resposta antes do primeiro quadro (DV na TCL).
   g.dadoChegando |= video_n_audio() > 0 || video_n_legenda() > 0;
 #endif
@@ -6307,11 +6294,6 @@ void app_atualizar(float dt, Uint32 agora) {
         const Stream *mesma = stream_item(canalFonteIdx);
         if (mesma) {
           static char viaProxy[4200];
-#ifdef NV_TPK
-          if (video_terminou() && !liveStall.pendente)
-            printf("[canal] tpk EOF de live: reabrindo a fonte %d imediatamente (sem tentativa)\n", canalFonteIdx);
-          else
-#endif
           printf("[canal] reabrindo a fonte %d (tentativa %d/%d)\n", canalFonteIdx,
                  liveStall.tentativa, NV_LS_MAX);
           fflush(stdout);

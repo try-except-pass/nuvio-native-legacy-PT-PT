@@ -48,7 +48,6 @@ static char *provedorGet(const char *url, int seconds, const char *const *header
   char *body = NULL;
   if (next) *next = -1;
   if (time(NULL) < __atomic_load_n(&provedorAte, __ATOMIC_ACQUIRE)) { st = 429; goto done; }
-#ifndef __EMSCRIPTEN__
   if (next) {
     RedePedido p = { .url = url, .cabecalhos = headers,
                       .prazo_ms = (unsigned)seconds * 1000, .seguir = 1 };
@@ -62,7 +61,6 @@ static char *provedorGet(const char *url, int seconds, const char *const *header
     }
     rede_resposta_limpar(&r);
   } else
-#endif
   body = rede_baixar_st_retry(url, seconds, headers, &st, &retry);
   pthread_mutex_lock(&provedorTrava);
   if (st == 429) {

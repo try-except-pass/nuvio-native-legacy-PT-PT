@@ -6201,14 +6201,8 @@ static struct { char id[256]; char *corpo; unsigned uso; time_t quando; } metaCa
 static unsigned metaRelogio;
 static pthread_mutex_t metaTrava = PTHREAD_MUTEX_INITIALIZER;
 #define META_TTL_S (6 * 60 * 60)
-#ifdef __EMSCRIPTEN__
-#include "dados.h"
-#define META_FS_TRAVAR() dados_fs_travar()
-#define META_FS_LIBERAR() dados_fs_liberar()
-#else
 #define META_FS_TRAVAR() ((void)0)
 #define META_FS_LIBERAR() ((void)0)
-#endif
 const char *dados_dir(void);
 static void metaChaveContexto(const char *id, char *dst, size_t n) {
   const char *usuario = sessao_usuario();
@@ -6261,9 +6255,6 @@ static void metaDiscoGravar(const char *chave, const char *corpo) {
   if (ok) ok = rename(tmp, nome) == 0;
   if (!ok) remove(tmp);
   META_FS_LIBERAR();
-#ifdef __EMSCRIPTEN__
-  if (ok) dados_marcar_sujo(1);
-#endif
 }
 static char *metaCacheObter(const char *id) {
   char chave[256], msg[220];
@@ -6569,16 +6560,9 @@ static void locGuardar(const char *chave, const char *tit, const char *sin,
 // perfil), como no cache do catalogo: a url de arte de addon pode carregar
 // configuracao, e arquivo de outra conta e descartado. Sem pasta gravavel
 // (dados_dir vazio, os testes) nao ha arquivo e tudo segue so na memoria.
-#ifdef __EMSCRIPTEN__
-#include "dados.h"
-#define LOC_FS_TRAVAR()   dados_fs_travar()
-#define LOC_FS_LIBERAR()  dados_fs_liberar()
-#define LOC_MARCAR_SUJO() dados_marcar_sujo(1)
-#else
 #define LOC_FS_TRAVAR()   ((void)0)
 #define LOC_FS_LIBERAR()  ((void)0)
 #define LOC_MARCAR_SUJO() ((void)0)
-#endif
 const char *dados_dir(void);
 static int locDiscoLido;
 

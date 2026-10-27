@@ -97,9 +97,6 @@ int player_aberto(void);
 #include <time.h>
 #include "trailer.h"
 #include "trailercinema.h"
-#if defined(NV_TPK) && !defined(__EMSCRIPTEN__)
-#include "video.h"   /* cartaoVideoRect: tamanho do quadro para o LetterBox no cartao */
-#endif
 int video_registro_negado(void); /* video.h: motivo do trailer bloqueado */
 #include "trailerimdb.h"
 #include "trailerapple.h"
@@ -727,14 +724,7 @@ static int heroTrailerTocando(void);
 static Uint32 heroTrailerEspera(void) { return ajustes_trailer_hero_espera_ms(); }
 // Destino pedido ao trailer; o furo usa o plano final aplicado em video_tpk.c.
 static GfxRect cartaoVideoRect(GfxRect c) {
-#if defined(NV_TPK) && !defined(__EMSCRIPTEN__)
-  float s = gfx_escala_tela_txt();
-  GfxRect v;
-  video_tpk_cartao_destino(c.x * s, c.y * s, c.w * s, c.h * s, &v.x, &v.y, &v.w, &v.h);
-  return (GfxRect){ v.x / s, v.y / s, v.w / s, v.h / s };
-#else
   return c;
-#endif
 }
 static Uint32 heroTrailerMaxEspera(void) { return heroTrailerEspera() + NV_TRAILER_HERO_JANELA_MS; }
 
@@ -6226,21 +6216,7 @@ static void desenhaAtalhos(int r, float y) {
 }
 
 static const char *heroTrailerYoutube(const char *imdb) {
-#ifdef __EMSCRIPTEN__
-  size_t j, tam;
-  if (!extras_hero_trailer_obter(imdb, heroTrailerYoutubeId,
-                                 sizeof heroTrailerYoutubeId)) return NULL;
-  tam = strlen(heroTrailerYoutubeId);
-  if (tam < 6 || tam > 15) return NULL;
-  for (j = 0; j < tam; j++)
-    if (!((heroTrailerYoutubeId[j] >= 'A' && heroTrailerYoutubeId[j] <= 'Z') ||
-          (heroTrailerYoutubeId[j] >= 'a' && heroTrailerYoutubeId[j] <= 'z') ||
-          (heroTrailerYoutubeId[j] >= '0' && heroTrailerYoutubeId[j] <= '9') ||
-          heroTrailerYoutubeId[j] == '_' || heroTrailerYoutubeId[j] == '-')) return NULL;
-  return heroTrailerYoutubeId;
-#else
   (void)imdb;
-#endif
   return NULL;
 }
 
@@ -6313,10 +6289,6 @@ static void heroTrailerVetoLog(void) {
 // for the dubbed trailer (Trailer audio), ranked first, so a failed embed
 // falls back to Apple -> IMDb instead of keeping the art.
 static int heroTrailerDepois(int qual) {
-#ifdef __EMSCRIPTEN__
-  if (qual == TRF_YOUTUBE || (heroTrailerFalhas & (1u << TRF_YOUTUBE)))
-    return trailerfonte_depois_dublado(trailerfonte_ajuste(), trailerfonte_tizen(), qual);
-#endif
   return trailerfonte_depois_destaque(trailerfonte_ajuste(), trailerfonte_tizen(), qual);
 }
 
@@ -6379,10 +6351,6 @@ static void home_trailer_passo_(int topo, float dt, Uint32 agora) {
     { static int suporteLogado;
 #if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
       const char *porque = "desktop-stub";
-#elif defined(NV_TPK)
-      const char *porque =
-        video_conflito_recurso() ? "video-taken-by-other-app" :
-                                   "host-player-unavailable";
 #elif defined(NV_ANDROID)
       const char *porque = "player-pipeline-unavailable";
 #else
@@ -6485,28 +6453,11 @@ static void home_trailer_passo_(int topo, float dt, Uint32 agora) {
     heroTrailerTentado = heroTrailerMemoriaFalhou || heroTrailerJaTocou(ci->imdb);
     if (heroTrailerTentado) goto trailer_hero_fim;
     trailerapple_pedir(ci->imdb, ci->titulo, ci->meta, ci->tipo[0] ? !strcmp(ci->tipo, "series") : 0);
-#ifdef __EMSCRIPTEN__
-    // A consulta do hero e so /videos; extras_pedir (ficha, creditos,
-    // relacionados e imagens) continua reservado para a pagina de detalhe.
-    extras_hero_trailer_pedir(ci->imdb,
-                              ci->tipo[0] ? !strcmp(ci->tipo, "series") : 0,
-                              ci->tmdb);
-#endif
     // O IMDb exige Referer, que navegador nenhum deixa por (e o CORS dele so
     // aceita imdb.com): na Samsung so pelo servico de recomendacoes (#136).
     if (!trailerfonte_tizen() || trailerfonte_imdb_tizen()) trailerimdb_pedir(ci->imdb);
   } else {
     decorrido = agora - heroTrailerDesde;
-#ifdef __EMSCRIPTEN__
-    // O worker tem uma janela de retry própria. Chamar aqui é barato e
-    // idempotente enquanto a mesma fonte ainda pode chegar; depois de uma
-    // falha transitória, o cooldown deixa a mesma obra tentar de novo sem
-    // depender de uma troca de destaque.
-    if (!heroTrailerTentado)
-      extras_hero_trailer_pedir(ci->imdb,
-                                ci->tipo[0] ? !strcmp(ci->tipo, "series") : 0,
-                                ci->tmdb);
-#endif
     // Um elemento que ficou em buffering nao pode congelar a home. Fechar
     // aqui tambem invalida a fonte antiga antes de a proxima arte entrar.
     if (trailer_aberto() && !trailer_tocando() && heroTrailerPreparandoAte &&
@@ -6566,24 +6517,7 @@ static void home_trailer_passo_(int topo, float dt, Uint32 agora) {
     } else c.imdbRespondeu = 1;
     if(heroTrailerFalhas&(1u<<TRF_APPLE)){c.apple=NULL;c.appleRespondeu=1;c.appleFalhou=1;}
     if(heroTrailerFalhas&(1u<<TRF_IMDB)){c.imdb=NULL;c.imdbRespondeu=1;}
-#ifdef __EMSCRIPTEN__
-    // SEM YOUTUBE NO DESTAQUE DA SAMSUNG (#136). O iframe do embed custa
-    // segundos de fio principal nesta TV — registro da AU7000: raf-max=1034
-    // ms, longtask-max=934 ms atribuido ao iframe, FPS=6.7 — e depois cai no
-    // erro 153 ("Video player configuration error") e o hero fecha sem
-    // `playing` aos 6,5 s. O destaque troca a cada seta: e o pior lugar para
-    // ele. Aqui so <video> (Apple, IMDb); o YouTube fica na pagina do titulo.
-    // A lista do TMDB ainda e pedida (heroTrailerYoutube), mas so abre o
-    // trailer no idioma escolhido em "Audio do trailer"; ate o TMDB responder
-    // (ou a janela vencer) o ingles da Apple/IMDb espera.
-    c.youtubeIdiomaPreferido = extras_hero_trailer_idioma_preferido(ci->imdb);
-    if (c.youtubeIdiomaPreferido < 0 && venceu) c.youtubeIdiomaPreferido = 0;
-    c.youtube = c.youtubeIdiomaPreferido > 0 ? heroTrailerYoutube(ci->imdb) : NULL;
-    if (heroTrailerFalhas & (1u << TRF_YOUTUBE)) { c.youtube = NULL; c.youtubeIdiomaPreferido = 0; }
-    c.youtubeRespondeu = 1;
-#else
     c.youtubeRespondeu = venceu;
-#endif
     // _destaque: igual a trailerfonte_escolher, salvo no .tpk com
     // NV_TRAILER_CONTINUA_DETALHE (IMDb antes da Apple, para o trailer poder
     // continuar COM SOM na pagina do titulo; ver trailerfonte.h).
@@ -7763,13 +7697,6 @@ static void pintarCartao(const CartaoFoco *k, float raio) {
           float aArteCard = aArte;
           if (k->trailer > 0.004f) {
             GfxRect v = cartaoVideoRect(card);
-#if defined(NV_TPK) && !defined(__EMSCRIPTEN__)
-            // The native plane is in screen px; intersect there, then draw in layer px.
-            float s = gfx_escala_tela_txt();
-            video_tpk_cartao_furo(card.x * s, card.y * s, card.w * s, card.h * s,
-                                 &v.x, &v.y, &v.w, &v.h);
-            v = (GfxRect){ v.x / s, v.y / s, v.w / s, v.h / s };
-#endif
             if (v.x != card.x || v.y != card.y || v.w != card.w || v.h != card.h) {
               gfx_cor(card, raio, 0.0f, 0.0f, 0.0f, 1.0f);
               gfx_furo(v);

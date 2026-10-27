@@ -122,10 +122,6 @@ static unsigned plataforma(void) {
   if (plataformaTeste) return plataformaTeste;
 #if defined(NV_WEBOS)
   return NOV_LG;
-#elif defined(NV_TPK)
-  return NOV_TPK;
-#elif defined(__EMSCRIPTEN__)
-  return NOV_WGT;
 #elif defined(NV_ANDROID)
   return NOV_ANDROID;
 #else

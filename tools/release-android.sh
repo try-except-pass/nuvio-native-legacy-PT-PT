@@ -13,7 +13,6 @@
 #
 # O que ele RECUSA (sai com erro):
 #   - arvore suja (o APK leva o que esta no disco);
-#   - appinfo.json e tools/tizen-config.xml com versoes diferentes;
 #   - sem a chave de release (~/.nuvio-android/release.env, ou NUVIO_KEYSTORE*
 #     no ambiente): APK de release com outra chave nao instala por cima;
 #   - APK assinado com OUTRA chave que a fixada abaixo (CERT_SHA256);
@@ -34,8 +33,7 @@ python3 tools/release.py --check-tree
 tools/env.sh --require-core >/dev/null
 
 VER=$(sed -n 's/.*"version": *"\([0-9.]*\)".*/\1/p' deploy/app/appinfo.json)
-VT=$(grep -v '<?xml' tools/tizen-config.xml | sed -n 's/.*[[:space:]]version="\([0-9.]*\)".*/\1/p' | head -1)
-[ -n "$VER" ] && [ "$VER" = "$VT" ] || { echo "release-android: appinfo.json ($VER) != tizen-config.xml ($VT)" >&2; exit 1; }
+[ -n "$VER" ] || { echo "release-android: sem versao no appinfo.json" >&2; exit 1; }
 
 if [ -z "${NUVIO_KEYSTORE:-}" ] && [ -f "$HOME/.nuvio-android/release.env" ]; then
   set -a; . "$HOME/.nuvio-android/release.env"; set +a

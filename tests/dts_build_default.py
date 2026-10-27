@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory(prefix='nuvio-dts-default-build-') as temporary
         repository = base / mode
         tools = repository / 'tools'
         tools.mkdir(parents=True)
-        for name in ('arm.sh', 'ctr.sh', 'env.sh', 'tizen-config.xml'):
+        for name in ('arm.sh', 'ctr.sh', 'env.sh'):
             shutil.copy2(ROOT / 'tools' / name, tools / name)
         (tools / 'p2p-motor').mkdir()
         shutil.copy2(ROOT / 'tools/p2p-motor/pasta.sh', tools / 'p2p-motor/pasta.sh')

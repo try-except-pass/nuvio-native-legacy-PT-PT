@@ -754,11 +754,7 @@ static float tileQuadros(GfxRect r, float a) {
 static const char *nomePlataforma(int p) {
   switch (p) {
     case PTV_TIZEN: return "Samsung · Tizen";
-#ifdef NV_TPK40
-    case PTV_TPK: return "Samsung · Tizen 4/5";
-#else
     case PTV_TPK: return "Samsung · Tizen 6+";
-#endif
     case PTV_ANDROID: return "Android TV";
     default: return "LG webOS";
   }

@@ -4,7 +4,7 @@ import hashlib,json,os,pathlib,shutil,subprocess,tempfile
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='dts-debug-build-test-') as directory:
     fixture=pathlib.Path(directory); repository=fixture/'repo';tools=repository/'tools';tools.mkdir(parents=True)
-    for name in ('build-dts-debug.sh','arm.sh','env.sh','tizen-config.xml'):
+    for name in ('build-dts-debug.sh','arm.sh','env.sh'):
         shutil.copy2(ROOT/'tools'/name,tools/name)
     (tools/'p2p-motor').mkdir();shutil.copy2(ROOT/'tools/p2p-motor/pasta.sh',tools/'p2p-motor/pasta.sh')
     (repository/'src').mkdir();shutil.copy2(ROOT/'src/app_id.h',repository/'src/app_id.h')

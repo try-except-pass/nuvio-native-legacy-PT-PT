@@ -69,7 +69,6 @@ static char *pegar(const char *url, long teto, int *status) {
     return r; }
 }
 
-#if !defined(__EMSCRIPTEN__)
 static char *postar(const char *url, const char *corpo, int *status) {
   static const char *const CAB[] = {
     "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
@@ -78,11 +77,9 @@ static char *postar(const char *url, const char *corpo, int *status) {
   if (baixarTeste) return baixarTeste(url, corpo, status);
   return rede_postar_st(url, NTC_PRAZO_S, CAB, corpo, status);
 }
-#endif
 
 static int ok2xx(int st) { return st >= 200 && st < 300; }
 
-#if !defined(__EMSCRIPTEN__)
 // Link do agregador -> URL do veiculo. 1 quando resolveu.
 static int resolver(const char *link, char *dst, size_t tam) {
   char id[300], sg[120], ts[32], *pg, *resp;
@@ -127,7 +124,6 @@ static void buscarNativo(const char *link, NoticiaTexto *t) {
   t->estado = t->l.n > 0 || t->l.resumo[0] ? NTC_PRONTA : NTC_FALHOU;
   printf("[noticia] %s: %d paragrafo(s)%s\n", host, t->l.n, t->l.imagem[0] ? ", com capa" : "");
 }
-#endif
 
 // A resposta do worker: {"url","titulo","resumo","imagem","site","paragrafos":[...]}.
 static void lerJsonWorker(const char *js, NoticiaTexto *t) {
@@ -202,14 +198,10 @@ static void *fio(void *arg) {
     pthread_mutex_unlock(&trava);
 
     memset(&t, 0, sizeof t);
-#if defined(__EMSCRIPTEN__)
-    buscarWorker(link, &t);
-#else
     // Teste: um link em worker.test passa pelo caminho da SAMSUNG (o JSON do
     // worker), para a captura exercitar esse parse fora do WASM.
     if (baixarTeste && strstr(link, "://worker.test/")) buscarWorker(link, &t);
     else buscarNativo(link, &t);
-#endif
 
     pthread_mutex_lock(&trava);
     // A entrada pode ter sido reciclada enquanto o fio trabalhava: so escreve

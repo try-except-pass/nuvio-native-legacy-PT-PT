@@ -11,9 +11,6 @@
 #include <SDL2/SDL.h>
 #include <jni.h>
 #endif
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
 
 // A ORDEM E A DA GALERIA e o INDICE gravado em ajustes.txt (iconeAppLocal):
 // so acrescentar no fim. Bate com V_ICONE_APP (ajustes.c), com LISTA em
@@ -132,15 +129,6 @@ void iconeapp_aplicar_plataforma(void) {
   const char *id = iconeapp_id(i);
 #ifdef NV_ANDROID
   androidTrocar(id);
-#elif defined(__EMSCRIPTEN__)
-  // A abertura do .wgt e HTML e roda ANTES do wasm: so le o que ficou gravado.
-  MAIN_THREAD_ASYNC_EM_ASM({
-    try {
-      var v = UTF8ToString($0);
-      if (v === 'original') localStorage.removeItem('nuvio-icone');
-      else localStorage.setItem('nuvio-icone', v);
-    } catch (e) {}
-  }, id);
 #else
   (void)id;
 #endif

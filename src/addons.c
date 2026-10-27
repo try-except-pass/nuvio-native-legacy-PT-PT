@@ -2421,12 +2421,6 @@ static void dispararLegendas(int juntar) {
 // it's back to freezing") volta a 2 no Tizen para isolar se foi isto.
 #ifdef NV_ADD_FIOS
 #define ADD_FIOS NV_ADD_FIOS
-#elif defined(__EMSCRIPTEN__)
-// 2 NO TIZEN (1.3.5): a rc1 (2 fios) foi "lisa" no AU7000 e a 1.3.4 (4 fios,
-// junto com o GIF a 3 quadros) voltou a travar (#80). Nao esta provado qual
-// dos dois foi; os dois voltam ao valor da rc1 e o longtask do [navegador]
-// e quem separa.
-#define ADD_FIOS 2
 #else
 // UM FIO POR ADDON (#221), ate 12. Com 4, a quinta consulta so saia quando um
 // dos quatro primeiros soltasse — e um addon mudo segura o fio dele os 12 s

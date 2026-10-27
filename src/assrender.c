@@ -334,26 +334,6 @@ static void ass_fonte_da_pasta(const char *nome, const void *dados, size_t tam, 
   if (!strcmp(nome, "NotoNaskhArabic-Subset.ttf")) return;
   ass_add_font(assLib, nome, (const char *)dados, (int)tam);
 }
-#ifdef NV_TPK
-static int assNaskhFalhou;         /* a completa nao veio: vale o recorte da interface */
-static void ass_subset_naskh_locked(void) {
-  /* Sem a completa (sem rede, tag ausente) o recorte da interface ainda tem as
-   * letras: sem juncao, mas legiveis, em vez de quadrados. */
-  char r[700]; FILE *f; long n = 0; char *b;
-  if (!assLib || !assPastaFontesApp[0]) return;
-  snprintf(r, sizeof r, "%s/NotoNaskhArabic-Subset.ttf", assPastaFontesApp);
-  if (!(f = fopen(r, "rb"))) return;
-  fseek(f, 0, SEEK_END); n = ftell(f); fseek(f, 0, SEEK_SET);
-  if (n > 4 && n < (1L << 22) && (b = malloc((size_t)n))) {
-    if (fread(b, 1, (size_t)n, f) == (size_t)n) {
-      ass_add_font(assLib, "NotoNaskhArabic-Subset.ttf", b, (int)n);
-      fprintf(stderr, "[libass] sem NotoNaskhArabic-Regular: usando o recorte da interface\n");
-    }
-    free(b);
-  }
-  fclose(f);
-}
-#endif
 static void ass_carregar_pasta_locked(void) {
   int ignorados = 0, lidas;
   if (!assLib || !assPastaFontes[0]) return;
@@ -363,14 +343,6 @@ static void ass_carregar_pasta_locked(void) {
   assVistoNaskh = 0;
   if (assPastaFontesApp[0] && (!assUsaSistema || strcmp(assPastaFontesApp, assPastaFontes)))
     assrender_ler_pasta_fontes(assPastaFontesApp, ass_fonte_da_pasta, NULL, NULL);
-#ifdef NV_TPK
-  /* O res/ do .tpk e o da INSTALACAO (a auto-atualizacao troca so a .so), entao
-   * o NotoNaskhArabic-Regular.ttf, novo na 2.0.2, falta em quem atualizou por
-   * dentro do app: o libass nao achava "Noto Naskh Arabic" e caia na Inter, que
-   * nao tem arabe (quadradinhos). A copia baixada da tag fica em dados/fontes. */
-  if (assPastaExtra[0]) assrender_ler_pasta_fontes(assPastaExtra, ass_fonte_da_pasta, NULL, NULL);
-  if (!assVistoNaskh && assNaskhFalhou) ass_subset_naskh_locked();
-#endif
   plainass_arabic_bold = assNaskhBold;
   fprintf(stderr, "[libass] pasta %s: %d fonte(s); %d arquivo(s) que nao sao fonte ignorado(s)\n",
           assPastaFontes, lidas, ignorados);
@@ -426,11 +398,6 @@ static void ass_iniciar_locked(int sistema) {
   /* Fontes anexadas continuam tendo prioridade. A pasta da plataforma ajuda
    * o libass a resolver familias instaladas; Inter, distribuida com o app,
    * evita texto vazio quando a familia pedida nao existe. */
-#ifdef __EMSCRIPTEN__
-  snprintf(fontDir, sizeof fontDir, "%s", "/usr/share/fonts");
-  snprintf(fallbackFont, sizeof fallbackFont, "%s", "/app/fonts/InterDisplay-Regular.ttf");
-  if (access(fontDir, R_OK) != 0) snprintf(fontDir, sizeof fontDir, "%s", "/app/fonts");
-#else
   {
     char *base = SDL_GetBasePath();
     if (base) {
@@ -459,22 +426,6 @@ static void ass_iniciar_locked(int sistema) {
     }
     if (access(fallbackFont, R_OK) != 0 && access("/system/fonts/Roboto-Regular.ttf", R_OK) == 0)
       snprintf(fallbackFont, sizeof fallbackFont, "%s", "/system/fonts/Roboto-Regular.ttf");
-#elif defined(NV_TPK)
-    /* .tpk (Samsung): SDL_GetBasePath e o diretorio do host .NET, nao o do
-     * pacote. O host passa a arte em NUVIO_TPK_ARTE (src/tpk.c) e fonts/ fica
-     * ao lado de art/ (a mesma conta do txt_iniciar). Sem fontconfig e sem
-     * pasta de sistema: as fontes sao as do app, entregues ao libass em memoria. */
-    {
-      const char *env = getenv("NUVIO_TPK_ARTE");
-      if (env && env[0]) {
-        char r[640];
-        snprintf(r, sizeof r, "%s/../fonts", env);
-        if (access(r, R_OK) == 0) {
-          snprintf(fontDir, sizeof fontDir, "%s", r);
-          snprintf(fallbackFont, sizeof fallbackFont, "%s/InterDisplay-Regular.ttf", r);
-        }
-      }
-    }
 #else
     if (access("/usr/share/fonts", R_OK) == 0)
       snprintf(fontDir, sizeof fontDir, "%s", "/usr/share/fonts");
@@ -484,17 +435,9 @@ static void ass_iniciar_locked(int sistema) {
       snprintf(fallbackFont, sizeof fallbackFont, "%s", "/usr/share/fonts/DroidSans.ttf");
 #endif
   }
-#endif
   { char *base = SDL_GetBasePath();
-#ifdef __EMSCRIPTEN__
-    assrender_pasta_fontes_app(base, 1, assPastaFontesApp, sizeof assPastaFontesApp);
-#else
     assrender_pasta_fontes_app(base, 0, assPastaFontesApp, sizeof assPastaFontesApp);
-#endif
     if (base) SDL_free(base);
-#ifdef NV_TPK
-    if (fontDir[0] && strstr(fontDir, "/../fonts")) snprintf(assPastaFontesApp, sizeof assPastaFontesApp, "%s", fontDir);
-#endif
   }
   snprintf(assPastaFontes, sizeof assPastaFontes, "%s", fontDir);
   if (assFonteLocal[0]) {
@@ -943,76 +886,6 @@ int assrender_carregar(const char *corpo, size_t tamanho, unsigned geracao) {
   return ass_carregar(corpo, tamanho, geracao, 0, 0);
 }
 
-#ifdef NV_TPK
-#include <sys/stat.h>
-#include "dados.h"
-#include "rede.h"
-#ifndef NV_VERSAO
-#define NV_VERSAO "dev"
-#endif
-/* Garante a fonte arabe completa para o texto simples RTL (ver ass_carregar_pasta_locked).
- * Chamada fora de assTrava, no fio que baixou a legenda: ~175 KB, uma vez por instalacao. */
-static void ass_garantir_naskh(void) {
-  static int pronto, tentativas;
-  const char *arte = getenv("NUVIO_TPK_ARTE"), *v;
-  char caminho[700], pasta[640], url[320], tmp[720];
-  char *buf; long n = 0; FILE *f;
-  if (pronto || tentativas >= 1) return;
-  if (arte && arte[0]) {
-    snprintf(caminho, sizeof caminho, "%s/../fonts/NotoNaskhArabic-Regular.ttf", arte);
-    if (access(caminho, R_OK) == 0) { pronto = 1; return; }
-  }
-  if (!dados_dir() || !dados_dir()[0]) return;
-  if (!dados_caminho(pasta, sizeof pasta, "fontes")) goto falhou;
-  snprintf(caminho, sizeof caminho, "%s/NotoNaskhArabic-Regular.ttf", pasta);
-  if (access(caminho, R_OK) != 0) {
-    if (NV_VERSAO[0] < '0' || NV_VERSAO[0] > '9') { pronto = 1; return; }
-    for (v = NV_VERSAO; *v; v++) if (!((*v >= '0' && *v <= '9') || *v == '.')) { pronto = 1; return; }
-    tentativas++;
-    mkdir(pasta, 0755);
-    snprintf(url, sizeof url, "https://raw.githubusercontent.com/iqui27/nuvio-native-legacy/v%s/deploy/app/fonts/NotoNaskhArabic-Regular.ttf", NV_VERSAO);
-    buf = rede_baixar_bin(url, 20, &n);
-    if (!buf || n < 100000 || n > 400000 || !assrender_bytes_sao_fonte((const unsigned char *)buf, 4)) {
-      fprintf(stderr, "[libass] NotoNaskhArabic-Regular nao veio da tag v%s (%ld bytes)\n", NV_VERSAO, buf ? n : -1L);
-      free(buf); goto falhou;
-    }
-    snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
-    f = fopen(tmp, "wb");
-    if (!f || fwrite(buf, 1, (size_t)n, f) != (size_t)n) { if (f) fclose(f); free(buf); remove(tmp); goto falhou; }
-    fclose(f); free(buf);
-    if (rename(tmp, caminho) != 0) { remove(tmp); goto falhou; }
-    fprintf(stderr, "[libass] NotoNaskhArabic-Regular baixada da tag v%s (%ld bytes)\n", NV_VERSAO, n);
-    /* Negrito real (#335), de cortesia: sem ele o libass cai no "sem negrito"
-     * para trilhas com arabe, que e o comportamento antigo seguro. */
-    snprintf(url, sizeof url, "https://raw.githubusercontent.com/iqui27/nuvio-native-legacy/v%s/deploy/app/fonts/NotoNaskhArabic-Bold.ttf", NV_VERSAO);
-    snprintf(caminho, sizeof caminho, "%s/NotoNaskhArabic-Bold.ttf", pasta);
-    buf = rede_baixar_bin(url, 20, &n);
-    if (buf && n > 100000 && n < 400000 && assrender_bytes_sao_fonte((const unsigned char *)buf, 4)) {
-      snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
-      f = fopen(tmp, "wb");
-      if (f && fwrite(buf, 1, (size_t)n, f) == (size_t)n) { fclose(f); if (rename(tmp, caminho)) remove(tmp); }
-      else { if (f) fclose(f); remove(tmp); }
-    }
-    free(buf);
-  }
-  pronto = 1;
-  pthread_mutex_lock(&assTrava);
-  snprintf(assPastaExtra, sizeof assPastaExtra, "%s", pasta);
-  if (assLib) {
-    /* A biblioteca ja subiu sem ela: so esta pasta entra (nao duplica as outras
-     * fontes) e o seletor e refeito com a lista completa. */
-    assrender_ler_pasta_fontes(assPastaExtra, ass_fonte_da_pasta, NULL, NULL);
-    ass_aplicar_fontes_locked();
-  }
-  pthread_mutex_unlock(&assTrava);
-  return;
-falhou:
-  pthread_mutex_lock(&assTrava);
-  assNaskhFalhou = 1;
-  if (assLib) { ass_subset_naskh_locked(); ass_aplicar_fontes_locked(); }
-  pthread_mutex_unlock(&assTrava);
-}
-#endif
 
 int assrender_fonte_local_transacao(const char *caminho, int (*confirmar)(void *), void *u) {
   if (!caminho) caminho = "";
@@ -1050,9 +923,6 @@ int assrender_fonte_local_ativa(const char *caminho) {
 }
 
 int assrender_carregar_texto(const char *corpo, size_t tamanho, unsigned geracao) {
-#ifdef NV_TPK
-  ass_garantir_naskh();
-#endif
   return ass_carregar(corpo, tamanho, geracao, 0, 1);
 }
 

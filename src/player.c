@@ -63,16 +63,7 @@
 // estivesse em foco, inclusive um item de menu que marca coisa como vista. Um
 // OK perdido ja fez exatamente isso uma vez na conta do dono (#36). O aviso e
 // dado nas TRES transicoes de `aberto`, e so nelas: nada por quadro.
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-// #415: o piso de reproducao do cache de arte vale do abrir ao fechar. No
-// Android a mesma chamada ja sai de video_android.c ao abrir a sessao; repetir
-// aqui e idempotente (tex_pressao_reproducao sai cedo se o pct nao mudou).
-// No webOS/.tpk o piso efetivo vem da faixa armada pelo MemAvailable
-// (pressaoPlayMin em tex_memoria_livre): TV com memoria de sobra nao perde
-// cache. A miniatura (PiP) tambem liga: ela significa video no ar.
-static void avisarCascaAberto(int v) { EM_ASM({ window.nvPlayerAberto = $0; }, v); tex_pressao_reproducao(v); }
-#elif defined(NV_ANDROID) && defined(NV_TOUCH_UI)
+#if   defined(NV_ANDROID) && defined(NV_TOUCH_UI)
 #include "android.h"
 static void avisarCascaAberto(int v) { android_player_tela_cheia(v); tex_pressao_reproducao(v); }
 #else
@@ -233,7 +224,6 @@ static int    scrubbing, scrubPassos, scrubTocava, scrubDir, scrubToque;
 static double scrubInicio;
 static Uint32 scrubUltimo;
 static SaltoEst scrubSalto;   // rajada do teclado (salto.h)
-#ifndef NV_TPK
 // SEEK EM VOO fora do .tpk (dono, 2026-10-26): depois de avancar, a posicao que o
 // decodificador informa continua a ANTIGA ate o salto carregar, e a bolinha da
 // barra voltava para la. Segura o destino ate a posicao chegar perto (ou 8 s).
@@ -242,35 +232,6 @@ static double saltoAlvo;
 static Uint32 saltoDesde;
 #define SALTO_PERTO_S 3.0
 #define SALTO_PRAZO_MS 8000u
-#endif
-#ifdef NV_TPK
-// .tpk SEEK GESTURE (seekgesto.h, owner 20/10): taps and holds share one
-// remembered step; the memory lives until the seek commits (terminarSalto).
-static SeekGesto gesto;
-static const SeekParams seekPar = SEEKG_PADRAO;
-// SEEK IN FLIGHT. The host only updates its position cache once
-// SetPlayPositionAsync finishes, so for a while after a seek video_pos() is
-// the OLD position. Copying it into posSeg made the bar slide back to where
-// the video was, and a press in that window scrubbed from the old spot. While
-// `vooAtivo` the bar, the clock and a new scrub use the target instead.
-static int    vooAtivo, vooTentativas;
-static double vooAlvo;
-static Uint32 vooDesde, vooLivreEm, vooRetryEm;
-static unsigned vooFalhas, vooGer;
-#define VOO_PRAZO_MS   20000u   // the host gives up at 15 s and reconnects
-#define VOO_PERTO_S    3.0      // landed: position within this of the target
-#define VOO_LIVRE_MS   1500u    // or this long after the TV stopped seeking
-// Elapsed ms, never negative. `agora` is the frame clock (taken once, before
-// player_atualizar) while a commit from the inactivity timer stamps
-// SDL_GetTicks() LATER in the same frame: unsigned `agora - vooDesde` wrapped
-// to ~4e9 and the 20 s timeout fired on the very next line (the log showed
-// "gave up waiting" 16 ms after "seek sent"), dropping the target and bringing
-// the snap-back back.
-static Uint32 vooDecorrido(Uint32 agora, Uint32 desde) {
-  Sint32 d = (Sint32)(agora - desde);
-  return d > 0 ? (Uint32)d : 0u;
-}
-#endif
 // BUSCA SUAVE: o que a BARRA mostra durante o avanco. posSeg anda em degraus
 // (10 s, 30 s, 60 s, 120 s por passo, ~3 passos por segundo) e desenhar direto dele fazia
 // o preenchimento saltar aos trancos. posVis persegue posSeg por mola de
@@ -990,10 +951,6 @@ static void erroEscolher(int i) {
 #endif
 }
 void player_definir_tentativa(int n, int max) { tentativaN = n; tentativaM = max; }
-#ifdef NV_TPK
-int video_tpk_convertendo(void);   // video_tpk.c
-int video_tpk_aviso_busca(void);   // video_tpk.c (mkvfix.h)
-#endif
 // DE QUEM E O PROBLEMA (#205). Sem motivo proprio, o cartao diz o que o erro do
 // player ja deixa saber: servidor da fonte recusou (add-on/debrid), a conexao
 // nao chegou, ou formato/decoder (esse sim pode ser app ou TV). Nunca a URL.
@@ -1022,15 +979,6 @@ static void erroCausaDoPlayer(void) {
   }
 }
 void player_erro_fonte(void) {
-#ifdef NV_TPK
-  // O fluxo DTS/TrueHD convertido nao fica tocando atras do cartao de erro (e da
-  // tela inicial depois dele). So convertendo: o resto segue como antes.
-  if (comVideo && video_tpk_convertendo()) {
-    printf("[dts-tpk] erro de fonte na tela: o fluxo convertido para\n");
-    fflush(stdout);
-    video_parar();
-  }
-#endif
   esperandoFonte = 0; erroFonte = 1; visivel = 0; tocando = 0; soBarra = 0;
   erroBotao = 0;
   erroTitulo[0] = erroDica[0] = 0;   // erro sem motivo nao herda o do anterior
@@ -1690,13 +1638,6 @@ static void aplicarAspecto(void) {
                            (int)(o.w + 0.5f), (int)(o.h + 0.5f));
               return; }
 
-#ifdef NV_TPK
-  // Source lookup may still expose the previous live channel's dimensions.
-  if (ehCanal() && esperandoFonte) {
-    video_janela(0, 0, (int)NV_TELA_W, (int)NV_TELA_H);
-    return;
-  }
-#endif
 
   // Layout neutro ate o modo salvo ser liberado (ver aspArmar).
   if (aspPendente) return;
@@ -1874,10 +1815,6 @@ void player_abrir(int indiceCatalogo, const char *url) {
   // pipeline novo assim que o silencio vencesse.
   scrubbing = 0; scrubPassos = 0; scrubTocava = 0; scrubDir = 0; scrubToque = 0; scrubInicio = 0.0;
   posVis = 0.0f; posVisV = 0.0f; posVisSolto = 0;
-#ifdef NV_TPK
-  seekgesto_zerar(&gesto);
-  vooAtivo = 0; vooRetryEm = 0;
-#endif
   encolhe = 1.0f; encolheAlvo = 0.0f; encolheT = 0.0f; encolheEm = 0;
   posplay_fechar();   // titulo novo, painel do anterior nao vale mais
   reacao_fechar();
@@ -2005,7 +1942,6 @@ int player_quer_sair(void) { return pediuSair; }
 // --- PRE-BUSCA LATERAL DA LEGENDA ------------------------------------------
 // O pipeline abre imediatamente; mkvass colhe pelo playhead em fio proprio.
 // Recusas do CDN seguem o recuo/fallback sem segurar o video.
-#ifndef __EMSCRIPTEN__
 static int temMkv(const char *t) {
   const char *p;
   for (p = t ? t : ""; (p = strchr(p, '.')) != NULL; p++)
@@ -2032,7 +1968,6 @@ static int prebuscaCabe(const char *url) {
   if (s && s->mp4) return 0;
   return temMkv(url) || (s && (temMkv(s->arquivo) || temMkv(s->descricao) || temMkv(s->rotulo)));
 }
-#endif
 
 #ifdef NV_ANDROID
 static int escolherLegendaPreTitulo(const char *const *idiomas, int n, const void *contexto) {
@@ -2308,10 +2243,8 @@ void player_definir_fonte(const char *url) {
 #endif
   mkvass_parar();
   tocarFonte(url);
-#ifndef __EMSCRIPTEN__
   if (comVideo && prebuscaCabe(url))
     mkvass_prebuscar(url, escolherLegendaPrebusca, retomarPct / 100.0);
-#endif
 }
 
 void player_voltar_a_esperar(void) {
@@ -3072,14 +3005,7 @@ static void janelaMandar(PlrRect r) {
   video_janela((int)(r.x + 0.5f), (int)(r.y + 0.5f), (int)(r.w + 0.5f), (int)(r.h + 0.5f));
 }
 static void janelaAnimar(PlrRect de, PlrRect para) {
-#ifdef NV_TPK
-  // Native display writes block on Samsung; send only the final rectangle.
-  (void)de; (void)para;
-  janAtiva = 0;
-  aplicarAspecto();
-#else
   janDe = de; janPara = para; janAgora = de; janT = 0.0f; janEm = 0; janAtiva = 1;
-#endif
 }
 // Um degrau por PLR_ENC_MS. Curva ease-out (1-(1-t)^3): parte rapido e
 // assenta devagar, que e o que se le como "o video veio para a frente".
@@ -3881,12 +3807,7 @@ static void avMontarOsd(AoVivoOsd *o) {
       switch (video_dts_estado()) {
         case VIDEO_DTS_NATIVO:     d = "Áudio: DTS, decodificado pela TV"; break;
         case VIDEO_DTS_PREPARANDO: d = "Áudio: DTS, preparando a conversão"; break;
-#ifdef NV_TPK
-        case VIDEO_DTS_CONVERTIDO: d = ajustes_dts_ac3() ? "Áudio: DTS convertido para Dolby Digital nesta TV"
-                                                          : "Áudio: DTS convertido para AAC estéreo nesta TV"; break;
-#else
         case VIDEO_DTS_CONVERTIDO: d = "Áudio: DTS convertido para AAC estéreo nesta TV"; break;
-#endif
         case VIDEO_DTS_FALHOU:     d = "Áudio: DTS, a conversão falhou (sem som)"; break;
         case VIDEO_DTS_SEM_SOM:    d = "Áudio: DTS, esta TV não toca (sem som)"; break;
       }
@@ -3970,81 +3891,13 @@ static void buscarUsuario(double alvo) {
     if (!xtream_url_limitada(video_url_atual())) seekprobe_iniciar(video_url_atual(), video_cabecalhos());   // #557: own proxies handle Range
   creditosauto_destino(&creditosAuto, alvo);
   video_buscar(alvo);
-#ifndef NV_TPK
   saltoAtivo = 1; saltoAlvo = alvo; saltoDesde = SDL_GetTicks();
-#endif
-#ifdef NV_TPK
-  vooAtivo = 1; vooAlvo = alvo; vooDesde = SDL_GetTicks(); vooLivreEm = vooRetryEm = 0;
-  vooTentativas = 0; vooFalhas = video_busca_falhas(); vooGer = fonteAcaoGeracao;
-#endif
 }
 
-#ifdef NV_TPK
-// Once per frame, before the position is read: follow the seek in flight
-// until the TV confirms it, retry a refused one (0.5 / 1.5 / 3 s, like the
-// webOS seekretry) and only then tell the person it failed.
-static void vooPasso(Uint32 agora) {
-  unsigned f;
-  double p;
-  if (!vooAtivo) return;
-  if (vooGer != fonteAcaoGeracao || !comVideo) {
-    printf("[seek] in-flight seek dropped (source changed)\n"); fflush(stdout);
-    vooAtivo = 0; vooRetryEm = 0;
-    return;
-  }
-  f = video_busca_falhas();
-  if (f != vooFalhas) {
-    vooFalhas = f;
-    if (vooTentativas < NV_SEEK_MAX) {
-      vooTentativas++;
-      vooRetryEm = (agora + nv_seek_espera_ms(vooTentativas)) | 1u;
-      printf("[seek] retry %d/%d in %u ms (TV refused the seek to %.1f)\n", vooTentativas, NV_SEEK_MAX,
-             nv_seek_espera_ms(vooTentativas), vooAlvo);
-      fflush(stdout);
-    } else {
-      printf("[seek] failed: TV refused the seek to %.1f %d times, staying at %.1f\n", vooAlvo,
-             NV_SEEK_MAX + 1, video_pos());
-      fflush(stdout);
-      player_toast_ex("Seek failed", 3500u, "pl_triangle-alert", 1);
-      vooAtivo = 0; vooRetryEm = 0;
-      return;
-    }
-  }
-  if (vooRetryEm) {
-    if ((Sint32)(agora - vooRetryEm) < 0) return;   // signed: see vooDecorrido
-    vooRetryEm = 0; vooLivreEm = 0;
-    printf("[seek] retry sent target=%.1f\n", vooAlvo); fflush(stdout);
-    video_buscar(vooAlvo);
-    return;
-  }
-  if (video_busca_em_voo()) {
-    vooLivreEm = 0;
-    if (vooDecorrido(agora, vooDesde) > VOO_PRAZO_MS) {
-      printf("[seek] gave up waiting: no confirmation in %u ms, staying at %.1f\n", VOO_PRAZO_MS, video_pos());
-      fflush(stdout);
-      player_toast_ex("Seek failed", 3500u, "pl_triangle-alert", 1);
-      vooAtivo = 0;
-    }
-    return;
-  }
-  if (!vooLivreEm) vooLivreEm = agora | 1u;
-  p = video_pos();
-  if (fabs(p - vooAlvo) < VOO_PERTO_S || vooDecorrido(agora, vooLivreEm) >= VOO_LIVRE_MS) {
-    vooAtivo = 0;
-  }
-}
-#endif
 
 static void iniciarSalto(int toque) {
   scrubInicio = comVideo ? video_pos() : posSeg;
-#ifdef NV_TPK
-  // A seek still in flight: start from where the person sent it, not from the
-  // stale position the TV is still reporting (the second half of the bug).
-  if (vooAtivo) { scrubInicio = vooAlvo; posSeg = (float)scrubInicio; }
-  seekgesto_zerar(&gesto);
-#else
   if (saltoAtivo) { scrubInicio = saltoAlvo; posSeg = (float)scrubInicio; }
-#endif
   scrubToque = toque;
   scrubbing = 1;
   scrubPassos = 0;
@@ -4066,19 +3919,6 @@ static void saltar(int dir, int repeticao) {
   scrubToque = 0;
   scrubDir = dir;
   Uint32 agora = SDL_GetTicks();
-#ifdef NV_TPK
-  { const SeekParams *sp = &seekPar;
-    float s = seekgesto_tecla(&gesto, sp, dir, agora, duracaoSeg, NULL);
-    (void)novo; (void)repeticao;
-    scrubUltimo = agora;
-    if (s != 0.0f) {
-      double de = posSeg;
-      scrubPassos++;
-      posSeg = anim_clamp(posSeg + s, 0.0f, duracaoSeg);
-      recuarAutomatico(de, posSeg);
-    }
-    return; }
-#endif
   // Repeticao de tecla segurada entre dois passos: so mantem o avanco vivo (scrubUltimo), nao anda.
   float passo = salto_tecla(&scrubSalto, novo, repeticao, agora, duracaoSeg);
   scrubUltimo = agora;
@@ -4101,9 +3941,6 @@ static void terminarSalto(void) {
   retomandoSalto = scrubTocava;
   pausao_fechar();
   seekr_ocioso();   // solta a folha decodificada (~22 MB), fica o JPEG
-#ifdef NV_TPK
-  seekgesto_zerar(&gesto);   // the memory lives until the commit
-#endif
   if (comVideo) {
     if (posSeg >= scrubInicio) creditosauto_buscar(&creditosAuto, posSeg);
     buscarUsuario(posSeg);
@@ -4515,11 +4352,6 @@ void player_atualizar(float dt, Uint32 agora) {
       video_reaplicar_audio();
     }
   }
-#ifdef NV_TPK
-  // A TV recusou um seek e o arquivo nao tem indice nenhum (mkvfix.h): diz,
-  // em vez de o video seguir como se a tecla nao tivesse feito nada.
-  if (video_tpk_aviso_busca() && comVideo) player_toast(i18n("Este arquivo não deixa avançar ou voltar nesta TV"), 5000u);
-#endif
   // DV EM MKV NASCE NO PONTO SALVO: enquanto a retomada nao foi pedida ao
   // player da TV, a troca para o caminho do DV espera (video.c, iniciarDts le o
   // seek pendente). Sem ponto salvo nao ha o que esperar.
@@ -4688,22 +4520,13 @@ void player_atualizar(float dt, Uint32 agora) {
                  itens, bytes / 1048576.0, mem); }
         fflush(stdout);
       } }
-#ifdef NV_TPK
-  vooPasso(agora);
-#endif
   if (fontePrincipal() && video_ativo()) {
     double d = video_duracao();
     // AVANCANDO, a posicao e a que o dono escolheu. Ler video_pos() aqui era o
     // que fazia a barra pular de volta a cada repeticao de tecla.
-#ifdef NV_TPK
-    // Seek in flight: the target, never the stale position (vooAtivo).
-    if (!scrubbing && vooAtivo) posSeg = (float)vooAlvo;
-    else
-#else
     if (saltoAtivo && (fabs(video_pos() - saltoAlvo) < SALTO_PERTO_S || (Uint32)(agora - saltoDesde) > SALTO_PRAZO_MS)) saltoAtivo = 0;
     if (!scrubbing && saltoAtivo) posSeg = (float)saltoAlvo;
     else
-#endif
     if (!scrubbing) posSeg = (float)video_pos();
     // Move a janela de colheita da legenda ASS embutida (#92). Barato: so
     // acorda o fio quando a posicao andou meio segundo.
@@ -4841,12 +4664,8 @@ void player_atualizar(float dt, Uint32 agora) {
   if (scrubbing) {
     posVisSolto = 1;
     double de = posSeg;
-#ifdef NV_TPK
-    posSeg = anim_clamp(posSeg + seekgesto_quadro(&gesto, &seekPar, agora, dt), 0.0f, duracaoSeg);
-#else
     posSeg = anim_clamp(posSeg + salto_quadro(&scrubSalto, scrubDir, agora, dt, duracaoSeg),
                         0.0f, duracaoSeg);
-#endif
     if (!scrubToque) recuarAutomatico(de, posSeg);
   }
   if (posVisSolto) {
@@ -5048,9 +4867,6 @@ void player_atualizar(float dt, Uint32 agora) {
     if (mov && (Sint32)(mov - ultimoInput) > 0) { ultimoInput = mov; pausao_activity(); } }
   if (visivel && tocando && !player_carregando() && !episodios_aberto() &&
       !stream_folha_aberta() && !faixas_aberta() && agora - ultimoInput > PLR_ESCONDE_MS
-#ifdef NV_TPK
-      && !vooAtivo   // the bar stays while the TV is still seeking
-#endif
       ) visivel = 0;
   if (epE > 0 && !strstr(linhaEp, " · ")) player_definir_episodio(epT, epE);
   introTmdbTardio(agora);
@@ -6293,39 +6109,6 @@ static void desenharCinema(Uint32 agora, const CatItem *c, int furou) {
 #endif
 }
 
-#ifdef NV_TPK
-int video_tpk_capa(void);   // video_tpk.c
-// CAPA DA REABERTURA (DTS/TrueHD convertido). No TS continuo cada seek, a
-// reconexao e a troca para o convertido abrem OUTRO player, e o plano de video
-// fica preto ate o primeiro quadro novo. No lugar do preto: a miniatura do
-// ponto de destino (a mesma do scrub, seekr) ou, sem ela, a arte do titulo,
-// escurecida, com o anel de buffer por cima (video_bufferando_ms). Some em
-// 250 ms quando o quadro chega. So o convertido chama isto (o resto: 0).
-static void capaReabertura(GfxRect furo, const CatItem *c, Uint32 agora) {
-  static float a; static Uint32 ult; static int usouSeekr;
-  float dt = ult && agora - ult < 100u ? (float)(agora - ult) / 1000.0f : 1.0f / 60.0f;
-  GLuint tex = 0;
-  const char *arte = NULL;
-  int on = video_tpk_capa() && !ehCanal();
-  ult = agora;
-  a += (on ? dt : -dt) / 0.25f;
-  if (a > 1.0f) a = 1.0f;
-  if (a <= 0.0f) { a = 0.0f; if (usouSeekr) { seekr_ocioso(); usouSeekr = 0; } return; }
-  if (ajustes_seekr_habilitado() && seekr_tem_chave() && seekr_estado() == SEEKR_PRONTO) {
-    double cue = -1;
-    seekr_definir_ajuste_ms((long)ajustes_seekr_ajuste_s() * 1000L);
-    tex = seekr_quadro(video_pos(), &cue);
-    if (tex && seekr_quadro_velho()) tex = 0;   // a de outro ponto confundiria
-    if (tex) usouSeekr = 1;
-  }
-  if (!tex && c && c->backdrop[0]) { arte = artehero_url(c); tex = tex_obter_hero(arte); }
-  if (!tex) return;   // fica o preto, com o anel
-  gfx_tex_aspect_atual = arte ? tex_aspecto(arte) : 16.0f / 9.0f;
-  gfx_rect(furo, tex, GFX_CARD, 0, 0, 0, 0.0f, 0, 0, 0, a);
-  gfx_tex_aspect_atual = 0.0f;
-  gfx_cor(furo, 0.0f, 0.0f, 0.0f, 0.0f, 0.45f * a);
-}
-#endif
 
 void player_desenhar(Uint32 agora) {
   if (!aberto) return;
@@ -6357,27 +6140,6 @@ void player_desenhar(Uint32 agora) {
   int furar = (player_com_video() && !esperandoFonte) || quadroMorno;   // abrindo a fonte: sem furo, so preto
 #ifdef NV_SHOT_HOOKS
   if (shotSemFuro && encolhe > 0.999f) furar = 0;   // capturas: a arte faz de video
-#endif
-#ifdef NV_TPK
-  // O FURO SO COM IMAGEM (#188). O host manda `pronto` ANTES do Start (Video.cs,
-  // Abrir), e o primeiro quadro so vem depois do buffer: furo aberto nesse vao
-  // mostra o que esta atras do app, que no Tizen 9 e a tela inicial da
-  // Samsung (#185 viu o mesmo numa linha de 1 px). Espera a posicao andar; se
-  // ela nao andar (ao vivo sem posicao, host que nao le), abre em
-  // NV_PLR_TPK_FURO_PRAZO_MS de `tocando`, como antes. A janela que cresce do
-  // guia ja vem com video tocando e fica de fora.
-#define NV_PLR_TPK_FURO_PRAZO_MS 3000u
-  { static int vista; static Uint32 tocandoEm;
-    if (!furar) { vista = 0; tocandoEm = 0; }
-    else if (!vista && !janAtiva) {
-      if (video_tocando() && !tocandoEm) tocandoEm = SDL_GetTicks() | 1;
-      if (video_pos() >= 0.25 ||
-          (tocandoEm && SDL_GetTicks() - tocandoEm >= NV_PLR_TPK_FURO_PRAZO_MS)) {
-        vista = 1;
-        printf("[player] tpk: furo aberto (posicao %.2fs)\n", video_pos());
-        fflush(stdout);
-      } else furar = 0;
-    } }
 #endif
   // O QUADRO REAL da tela cinema (#205): furo aberto E video andando. No LG o
   // `pronto` sobe no loadCompleted e o quadro pode vir segundos depois; no
@@ -6445,9 +6207,6 @@ void player_desenhar(Uint32 agora) {
       if (furo.w > 0.0f && furo.h > 0.0f) {
         if (recuado) gfx_furo_raio(furo, 22.0f / furo.h);
         else gfx_furo(furo);
-#ifdef NV_TPK
-        if (!recuado) capaReabertura(furo, c, agora);
-#endif
       }
     }
   } else {
@@ -6961,15 +6720,6 @@ static float fileiraFormato(Uint32 agora, float x, float y, float ac, int medir,
   // (MEDIDO: um MKV anunciado como DV volta HDR10 nesta TV).
   if (video_tem_dolby_vision())                  selos[nSelos++] = FMT_DV;
   else if (!strcasecmp(video_hdr(), "HDR10"))    selos[nSelos++] = FMT_HDR10;
-#if defined(__EMSCRIPTEN__) || defined(NV_TPK)
-  else {
-    // AVPlay nao confirma HDR ativo: o selo e o da FONTE, nunca Dolby Vision
-    // (TV Samsung nao tem DV; badges_fonte_hdr so conhece HDR10+/HDR10/HDR).
-    const Stream *fonte = stream_item(stream_atual());
-    int hdr = fonte ? badges_fonte_hdr_marca(fonte->badges) : -1;
-    if (hdr >= 0) selos[nSelos++] = (FormatoMarca)hdr;
-  }
-#endif
   if (video_tem_atmos())        selos[nSelos++] = FMT_ATMOS;
   if (marcaDtsAtual() >= 0)     selos[nSelos++] = (FormatoMarca)marcaDtsAtual();
   const char *rotAudio = ehCanal() ? "" : rotuloAudioOsd();
@@ -7276,9 +7026,6 @@ static void desenharOsdCorpo(Uint32 agora, float a, float ac, const CatItem *c) 
         float xr = cx + cw - l2.w, y = cyTempo - (float)l1.h * 0.5f;
         txt_desenhar_alpha(l2, xr, y, a * cheio);
         txt_desenhar_alpha(l1, xr - 8.0f - l1.w, y, a * cheio);
-#ifdef NV_TPK
-        if (vooAtivo && !scrubbing) plrui_anel(xr - 8.0f - l1.w - 24.0f, cyTempo, 24.0f, 0, agora, a * cheio);
-#endif
       }
       if (cheio < 0.99f) {
         char r[32];
@@ -7287,10 +7034,6 @@ static void desenharOsdCorpo(Uint32 agora, float a, float ac, const CatItem *c) 
         else { char f[24]; plrui_tempo(f, sizeof f, duracaoSeg - posSeg); snprintf(r, sizeof r, "\xe2\x88\x92%s", f); }
         l2 = txt_linha(TXT_ILHA_NOME, r, 243, 242, 239, 128);
         txt_desenhar_alpha(l1, cx, yBarra + 32.0f, a * (1.0f - cheio));
-#ifdef NV_TPK
-        if (vooAtivo && !scrubbing)
-          plrui_anel(cx + l1.w + 26.0f, yBarra + 32.0f + l1.h * 0.5f, 24.0f, 0, agora, a * (1.0f - cheio));
-#endif
         txt_desenhar_alpha(l2, cx + cw - l2.w, yBarra + 32.0f, a * (1.0f - cheio));
       }
     }
