@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
 
 // A rede de verdade fica de fora: o leitor abaixo le do disco (como tests/legref.c).
 char *rede_baixar_bin(const char *url, int segundos, long *n) { (void)url; (void)segundos; (void)n; return NULL; }
@@ -73,12 +74,18 @@ int main(int c, char **v) {
   assert(r == FSINC_CONFIRMADA && off > 2300 && off < 2700);
   // a MESMA fonte, outra legenda: a referencia guardada, nenhuma leitura nova
   antes = pedidos;
-  r = fontesinc_julgar(l, "http://fonte/ff.mkv", SESSAO, "en", menos, NULL, NULL, &off);
+  { struct timespec t0, t1; clock_gettime(CLOCK_MONOTONIC, &t0);
+    r = fontesinc_julgar(l, "http://fonte/ff.mkv", SESSAO, "en", menos, NULL, NULL, &off);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    printf("comparacao com a referencia guardada: %.1f ms\n", (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6); }
   printf("menos1200: %d off=%d motivo=%s pedidos novos=%d\n", r, off, fontesinc_motivo(l), pedidos - antes);
   assert(r == FSINC_CONFIRMADA && off < -1000 && off > -1400);
   assert(pedidos == antes);
   // legenda que NAO sincroniza com a fonte: NAO (e continua sem ler de novo)
-  r = fontesinc_julgar(l, "http://fonte/ff.mkv", SESSAO, "en", ruim, NULL, NULL, &off);
+  { struct timespec t0, t1; clock_gettime(CLOCK_MONOTONIC, &t0);
+    r = fontesinc_julgar(l, "http://fonte/ff.mkv", SESSAO, "en", ruim, NULL, NULL, &off);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    printf("recusa (o caso lento): %.1f ms\n", (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6); }
   printf("ruim: %d motivo=%s\n", r, fontesinc_motivo(l));
   assert(r == FSINC_NAO && pedidos == antes);
 

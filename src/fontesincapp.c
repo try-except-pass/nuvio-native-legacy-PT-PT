@@ -9,17 +9,26 @@
 #include "streams.h"
 #include <pthread.h>
 #include <stdatomic.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
 
-#define DOCS_MAX 3          // legendas por idioma comparadas com cada fonte (a engine do legsync tenta ate 3 trocas)
 #define ESPERA_LEGENDAS_MS 30000
+// Teto de TEMPO da conferencia inteira, nao de legendas nem de fontes: comparar custa ~2 ms no PC, o que custa e a rede
+// (baixar uma legenda, ler cada fonte). Estourado, vale o que ja se sabe.
+#define PRAZO_TOTAL_MS 180000
 
-typedef struct { unsigned tok; uint64_t sessao; int atual; } Ctx;
-typedef struct { LegendaDocumento *d[DOCS_MAX]; char nome[DOCS_MAX][64]; int n; } Docs;
+typedef struct { unsigned tok; uint64_t sessao; int atual; long long ate; } Ctx;
+// As legendas de UM idioma: `idx` = as da lista que casam com o idioma (TODAS); `d` so existe depois de baixada, e so
+// e baixada quando a conferencia chega nela (a 1a que sincroniza encerra a procura, as demais nem sao baixadas).
+typedef struct {
+  const Legenda *v; int idx[LEG_MAX]; int n;
+  LegendaDocumento *d[LEG_MAX]; char baixou[LEG_MAX];
+  char pref[24];
+} Docs;
 typedef struct { const Ctx *x; unsigned geracao; FonteSincLeitor *leitor; Docs docs[2]; const char *idiomaRef; } Cena;
 
 static _Atomic unsigned vigente;          // o fio de um `tok` velho percebe e sai sozinho
@@ -28,40 +37,50 @@ static _Atomic int pedidoDe = -1;         // a fonte que tocava quando a troca f
 static _Atomic unsigned pedidoTok;        // de que conferencia veio
 static _Atomic unsigned jaTrocou;         // `tok` que ja trocou: no maximo UMA troca por reproducao
 
+static long long agoraMs(void) {
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+  return (long long)t.tv_sec * 1000 + t.tv_nsec / 1000000;
+}
 static int vivo(const Ctx *x) { return atomic_load(&vigente) == x->tok && nv_perfil_sessao_atual(x->sessao); }
-static int cancelado(void *u) { return !vivo(u); }
+static int cancelado(void *u) { const Ctx *x = u; return !vivo(x) || agoraMs() > x->ate; }
 
 static void soltarDocs(Docs *d) {
   for (int i = 0; i < d->n; i++) legenda_documento_liberar(d->d[i]);
   d->n = 0;
 }
 
-// Baixa ate DOCS_MAX legendas do idioma `pref` da lista, como documentos AVULSOS: nada passa pelo overlay nem pela
-// legenda que a pessoa esta vendo (legenda_carregar_com liga no overlay; aqui so rede_baixar_bin + um documento).
-static void baixarDocs(const Ctx *x, const char *pref, const Legenda *v, int nv, Docs *out) {
-  for (int i = 0; i < nv && out->n < DOCS_MAX && vivo(x); i++) {
-    LegendaDocumentoInfo info;
-    LegendaDocumento *d;
-    long n = 0;
-    char *corpo;
-    if (!ling_casa(v[i].idioma, pref)) continue;
-    corpo = rede_baixar_bin(v[i].url, 15, &n);
-    if (!corpo || n < 1) { free(corpo); continue; }
-    memset(&info, 0, sizeof info);
-    info.sessao = x->sessao; info.flags = LEGENDA_DOC_COMPLETO;
-    snprintf(info.idioma, sizeof info.idioma, "%s", pref);
-    snprintf(info.origem, sizeof info.origem, "%s", v[i].provedor);
-    snprintf(info.identidade, sizeof info.identidade, "%s", v[i].id[0] ? v[i].id : v[i].url);
-    d = legenda_documento_bytes(corpo, n, &info);
-    free(corpo);
-    if (!d) continue;   // corpo que nao e legenda (pagina de erro, arquivo quebrado): fora
-    out->d[out->n] = d;
-    snprintf(out->nome[out->n], sizeof out->nome[0], "%s", v[i].arquivo[0] ? v[i].arquivo : v[i].rotulo);
-    out->n++;
-  }
+// Quais legendas da lista casam com o idioma `pref`: TODAS, na ordem da lista. Nada e baixado aqui.
+static void escolherDocs(const char *pref, const Legenda *v, int nv, Docs *out) {
+  out->v = v;
+  snprintf(out->pref, sizeof out->pref, "%s", pref);
+  for (int i = 0; i < nv && out->n < LEG_MAX; i++)
+    if (ling_casa(v[i].idioma, pref)) out->idx[out->n++] = i;
 }
 
-// O gancho da conferencia em serie: a legenda do `slot` contra a fonte `i`, tentando as DOCS_MAX legendas do idioma.
+// Baixa a legenda k (uma vez) como documento AVULSO: nada passa pelo overlay nem pela legenda que a pessoa esta vendo
+// (legenda_carregar_com liga no overlay; aqui so rede_baixar_bin + um documento). NULL = nao veio ou nao e legenda.
+static LegendaDocumento *baixarUma(const Ctx *x, Docs *dd, int k) {
+  const Legenda *l = &dd->v[dd->idx[k]];
+  LegendaDocumentoInfo info;
+  long n = 0;
+  char *corpo;
+  if (dd->baixou[k]) return dd->d[k];
+  dd->baixou[k] = 1;
+  if (!vivo(x)) return NULL;
+  corpo = rede_baixar_bin(l->url, 15, &n);
+  if (!corpo || n < 1) { free(corpo); return NULL; }
+  memset(&info, 0, sizeof info);
+  info.sessao = x->sessao; info.flags = LEGENDA_DOC_COMPLETO;
+  snprintf(info.idioma, sizeof info.idioma, "%s", dd->pref);
+  snprintf(info.origem, sizeof info.origem, "%s", l->provedor);
+  snprintf(info.identidade, sizeof info.identidade, "%s", l->id[0] ? l->id : l->url);
+  dd->d[k] = legenda_documento_bytes(corpo, n, &info);   // corpo que nao e legenda (pagina de erro): NULL
+  free(corpo);
+  return dd->d[k];
+}
+
+// O gancho da conferencia em serie: a legenda do `slot` contra a fonte `i`, tentando TODAS as legendas do idioma, baixadas so quando chega nelas.
 static int conferir(int i, int slot, void *u) {
   Cena *c = u;
   char url[4096];
@@ -70,9 +89,14 @@ static int conferir(int i, int slot, void *u) {
     printf("[sinc-fonte] fonte %d: sem link direto pronto; nao conferida\n", i);
     return FSINC_DESCONHECIDA;
   }
-  for (int k = 0; k < c->docs[slot].n && vivo(c->x); k++) {
-    int r = fontesinc_julgar(c->leitor, url, c->x->sessao, c->idiomaRef, c->docs[slot].d[k], cancelado, (void *)c->x, &off);
-    printf("[sinc-fonte] fonte %d legenda %s #%d \"%s\": %s (%s) %+d ms\n", i, slot ? "2" : "1", k, c->docs[slot].nome[k],
+  for (int k = 0; k < c->docs[slot].n && !cancelado((void *)c->x); k++) {
+    const Legenda *l = &c->docs[slot].v[c->docs[slot].idx[k]];
+    LegendaDocumento *d = baixarUma(c->x, &c->docs[slot], k);
+    int r;
+    if (!d) continue;
+    r = fontesinc_julgar(c->leitor, url, c->x->sessao, c->idiomaRef, d, cancelado, (void *)c->x, &off);
+    printf("[sinc-fonte] fonte %d legenda %s #%d/%d \"%s\": %s (%s) %+d ms\n", i, slot ? "2" : "1", k + 1, c->docs[slot].n,
+           l->arquivo[0] ? l->arquivo : l->rotulo,
            r == FSINC_CONFIRMADA ? "sincroniza" : r == FSINC_NAO ? "nao" : "cancelada", fontesinc_motivo(c->leitor), off);
     if (r == FSINC_CONFIRMADA) { veredito = r; break; }
     if (r == FSINC_DESCONHECIDA) { veredito = r; break; }
@@ -104,6 +128,7 @@ static void *fio(void *arg) {
   snprintf(primB, sizeof primB, "%s", ling_legenda());
   snprintf(secB, sizeof secB, "%s", ling_legenda2());
   n = stream_sinc_fila(x->sessao, &geracao, &lembrada, fila, original, 16);   // 16 = VER_MAX de streams.c
+  x->ate = agoraMs() + PRAZO_TOTAL_MS;
   if (n < 2) { printf("[sinc-fonte] %d fonte(s) na fila; nada a comparar\n", n); goto fim; }
   if (!prim || !prim[0] || !strcasecmp(prim, "none")) { printf("[sinc-fonte] sem idioma de legenda; nada a conferir\n"); goto fim; }
   if (x->atual == lembrada) { printf("[sinc-fonte] fonte lembrada do titulo (%d); nao troca\n", x->atual); goto fim; }
@@ -119,8 +144,8 @@ static void *fio(void *arg) {
   if (!vivo(x)) goto fim;
   temSec = sec && sec[0] && strcasecmp(sec, "none") && !(ling_casa(sec, prim) && ling_casa(prim, sec));
   cena.x = x; cena.geracao = geracao; cena.idiomaRef = prim;
-  baixarDocs(x, prim, leg, nleg, &cena.docs[0]);
-  if (temSec) baixarDocs(x, sec, leg, nleg, &cena.docs[1]);
+  escolherDocs(prim, leg, nleg, &cena.docs[0]);
+  if (temSec) escolherDocs(sec, leg, nleg, &cena.docs[1]);
   printf("[sinc-fonte] %d fonte(s) na fila, %d legenda(s) %s%s%s\n", n, cena.docs[0].n, prim,
          temSec ? " + secundaria " : "", temSec ? sec : "");
   fflush(stdout);
@@ -169,7 +194,7 @@ void fontesincapp_iniciar(uint64_t sessao, int atual) {
   Ctx *x = malloc(sizeof *x);
   if (!x) return;
   x->tok = atomic_fetch_add(&vigente, 1) + 1;   // o fio anterior, se corre, percebe e sai
-  x->sessao = sessao; x->atual = atual;
+  x->sessao = sessao; x->atual = atual; x->ate = 0;
   atomic_store(&pedido, -1);
   if (pthread_create(&t, NULL, fio, x) == 0) pthread_detach(t);
   else free(x);
