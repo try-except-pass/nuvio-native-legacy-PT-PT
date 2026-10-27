@@ -101,6 +101,7 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <time.h>
+#include <unistd.h>
 
 
 // --- layout ---------------------------------------------------------------
@@ -368,6 +369,12 @@ static GuiaCorte sCorte;       // staging: o que a carga deixou de fora
 static GuiaCorte corte;        // publicado: o que o cabecalho mostra
 static int sOk;                 // staging: a carga achou canal (antes de pendPronto)
 static atomic_int pendPronto;   // release no fio de carga, acquire no desenho
+// A LISTA DE ONTEM NO FIO DE CARGA (2.0.21: 5000 canais lidos no desenho = 588 ms ao abrir o guia). O desenho
+// escolhe as chaves (a configuracao e dele), o fio le os arquivos e pede ao desenho que adote (pendCache).
+static char cacheChaves[G_MAX_LTV][LTV_CHAVE];
+static int nCacheChaves;
+static atomic_int pendCache;    // 1: staging tem a lista do cache; o desenho adota e zera
+static void cacheNoFio(void);
 // Foco pedido com a lista ainda baixando; publicar() aplica ao chegar.
 static char focoPend[80];
 
@@ -413,6 +420,7 @@ static void fltGravar(void) {
 }
 
 // --- staging ---------------------------------------------------------------------
+static unsigned sGerStaging;   // muda a cada escrita em sCanais: invalida a memoria de sCotaCompleta
 static void stagingZerar(void) {
   for (int i = 0; i < G_MAX_LTV; i++) {
     if (sCache[i]) fclose(sCache[i]);
@@ -428,7 +436,7 @@ static void stagingZerar(void) {
   free(sAlts); sAlts = NULL; sNAlts = 0;
   fontesLtvSoltar(sLtvF, sNLtvF);
   ltv_arena_soltar(&sArena);
-  free(sCanais); sCanais = NULL; sNCanais = sCapCanais = 0;
+  free(sCanais); sCanais = NULL; sNCanais = sCapCanais = 0; sGerStaging++;
   free(sCats); sCats = NULL; sNCats = sCapCats = 0;
   memset(sLtvF, 0, sizeof sLtvF); sNLtvF = 0;
   sPendentes = 0; sTextoSubstituido = 0;
@@ -640,6 +648,7 @@ static int sCanalAdd(int f, const GCru *c) {
     sCanais = no; sCapCanais = cap;
   }
   g = &sCanais[quem == GF_TROCA ? velho : sNCanais];
+  sGerStaging++;
   const char *antigo = quem == GF_TROCA ? g->id : NULL;
   if (antigo) {
     sAltAdd(antigo, antigo, g->nome);
@@ -1428,10 +1437,17 @@ static int lerPagina(const GFonte *f, int fl, int skip, int *novos) {
 
 // With no filter rules, later pages cannot change a full final visible list.
 // Count eligible rows without applying caps or discarding staging candidates.
+// A VARREDURA ERA POR CANAL ADICIONADO: O(n^2). 5000 canais do cache = 588 ms no fio de desenho da TV
+// (2.0.21, ao abrir o guia). Abaixo do teto nao ha como completar; acima, a resposta fica ate sCanais mudar.
 static int sCotaCompleta(void) {
+  static unsigned memoGer = ~0u;
+  static int memoTeto, memoR;
   int nc = 0, n = 0, visiveis[GUIACORTE_MAX_CAT];
   if (sInventarioCat[0]) return sInventarioMais;
   if (sFltLive.modo != GF_TODAS || sFltLive.nCat || sFltLive.nCan || sPendentes || sCategoriasTemOcultas()) return 0;
+  if (sNCanais < sTeto) return 0;
+  if (memoGer == sGerStaging && memoTeto == sTeto) return memoR;
+  memoGer = sGerStaging; memoTeto = sTeto; memoR = 0;
   for (int i = 0; i < sNCanais; i++) {
     const GCanal *g = &sCanais[i];
     int j;
@@ -1442,7 +1458,7 @@ static int sCotaCompleta(void) {
       if (nc == GUIACORTE_MAX_CAT) continue;
       visiveis[nc++] = g->cat;
     }
-    if (++n >= sTeto) return 1;
+    if (++n >= sTeto) return memoR = 1;
   }
   return 0;
 }
@@ -2034,6 +2050,9 @@ static void *fioGuia(void *u) {
   (void)u;
   stagingZerar();
   sTeto = tetoCarga;
+  cacheNoFio();
+  stagingZerar();
+  sTeto = tetoCarga;
   sFalhas = 0; sXtFalha = XT_OK; sXtHttp = 0;
   // Fontes das fileiras primeiro — zero rede extra. A sonda de manifestos
   // completa com o que a home nao montou. ADDON DESLIGADO NAO ENTRA.
@@ -2276,7 +2295,7 @@ static void selecionarSecoes(void) {
     if (j == nc) visiveis[nc++] = g->cat;
     sCanais[w++] = *g;
   }
-  sNCanais = w;
+  sNCanais = w; sGerStaging++;
 }
 
 // Copy only admitted channels, their fallbacks and source/group controls.
@@ -2367,7 +2386,7 @@ static void adotarStaging(void) {
   cats = sCats; nCats = sNCats; capCats = sCapCats;
   memcpy(ltvF, sLtvF, sizeof sLtvF); nLtvF = sNLtvF;
   arena = sArena;
-  sCanais = NULL; sNCanais = sCapCanais = 0;
+  sCanais = NULL; sNCanais = sCapCanais = 0; sGerStaging++;
   sCats = NULL; sNCats = sCapCats = 0;
   memset(sLtvF, 0, sizeof sLtvF); sNLtvF = 0;
   memset(&sArena, 0, sizeof sArena);
@@ -2375,8 +2394,51 @@ static void adotarStaging(void) {
   empacotar();
 }
 
+// As chaves do indice que a configuracao atual justifica, para o fio de carga ler (fio de desenho).
+static void cacheEscolher(void) {
+  char nome[48], *t, *p;
+  ltv_urls_carregar(perfis_ativo());
+  cacheNomeIndice(nome, sizeof nome);
+  nCacheChaves = 0;
+  if (!(t = dados_ler(nome))) return;
+  for (p = t; *p; ) {
+    size_t k = strcspn(p, "\r\n");
+    if (k && k < LTV_CHAVE) {
+      char ch[LTV_CHAVE];
+      memcpy(ch, p, k); ch[k] = 0;
+      if (!chaveConfigurada(ch)) guia_fonte_esquecer(ch);
+      else if (nCacheChaves < G_MAX_LTV) snprintf(cacheChaves[nCacheChaves++], LTV_CHAVE, "%s", ch);
+    }
+    p += k; while (*p == '\r' || *p == '\n') p++;
+  }
+  free(t);
+}
+// No fio de carga, antes da rede: le as fontes escolhidas para o staging e espera o desenho adota-las.
+static void cacheNoFio(void) {
+  int i;
+  if (!nCacheChaves) return;
+  for (i = 0; i < nCacheChaves; i++) cacheFonteLer(cacheChaves[i]);
+  nCacheChaves = 0;
+  if (!sNCanais) return;
+  atomic_store_explicit(&pendCache, 1, memory_order_release);
+  // guia_atualizar roda em todo quadro (app.c), com o guia aberto ou nao, e sempre zera: so ele mexe ate la.
+  while (atomic_load_explicit(&pendCache, memory_order_acquire)) usleep(5000);
+}
+// No desenho: adota a lista que o fio leu do cache.
+static void cacheAdotar(void) {
+  if (!atomic_load_explicit(&pendCache, memory_order_acquire)) return;
+  if (cargaAtual()) {
+    adotarStaging();
+    assinaturaPublicada = assinaturaDe(canais, nCanais, cats, ltvF);
+    printf("[guia] cache lido (fio): %d canais em %d grupos, %d fonte(s)\n", nCanais, nCats, nLtvF);
+    fflush(stdout);
+    marco("guia: lista do cache na tela");
+  }
+  atomic_store_explicit(&pendCache, 0, memory_order_release);
+}
+
 // Le o cache do disco direto para a lista publicada (fio de desenho, antes de
-// qualquer fio de carga). 1 se a tela ja tem lista.
+// qualquer fio de carga). 1 se a tela ja tem lista. Fica para a busca (Spotlight); o guia usa cacheNoFio.
 static int cacheLer(void) {
   char nome[48], *t, *p;
   if (fioVivo) return 0;
@@ -2582,7 +2644,7 @@ void guia_carregar(void) {
   // nao ter montado as fileiras ainda quando o primeiro CH+/- chega.
   if (!fontesOk) descobrirFontes();
   // A lista de ontem NA HORA; a de hoje vem atras. Ver o bloco do cache.
-  if (!cacheLido) { cacheLido = 1; if (estado == G_PARADO && nCanais == 0) cacheLer(); }
+  if (!cacheLido) { cacheLido = 1; if (estado == G_PARADO && nCanais == 0 && !fioVivo) cacheEscolher(); }
   if (estado == G_PARADO || estado == G_FALHOU) {
     if (fioVivo) recarregarPend = 1;
     else iniciarCarga();
@@ -4810,6 +4872,7 @@ void guia_atualizar(float dt, Uint32 agora) {
   if (recargaDoPainel && !fioVivo && !recarregarPend && !prontoPend) recargaDoPainel = 0;
   int escolha=ajustes_guia_fonte();
   if(fonteAtual!=escolha) { fonteAtual=escolha; vistaMontar(); focoValido(); }
+  cacheAdotar();
   drenarCarga();
   // Configuracao mudou fora do guia (inclusive pull da conta): remove agora.
   for (int i = nLtvF - 1; i >= 0; i--)

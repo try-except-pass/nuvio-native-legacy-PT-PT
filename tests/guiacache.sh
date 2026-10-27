@@ -25,6 +25,8 @@ cc ${backup_extra[@]+"${backup_extra[@]}"} ${flags[@]+"${flags[@]}"} tests/guiac
   src/fontecache.c src/cachearte.c src/cachedisco.c \
   -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
   -O1 -g -Wno-macro-redefined -lpthread -lm -o "$work/test"
+# 5000 canais (a TV do dono): o fio le o cache, o desenho so adota.
+mkdir -p "$work/bench"; NUVIO_DADOS="$work/bench" GUIACACHE_BENCH=5000 "$work/test" "$work/bench"
 NUVIO_DADOS="$work/dados" "$work/test" "$work/dados"
 if [ "${GUIACACHE_BASELINE:-0}" != 1 ]; then
   GUIACACHE_CONTRAST_ONLY=1 "$work/test" "$work/dados"

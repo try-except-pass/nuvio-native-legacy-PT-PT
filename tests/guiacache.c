@@ -240,6 +240,8 @@ static void resetPublished(void) {
   ltv_arena_soltar(&arena);
 }
 
+static volatile int fioSoCacheFim;
+static void *fioSoCache(void *u) { (void)u; stagingZerar(); sTeto = tetoCarga; cacheNoFio(); stagingZerar(); fioSoCacheFim = 1; return NULL; }
 int main(int argc, char **argv) {
   static const char *a[] = { "Canal A1", "Canal A2" }, *b[] = { "Canal B1" };
   char chA[LTV_CHAVE], chB[LTV_CHAVE], nome[64], caminho[600];
@@ -260,6 +262,54 @@ int main(int argc, char **argv) {
   }
 #endif
   dados_iniciar(argv[1]);
+  if (getenv("GUIACACHE_BENCH")) {
+    // O GUIA DA TV DO DONO (2.0.21): 5000 canais em 2 grupos, 730 ms ate o 1o quadro. Mede cacheLer.
+    int n = atoi(getenv("GUIACACHE_BENCH")), i, fl;
+    struct timespec t0, t1;
+    bases[0] = "https://a.example"; nAddons = 1;
+    stagingZerar(); sTeto = 30000;
+    fl = sFonte(LTV_ADDON, bases[0], bases[0], bases[0]);
+    for (i = 0; i < n; i++) {
+      char id[48], nm[64], url[200], logo[160];
+      GCru c;
+      memset(&c, 0, sizeof c);
+      snprintf(id, sizeof id, "canal-%d", i); snprintf(nm, sizeof nm, "Canal Desporto %d HD", i);
+      snprintf(url, sizeof url, "http://provedor.example:8080/live/usuario/senha/%d.ts", 100000 + i);
+      snprintf(logo, sizeof logo, "http://logos.example/img/canais/%d.png", i);
+      c.id = id; c.nome = nm; c.logo = logo; c.desc = ""; c.epgId = id; c.tvgNome = nm; c.url = url; c.ua = c.ref = "";
+      c.grupo = i % 2 ? "PT | Desporto" : "BR | Filmes"; c.numero = i + 1;
+      sGrupoInfo(fl, c.grupo, 1);
+      assert(sCanalAdd(fl, &c));
+      sLtvF[fl].total++;
+    }
+    adotarStaging(); cacheGravar(); resetPublished(); cacheLido = 0;
+    // O caminho do guia: o fio le (cacheNoFio), o desenho so adota (cacheAdotar). Mede o que fica no desenho.
+    for (int r = 0; r < 3; r++) {
+      pthread_t th; double ms = 0;
+      cacheEscolher();
+      assert(nCacheChaves == 1);
+      assert(!pthread_create(&th, NULL, fioSoCache, NULL));
+      while (!fioSoCacheFim) {
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        cacheAdotar();
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        ms += (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6;
+        usleep(1000);
+      }
+      pthread_join(th, NULL); fioSoCacheFim = 0;
+      printf("BENCH guia (fio + adotar) %d canais: %.1f ms no desenho\n", nCanais, ms);
+      assert(nCanais == n);
+      resetPublished();
+    }
+    for (int r = 0; r < 3; r++) {
+      clock_gettime(CLOCK_MONOTONIC, &t0);
+      assert(cacheLer());
+      clock_gettime(CLOCK_MONOTONIC, &t1);
+      printf("BENCH cacheLer %d canais: %.1f ms\n", nCanais, (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6);
+      resetPublished();
+    }
+    return 0;
+  }
   bases[0] = "https://a.example"; bases[1] = "https://b.example";
   nAddons = 2;
   ltv_chave_fonte(LTV_ADDON, bases[0], chA, sizeof chA);
