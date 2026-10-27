@@ -87,6 +87,21 @@ typedef struct {
 // -1 se nao ha fila.
 int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exigeOriginal, int temSec, int *nivel);
 
+// A CONFERENCIA EM SERIE (o laco do dono): percorre `fila` de cima para baixo, UMA fonte por vez, pergunta ao gancho
+// se a legenda principal (slot 0) e a secundaria (slot 1, so com temSec) sincronizam com ela, e PARA na primeira em que
+// a principal sincroniza (nada acima disso). Fonte que nao disputa (nao e original, com Original ligado e ao menos uma
+// que o seja) nem e conferida: nao gasta leitura. Preenche sincPrim/sincSec de `c` (a conferida), devolve o melhor
+// indice e o nivel como fonteauto_sincronizada. `conferidas` (se nao NULL) recebe quantas fontes foram conferidas.
+// `conferir` e a rede (legref por Range + autosync_comparar): chamada primeiro com slot 0 e depois com slot 1 para a
+// mesma fonte, em seguida, para quem guardar a referencia lida. `cancelado` e consultado antes de cada fonte.
+typedef struct {
+  int (*conferir)(int indice, int slot, void *u);   // FSINC_*
+  int (*cancelado)(void *u);                         // NULL = nunca
+  void *u;
+} FonteSincGancho;
+int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
+                          const FonteSincGancho *g, int *nivel, int *conferidas);
+
 // Quantas candidatas o modo pode conferir numa escolha. PRIMEIRA = 1 sempre:
 // a garantia do #130 e que so a fonte que vai tocar e tocada.
 int fonteauto_tentativas(int modo, int pedidas);

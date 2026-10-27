@@ -2519,6 +2519,46 @@ int stream_falha_aplicar(int indice, unsigned geracao, int servico, const char *
                                    nv_perfil_sessao_ler());
 }
 
+// O RETRATO DA FILA FINAL (HANDOFF §4 item 2): a fila inteira, ja com o audio original na frente, do jeito que a escolha a
+// usou, para a conferencia de sincronia (fontesincapp.c, outro fio) percorrer as MESMAS candidatas na MESMA ordem.
+// `lembrada` = a fonte que a memoria do titulo (reusar o ultimo link) pos na frente, -1 = nenhuma.
+static struct { uint64_t sessao; unsigned geracao; int n, lembrada; int fila[VER_MAX]; unsigned char original[VER_MAX]; } retrato;
+static pthread_mutex_t retratoTrava = PTHREAD_MUTEX_INITIALIZER;
+static void retratoGuardar(uint64_t sessao, unsigned geracao, const int *fila, const unsigned char *original, int n, int lembrada) {
+  pthread_mutex_lock(&retratoTrava);
+  retrato.sessao = sessao; retrato.geracao = geracao; retrato.lembrada = lembrada;
+  retrato.n = n > VER_MAX ? VER_MAX : n;
+  memcpy(retrato.fila, fila, sizeof *fila * (size_t)retrato.n);
+  memcpy(retrato.original, original, (size_t)retrato.n);
+  pthread_mutex_unlock(&retratoTrava);
+}
+int stream_sinc_fila(uint64_t sessao, unsigned *geracao, int *lembrada, int *fila, unsigned char *original, int max) {
+  int n = 0;
+  pthread_mutex_lock(&retratoTrava);
+  if (retrato.sessao == sessao && retrato.n > 0 && max > 0) {
+    n = retrato.n < max ? retrato.n : max;
+    memcpy(fila, retrato.fila, sizeof *fila * (size_t)n);
+    memcpy(original, retrato.original, (size_t)n);
+    if (geracao) *geracao = retrato.geracao;
+    if (lembrada) *lembrada = retrato.lembrada;
+  }
+  pthread_mutex_unlock(&retratoTrava);
+  return n;
+}
+// O link tocavel de uma candidata para a conferencia de sincronia: so link direto ja pronto (nada de torrent a resolver
+// no debrid), de lista ainda vigente, sem cabecalhos especiais, que nao seja P2P, fora do cache nem de conta limitada.
+int stream_sinc_link(unsigned geracao, int i, char *url, size_t tam) {
+  int ok = 0;
+  pthread_mutex_lock(&verTrava);
+  if (listaGeracao == geracao && i >= 0 && i < n && lista[i].url[0] && !lista[i].cabecalhos[0] &&
+      !lista[i].foraCache && !soP2P(&lista[i]) && !xtream_url_limitada(lista[i].url)) {
+    snprintf(url, tam, "%s", lista[i].url);
+    ok = 1;
+  }
+  pthread_mutex_unlock(&verTrava);
+  return ok;
+}
+
 static int sessaoSegue(void *u) { return nv_perfil_sessao_atual(*(uint64_t *)u); }
 int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   int fila[VER_MAX], nf, q, tocadas = 0, escolhida, total, pref, livres = 0, kk;
@@ -2561,6 +2601,7 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   // A FILA E MONTADA NA ORDEM DE EXIBICAO (#221) e traduzida de volta para
   // indice: o desempate de fonteauto_fila ("o de menor indice, que e a ordem
   // do addon") so vale se a posicao for a da lista inteira, e nao a de chegada.
+  int lembradaIdx = -1;
   { int *ordem = malloc(sizeof *ordem * (size_t)total), posPref = -1;
     FonteRegraCfg cfgEscopo = regraCfg();
     if (!ordem) {
@@ -2591,10 +2632,12 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
     nf = fonteauto_fila_o(modo, total, posPref, pts, acima, excl, grp, rk, ordemUso,
                           total < VER_MAX ? total : VER_MAX, fila);
     for (q = 0; q < nf; q++) fila[q] = ordem[fila[q]];
+    if (posPref >= 0) lembradaIdx = ordem[posPref];
     free(ordem); }
   // AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27). Volta 1: de cima para baixo, a primeira fonte
   // que DIZ ter o audio no idioma (original, com "Áudio: Original"); sem etiqueta pula. Volta 2, se
   // nenhuma: do topo, a melhor da ordem de sempre. A checagem das faixas no player continua por tras.
+  unsigned char origRetrato[VER_MAX] = {0};
   if (nf > 1) {
     unsigned char *tem = calloc((size_t)total, 1);
     const char *pref = idiomaAudioPedido();
@@ -2606,11 +2649,13 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
           if (fila[q] >= 0 && fila[q] < n) tem[fila[q]] = (unsigned char)temAudioPedido(&lista[fila[q]]);
       pthread_mutex_unlock(&verTrava);
       com = fonteauto_idioma_primeiro(fila, nf, tem);
+      for (q = 0; q < nf && q < VER_MAX; q++) origRetrato[q] = tem[fila[q]];
       printf("[fonte] audio %s: %d de %d fonte(s) dizem ter; %s\n", pref, com, nf,
              com ? "toca a primeira delas" : "nenhuma diz: a melhor da lista");
     }
     free(tem);
   }
+  retratoGuardar(c.sessao, c.geracao, fila, origRetrato, nf, lembradaIdx);   // a fila INTEIRA, antes do corte
   if (nf > tentativas) nf = tentativas;
   free(pts); free(acima); free(excl); free(grp); free(rk);
   if (nf < 1) {

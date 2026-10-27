@@ -167,6 +167,28 @@ int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exige
   return fila[0];
 }
 
+int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
+                          const FonteSincGancho *g, int *nivel, int *conferidas) {
+  int q, soOriginal = 0, feitas = 0, melhor;
+  if (conferidas) *conferidas = 0;
+  if (nivel) *nivel = FSINC_NADA;
+  if (!fila || n < 1 || !c || !g || !g->conferir) return -1;
+  if (exigeOriginal)
+    for (q = 0; q < n && !soOriginal; q++) soOriginal = c[fila[q]].original;
+  for (q = 0; q < n; q++) {
+    FonteSinc *s = &c[fila[q]];
+    if (soOriginal && !s->original) continue;
+    if (g->cancelado && g->cancelado(g->u)) break;
+    if (s->temPrim) s->sincPrim = (unsigned char)g->conferir(fila[q], 0, g->u);
+    if (temSec && s->temSec) s->sincSec = (unsigned char)g->conferir(fila[q], 1, g->u);
+    feitas++;
+    if (s->sincPrim == FSINC_CONFIRMADA) break;   // o melhor nivel que existe: nao ha o que conferir adiante
+  }
+  if (conferidas) *conferidas = feitas;
+  melhor = fonteauto_sincronizada(fila, n, c, exigeOriginal, temSec, nivel);
+  return melhor;
+}
+
 int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma) {
   int com = 0, q;
   if (!fila || n < 2 || !temIdioma) return fila && n == 1 && temIdioma && temIdioma[fila[0]];

@@ -50,6 +50,25 @@ static int oraculo(int n, int exigeOriginal, int temSec, int *nivel) {
   return melhor;
 }
 
+// A REDE FALSA da conferencia em serie: a verdade de cada (fonte, slot), quantas vezes cada uma foi perguntada.
+static unsigned char verdade[N][2];
+static int chamadas[N][2], total, cancelaApos = -1;
+static int conferirFalso(int i, int slot, void *u) {
+  (void)u;
+  chamadas[i][slot]++;
+  total++;
+  return verdade[i][slot];
+}
+static int cancelaFalso(void *u) { (void)u; return cancelaApos >= 0 && total >= cancelaApos; }
+// `tem`: toda fonte tem legenda principal (e a secundaria, com tem2); a verdade e o contador voltam a zero.
+static void prepara(int n, int tem, int tem2) {
+  limpa(n);
+  memset(verdade, 0, sizeof verdade);
+  memset(chamadas, 0, sizeof chamadas);
+  total = 0;
+  for (int i = 0; i < n; i++) { f[i].temPrim = (unsigned char)tem; f[i].temSec = (unsigned char)tem2; }
+}
+
 static double agora(void) {
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
@@ -193,6 +212,91 @@ int main(void) {
     printf("custo por escolha (30 fontes): fila de hoje %.0f ns; com a regra nova %.0f ns (+%.0f ns)  [%d]\n",
            antes, depois, depois - antes, sorvedouro & 1);
     CONFERE(depois - antes < antes, "a regra nova custa mais que a fila inteira: +%.0f ns contra %.0f ns", depois - antes, antes);
+  }
+
+  // A CONFERENCIA EM SERIE (fonteauto_sincronizar), com a rede trocada por uma tabela de verdades.
+  {
+    FonteSincGancho g = { conferirFalso, cancelaFalso, NULL };
+    int feitas;
+
+    // para na primeira em que a principal sincroniza: 0 e 1 nao, 2 sim; 3..5 nem sao conferidas
+    prepara(6, 1, 1);
+    verdade[2][0] = FSINC_CONFIRMADA;
+    r = fonteauto_sincronizar(fila, 6, f, 0, 1, &g, &nv, &feitas);
+    CONFERE(r == 2 && nv == FSINC_PRIM_OK && feitas == 3, "para na 1a sincronizada: %d nivel %d, %d conferidas", r, nv, feitas);
+    CONFERE(chamadas[3][0] + chamadas[4][0] + chamadas[5][0] == 0, "nao toca o que vem depois");
+
+    // com Original ligado so as que dizem ter o original gastam leitura
+    prepara(6, 1, 1);
+    f[1].original = f[4].original = 1;
+    verdade[4][0] = FSINC_CONFIRMADA;
+    r = fonteauto_sincronizar(fila, 6, f, 1, 1, &g, &nv, &feitas);
+    CONFERE(r == 4 && feitas == 2 && chamadas[0][0] + chamadas[2][0] + chamadas[3][0] + chamadas[5][0] == 0,
+            "so as originais: %d, %d conferidas", r, feitas);
+    // ... e sem nenhuma original, todas disputam
+    prepara(6, 1, 1);
+    verdade[5][0] = FSINC_CONFIRMADA;
+    r = fonteauto_sincronizar(fila, 6, f, 1, 1, &g, &nv, &feitas);
+    CONFERE(r == 5 && feitas == 6, "ninguem original: todas, %d conferidas", feitas);
+
+    // a secundaria so e perguntada com temSec; e uma fonte sem legenda nao e perguntada de nada
+    prepara(4, 1, 1);
+    f[1].temPrim = 0;
+    fonteauto_sincronizar(fila, 4, f, 0, 0, &g, &nv, &feitas);
+    CONFERE(chamadas[0][1] + chamadas[1][1] + chamadas[2][1] + chamadas[3][1] == 0, "sem secundaria: slot 1 nunca");
+    CONFERE(chamadas[1][0] == 0, "sem legenda principal: nao pergunta");
+    prepara(4, 1, 1);
+    fonteauto_sincronizar(fila, 4, f, 0, 1, &g, &nv, &feitas);
+    CONFERE(chamadas[0][1] == 1 && chamadas[3][1] == 1, "com secundaria: slot 1 uma vez por fonte");
+
+    // principal sincronizada MAIS ABAIXO ganha da secundaria sincronizada de cima: a conferencia vai ate la
+    prepara(6, 1, 1);
+    verdade[1][1] = FSINC_CONFIRMADA;
+    verdade[4][0] = FSINC_CONFIRMADA;
+    r = fonteauto_sincronizar(fila, 6, f, 0, 1, &g, &nv, &feitas);
+    CONFERE(r == 4 && nv == FSINC_PRIM_OK && feitas == 5, "principal abaixo ganha da secundaria acima: %d/%d", r, nv);
+
+    // ninguem sincroniza: confere todas e vale a regra dos niveis (principal sem confirmacao)
+    prepara(5, 1, 1);
+    r = fonteauto_sincronizar(fila, 5, f, 0, 1, &g, &nv, &feitas);
+    CONFERE(r == 0 && nv == FSINC_PRIM && feitas == 5, "ninguem sincroniza: %d nivel %d, %d conferidas", r, nv, feitas);
+
+    // cancelado: para e nao volta a perguntar
+    prepara(6, 1, 1);
+    cancelaApos = 2;
+    r = fonteauto_sincronizar(fila, 6, f, 0, 0, &g, &nv, &feitas);
+    CONFERE(feitas == 2 && total == 2, "cancelado depois de 2: %d conferidas, %d chamadas", feitas, total);
+    cancelaApos = -1;
+
+    // sem gancho / sem fila
+    CONFERE(fonteauto_sincronizar(fila, 3, f, 0, 0, NULL, &nv, &feitas) == -1 && feitas == 0, "sem gancho");
+
+    // PROPRIEDADE 3: parar cedo NUNCA muda a resposta. Mesma verdade, uma vez com a conferencia em serie e outra
+    // com a tabela toda preenchida de uma vez e so a regra por cima.
+    for (int caso = 0; caso < 20000 && falhas < 5; caso++) {
+      FonteSinc cheia[N];
+      int e, ts, r1, n1, r2, n2;
+      n = 1 + rand() % N;
+      prepara(n, 0, 0);
+      for (i = 0; i < n; i++) {
+        f[i].original = rand() % 3 == 0;
+        f[i].temPrim = rand() % 4 != 0;
+        f[i].temSec = rand() % 2;
+        verdade[i][0] = (unsigned char)(rand() % 5 == 0 ? FSINC_CONFIRMADA : rand() % 3 == 0 ? FSINC_NAO : 0);
+        verdade[i][1] = (unsigned char)(rand() % 5 == 0 ? FSINC_CONFIRMADA : rand() % 3 == 0 ? FSINC_NAO : 0);
+      }
+      for (i = n - 1; i > 0; i--) { int j = rand() % (i + 1), t = fila[i]; fila[i] = fila[j]; fila[j] = t; }
+      e = rand() % 2; ts = rand() % 2;
+      memcpy(cheia, f, sizeof cheia);
+      for (i = 0; i < n; i++) {   // a tabela toda de uma vez
+        if (cheia[i].temPrim) cheia[i].sincPrim = verdade[i][0];
+        if (ts && cheia[i].temSec) cheia[i].sincSec = verdade[i][1];
+      }
+      r2 = fonteauto_sincronizada(fila, n, cheia, e, ts, &n2);
+      r1 = fonteauto_sincronizar(fila, n, f, e, ts, &g, &n1, &feitas);
+      CONFERE(r1 == r2 && n1 == n2, "caso %d: em serie %d/%d, tabela cheia %d/%d", caso, r1, n1, r2, n2);
+      CONFERE(feitas <= n, "conferiu mais fontes (%d) do que ha (%d)", feitas, n);
+    }
   }
 
   if (falhas) { printf("fonteauto_sinc: %d falha(s)\n", falhas); return 1; }

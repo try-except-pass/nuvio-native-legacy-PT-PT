@@ -201,6 +201,12 @@ int  stream_grupo_regra(int i);
 int  stream_regra_bloqueou(void);
 // Candidatas que o automatico ainda pode tentar nesta lista (nao excluidas).
 int  stream_n_candidatas(void);
+// A fila final da ULTIMA escolha automatica da sessao (a inteira, com o audio original na frente), para a
+// conferencia de sincronia em segundo plano (fontesincapp.c). `lembrada` = a fonte que a memoria do titulo pos na
+// frente (-1 = nenhuma). Devolve quantas; 0 = nao ha retrato dessa sessao.
+int  stream_sinc_fila(uint64_t sessao, unsigned *geracao, int *lembrada, int *fila, unsigned char *original, int max);
+// O link tocavel da candidata i, so se ja e um link direto pronto, sem cabecalhos, de lista ainda vigente.
+int  stream_sinc_link(unsigned geracao, int i, char *url, size_t tam);
 
 // DE QUEM E A LISTA QUE ESTA EM MEMORIA — issue #101.
 //

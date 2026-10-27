@@ -147,6 +147,7 @@
 #include "legsync.h"
 #include "badges.h"
 #include "streams.h"
+#include "fontesincapp.h"
 #include "streamfitdur.h"
 #include "streamfitpassiva.h"
 #include "vazao.h"
@@ -705,6 +706,7 @@ static void *escolherFonteStalker(void *u) {
   return NULL;
 }
 static unsigned novaGeracaoFonte(void) {
+  fontesincapp_cancelar();   // uma escolha nova encerra a conferencia de sincronia da anterior
   return atomic_fetch_add_explicit(&stalkerGeracao, 1, memory_order_acq_rel) + 1;
 }
 static void limparFontePendente(void) {
@@ -3199,6 +3201,27 @@ static void abrirFonteManualDireta(const Stream *s) {
   definirFonteVOD(s->url);
   fonteManualDesde = SDL_GetTicks();
   if (!fonteManualDesde) fonteManualDesde = 1;
+}
+// A fonte que SINCRONIZA com a legenda (fontesincapp.c): UMA troca no meio da reproducao, mantendo a posicao. O mesmo
+// caminho da repeticao da fonte em tentarProximaFonteVOD: guarda a posicao, o player volta a esperar e recebe o link.
+static void trocarPorSincronia(int alvo, int de) {
+  const Stream *s = stream_item(alvo);
+  double pos;
+  if (!s || !s->url[0] || s->cabecalhos[0] || stream_atual() != de) return;   // a pessoa trocou antes: nao mexe
+  if (!player_aberto() || player_quer_sair() || player_id_canal()[0] || aguardandoFonte != 0) return;
+  if (video_reconectando() || !fonteVODAutomatica) return;
+  pos = video_pos();
+  if (pos >= 0.0 && isfinite(pos)) player_definir_retomada_fonte(pos);
+  player_voltar_a_esperar();
+  stream_definir_atual(alvo);
+  video_definir_dv(s->dolbyVision);
+  video_definir_cabecalhos(s->cabecalhos);
+  video_definir_mp4(stream_e_mp4(s));
+  definirFonteVOD(s->url);
+  fonteVODDesde = SDL_GetTicks();
+  printf("[fonte] sincronia: trocou a fonte %d pela %d (a legenda sincroniza com ela) aos %.0f s\n", de, alvo, pos);
+  fflush(stdout);
+  player_toast(i18n("Fonte trocada: a legenda sincroniza com ela"), 4000);
 }
 static void tentarProximaFonteVOD(void) {
   Uint32 desde;
@@ -5929,6 +5952,8 @@ void app_atualizar(float dt, Uint32 agora) {
           if (novo) player_toast_ex(i18n(debrid_sem_plano_frase(novo)), 7000, "aj_triangle-alert", 1); }
         if (!player_id_canal()[0]) {
           fonteVODAutomatica = 1;
+          // A fonte que SINCRONIZA com a legenda (dono, 2026-10-27): em segundo plano, sem esperar nada daqui.
+          fontesincapp_iniciar(nv_perfil_sessao_ler(), stream_atual());
           // Aberta antes do veredito: a contagem e o relogio dos 15 s sem sinal
           // ja correm desde a abertura (abrirAntecipada), e nao recomecam.
           if (!jaTocando) {
@@ -6228,6 +6253,7 @@ void app_atualizar(float dt, Uint32 agora) {
   }
   renovarVodInterrompido();
   tentarProximaFonteVOD();
+  { int alvo, de; if (fontesincapp_trocar(&alvo, &de)) trocarPorSincronia(alvo, de); }
   lembrarAutomatica();
   bingeDaFonteAtual();
   lembrarTocando();
