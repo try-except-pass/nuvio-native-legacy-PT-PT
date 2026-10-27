@@ -35,6 +35,7 @@ static _Atomic unsigned vigente;          // o fio de um `tok` velho percebe e s
 static _Atomic int pedido = -1;           // a troca pedida (indice), -1 = nada
 static _Atomic int pedidoDe = -1;         // a fonte que tocava quando a troca foi pedida
 static _Atomic unsigned pedidoTok;        // de que conferencia veio
+static _Atomic int pedidoSinc;            // 1 = a legenda da fonte pedida esta com a sincronia confirmada
 static _Atomic unsigned jaTrocou;         // `tok` que ja trocou: no maximo UMA troca por reproducao
 
 static long long agoraMs(void) {
@@ -105,14 +106,22 @@ static int conferir(int i, int slot, void *u) {
   return veredito;
 }
 
-// O nivel da fonte que toca: 1 = principal confirmada, 2 = secundaria confirmada, 99 = sem confirmacao.
-static int nivelDe(const FonteSinc *s) {
-  return s->sincPrim == FSINC_CONFIRMADA ? FSINC_PRIM_OK : s->sincSec == FSINC_CONFIRMADA ? FSINC_SEC_OK : 99;
+// ONDE UMA FONTE ESTA NA LISTA DO DONO, menor = melhor: o audio original separa tudo (+10 para quem nao e original
+// quando alguma e); depois 1 principal sincronizada, 2 secundaria sincronizada, 3 principal sem confirmacao,
+// 4 secundaria sem confirmacao, 5 sem legenda. Troca-se quando a MELHOR da fila esta num lugar estritamente melhor que
+// o da que toca: qualquer degrau da lista justifica, nao so a sincronia confirmada.
+static int lugar(const FonteSinc *s, int soOriginal, int temSec) {
+  int r = soOriginal && !s->original ? 10 : 0;
+  return r + (s->sincPrim == FSINC_CONFIRMADA ? 1
+            : temSec && s->sincSec == FSINC_CONFIRMADA ? 2
+            : s->temPrim ? 3
+            : temSec && s->temSec ? 4 : 5);
 }
 
 static void *fio(void *arg) {
   Ctx *x = arg;
   int fila[16], lembrada = -1, n, total, exigeOriginal, temSec, nivel = 0, feitas = 0, melhor, esperado = 0;
+  int soOriginal, atualNaFila = 0;
   unsigned char original[16];
   unsigned geracao = 0;
   char primB[24], secB[24];
@@ -170,16 +179,24 @@ static void *fio(void *arg) {
   exigeOriginal = ling_audio_e_original();
   g.conferir = conferir; g.cancelado = cancelado; g.u = &cena;
   melhor = fonteauto_sincronizar(fila, n, c, exigeOriginal, temSec, &g, &nivel, &feitas);
-  printf("[sinc-fonte] %d fonte(s) conferida(s): melhor=%d nivel=%d; tocando=%d (nivel %d)\n", feitas, melhor, nivel, x->atual,
-         x->atual >= 0 && x->atual < total ? nivelDe(&c[x->atual]) : 99);
+  soOriginal = 0;
+  if (exigeOriginal) for (int q = 0; q < n; q++) soOriginal |= c[fila[q]].original;
+  for (int q = 0; q < n; q++) if (fila[q] == x->atual) atualNaFila = 1;
+  if (melhor >= 0 && atualNaFila)
+    printf("[sinc-fonte] %d fonte(s) conferida(s): melhor=%d (lugar %d); tocando=%d (lugar %d)\n", feitas, melhor,
+           lugar(&c[melhor], soOriginal, temSec), x->atual, lugar(&c[x->atual], soOriginal, temSec));
   fflush(stdout);
-  // so uma sincronia CONFIRMADA justifica trocar, e so se a que toca nao tem uma tao boa
-  if (vivo(x) && melhor >= 0 && melhor != x->atual && (nivel == FSINC_PRIM_OK || nivel == FSINC_SEC_OK) &&
-      (x->atual < 0 || x->atual >= total || nivelDe(&c[x->atual]) > nivel) && atomic_load(&jaTrocou) != x->tok) {
+  // troca quando a melhor da fila esta num lugar ESTRITAMENTE melhor da lista do que a que toca (a que toca tem de
+  // estar na fila: fora dela nao ha com o que comparar)
+  if (vivo(x) && melhor >= 0 && melhor != x->atual && atualNaFila &&
+      lugar(&c[melhor], soOriginal, temSec) < lugar(&c[x->atual], soOriginal, temSec) &&
+      atomic_load(&jaTrocou) != x->tok) {
     atomic_store(&pedidoDe, x->atual);
     atomic_store(&pedidoTok, x->tok);
+    atomic_store(&pedidoSinc, c[melhor].sincPrim == FSINC_CONFIRMADA || (temSec && c[melhor].sincSec == FSINC_CONFIRMADA));
     atomic_store(&pedido, melhor);
-    printf("[sinc-fonte] pede a troca da fonte %d para a %d (legenda sincronizada)\n", x->atual, melhor);
+    printf("[sinc-fonte] pede a troca da fonte %d (lugar %d) para a %d (lugar %d)\n", x->atual,
+           lugar(&c[x->atual], soOriginal, temSec), melhor, lugar(&c[melhor], soOriginal, temSec));
     fflush(stdout);
   }
 fim:
@@ -205,12 +222,13 @@ void fontesincapp_cancelar(void) {
   atomic_store(&pedido, -1);
 }
 
-int fontesincapp_trocar(int *indice, int *atual) {
+int fontesincapp_trocar(int *indice, int *atual, int *sincronizada) {
   int p = atomic_load(&pedido);
   if (p < 0 || atomic_load(&pedidoTok) != atomic_load(&vigente)) return 0;
   if (!atomic_compare_exchange_strong(&pedido, &p, -1)) return 0;
   atomic_store(&jaTrocou, atomic_load(&pedidoTok));   // esta reproducao nao troca de novo
   if (indice) *indice = p;
   if (atual) *atual = atomic_load(&pedidoDe);
+  if (sincronizada) *sincronizada = atomic_load(&pedidoSinc);
   return 1;
 }

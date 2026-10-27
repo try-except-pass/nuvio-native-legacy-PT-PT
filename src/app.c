@@ -3204,7 +3204,7 @@ static void abrirFonteManualDireta(const Stream *s) {
 }
 // A fonte que SINCRONIZA com a legenda (fontesincapp.c): UMA troca no meio da reproducao, mantendo a posicao. O mesmo
 // caminho da repeticao da fonte em tentarProximaFonteVOD: guarda a posicao, o player volta a esperar e recebe o link.
-static void trocarPorSincronia(int alvo, int de) {
+static void trocarPorSincronia(int alvo, int de, int sincronizada) {
   const Stream *s = stream_item(alvo);
   double pos;
   if (!s || !s->url[0] || s->cabecalhos[0] || stream_atual() != de) return;   // a pessoa trocou antes: nao mexe
@@ -3219,9 +3219,10 @@ static void trocarPorSincronia(int alvo, int de) {
   video_definir_mp4(stream_e_mp4(s));
   definirFonteVOD(s->url);
   fonteVODDesde = SDL_GetTicks();
-  printf("[fonte] sincronia: trocou a fonte %d pela %d (a legenda sincroniza com ela) aos %.0f s\n", de, alvo, pos);
+  printf("[fonte] sincronia: trocou a fonte %d pela %d (%s) aos %.0f s\n", de, alvo,
+         sincronizada ? "legenda sincronizada" : "melhor degrau, sem confirmacao", pos);
   fflush(stdout);
-  player_toast(i18n("Fonte trocada: a legenda sincroniza com ela"), 4000);
+  player_toast(i18n(sincronizada ? "Fonte trocada e legenda sincronizada" : "Fonte trocada"), 4000);
 }
 static void tentarProximaFonteVOD(void) {
   Uint32 desde;
@@ -6253,7 +6254,7 @@ void app_atualizar(float dt, Uint32 agora) {
   }
   renovarVodInterrompido();
   tentarProximaFonteVOD();
-  { int alvo, de; if (fontesincapp_trocar(&alvo, &de)) trocarPorSincronia(alvo, de); }
+  { int alvo, de, sinc; if (fontesincapp_trocar(&alvo, &de, &sinc)) trocarPorSincronia(alvo, de, sinc); }
   lembrarAutomatica();
   bingeDaFonteAtual();
   lembrarTocando();
