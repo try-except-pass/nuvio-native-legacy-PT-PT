@@ -1548,6 +1548,7 @@ static int lerCatalogo(const char *base, const char *tipo, const char *id,
 // impedem os 40 seguintes de preencher a tela. Um addon que declara skip pode
 // ceder uma pagina a mais, usando a contagem CRUA recebida como proximo skip.
 #define HOME_VISTOS_MAX (DESC_ITENS_POR_FILEIRA + 6)
+#define HERO_CAUDA_FIL   24   // reserva do destaque por fileira (ver HERO_CAUDA_TOTAL)
 static int lerCatalogoHomeParcial(const char *base, const char *tipo, const char *id,
                            CatItem *saida, int max, int quantos,
                            int paginavel, int *respondeu,
@@ -1556,7 +1557,7 @@ static int lerCatalogoHomeParcial(const char *base, const char *tipo, const char
   char orig[96];
   if (!ajustes_ocultar_filmes_vistos() || strcmp(tipo, "movie"))
     return lerCatalogo(base, tipo, id, saida, max, quantos, respondeu);
-  if (max > HOME_VISTOS_MAX) max = HOME_VISTOS_MAX;
+  if (max > HOME_VISTOS_MAX + HERO_CAUDA_FIL) max = HOME_VISTOS_MAX + HERO_CAUDA_FIL;
   if (respondeu) *respondeu = 0;
   if (addons_base_desligada(base)) return 0;
   origemDaBase(base, orig, sizeof orig);
@@ -1637,7 +1638,6 @@ static int lerCatalogoHome(const char *base, const char *tipo, const char *id,
 // Reserva do destaque (dono, 2026-10-26: a lista parava em ~50 titulos; pediu 200): titulos de cada catalogo
 // alem dos que a fileira mostra (~15,6 KB cada, ~3 MB no teto). FOLGA = vagas do CAT_MAX que ficam para as
 // fileiras seguintes e as listas (Trakt, Simkl, servidores).
-#define HERO_CAUDA_FIL   24
 #define HERO_CAUDA_TOTAL 200
 #define HERO_CAUDA_FOLGA 800
 
@@ -2994,14 +2994,14 @@ static void *fioCatalogo(void *u) {
       if (q > MAX_POR_FILEIRA) q = MAX_POR_FILEIRA;
       CatItem *cauda = NULL;
       if (ajustes_ocultar_filmes_vistos() && !strcmp(t->tipo, "movie"))
-        ampliados = malloc(sizeof *ampliados * HOME_VISTOS_MAX);
+        ampliados = malloc(sizeof *ampliados * (HOME_VISTOS_MAX + HERO_CAUDA_FIL));
       // RESERVA DO DESTAQUE (ver HERO_CAUDA_*): a mesma resposta traz mais que a fileira mostra; a cauda fica,
       // em vez de ser descartada, qualquer que seja a fonte do destaque (automatico, "*" ou fileiras escolhidas).
       else
         cauda = malloc(sizeof *cauda * (size_t)(q + HERO_CAUDA_FIL));
       got = lerCatalogoHomeParcial(t->base, t->tipo, t->id, ampliados ? ampliados : cauda ? cauda : t->itens,
-                            ampliados ? HOME_VISTOS_MAX : cauda ? q + HERO_CAUDA_FIL : MAX_POR_FILEIRA,
-                            cauda ? q + HERO_CAUDA_FIL : q, t->paginavel, &respondeu, catalogoPrimeiraGuardar, t);
+                            ampliados ? HOME_VISTOS_MAX + HERO_CAUDA_FIL : cauda ? q + HERO_CAUDA_FIL : MAX_POR_FILEIRA,
+                            cauda || ampliados ? q + HERO_CAUDA_FIL : q, t->paginavel, &respondeu, catalogoPrimeiraGuardar, t);
       if (cauda) {
         int naFileira = got < q ? got : q;
         if (naFileira) memcpy(t->itens, cauda, sizeof *cauda * (size_t)naFileira);
@@ -3011,6 +3011,16 @@ static void *fioCatalogo(void *u) {
         got = naFileira;
       }
       if (ampliados) {
+        // "Ocultar filmes vistos" tambem tem reserva do destaque (2.0.21: sem ela, 4 fileiras de filmes davam um
+        // destaque de 47 titulos). O que passa da folga dos vistos vai para a cauda, como nas outras fileiras.
+        if (got > HOME_VISTOS_MAX) {
+          t->heroCauda = malloc(sizeof *t->heroCauda * (size_t)(got - HOME_VISTOS_MAX));
+          if (t->heroCauda) {
+            memcpy(t->heroCauda, ampliados + HOME_VISTOS_MAX, sizeof *t->heroCauda * (size_t)(got - HOME_VISTOS_MAX));
+            t->nHeroCauda = got - HOME_VISTOS_MAX;
+          }
+          got = HOME_VISTOS_MAX;
+        }
         int primeiros = got > MAX_POR_FILEIRA ? MAX_POR_FILEIRA : got;
         if (primeiros) memcpy(t->itens, ampliados, sizeof *ampliados * (size_t)primeiros);
         if (got > MAX_POR_FILEIRA) {
