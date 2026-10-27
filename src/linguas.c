@@ -335,6 +335,7 @@ const char *ling_legenda2(void) {
   return localLeg[0] ? "" : contaLeg2;
 }
 const char *ling_audio(void)    { return emVigor(localAud, contaAud); }
+int ling_audio_e_original(void) { return localAud[0] == '~' || (!localAud[0] && contaAud[0] == '~'); }
 // O SEGUNDO IDIOMA DE AUDIO (secondary_preferred_audio_language do app
 // oficial): a mesma regra da segunda legenda acima.
 const char *ling_audio2(void) {

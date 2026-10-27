@@ -109,6 +109,8 @@ void ling_local_audio2(const char *v);   // "" = segue a conta
 // ouviria dublagem sem saber que foi o app que escolheu.
 void        ling_definir_original(const char *cod);
 const char *ling_original(void);
+// 1 = o audio em vigor e "Original" (resolve para ling_original, "" enquanto nao se sabe).
+int         ling_audio_e_original(void);
 
 // Indice de "Original do titulo" dentro da lista de opcoes. E FIXO, nao o
 // ultimo: o ajustes.txt grava indice, nao codigo, entao mover o "~" troca a

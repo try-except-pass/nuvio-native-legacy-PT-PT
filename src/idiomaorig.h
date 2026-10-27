@@ -38,5 +38,8 @@ void idiomaorig_iniciar(const char *arquivo);
 // poe o titulo na fila de um fio proprio. Antes da resposta final (Wikidata pode levar segundos) devolve
 // a do TMDB, que sozinha acerta 99,2-99,7% (tests/idiomaorig_amostra). Devolve 1 se a resposta e final.
 int idiomaorig_de(const char *imdb, int serie, const char *chaveTmdb, char out[8]);
+// Para TODO titulo que entra no catalogo (sem bloquear, fila de fundo; o que ja se sabe nao vai). `imdb` pode
+// ser "tt..." ou "tmdb:N"; sem IMDb usa `tmdb` (> 0) se houver.
+void idiomaorig_pedir(const char *imdb, long tmdb, int serie, const char *chaveTmdb);
 
 #endif

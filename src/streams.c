@@ -2643,6 +2643,10 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   fontefalha_filtro(&c.filtro);
   Uint32 tVerif = 0;
   tentativas = fonteauto_tentativas(modo, tentativas);
+  // "Original" com o idioma ainda a caminho (titulo nunca visto, Play logo de cara): espera ate 1,5 s pela
+  // resposta do TMDB (~0,15-1,5 s, tests/idiomaorig_cache) em vez de escolher sem idioma. Este fio pode esperar.
+  if (ling_audio_e_original())
+    for (int k = 0; k < 15 && !idiomaAudioPedido()[0]; k++) SDL_Delay(100);
   pthread_mutex_lock(&verTrava);
   if (!nv_perfil_sessao_atual(sessao)) { pthread_mutex_unlock(&verTrava); return -1; }
   total = n;

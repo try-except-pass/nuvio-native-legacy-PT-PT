@@ -17,6 +17,7 @@ __attribute__((weak)) int arte_reserva_registrar(const char *url, const char *im
 // sessao.h e perfis.h dizem DE QUEM e o que esta gravado. Ver a nota longa
 // sobre caminhoCache mais abaixo.
 #include "dados.h"
+#include "idiomaorig.h"
 #include "androidcache.h"
 #include "sessao.h"
 #include "perfis.h"
@@ -2187,10 +2188,20 @@ int cat_aplicar_localizado(int i, const char *imdb, const char *titulo,
 // de trocar o ponteiro (o desenho ve catalogo vazio por um quadro em vez de ler
 // memoria liberada) e nao libera o bloco velho aqui — um leitor pode estar
 // dentro dele; ele morre em cat_quadro, depois do quadro em curso.
+// TODO TITULO QUE ENTRA TEM IDIOMA ORIGINAL (dono, 2026-10-27): cada lote pede o de cada filme/serie a
+// idiomaorig (fila de fundo, sem bloquear; o que ja esta gravado na TV nem entra na fila).
+static void pedirIdiomas(const CatItem *v, int qtd) {
+  const char *chave = desc_chave_tmdb_reserva();
+  for (int i = 0; v && i < qtd; i++)
+    if (!strcmp(v[i].tipo, "movie") || !strcmp(v[i].tipo, "series"))
+      idiomaorig_pedir(v[i].imdb, v[i].tmdb, !strcmp(v[i].tipo, "series"), chave);
+}
+
 int cat_acrescentar_lote(const CatItem *v, int qtd, int *saidaIdx) {
   CatItem *novo;
   int novoN, k;
   if (!v || qtd < 1) return 0;
+  pedirIdiomas(v, qtd);
   // `n` SO SE LE COM A TRAVA (queda "free(): invalid pointer", 1.7.0 .tpk).
   // O tamanho era calculado antes dela: se a descoberta ou o fio de
   // "Continuar assistindo" publicasse um catalogo maior nesse meio, o memcpy
@@ -2286,6 +2297,7 @@ int cat_acrescentar(const CatItem *item) {
   CatItem *novo;
   int novoN;
   if (!item) return -1;
+  pedirIdiomas(item, 1);
   // Mesma regra de cat_acrescentar_lote: `n` so com a trava.
   CAT_TESTE_ANTES_TRAVA();
   catTravar();
@@ -2386,6 +2398,7 @@ void cat_definir_tudo(const CatItem *lista, int qtd,
                       const CatFileira *novasFils, int nNovas) {
   double tIni = cat_relogio_ms(), tFora = 0, tTrava = 0, tProg = 0;
   if (qtd < 0 || qtd > CAT_MAX || (qtd > 0 && !lista)) return;
+  pedirIdiomas(lista, qtd);
   // TROCA DE BLOCO, sem realloc no lugar.
   //
   // cat_definir roda no fio da descoberta enquanto o desenho le itens[] no fio
