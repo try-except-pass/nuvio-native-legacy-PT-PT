@@ -200,10 +200,10 @@ static int aj2MenuFocado(void) { return focoIndice ? uxIndice : -1; }
 // Os tres grupos do indice: so a apresentacao. As categorias seguem a ordem de
 // TELA[] (ajustes_ux_tela.inc, 2.0.3: Assistir = 0-3, Telas = 4-7, o resto em
 // Conta e sistema); nada aqui mexe em valor[] nem em CHAVE[].
-static int aj2Grupo(int s) { return s < AJS_HOME ? 0 : s < AJS_CONTAS ? 1 : 2; }
+static int aj2Grupo(int s) { return s < AJN_TVAOVIVO ? 0 : s < AJN_IDIOMAS ? 1 : 2; }
 static int aj2GrupoDe(int s) { return aj2Grupo(s); }
 static int aj2GrupoIni(int s) { return s == 0 || aj2Grupo(s) != aj2Grupo(s - 1); }
-static const char *aj2GrupoNome(int g) { return g == 0 ? "Assistir" : g == 1 ? "Telas" : "Conta e sistema"; }
+static const char *aj2GrupoNome(int g) { return g == 0 ? "Home" : g == 1 ? "Conteúdo e aparência" : "Reprodução e conta"; }
 // O VALOR VIVO DE CADA CATEGORIA no indice (2.0.2), como o Ajustes de um
 // celular: o que a pessoa mais quer saber dela sem abrir ("Moderna",
 // "Automatica", "Portugues", "3 de 5"). So valores que a tela ja mostra nas
@@ -211,6 +211,11 @@ static const char *aj2GrupoNome(int g) { return g == 0 ? "Assistir" : g == 1 ? "
 static void aj2MenuValor(int sec, char *b, size_t n) {
   int op = -1;
   b[0] = 0;
+  // Nuvio_GO: categorias novas que nao tem familia propria
+  if (sec == AJN_DESTAQUE) { snprintf(b, n, "%s", textoValor(AJ_HERO_TAMANHO)); return; }
+  if (sec == AJN_BARRA) { snprintf(b, n, "%s", textoValor(AJ_MENU_TOPO)); return; }
+  if (sec == AJN_REPRODUCAO) { snprintf(b, n, "%s", textoValor(AJ_PROPORCAO_PADRAO)); return; }
+  sec = ajFam(sec, -1);
   switch (sec) {
     case AJS_HOME: op = AJ_HOME_LAYOUT; break;
     case AJS_GALERIA: op = AJ_GAL_HOME_LAYOUT; break;
@@ -447,7 +452,7 @@ static void aj2DesenharMenu(const Aj2Pose *p) {
             TxtLinha v = ajTxtC(TXT_V2_24, vb, sobra);
             float vx = m.x + m.w - AJ2_MENU_PAD - 28.0f - v.w;
             txt_desenhar_alpha(v, vx, lc - v.h * 0.5f, (foco ? 0.8f : 0.5f) * mk * p->mRot);
-            if (j - 2 == AJS_APARENCIA && vx - 26.0f > rx + 28 + AJ2_MENU_ICO + AJ2_MENU_ICO_GAP + t.w + 8.0f)
+            if (j - 2 == AJN_APARENCIA && vx - 26.0f > rx + 28 + AJ2_MENU_ICO + AJ2_MENU_ICO_GAP + t.w + 8.0f)
               gfx_cor((GfxRect){ vx - 24.0f, lc - 8.0f, 16, 16 }, 0.5f, ar, ag, ab, mk * p->mRot);
           } } }
       txt_desenhar_alpha(t, rx + 28 + AJ2_MENU_ICO + AJ2_MENU_ICO_GAP, lc - t.h * 0.5f, al * mk * p->mRot);
@@ -1150,8 +1155,8 @@ static void aj2DesenharPagina(float t) {
     nome = aj2MenuTitulo(uxIndice); ic = aj2MenuIcone(uxIndice); kick = aj2GrupoNome(aj2Grupo(sec));
     aj2MenuValor(sec, vb, sizeof vb);
     // No cabecalho so o valor principal (mockup: "4K", "Portugues").
-    if (sec == AJS_REPRODUCAO) snprintf(vb, sizeof vb, "%s", i18n(textoValor(AJ_QUALIDADE)));
-    else if (sec == AJS_IDIOMAS) snprintf(vb, sizeof vb, "%s", i18n(textoValor(AJ_IDIOMA)));
+    if (sec == AJN_REPRODUCAO) vb[0] = 0;
+    else if (sec == AJN_IDIOMAS) snprintf(vb, sizeof vb, "%s", i18n(textoValor(AJ_IDIOMA)));
     { int i, nOp = 0, nAv = 0;
       for (i = secIni[sec] + 1; i < secFim(sec); i++)
         if (TELA[i].tipo == IT_OPC && ajOpcaoDisponivel(TELA[i].op)) { nOp++; if (uxAvancada(TELA[i].op)) nAv++; }
@@ -1168,7 +1173,7 @@ static void aj2DesenharPagina(float t) {
     nome = aj2ChipRotulo(1); ic = "aj_rotate-ccw-clock"; kick = "Ajustes";
     snprintf(vb, sizeof vb, "%d", uxNDifs); q[0] = 0;
   }
-  if(iptvForm.tipo && sec==AJS_TVAOVIVO) {
+  if(iptvForm.tipo && sec==AJN_TVAOVIVO) {
     nome=iptvForm.nova?ajIptvAdicionarNome(iptvForm.tipo):iptvAlvo.nome;
     vb[0]=q[0]=0;
   }

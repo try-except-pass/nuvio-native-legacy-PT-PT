@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   for (i = 0; i < AJ_N_TELA; i++)
     if (TELA[i].tipo == IT_OPC && TELA[i].op == AJ_AVISO_LEGAL) item = i;
   assert(item >= 0 && visivel(item) && focavel(item));
-  assert(!strcmp(uxCaminho(AJ_AVISO_LEGAL), "Sobre e ajuda"));
+  assert(!strcmp(uxCaminho(AJ_AVISO_LEGAL), "Conta e sobre"));
   // O mesmo OK gerado pelo clique na linha do Magic Remote.
   ajPontLista = 1; ajPonteiroItem(item, 0); assert(focoOp == AJ_AVISO_LEGAL); key(SDLK_RETURN);
   assert(registro_legal_aberto() == 2); fechar();

@@ -28,7 +28,7 @@ static void settings(void) {
   for (int i = 0; i < AJ_N_TELA; i++)
     if (TELA[i].tipo == IT_OPC && TELA[i].op == AJ_DICASCONTROLE) item = i;
   assert(item >= 0 && visivel(item) && focavel(item));
-  assert(!strcmp(uxCaminho(AJ_DICASCONTROLE), "Sobre e ajuda"));
+  assert(!strcmp(uxCaminho(AJ_DICASCONTROLE), "Conta e sobre"));
   ajPontLista = 1; ajPonteiroItem(item, 0);
   assert(focoOp == AJ_DICASCONTROLE);
   key(SDLK_RETURN, ajustes_evento);

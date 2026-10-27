@@ -76,6 +76,18 @@ int main(int argc, char **argv) {
     OK(!af_tmdb_logo("{\"logos\":[{\"file_path\":\"/lko.png\",\"iso_639_1\":\"ko\"}]}", "ar", o, sizeof o, iso, sizeof iso),
        "idioma: so ko = nenhum logo"); }
 
+  // Nuvio_GO: o logo com a marca do estudio em cima e mais ALTO (razao menor): vale o mais largo do idioma (Clayface).
+  { char o[160], iso[16];
+    const char *logos = "{\"logos\":["
+      "{\"file_path\":\"/estudio.png\",\"iso_639_1\":\"pt\",\"aspect_ratio\":3.95},"
+      "{\"file_path\":\"/limpo.png\",\"iso_639_1\":\"pt\",\"aspect_ratio\":8.65},"
+      "{\"file_path\":\"/estudio2.png\",\"iso_639_1\":\"pt\",\"aspect_ratio\":6.56}]}";
+    OK(af_tmdb_logo(logos, "pt", o, sizeof o, iso, sizeof iso) && !strcmp(o, "/limpo.png"),
+       "logo: sem a marca do estudio em cima (o mais largo do idioma)");
+    OK(af_tmdb_logo("{\"logos\":[{\"file_path\":\"/a.png\",\"iso_639_1\":\"pt\"},{\"file_path\":\"/b.png\",\"iso_639_1\":\"pt\"}]}",
+                    "pt", o, sizeof o, iso, sizeof iso) && !strcmp(o, "/a.png"),
+       "logo: sem a razao no JSON, o primeiro de sempre"); }
+
   // fanart.tv: sem idioma ("" ou "00") antes do com texto; mais likes.
   j = ler(dir, "fanart_movie_278.json");
   OK(af_fanart_fundo(j, 0, u, sizeof u) && strstr(u, "limpo-muitos.jpg"), "fanart filme: sem texto, mais likes");

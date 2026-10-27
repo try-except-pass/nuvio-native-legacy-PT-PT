@@ -2012,6 +2012,16 @@ void stream_falha_identidade(const Stream *s, char *dst, unsigned tam) {
   } else snprintf(dst, tam, "%s\n%s", s->url, s->cabecalhos);
 }
 static void retratoGuardar(uint64_t sessao, unsigned geracao, const int *fila, const unsigned char *original, int n, int lembrada);
+// Nuvio_GO: a ultima escolha da politica de falha nao achou fonte com o audio original (ver falhaCandidatas).
+static int falhaSemOriginal;
+static char falhaSemOriginalIdioma[24];
+static _Atomic int semOriginalPublicado;
+static char semOriginalPubIdioma[24];
+int stream_sem_audio_original(char *idioma, unsigned n) {
+  if (!atomic_exchange(&semOriginalPublicado, 0)) return 0;
+  if (idioma && n) snprintf(idioma, n, "%s", semOriginalPubIdioma);
+  return 1;
+}
 static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteFalhaCandidata **saida,
                            Stream **fontes, int *quantidade, int *lembrada) {
   int total, nf = 0, pref = -1, livres = 0;
@@ -2068,11 +2078,20 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
   regraBloqueou = !nf && livres > 0;
   // AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27), a mesma volta de stream_primeira_boa_sessao: as que DIZEM ter
   // o audio no idioma vao na frente, cada grupo na ordem de antes. Escolha explicita da pessoa nao e mexida.
-  if (escolhida < 0 && nf > 1 && idiomaAudioPedido()[0]) {
+  falhaSemOriginal = 0;
+  if (escolhida < 0 && nf > 0 && idiomaAudioPedido()[0]) {
     unsigned char *tem = calloc((size_t)total, 1);
     if (tem) {
+      int com;
       for (int q = 0; q < total; q++) tem[q] = (unsigned char)temAudioPedido(&copia[ordem[q]]);
-      fonteauto_idioma_primeiro(fila, nf, tem);
+      com = fonteauto_idioma_primeiro(fila, nf, tem);
+      // NUVIO_GO (dono): so o audio ORIGINAL do titulo. A fonte que nao declara o audio no idioma original nem entra na fila:
+      // nao e tentada e NAO conta no limite de links do add-on (ler a fonte prova que o add-on e a fonte funcionam; o que
+      // falta e o idioma). Nenhuma declara: nf = 0 e o app avisa e volta para a pagina do titulo (stream_sem_audio_original).
+      if (ling_audio_e_original()) {
+        if (com < 1) { falhaSemOriginal = 1; snprintf(falhaSemOriginalIdioma, sizeof falhaSemOriginalIdioma, "%s", idiomaAudioPedido()); }
+        nf = com;
+      }
       free(tem);
     }
   }
@@ -2143,6 +2162,12 @@ int stream_falha_verificar(FonteFalhaSessao *sessao, unsigned geracao, int escol
   if (!sessao || !url || !tam || falhaCancelada(geracao, cancelado, ctx) ||
       !falhaCandidatas(geracao, escolhida, fontefalha_tentativas(sessao) == 0,
                        &c, &fontes, &nc, &lembrada)) return FONTEFALHA_FIM;
+  if (falhaSemOriginal && nc == 0) {
+    snprintf(semOriginalPubIdioma, sizeof semOriginalPubIdioma, "%s", falhaSemOriginalIdioma);
+    atomic_store(&semOriginalPublicado, 1);
+    printf("[fonte] nenhuma fonte declara o audio original (%s); o app avisa e volta ao titulo\n", falhaSemOriginalIdioma);
+    fflush(stdout);
+  }
   // O RETRATO DA FILA tambem por aqui (HANDOFF item 2): e este o caminho da escolha quando a politica de falha esta
   // ligada, e sem o retrato a conferencia de sincronia (fontesincapp.c) achava a fila vazia e nao trocava nunca.
   { int fi[VER_MAX], k = nc < VER_MAX ? nc : VER_MAX;

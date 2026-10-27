@@ -15,6 +15,12 @@ static void quadros(unsigned de, unsigned ate, int reproduzindo) {
 int main(void) {
   // Tempos -> estagio (5 min: veu aos 5, escuro 3 min depois).
   assert(esmaecer_estagio_para(MIN(4) + 59000u, 4, ESM_ESTILO_ESCURECER) == ESM_ACESO);
+  /* filme pausado: veu aos 2 min, vitrine aos 3 min (5 s depois do veu quando nao ha player) */
+  assert(esmaecer_estagio_para_p(MIN(2) - 1u, 3, ESM_ESTILO_VITRINE, 1) == ESM_ACESO);
+  assert(esmaecer_estagio_para_p(MIN(2), 3, ESM_ESTILO_VITRINE, 1) == ESM_VEU);
+  assert(esmaecer_estagio_para_p(MIN(3) - 1u, 3, ESM_ESTILO_VITRINE, 1) == ESM_VEU);
+  assert(esmaecer_estagio_para_p(MIN(3), 3, ESM_ESTILO_VITRINE, 1) == ESM_ESCURO);
+  assert(esmaecer_estagio_para_p(MIN(2) + 5000u, 3, ESM_ESTILO_VITRINE, 0) == ESM_ESCURO);
   assert(esmaecer_estagio_para(MIN(5), 4, ESM_ESTILO_ESCURECER) == ESM_VEU);
   assert(esmaecer_estagio_para(MIN(8) - 1u, 4, ESM_ESTILO_ESCURECER) == ESM_VEU);
   assert(esmaecer_estagio_para(MIN(8), 4, ESM_ESTILO_ESCURECER) == ESM_ESCURO);

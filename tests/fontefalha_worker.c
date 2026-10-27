@@ -331,6 +331,37 @@ static void audioOriginalPrimeiro(void) {
   ling_local_audio("");
   fontefalha_sessao_liberar(s);
 }
+// NUVIO_GO: audio ORIGINAL ligado. Fonte que nao declara o audio nem entra na fila (nao conta no limite do add-on);
+// nenhuma declara: acaba sem fonte e stream_sem_audio_original() avisa uma vez.
+static void soAudioOriginal(void) {
+  resetar(); FonteFalhaConfig c = cfg(1, 0, 1);
+  Stream l[] = {fonte(&c, 0, "italiano", 0), fonte(&c, 0, "semtag", 0), fonte(&c, 0, "ingles", 0)};
+  snprintf(l[0].rotulo, sizeof l[0].rotulo, "2160p Italian"); snprintf(l[0].audioIdiomas, sizeof l[0].audioIdiomas, "it");
+  snprintf(l[1].rotulo, sizeof l[1].rotulo, "1080p BluRay");
+  snprintf(l[2].rotulo, sizeof l[2].rotulo, "720p English"); snprintf(l[2].audioIdiomas, sizeof l[2].audioIdiomas, "en");
+  l[0].altura = 2160; l[1].altura = 1080; l[2].altura = 720;
+  ling_local_audio("~"); ling_definir_original("en");
+  stream_definir_lista(l, 3);
+  { FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
+    int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
+    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+    assert(idx == 2 && nPedidos == 1);   // so a que declara o ingles; as outras nem foram tentadas
+    assert(!stream_sem_audio_original(idioma, sizeof idioma));
+    fontefalha_sessao_liberar(s); }
+  resetar();
+  { Stream m[] = {fonte(&c, 0, "italiano", 0), fonte(&c, 0, "semtag", 0)};
+    snprintf(m[0].rotulo, sizeof m[0].rotulo, "2160p Italian"); snprintf(m[0].audioIdiomas, sizeof m[0].audioIdiomas, "it");
+    snprintf(m[1].rotulo, sizeof m[1].rotulo, "1080p BluRay");
+    stream_definir_lista(m, 2);
+    FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 2, -1); assert(s);
+    int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
+    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) != FONTEFALHA_PROXIMA);
+    assert(nPedidos == 0);   // nada foi tentado: nenhuma fonte entrou no limite de links
+    assert(stream_sem_audio_original(idioma, sizeof idioma) && !strcmp(idioma, "en"));
+    assert(!stream_sem_audio_original(idioma, sizeof idioma));   // so uma vez
+    fontefalha_sessao_liberar(s); }
+  ling_local_audio(""); ling_definir_original("");
+}
 static void decoderAprendido(void) {
   resetar(); FonteFalhaConfig c = cfg(1, 0, 1);
   Stream l[] = {fonte(&c, 0, "same-movie", 0), fonte(&c, 0, "same-movie", 1), fonte(&c, 1, "other-4k", 0)};
@@ -477,6 +508,7 @@ static void resolvedorManual(const char *dir) {
   assert(!strcmp(url, "Addon 1080p"));
   // Feature off preserves the old cached-URL fast path.
   assert(fontefalha_definir_provedores(0));
+  assert(fontefalha_definir_addons(0));   // Nuvio_GO: o padrao agora liga a troca de add-on
   stream_definir_lista(&l, 1); ger = stream_lista_geracao();
   assert(stream_resolver_escolhida(0, ger, url, sizeof url, nome, sizeof nome, &pct) == 1);
   assert(nManual == 1 && !strcmp(url, l.url) && !nome[0]);
@@ -575,7 +607,7 @@ static void ordemSemPrioridade(void) {
 int main(int argc, char **argv) {
   assert(argc == 2 && "runner supplies an isolated preference directory");
   ordemETotal(); identidadeEDedup(); missNaoExcluiOutroServico(); semTetosAntigos();
-  limiteNativoIndependente(); decoderAprendido(); audioOriginalPrimeiro();
+  limiteNativoIndependente(); decoderAprendido(); audioOriginalPrimeiro(); soAudioOriginal();
   cachePertenceAoServico(); hashCanonicoEAplicacaoSobreposta();
   geracaoECancelamento(); addonIndependente(); buscaParcial(); escolhaManual();
   resolvedorManual(argv[1]);

@@ -47,6 +47,16 @@ RETIRADAS = {
     "AJ_FALHA_RD_LIMITE", "AJ_FALHA_TB_LIMITE", "AJ_FALHA_PM_LIMITE", "AJ_FALHA_AD_LIMITE",
     "AJ_FILTRO_TAM_MAX", "AJ_FILTRO_GRUPOS",
 }
+# Nuvio_GO: o que o dono fixou ou tirou da tela (FIXAS e SO_FORA em ajustes.c).
+src = fonte
+bloco = re.search(r"FIXAS\[\] = \{(.*?)\n\};", src, re.S)
+RETIRADAS |= set(re.findall(r"\{ (AJ_[A-Z_0-9]+),", bloco.group(1))) if bloco else set()
+bloco = re.search(r"SO_FORA\[\] = \{(.*?)\n\};", src, re.S)
+RETIRADAS |= set(re.findall(r"(AJ_[A-Z_0-9]+)", bloco.group(1))) if bloco else set()
+bloco = re.search(r"static int foraDestaPlataforma\(int op\) \{(.*?)\n\}\n", src, re.S)
+if bloco:
+    RETIRADAS |= set(re.findall(r"(AJ_[A-Z_0-9]+)", re.sub(r"//[^\n]*", "", bloco.group(1))))
+todas = list(opcoes)
 opcoes = [op for op in opcoes if op not in RETIRADAS]
 
 tabela = re.search(r"static const Item TELA\[\] = \{(.*?)\n\};", catalogo, re.S)
@@ -71,7 +81,7 @@ for op in opcoes:
     elif n > 1:
         falhas.append("%s aparece %d vezes em TELA[]" % (op, n))
 for op in na_tela:
-    if op not in opcoes:
+    if op not in todas:
         falhas.append("TELA[] cita %s, que nao existe no enum" % op)
 
 # Categorias e blocos ROT precisam conter ao menos uma opcao.
@@ -90,8 +100,8 @@ for t, v in itens + [("SEC", "<fim>")]:
             abertos[tipo][1] += 1
 
 n_sec = sum(1 for t, _ in itens if t == "SEC")
-if n_sec != 11:
-    falhas.append("esperadas 11 categorias, encontradas %d" % n_sec)
+if n_sec != 12:
+    falhas.append("esperadas 12 categorias, encontradas %d" % n_sec)
 
 ajuda = re.search(r"static const char \*SECAO_AJUDA\[\] = \{(.*?)\n\};", catalogo, re.S)
 if not ajuda:
@@ -116,12 +126,8 @@ for t, v in re.findall(r'\b(SEC|ROT|OPC|MAIS)\(\s*("(?:[^"\\]|\\.)*"|AJ_[A-Z_0-9
 for sec, n in mais_por_sec.items():
     if n > 1:
         falhas.append("categoria %s tem %d MAIS()" % (sec, n))
-if "AJ_SEEKR_AJUSTE" not in avancadas:
-    falhas.append("AJ_SEEKR_AJUSTE deve permanecer avancada")
 if "AJ_SAIDA_PLAYER" in avancadas:
     falhas.append("AJ_SAIDA_PLAYER deve permanecer basica")
-if "AJ_QUALIDADE" in avancadas:
-    falhas.append("AJ_QUALIDADE deve permanecer basica")
 
 if falhas:
     for f in falhas:

@@ -492,4 +492,7 @@ int  stream_folha_escolheu(int *escolhido);
 // Captured at dispatch, so a delayed worker cannot adopt another profile's list.
 int stream_canal_primeira_viva_sessao(int tentativas, uint64_t sessao);
 int stream_verificar_proxima_vod_sessao(int atualIdx, int tentativas, int *conferidas, uint64_t sessao);
+// 1 (uma vez) quando a ultima escolha da politica de falha nao achou NENHUMA fonte com o audio original; `idioma` = o codigo.
+int stream_sem_audio_original(char *idioma, unsigned n);
+
 #endif

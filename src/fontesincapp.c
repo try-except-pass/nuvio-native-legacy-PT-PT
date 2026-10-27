@@ -46,6 +46,9 @@ static long long agoraMs(void) {
 static int vivo(const Ctx *x) { return atomic_load(&vigente) == x->tok && nv_perfil_sessao_atual(x->sessao); }
 static int cancelado(void *u) { const Ctx *x = u; return !vivo(x) || agoraMs() > x->ate; }
 
+// o gancho recebe a Cena (g.u), nao o Ctx: desembrulha antes de perguntar
+static int canceladoCena(void *u) { return cancelado((void *)((Cena *)u)->x); }
+
 static void soltarDocs(Docs *d) {
   for (int i = 0; i < d->n; i++) legenda_documento_liberar(d->d[i]);
   d->n = 0;
@@ -194,7 +197,7 @@ static void *fio(void *arg) {
   cena.leitor = fontesinc_leitor_criar(NULL, NULL);
   if (!cena.leitor) goto fim;
   exigeOriginal = ling_audio_e_original();
-  g.conferir = conferir; g.cancelado = cancelado; g.u = &cena; g.embutida = embutida;
+  g.conferir = conferir; g.cancelado = canceladoCena; g.u = &cena; g.embutida = embutida;
   melhor = fonteauto_sincronizar(fila, n, c, exigeOriginal, temSec, &g, &nivel, &feitas);
   soOriginal = 0;
   if (exigeOriginal) for (int q = 0; q < n; q++) soOriginal |= c[fila[q]].original;

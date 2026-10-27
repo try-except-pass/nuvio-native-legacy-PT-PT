@@ -40,6 +40,8 @@
 #define ESM_ESCURO  2   // ~92% preto + relogio andando
 #define ESM_ALFA_VEU    0.60f
 #define ESM_ALFA_ESCURO 0.92f
+// Filme pausado (player aberto): tempo entre o veu e a vitrine/relogio.
+#define ESM_PAUSADO_MS  (60u * 1000u)
 // Tempo entre o estagio 1 e o 2.
 #define ESM_NO_FIM_MS   (3u * 60u * 1000u)
 // Velocidade do esmaecer (alfa por segundo): 0 -> 60% em 1,5 s.
@@ -49,6 +51,9 @@
 unsigned esmaecer_ms(int escolha);
 // PURAS: estagio para `ocioMs` sem tecla, e o alfa do veu nesse estagio.
 int  esmaecer_estagio_para(unsigned ocioMs, int escolha, int estilo);
+int  esmaecer_estagio_para_p(unsigned ocioMs, int escolha, int estilo, int pausado);
+// 1 = o player esta aberto (filme pausado): a vitrine entra 1 min depois do veu.
+void esmaecer_pausado(int pausado);
 float esmaecer_alfa_do_estagio(int estagio, int estilo);
 
 // Estado. `agora` em ms (SDL_GetTicks).

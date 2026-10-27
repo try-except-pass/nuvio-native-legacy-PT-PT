@@ -3555,8 +3555,24 @@ static void heroPreBuscarInfo(int indice) {
 }
 static void heroAquecerVizinhos(Uint32 agora) {
   int n = heroNLista(), pos, d;
-  if (heroAtual != heroVizBase) { heroVizBase = heroAtual; heroVizFeito = 0; heroVizTentaEm = 0; }
-  if (n < 2 || heroVizFeito == 3) return;
+  static Uint32 heroVizToqueEm;
+  if (heroAtual != heroVizBase) { heroVizBase = heroAtual; heroVizFeito = 0; heroVizTentaEm = 0; heroVizToqueEm = 0; }
+  // Buffer de 3 (dono, Nuvio_GO): anterior, atual e proximo ficam vivos enquanto o destaque esta na tela. Depois de pedidos,
+  // os dois vizinhos sao "tocados" a cada 1 s (renova o uso no LRU), para o cache nao os despejar antes da virada.
+  if (n >= 2 && heroVizFeito == 3) {
+    if (!heroVizToqueEm || agora - heroVizToqueEm >= 1000) {
+      int p0 = heroPosDe(heroAtual);
+      heroVizToqueEm = agora ? agora : 1;
+      if (p0 >= 0)
+        for (d = -1; d <= 1; d += 2) {
+          int viz = heroIdxEm((p0 + d + n) % n);
+          const char *arte2 = viz >= 0 && viz != heroAtual ? arte_por_identidade(viz, 2) : NULL;
+          if (arte2) (void)tex_obter_hero_quente(arte2);
+        }
+    }
+    return;
+  }
+  if (n < 2) return;
   if (heroVizTentaEm && agora - heroVizTentaEm < 250) return;
   heroVizTentaEm = agora ? agora : 1;
   pos = heroPosDe(heroAtual);
@@ -4671,7 +4687,7 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
     TxtLinha lm;
     if (scale != 1.0f) gfx_transformar(x, yMeta, scale, 0, 0);
     badgeW = 0;   // sem selo do provedor (Disney+, HBO...) no destaque: o dono nao o quer (2026-10-27)
-    lm = txt_linha_corta(heroMetaEstilo(), metaLinha, 179, 179, 179, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
+    lm = txt_linha_corta(heroMetaEstilo(), metaLinha, 255, 255, 255, 255, fmaxf(60.0f, rowW - badgeW - seloW - notaW));
     // META E SINOPSE TROCAM NA HORA, sem esvanecer com a arte. MEDIDO: no
     // quadro a 205 ms, com a arte antiga ainda a 85%, a linha de meta e a
     // sinopse ja eram as do titulo NOVO, com o texto opaco. Multiplicar por um

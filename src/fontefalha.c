@@ -66,6 +66,7 @@ static int filtroGruposLer(const char *texto, char *saida, size_t n) {
 static void padrao(FonteFalhaConfig *c) {
   memset(c, 0, sizeof *c);
   for (int i = 0; i < 4; i++) { c->ordem[i] = i; c->limites[i] = 3; }
+  c->addons = 1;   // Nuvio_GO: trocar de add-on ao falhar e fixo; provedores (debrid) nao entram nesta versao
 }
 static void iniciar(void) {
   pthread_mutex_lock(&configTrava);
@@ -97,7 +98,7 @@ static int addonAdicionar(FonteFalhaConfig *c, const char *chave) {
   if (!chaveVale(chave) || c->nAddons >= FONTEFALHA_MAX_ADDONS) return -1;
   i = c->nAddons++;
   snprintf(c->addon[i].chave, sizeof c->addon[i].chave, "%s", chave);
-  c->addon[i].limite = 3;
+  c->addon[i].limite = FONTEFALHA_LINKS_ADDON;
   c->addon[i].aoVivo = 0;
   return i;
 }
@@ -160,6 +161,9 @@ static void lerArquivo(const char *arquivo, FonteFalhaConfig *saida) {
     }
     fclose(f);
   }
+  // Nuvio_GO (dono): as opcoes sairam da tela e valem fixas, mesmo com arquivo antigo.
+  c.provedores = 0; c.addons = 1;
+  for (int i = 0; i < c.nAddons; i++) c.addon[i].limite = FONTEFALHA_LINKS_ADDON;
   // Filtros invalidos nao apagam a ordem/limites desta copia.
   if (filtroInvalido || !fontefiltro_config_validar(&c.filtro)) memset(&c.filtro, 0, sizeof c.filtro);
   *saida = c;

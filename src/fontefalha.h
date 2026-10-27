@@ -6,6 +6,7 @@
 // Limites contam links distintos, incluindo o primeiro; nunca repeticoes de
 // transporte/decoder do mesmo link. A configuracao nao contem credenciais.
 #define FONTEFALHA_MAX_LINKS 10
+#define FONTEFALHA_LINKS_ADDON 5   // Nuvio_GO: links por add-on, fixo (nao ha mais ajuste)
 #define FONTEFALHA_MAX_ADDONS 128
 #define FONTEFALHA_CHAVE 40
 #define FONTEFALHA_DIRETA (-1)

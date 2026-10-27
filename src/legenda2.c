@@ -177,6 +177,8 @@ unsigned legenda2_escolher(const char *identidade, const char *url,
   unsigned s;
   pthread_mutex_lock(&trava);
   d = limpar();
+  // Nuvio_GO (dono): nunca ha duas legendas no ecra. O idioma secundario so serve a escolha da fonte.
+  url = NULL;
   if (url && *url && identidade && *identidade) {
     snprintf(ident, sizeof ident, "%s", identidade);
     estado = LEG2_CARREGANDO;

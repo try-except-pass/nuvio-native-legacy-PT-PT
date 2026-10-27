@@ -11,6 +11,7 @@
 //   2. detalhe — camada sobre a tela corrente
 //   3. menu    — camada sobre a tela corrente
 //   4. a tela corrente (home, busca, biblioteca ou ajustes)
+#include "linguas.h"
 #include "arranque.h"
 #include "celbotao.h"
 #include "central.h"
@@ -1784,6 +1785,13 @@ static void erroSemFonte(void) {
   char motivo[160];
   int canal = player_id_canal()[0] != 0;
   int semPlano = debrid_sem_plano();
+  { char idioma[24];
+    if (!canal && stream_sem_audio_original(idioma, sizeof idioma)) {
+      snprintf(motivo, sizeof motivo, i18n("Nenhuma fonte tem o áudio original (%s)"), ling_nome(idioma));
+      player_erro_fonte_motivo(motivo, i18n("Volte à página do título e escolha uma fonte à mão."));
+      return;
+    }
+  }
   if (!canal && stream_filtro_bloqueou()) {
     player_erro_fonte_motivo(i18n("Nenhuma fonte passa pelos filtros"),
         i18n("Revise os filtros em Fontes e addons."));

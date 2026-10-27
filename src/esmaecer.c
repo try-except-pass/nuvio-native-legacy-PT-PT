@@ -39,13 +39,19 @@ unsigned esmaecer_ms(int escolha) {
 
 static int estiloValido(int e) { return e >= 0 && e < ESM_ESTILOS ? e : ESM_ESTILO_VITRINE; }
 
-int esmaecer_estagio_para(unsigned ocioMs, int escolha, int estilo) {
+// Nuvio_GO (dono): filme PAUSADO — o veu de 60% entra na hora de sempre e a vitrine/relogio, 1 min depois (3 min com o
+// padrao de 2): nao cai no preto em 5 s como fora do player.
+int esmaecer_estagio_para_p(unsigned ocioMs, int escolha, int estilo, int pausado) {
   unsigned t = esmaecer_ms(escolha);
-  unsigned fim = estiloValido(estilo) == ESM_ESTILO_ESCURECER ? ESM_NO_FIM_MS : ESM_DESCANSO_MS;
+  unsigned fim = estiloValido(estilo) == ESM_ESTILO_ESCURECER ? ESM_NO_FIM_MS
+               : pausado ? ESM_PAUSADO_MS : ESM_DESCANSO_MS;
   if (!t) return ESM_ACESO;
   if (ocioMs < t) return ESM_ACESO;
   if (ocioMs < t + fim) return ESM_VEU;
   return ESM_ESCURO;
+}
+int esmaecer_estagio_para(unsigned ocioMs, int escolha, int estilo) {
+  return esmaecer_estagio_para_p(ocioMs, escolha, estilo, 0);
 }
 
 float esmaecer_alfa_do_estagio(int e, int estilo) {
@@ -53,6 +59,9 @@ float esmaecer_alfa_do_estagio(int e, int estilo) {
     return estiloValido(estilo) == ESM_ESTILO_ESCURECER ? ESM_ALFA_ESCURO : ESM_ALFA_DESCANSO;
   return e == ESM_VEU ? ESM_ALFA_VEU : 0.0f;
 }
+
+static int pausadoAtual;
+void esmaecer_pausado(int p) { pausadoAtual = p ? 1 : 0; }
 
 void esmaecer_reiniciar(void) {
   ultimaEntrada = 0; temEntrada = 0; acordou = 0; acordouEm = 0;
@@ -96,7 +105,7 @@ void esmaecer_quadro(unsigned agora, float dt, int reproduzindo) {
   // Tocando de verdade: o relogio da ociosidade fica parado em "agora". Ao
   // pausar, os N minutos contam da pausa.
   if (reproduzindo) ultimaEntrada = agora;
-  definirEstagio(esmaecer_estagio_para(agora - ultimaEntrada, escolhaAtual, estiloAtual));
+  definirEstagio(esmaecer_estagio_para_p(agora - ultimaEntrada, escolhaAtual, estiloAtual, pausadoAtual));
   alvo = esmaecer_alfa_do_estagio(estagio, estiloAtual);
   if (dt < 0.0f) dt = 0.0f;
   if (dt > 0.1f) dt = 0.1f;

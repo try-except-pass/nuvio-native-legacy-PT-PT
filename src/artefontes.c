@@ -133,24 +133,33 @@ int af_tmdb_logo(const char *corpo, const char *base, char *fp, size_t n,
                  char *iso, size_t ni) {
   const char *el;
   char achado[3][160] = { "", "", "" };
-  int k;
+  double maxRazao[3] = { 0.0, 0.0, 0.0 };
+  int k, passo;
   if (fp && n) fp[0] = 0;
   if (iso && ni) iso[0] = 0;
   if (!corpo || !fp || !n) return 0;
-  for (el = js_array(corpo, NULL, "logos"); el; el = js_prox(js_fim(el))) {
-    const char *fim = js_fim(el);
-    char caminho[160], l[16];
-    size_t L;
-    if (!js_texto(el, fim, "file_path", caminho, sizeof caminho) || caminho[0] != '/') continue;
-    L = strlen(caminho);
-    if (L > 4 && !strcmp(caminho + L - 4, ".svg")) continue;   // nao decodifica
-    if (!linguaDe(el, fim, l, sizeof l)) k = 2;
-    else if (base && base[0] && !strncmp(l, base, 2) && !l[2]) k = 0;
-    else if (!strcmp(l, "en")) k = 1;
-    else continue;
-    // A lista vem da mais votada para a menos: a primeira de cada classe fica.
-    if (!achado[k][0]) snprintf(achado[k], sizeof achado[k], "%s", caminho);
-  }
+  // NUVIO_GO (dono: "o estudio aparece em cima do titulo"): muitos logos do TMDB trazem a marca do estudio (DC Studios...)
+  // empilhada sobre o titulo, e esses sao os MAIS ALTOS (razao largura/altura menor). Em cada idioma vale o primeiro da
+  // lista (a mais votada) cuja razao fica a 85% da mais larga do mesmo idioma; sem a razao no JSON, o primeiro de sempre.
+  for (passo = 0; passo < 2; passo++)
+    for (el = js_array(corpo, NULL, "logos"); el; el = js_prox(js_fim(el))) {
+      const char *fim = js_fim(el);
+      char caminho[160], l[16];
+      size_t L;
+      double razao;
+      if (!js_texto(el, fim, "file_path", caminho, sizeof caminho) || caminho[0] != '/') continue;
+      L = strlen(caminho);
+      if (L > 4 && !strcmp(caminho + L - 4, ".svg")) continue;   // nao decodifica
+      if (!linguaDe(el, fim, l, sizeof l)) k = 2;
+      else if (base && base[0] && !strncmp(l, base, 2) && !l[2]) k = 0;
+      else if (!strcmp(l, "en")) k = 1;
+      else continue;
+      razao = js_num(el, fim, "aspect_ratio", 0.0);
+      if (passo == 0) { if (razao > maxRazao[k]) maxRazao[k] = razao; continue; }
+      if (achado[k][0]) continue;
+      if (maxRazao[k] > 0.0 && razao < 0.85 * maxRazao[k]) continue;
+      snprintf(achado[k], sizeof achado[k], "%s", caminho);
+    }
   for (k = 0; k < 3; k++)
     if (achado[k][0]) {
       snprintf(fp, n, "%s", achado[k]);

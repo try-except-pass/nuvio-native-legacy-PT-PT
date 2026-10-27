@@ -1414,9 +1414,11 @@ int main(int argc, char **argv) {
           e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP ||
           e.type == SDL_MOUSEWHEEL || e.type == SDL_FINGERDOWN) {
         int age = e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_FINGERDOWN;
+        // Vidro chapado por 0,5 s a cada acao: qualquer tela que anda (rolagem, abrir/fechar, foco) fica leve; parou, o vidro volta.
+        if (age || e.type == SDL_MOUSEWHEEL) gfx_vidro_movimento();
         // OK na vitrine da tela de descanso abre o titulo que esta nela
         // (descanso.h). A tecla continua engolida: quem abre e o app.c.
-        if (e.type == SDL_KEYDOWN && esmaecer_descanso() &&
+        if (e.type == SDL_KEYDOWN && esmaecer_descanso() && !player_aberto() &&
             (e.key.keysym.sym == SDLK_RETURN || e.key.keysym.sym == SDLK_KP_ENTER))
           descanso_pedir_abrir();
         if (esmaecer_apagado()) {
@@ -1698,9 +1700,9 @@ int main(int argc, char **argv) {
     // PROTECAO DE OLED: "parado" = nenhuma tecla E nenhum video tocando de
     // verdade (pausado conta como parado).
     esmaecer_escolha(ajustes_esmaecer());
-    // Com o player aberto (filme pausado) fica so o escurecer de antes: a
-    // vitrine pediria texturas de tela cheia com o decodificador ocupado.
-    esmaecer_estilo(player_aberto() ? ESM_ESTILO_ESCURECER : ajustes_descanso_estilo());
+    // Filme pausado (dono, Nuvio_GO): veu de 60% aos 2 min e, 1 min depois, a mesma tela de descanso de fora do player.
+    esmaecer_estilo(ajustes_descanso_estilo());
+    esmaecer_pausado(player_aberto());
     // #338: com trailer tocando (destaque da Home ou pagina do titulo) o medidor
     // some da ilha; volta quando ele para (desempenho.h). trailer_medidor
     // esconde tambem na PAUSA da tela cheia nativa: la trailer_tocando fica

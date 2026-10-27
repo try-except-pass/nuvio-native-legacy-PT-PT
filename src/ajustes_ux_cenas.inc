@@ -1137,6 +1137,7 @@ static void ajcCenaIcone(int op, int sec) {
 
 // --- despacho ------------------------------------------------------------------------
 static void ajcCenaOpcao(int sec, int op) {
+  sec = ajFam(sec, op);
   if (ajcNovaReproducao(sec, op) || ajcNovaCartazes(sec, op) || ajcNovaServicos(sec, op) ||
       ajcNovaHome(sec, op) || ajcNovaTitulo(sec, op)) return;
   switch (op) {
@@ -1190,6 +1191,7 @@ static void ajcCenaOpcao(int sec, int op) {
   }
 }
 static void ajcCenaCategoria(int sec) {
+  sec = ajFam(sec, -1);
   switch (sec) {
     case AJS_HOME: case AJS_GALERIA: ajcCenaHome(-1); return;
     case AJS_TITULO: ajcCenaTitulo(-1); return;

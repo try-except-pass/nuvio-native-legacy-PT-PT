@@ -173,8 +173,7 @@ static void buscaECaminhos(void) {
   memcpy(copia, valor, sizeof copia);
   n = ajustes_buscar("MEMÓRIA PARA IMAGENS", resultados, AJ_N);
   assert(n > 0 && resultados[0].op == AJ_TEX_MB);
-  assert(resultados[0].avancado);
-  assert(strstr(resultados[0].caminho, "Esta TV"));
+  assert(strstr(resultados[0].caminho, "Aparência"));
   primeiro = resultados[0];
   n = ajustes_buscar("memo\xCC\x81ria para imagens", resultados, AJ_N);
   assert(n > 0 && !memcmp(&primeiro, &resultados[0], sizeof primeiro));
@@ -232,7 +231,7 @@ static void bloqueadosESegredos(void) {
   i = indiceResultado(AJ_HERO_TRAILER_SOM, n);
   assert(i >= 0 && !resultados[i].bloqueado);
   valor[AJ_DET_TRAILER_AUTO] = 1;
-  assert(strstr(resultados[i].caminho, "Cartazes e trailers"));
+  assert(strstr(resultados[i].caminho, "Destaque"));
   n = ajustes_buscar("idioma dos metadados", resultados, AJ_N);
   i = indiceResultado(AJ_TMDB_IDIOMA, n);
   assert(i >= 0 && resultados[i].bloqueado);
@@ -405,32 +404,31 @@ static const char *secaoDe(int op, const char **grupo) {
   return NULL;
 }
 static void reorganizacao202(void) {
-  static const char *const ORDEM[11] = {
-    "Reprodução", "Idiomas e legendas", "Fontes e addons", "TV ao vivo",
-    "Tela inicial", "Aparência", "Página do título", "Cartazes e trailers",
-    "Conta e serviços", "Esta TV", "Sobre e ajuda" };
+  // Nuvio_GO: 12 categorias na ordem do dono.
+  static const char *const ORDEM[12] = {
+    "Destaque", "Fileiras da Home", "Galeria", "TV ao vivo",
+    "Addons e fontes", "Cartazes e conteúdo", "Página do título", "Aparência",
+    "Barra lateral", "Idiomas e legendas", "Reprodução", "Conta e sobre" };
   static const struct { int op; const char *sec; } COMUNS[] = {
-    { AJ_HOME_LAYOUT, "Tela inicial" }, { AJ_FIL_ORDEM, "Tela inicial" },
-    { AJ_HERO_TRAILER, "Cartazes e trailers" }, { AJ_TEMA, "Aparência" }, { AJ_TAMANHO_UI, "Aparência" },
-    { AJ_QUALIDADE, "Reprodução" }, { AJ_DV, "Reprodução" }, { AJ_PAUSA_OVERLAY, "Reprodução" },
-    { AJ_ADDONS, "Fontes e addons" }, { AJ_FONTE_MANUAL, "Reprodução" }, { AJ_FONTE_PRIORIDADE, "Reprodução" },
-    { AJ_IDIOMA, "Idiomas e legendas" }, { AJ_AUD_LINGUA, "Idiomas e legendas" }, { AJ_LEG_LINGUA, "Idiomas e legendas" },
-    { AJ_TRAKT, "Conta e serviços" }, { AJ_PERFIL_ATIVO, "Conta e serviços" }, { AJ_SYNC, "Conta e serviços" },
-    { AJ_ATUALIZAR, "Sobre e ajuda" },
+    { AJ_HOME_LAYOUT, "Fileiras da Home" }, { AJ_FIL_ORDEM, "Fileiras da Home" },
+    { AJ_HERO_TRAILER, "Destaque" }, { AJ_VIDRO, "Aparência" }, { AJ_TAMANHO_UI, "Aparência" },
+    { AJ_ADDONS, "Addons e fontes" }, { AJ_FONTE_PRAZO, "Addons e fontes" },
+    { AJ_IDIOMA, "Idiomas e legendas" }, { AJ_LEG_LINGUA, "Idiomas e legendas" },
+    { AJ_PULAR_ABERTURA, "Reprodução" }, { AJ_MENU_TOPO, "Barra lateral" },
+    { AJ_TRAKT, "Conta e sobre" }, { AJ_PERFIL_ATIVO, "Conta e sobre" }, { AJ_SYNC, "Conta e sobre" },
+    { AJ_ATUALIZAR, "Conta e sobre" },
   };
   static const struct { int op; const char *sec, *grp; } MUDARAM[] = {
-    { AJ_PLUGINS, "Fontes e addons", "Addons" }, { AJ_ADDONS_PRINCIPAL, "Fontes e addons", "Addons" },
-    { AJ_BUSCA_CINEMETA, "Fontes e addons", "Addons" }, { AJ_TAM_MAX, "Reprodução", "Escolha da fonte" },
-    { AJ_DEBRID_RD, "Fontes e addons", "Debrid" }, { AJ_P2P_LIGADO, "Reprodução", "P2P" },
-    { AJ_JF_LIGADO, "Fontes e addons", "Servidores pessoais" },
-    { AJ_MDB_CHAVE, "Página do título", "Notas" }, { AJ_FANART_CHAVE, "Cartazes e trailers", "De onde vem a arte" },
-    { AJ_LEG_LINGUA2, "Idiomas e legendas", "Segunda legenda" },
+    { AJ_PLUGINS, "Addons e fontes", "Addons" }, { AJ_ADDONS_PRINCIPAL, "Addons e fontes", "Addons" },
+    { AJ_BUSCA_CINEMETA, "Addons e fontes", "Addons" },
+    { AJ_DEBRID_RD, "Addons e fontes", "Debrid" },
+    { AJ_FANART_CHAVE, "Cartazes e conteúdo", "De onde vem a arte" },
   };
   int i, s = 0, n, idiomaAntes = valor[AJ_IDIOMA];
   const char *g;
   montarTela();
   for (i = 0; i < AJ_N_TELA; i++) if (TELA[i].tipo == IT_SEC) assert(!strcmp(TELA[i].titulo, ORDEM[s++]));
-  assert(s == 11);
+  assert(s == 12);
   for (i = 0; i < (int)(sizeof COMUNS / sizeof *COMUNS); i++) {
     const char *sec = secaoDe(COMUNS[i].op, NULL);
     assert(sec && !strcmp(sec, COMUNS[i].sec));
@@ -445,15 +443,14 @@ static void reorganizacao202(void) {
   n = ajustes_buscar("contas", resultados, AJ_N);
   assert(indiceResultado(AJ_TRAKT, n) >= 0 && indiceResultado(AJ_ADDONS, n) >= 0);
   n = ajustes_buscar("chaves", resultados, AJ_N);
-  assert(indiceResultado(AJ_DEBRID_RD, n) >= 0 && indiceResultado(AJ_MDB_CHAVE, n) >= 0);
+  assert(indiceResultado(AJ_DEBRID_RD, n) >= 0);
   n = ajustes_buscar("addons", resultados, AJ_N);
   assert(indiceResultado(AJ_ADDONS, n) >= 0);
-  // 2.0.3: a escolha da fonte voltou para Reproducao; acha pelo lugar da 2.0.2.
-  i = indiceResultado(AJ_FONTE_MANUAL, ajustes_buscar("fontes e addons", resultados, AJ_N));
-  assert(i >= 0 && strstr(resultados[i].caminho, "Reprodução"));
+  i = indiceResultado(AJ_FONTE_PRAZO, ajustes_buscar("espera pelos add-ons", resultados, AJ_N));
+  assert(i >= 0 && strstr(resultados[i].caminho, "Addons e fontes"));
   assert(indiceResultado(AJ_HERO_TRAILER, ajustes_buscar("cartazes e arte trailer", resultados, AJ_N)) < 0 ||
          indiceResultado(AJ_TRAILER_QUAL, ajustes_buscar("trailers qualidade", resultados, AJ_N)) >= 0);
-  assert(indiceResultado(AJ_RESOLUCAO, ajustes_buscar("desempenho desta tv", resultados, AJ_N)) >= 0);
+  assert(indiceResultado(AJ_RESOLUCAO, ajustes_buscar("resolução da interface", resultados, AJ_N)) >= 0);
   n = ajustes_buscar("idioma", resultados, AJ_N);
   assert(n > 0 && resultados[0].op == AJ_IDIOMA);
   assert(!strcmp(rotuloOpcao(AJ_IDIOMA), "Idioma do app"));
