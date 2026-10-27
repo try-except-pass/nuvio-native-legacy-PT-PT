@@ -67,6 +67,26 @@ int fonteauto_fila_o(int modo, int total, int preferida, const long *pontos,
 // devolve quantas passaram na primeira volta.
 int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma);
 
+// ESCOLHA QUE MIRA UMA LEGENDA SINCRONIZADA (dono, 2026-10-27; HANDOFF §4 item 2). Achar uma legenda no idioma
+// principal nao basta: tem de ser uma que SINCRONIZA com a fonte. A ordem do dono:
+//   audio original > legenda principal sincronizada > legenda secundaria sincronizada
+//   > legenda principal (sincronia nao confirmada) > legenda secundaria (idem).
+// "Melhor qualidade" nao e um passo: e a ordem do addon, que `fila` ja traz (cada nivel percorre a fila de cima
+// para baixo). Aqui mora so a REGRA, sem rede: quem le a sincronia (legref.c por Range) e quem troca de fonte
+// e outro codigo. Passo sem idioma configurado e PULADO: sem secundaria nao ha os dois niveis dela; sem "Original"
+// ligado (ou sem fonte que diga ter o original) o audio nao separa ninguem.
+enum { FSINC_DESCONHECIDA = 0, FSINC_CONFIRMADA = 1, FSINC_NAO = 2 };   // NAO = conferida e nao casa, ou ilegivel
+enum { FSINC_NADA = 0, FSINC_PRIM_OK = 1, FSINC_SEC_OK = 2, FSINC_PRIM = 3, FSINC_SEC = 4 };
+typedef struct {
+  unsigned char original;            // a fonte DIZ ter o audio original (a mesma leitura de temIdioma)
+  unsigned char temPrim, temSec;     // ha legenda no idioma principal / secundario para ela
+  unsigned char sincPrim, sincSec;   // FSINC_* dessa legenda com ESTA fonte (CONFIRMADA vale como "tem")
+} FonteSinc;
+// `fila` = indices de fonte na ordem de tentativa; `c` indexado pelo indice da fonte (como temIdioma). Devolve o
+// indice escolhido e, em *nivel, FSINC_* (FSINC_NADA = ninguem tem legenda: a primeira da fila, como sempre).
+// -1 se nao ha fila.
+int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exigeOriginal, int temSec, int *nivel);
+
 // Quantas candidatas o modo pode conferir numa escolha. PRIMEIRA = 1 sempre:
 // a garantia do #130 e que so a fonte que vai tocar e tocada.
 int fonteauto_tentativas(int modo, int pedidas);

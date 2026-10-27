@@ -3583,7 +3583,8 @@ int app_iniciar(const char *dirArte) {
   arranque_etapa("app_iniciar/addonstats_ler");
   addonstats_ler();   // #202: latencia de cada add-on NESTA TV (addonstats.h)
   { char arq[600];   // as respostas do idioma original ficam no aparelho: a segunda vez e instantanea
-    idiomaorig_iniciar(dados_caminho(arq, sizeof arq, "idioma-original.txt") ? arq : ""); }
+    // -2: o idioma-original.txt da 2.0.22 tem respostas sem TMDB (Poderoso Chefao -> it); vale refazer uma vez.
+    idiomaorig_iniciar(dados_caminho(arq, sizeof arq, "idioma-original-2.txt") ? arq : ""); }
   // A ARTE ESCOLHIDA A MAO (#142) tambem, antes do primeiro destaque: sem ela
   // lida, o hero abriria na foto automatica e trocaria no quadro seguinte.
   arranque_etapa("app_iniciar/arteesc_iniciar");

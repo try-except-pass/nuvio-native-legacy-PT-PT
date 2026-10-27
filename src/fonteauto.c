@@ -142,6 +142,31 @@ int fonteauto_pode_decidir(const FonteautoParcial *p) {
   return p->boa && p->boa[c];
 }
 
+int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exigeOriginal, int temSec, int *nivel) {
+  int q, nv, soOriginal = 0;
+  if (nivel) *nivel = FSINC_NADA;
+  if (!fila || n < 1 || !c) return -1;
+  // "Original" ligado e ao menos uma fonte que DIZ ter o original: so essas disputam. Nenhuma: todas, como a segunda volta.
+  if (exigeOriginal)
+    for (q = 0; q < n && !soOriginal; q++) soOriginal = c[fila[q]].original;
+  for (nv = FSINC_PRIM_OK; nv <= FSINC_SEC; nv++) {
+    if (!temSec && (nv == FSINC_SEC_OK || nv == FSINC_SEC)) continue;
+    for (q = 0; q < n; q++) {
+      const FonteSinc *s = &c[fila[q]];
+      int ok;
+      if (soOriginal && !s->original) continue;
+      ok = nv == FSINC_PRIM_OK ? s->sincPrim == FSINC_CONFIRMADA
+         : nv == FSINC_SEC_OK  ? s->sincSec == FSINC_CONFIRMADA
+         : nv == FSINC_PRIM    ? (s->temPrim || s->sincPrim == FSINC_CONFIRMADA)
+                               : (s->temSec || s->sincSec == FSINC_CONFIRMADA);
+      if (ok) { if (nivel) *nivel = nv; return fila[q]; }
+    }
+  }
+  for (q = 0; q < n; q++)   // ninguem tem legenda: a escolha de sempre
+    if (!soOriginal || c[fila[q]].original) return fila[q];
+  return fila[0];
+}
+
 int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma) {
   int com = 0, q;
   if (!fila || n < 2 || !temIdioma) return fila && n == 1 && temIdioma && temIdioma[fila[0]];

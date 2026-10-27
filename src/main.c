@@ -1273,6 +1273,10 @@ int main(int argc, char **argv) {
   // Se a tela de escolha trocar o perfil, app.c chama traktauth_trocar_perfil.
   traktauth_carregar_perfil(perfis_ativo());
   simklauth_carregar_perfil(perfis_ativo());
+  // A chave do TMDB ANTES do app_iniciar: ele monta o catalogo do cache e pede o idioma original de cada titulo.
+  // Sem a chave (2.0.22) o TMDB era pulado em todo o lote e valia o 1o idioma do Wikidata, gravado para sempre
+  // (Poderoso Chefao -> it, Valkyrie -> de).
+  desc_tmdb(dirArte);
   NV_ETAPA("app_iniciar");
   arranque_etapa("app_iniciar");
   if (!app_iniciar(dirArte)) return 1;
@@ -1334,7 +1338,6 @@ int main(int argc, char **argv) {
   // resposta chegar — abrir vazio enquanto busca seria pior que mostrar o de
   // ontem por dois segundos.
   trakt_carregar(dirArte);
-  desc_tmdb(dirArte);
   desc_espera_addons_definir(esperaAddonsDaConta);
   desc_iniciar();
   // RESOLUCAO DE LAYOUT, e nao metade: o snapshot e o fundo parado atras do
