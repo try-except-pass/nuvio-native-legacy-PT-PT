@@ -298,6 +298,22 @@ static void pilManual(Uint32 agora) {
   } else pilIr(PIL_SINCRONIZANDO, agora);
 }
 
+// A LEGENDA ESCOLHIDA NAO BAIXOU (dono, 2026-10-27): a proxima do mesmo idioma entra no lugar, ate 4,
+// pelo mesmo trocador do AutoSync. So depois da ultima a pilula diz que nao deu.
+#define LEG_FALHAS_MAX 4
+static uint64_t legFalhas[LEG_FALHAS_MAX];
+static int nLegFalhas;
+static int autoTroca(const char *idioma, const uint64_t *tent, int n, int voltar, char *nome, unsigned tamNome);
+static int legendaSeguinte(void) {
+  char nome[96];
+  if (!pilHash || !pilIdioma[0] || nLegFalhas >= LEG_FALHAS_MAX) return 0;
+  legFalhas[nLegFalhas++] = pilHash;
+  if (!autoTroca(pilIdioma, legFalhas, nLegFalhas, 0, nome, sizeof nome)) return 0;
+  printf("[legenda] nao baixou; tentando outra em '%s' (%d de %d): %s\n", pilIdioma, nLegFalhas,
+         LEG_FALHAS_MAX, nome);
+  fflush(stdout);
+  return 1;
+}
 static void pilAtualizar(Uint32 agora) {
   int r;
   LegSyncVisao v;
@@ -312,7 +328,7 @@ static void pilAtualizar(Uint32 agora) {
     if (r & LEGSYNC_PIL_ESCONDEU) pilEsperaHash = pilHash;
     if (r & LEGSYNC_PIL_FINAL_TARDE) { pilHash = pilEsperaHash; pil.rastreia = 0; }
     if (r & LEGSYNC_PIL_LEMBRAR && pilHash) pilLembrar();
-    if (r & LEGSYNC_PIL_BAIXAR) { pilFalhaBaixar = 1; pilFalhou(pilIdioma, agora); return; }
+    if (r & LEGSYNC_PIL_BAIXAR) { if (!legendaSeguinte()) { pilFalhaBaixar = 1; pilFalhou(pilIdioma, agora); } return; }
     if (r & LEGSYNC_PIL_ZERAR) pilZerar();
     return;
   }
@@ -428,7 +444,7 @@ static void reiniciarFaixas(int preservarPrebusca) {
   legOverlayTV = legOverlayColhidos = 0;
   if (!preservarPrebusca) mkvass_parar();
   legenda_desligar(); legenda_pre_reiniciar();
-  legAuto = 1; legAutoDesde = 0; legTentativas = 0; legRetentaEm = 0; pilZerar(); pil.espera = 0;
+  legAuto = 1; legAutoDesde = 0; legTentativas = 0; legRetentaEm = 0; nLegFalhas = 0; pilZerar(); pil.espera = 0;
   legendasui_reiniciar();   // F04: the second subtitle belongs to the session too
   // #202: speed is per playback: a new title starts at 1x.
   velFoco = 0; velPedidaUi = VEL_NORMAL; video_velocidade(VEL_NORMAL);
@@ -1114,8 +1130,7 @@ static void legendaAutomatica(Uint32 agora) {
     legTentativas++;
     printf("[legenda] automatica: nada em '%s'; nova tentativa %d de 6\n", pref, legTentativas);
     fflush(stdout);
-    addons_legendas_reiniciar();
-    if (ci->imdb[0]) addons_buscar_legendas(ci->imdb, ci->tipo);
+    addons_legendas_reiniciar();   // refaz o MESMO pedido (o episodio certo); o id do titulo viraria S1E1
     legAutoDesde = 0;
     legRetentaEm = agora + 8000u;
     return;
