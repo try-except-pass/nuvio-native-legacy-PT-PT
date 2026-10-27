@@ -2,8 +2,8 @@
 # Offline Settings behavior plus PNG. Foreground only.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mkdir -p /Volumes/ExternalSSD/tmp/rev/trakt610
-bin=/Volumes/ExternalSSD/tmp/rev/trakt610/settings-test
+mkdir -p ${TMPDIR:-/tmp}/rev/trakt610
+bin=${TMPDIR:-/tmp}/rev/trakt610/settings-test
 sources=()
 for source in src/*.c src/dts/*.c; do
   case "$source" in src/main.c|src/ajustes.c) continue;; esac
@@ -12,7 +12,7 @@ done
 defs=()
 if [ "${TRAKT610_BEFORE:-0}" = 1 ]; then defs+=(-DTRAKT610_CAPTURE_ONLY); fi
 cc ${defs[@]+"${defs[@]}"} -DAJUSTES_TESTE "${sources[@]}" tests/trakt610_ajustes.c -Isrc -o "$bin" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
-"$bin" "${1:-/Volumes/ExternalSSD/tmp/rev/trakt610/after.png}"
+"$bin" "${1:-${TMPDIR:-/tmp}/rev/trakt610/after.png}"

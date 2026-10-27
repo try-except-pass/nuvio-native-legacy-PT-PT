@@ -3,7 +3,7 @@
 # sonda real contra MKV/MP4/TS gerados pelo ffmpeg num servidor local.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-FFMPEG=${FFMPEG:-/opt/homebrew/bin/ffmpeg}
+FFMPEG=${FFMPEG:-ffmpeg}
 [ -x "$FFMPEG" ] || { echo "mkv_contentor.sh: ffmpeg nao encontrado em $FFMPEG"; exit 1; }
 DIR=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-mkvcont.XXXXXX")
 pid=""
@@ -20,5 +20,5 @@ pid=$!
 for _ in $(seq 50); do curl -sf -o /dev/null "http://127.0.0.1:$porta/a.ts" && break; sleep 0.1; done
 . tests/mkvcore_flag.sh
 cc -Isrc tests/mkv_contentor.c src/mkv.c src/rede.c src/redeurl.c \
-  -o "$DIR/t" -O1 -g -Wall -I/opt/homebrew/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
+  -o "$DIR/t" -O1 -g -Wall -I/usr/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
 "$DIR/t" "http://127.0.0.1:$porta" "http://127.0.0.1:$morta"

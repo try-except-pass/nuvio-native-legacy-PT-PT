@@ -4,10 +4,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-cw-prioridade.XXXXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-O1 -g -Isrc -Itests -pthread -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -Itests -pthread -I/usr/include -I/usr/include/SDL2
   -ffunction-sections -fdata-sections -DNV_DESC_MIN_MS=0ull)
 gc=(-Wl,--gc-sections)
-if [ "$(uname -s)" = Darwin ]; then gc=(-Wl,-dead_strip); fi
+if [ "$(uname -s)" = Darwin ]; then gc=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 if [ "${SANITIZE:-0}" = 1 ]; then
   flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
   if [ "$(uname -s)" != Darwin ]; then flags+=(-fno-pie); gc+=(-no-pie); fi

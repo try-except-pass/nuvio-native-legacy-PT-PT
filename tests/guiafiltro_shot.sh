@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-guiafiltro-shot.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 export NUVIO_DADOS="$work/data"
-output="${1:-/Volumes/ExternalSSD/tmp/rev/livefiltro}"
+output="${1:-${TMPDIR:-/tmp}/rev/livefiltro}"
 mkdir -p "$output"
 sources=()
 for source in src/*.c src/dts/*.c; do
@@ -12,7 +12,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/guiafiltro_shot.c -Isrc -o "$work/shot" -O1 -g \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 "$work/shot" "$output"

@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 flags=(-O1 -g -Isrc)
 if [ "${SANITIZE:-1}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
-cc "${flags[@]}" src/htmlq.c tests/htmlq.c -o "${NV_TMP:-/Volumes/ExternalSSD/nv-f09-tmp}"/nuvio-htmlq-tests
-if [ -n "${HTMLQ_PAGINA:-}" ]; then exec "${NV_TMP:-/Volumes/ExternalSSD/nv-f09-tmp}"/nuvio-htmlq-tests "$HTMLQ_PAGINA" "$HTMLQ_SELETORES"; fi
-"${NV_TMP:-/Volumes/ExternalSSD/nv-f09-tmp}"/nuvio-htmlq-tests | tee /dev/stderr | grep -q 'htmlq: ok'
+cc "${flags[@]}" src/htmlq.c tests/htmlq.c -o "${NV_TMP:-${TMPDIR:-/tmp}/nv-f09-tmp}"/nuvio-htmlq-tests
+if [ -n "${HTMLQ_PAGINA:-}" ]; then exec "${NV_TMP:-${TMPDIR:-/tmp}/nv-f09-tmp}"/nuvio-htmlq-tests "$HTMLQ_PAGINA" "$HTMLQ_SELETORES"; fi
+"${NV_TMP:-${TMPDIR:-/tmp}/nv-f09-tmp}"/nuvio-htmlq-tests | tee /dev/stderr | grep -q 'htmlq: ok'
 echo "htmlq.sh: ok"

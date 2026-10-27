@@ -6,7 +6,7 @@ python3 - <<'PY'
 import concurrent.futures, os, pathlib, shutil, signal, subprocess, tempfile, time
 start = time.monotonic()
 work = pathlib.Path(tempfile.mkdtemp(prefix='nv-rev4-'))
-flags = ['-O0', '-w', '-Isrc', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2']
+flags = ['-O0', '-w', '-Isrc', '-I/usr/include', '-I/usr/include/SDL2']
 def run(cmd, **kw):
     p = subprocess.Popen(cmd, start_new_session=True, **kw)
     try:
@@ -25,7 +25,7 @@ try:
         return str(obj)
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
         objects = list(pool.map(compile, sources))
-    libs = ['-L/opt/homebrew/lib', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-framework', 'OpenGL']
+    libs = ['-L/usr/lib/x86_64-linux-gnu', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl']
     assert run(['cc', *objects, *libs, '-o', str(work/'test')]) == 0
     with tempfile.TemporaryDirectory(prefix='nuvio-homelayouts-shot-') as data:
         env = dict(os.environ, NUVIO_DADOS=data, NV_REV4_HOME='1', NV_AJ='escalaTextoLocal 5\ntamanhoInterfaceLocal 2')

@@ -14,7 +14,7 @@ trap 'rm -rf "$tmp"' EXIT
 extra=()
 if grep -q desc_lapides_primeira src/descoberta.h; then extra=(-DTEM_AJUSTE); fi
 cc -O1 -g -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-unused-function \
-  ${extra[@]+"${extra[@]}"} -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  ${extra[@]+"${extra[@]}"} -Isrc -I/usr/include -I/usr/include/SDL2 \
   src/catalogo.c src/progresso.c src/cwordem.c src/cwretido.c src/vistonao.c tests/cwdesmarcado.c \
   src/cotacat.c src/js.c src/metaprov.c src/colecoes.c src/redeurl.c src/catordem.c \
   -o "$tmp/cwdesmarcado" -lpthread

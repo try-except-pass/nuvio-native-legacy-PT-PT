@@ -12,7 +12,7 @@ if [ "${SANITIZE:-0}" = thread ]; then flags+=(-fsanitize=thread); fi
 cc ${flags[@]+"${flags[@]}"} -DNV_DESC_MIN_MS=1000ull -DCAT_ESPERA_SILENCIO_MS=300 -DCAT_ESPERA_MIN_MS=600 \
   src/cwordem.c tests/desc_iniciar_corrida.c src/homeestado.c src/catalogo.c \
   src/progresso.c src/js.c src/metaprov.c src/colecoes.c src/redeurl.c src/catordem.c src/cotacat.c \
-  -Isrc -Itests -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -o "$tmp/nuvio-desc-iniciar-corrida" -O1 -g -pthread -Wl,-undefined,dynamic_lookup \
+  -Isrc -Itests -I/usr/include -I/usr/include/SDL2 \
+  -o "$tmp/nuvio-desc-iniciar-corrida" -O1 -g -pthread -Wl,--unresolved-symbols=ignore-all \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-unused-function
 "$tmp/nuvio-desc-iniciar-corrida"

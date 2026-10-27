@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export TMPDIR=/Volumes/ExternalSSD/tmp/jobtmp
+export TMPDIR=${TMPDIR:-/tmp}
 mkdir -p "$TMPDIR"
 dir=$(mktemp -d "$TMPDIR/nuvio-plx-janela.XXXXXX")
 trap 'rm -rf "$dir"' EXIT

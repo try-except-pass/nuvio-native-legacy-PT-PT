@@ -92,7 +92,7 @@ if [ "$RUST_MKVCORE" = 1 ]; then
   RUST_VOL=(-v "$RUST_LIB:/tmp/libmkvcore.a:ro")
   # The container has no cargo: build the DV7 converter here with the same toolchain.
   if [ "$RUST_PERSONALITY" = 1 ]; then
-    (export RUSTUP_HOME="${RUSTUP_HOME:-/Volumes/ExternalSSD/rust/rustup}" CARGO_HOME="${CARGO_HOME:-/Volumes/ExternalSSD/rust/cargo}"
+    (export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/opt/rust/rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/opt/rust/cargo}"
      export PATH="$CARGO_HOME/bin:$PATH" NUVIO_DV7_TARGET=armv7-unknown-linux-gnueabi
      bash tools/build-dv7.sh >&2)
   fi

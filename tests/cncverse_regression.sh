@@ -4,8 +4,8 @@ cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-cnc-regression.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 flags=(-std=gnu11 -O1 -g -pthread -Isrc -ffunction-sections -fdata-sections
-       -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-macro-redefined)
-if [[ $(uname -s) == Darwin ]]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+       -I/usr/include -I/usr/include/SDL2 -Wno-macro-redefined)
+if [[ $(uname -s) == Darwin ]]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 export CNC_FIXTURE_DIR="$work"
 python3 - <<'PY'
 import base64, json, os

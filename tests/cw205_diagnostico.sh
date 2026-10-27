@@ -18,12 +18,12 @@ case "${1:-trakt}" in
       srcdir="$dir/src"
     fi
     cc "$srcdir/trakt.c" tests/stub_fichameta.c "$srcdir/js.c" "$srcdir/metaprov.c" tests/cw205_diagnostico.c \
-      -I"$srcdir" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-      -o "$dir/teste" -O1 -g -Wall -Wextra -Wl,-dead_strip -lpthread ;;
+      -I"$srcdir" -I/usr/include -I/usr/include/SDL2 \
+      -o "$dir/teste" -O1 -g -Wall -Wextra -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread ;;
   montagem)
     cc -DCW205_MONTAGEM src/catalogo.c src/progresso.c src/cwordem.c src/cwretido.c \
       tests/cw205_diagnostico.c src/cotacat.c src/js.c src/metaprov.c src/colecoes.c \
-      src/redeurl.c src/catordem.c -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+      src/redeurl.c src/catordem.c -Isrc -I/usr/include -I/usr/include/SDL2 \
       -o "$dir/teste" -O1 -g -Wall -Wno-deprecated-declarations \
       -Wno-macro-redefined -Wno-unused-function ;;
   *) echo 'uso: bash tests/cw205_diagnostico.sh [trakt|montagem]' >&2; exit 2 ;;

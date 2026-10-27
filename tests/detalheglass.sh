@@ -6,7 +6,7 @@
 # before = detail.c at a363d821c (the Trakt comments commit this builds on).
 set -eu
 cd "$(dirname "$0")/.."
-OUT=/Volumes/ExternalSSD/tmp/detalheglass
+OUT=${TMPDIR:-/tmp}/detalheglass
 export TMPDIR="$OUT/tmp"
 export OBJ="$OUT/obj"
 mkdir -p "$OUT" "$TMPDIR" "$OBJ"
@@ -31,7 +31,7 @@ for glass in ${@:-0 1}; do
     filme-elenco-sem-foco filme-relacionados-sem-foco filme-trailers-sem-foco filme-colecao-sem-foco \
     serie-elenco-sem-foco serie-relacionados-sem-foco serie-trailers-sem-foco >/dev/null
   for bmp in "$dir"/*.bmp; do
-    sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null
+    ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null
     rm -f "$bmp"
   done
 done

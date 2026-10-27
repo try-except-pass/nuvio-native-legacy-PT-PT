@@ -16,8 +16,8 @@ d1="$(mktemp -d ${TMPDIR:-/tmp}/nuvio-fila-nova.XXXXXX)"
 d2="$(mktemp -d ${TMPDIR:-/tmp}/nuvio-fila-atual.XXXXXX)"
 trap 'rm -rf "$bin" "$d1" "$d2"' EXIT
 cc "${sources[@]}" tests/novidades_fila.c -Isrc -o "$bin" \
-  -O1 -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NUVIO_DADOS="$d1" "$bin" nova
 NUVIO_DADOS="$d1" "$bin" fechar

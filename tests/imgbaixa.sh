@@ -2,7 +2,7 @@
 # Offline C9: compare native 1080p art with the pre-upscaler GPU path.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-out="${1:-/Volumes/ExternalSSD/tmp/rev/imgbaixa}"
+out="${1:-${TMPDIR:-/tmp}/rev/imgbaixa}"
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-imgbaixa.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$out/before" "$out/after" "$work/data" "$work/src/dts" "$work/tests"
@@ -15,16 +15,16 @@ for source in src/*.c src/dts/*.c; do
 done
 printf '%s\0' "${sources[@]}" tests/ui720_settings.c |
   xargs -0 -P 8 -I '{}' cc '{}' -c -o "$work/{}.o" -DAJUSTES_TESTE -Isrc -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined
 for version in before after; do
   flags=()
   if [ "$version" = before ]; then flags+=("-DIMGBAIXA_BASELINE=\"$work/baseline.c\""); fi
   cc tests/ui720.c -c -o "$work/tests/ui720.c.o" -DAJUSTES_TESTE "${flags[@]}" -Isrc -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined
   cc "$work"/src/*.o "$work"/src/dts/*.o "$work"/tests/*.o -o "$work/test" \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
   NUVIO_SHOT_C9=1 NUVIO_DADOS="$work/data" "$work/test" "$out/$version" > "$out/$version/results.txt" 2>&1
   rg '^(PASS C9|PNG )' "$out/$version/results.txt"
 done

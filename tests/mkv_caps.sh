@@ -8,6 +8,6 @@ set -eu
 cd "$(dirname "$0")/.."
 . tests/mkvcore_flag.sh
 cc -Isrc tests/mkv_caps.c src/rede.c src/redeurl.c -o ${TMPDIR:-/tmp}/nuvio-mkv-caps-tests \
-  -I/opt/homebrew/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"} 2>/dev/null || \
-cc -Isrc tests/mkv_caps.c src/rede.c src/redeurl.c -o ${TMPDIR:-/tmp}/nuvio-mkv-caps-tests -I/opt/homebrew/include ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
+  -I/usr/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"} 2>/dev/null || \
+cc -Isrc tests/mkv_caps.c src/rede.c src/redeurl.c -o ${TMPDIR:-/tmp}/nuvio-mkv-caps-tests -I/usr/include ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
 ${TMPDIR:-/tmp}/nuvio-mkv-caps-tests

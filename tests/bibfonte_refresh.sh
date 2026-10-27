@@ -39,5 +39,5 @@ code += ['int main(void) {', 'CatItem item; int failures = 0;',
          'return failures ? 1 : 0; }']
 Path(sys.argv[1]).write_text('\n'.join(code) + '\n')
 PY
-cc "$tmp/test.c" -Isrc -I/opt/homebrew/include -o "$tmp/test" -Wall -Wextra -Werror
+cc "$tmp/test.c" -Isrc -I/usr/include -o "$tmp/test" -Wall -Wextra -Werror
 "$tmp/test"

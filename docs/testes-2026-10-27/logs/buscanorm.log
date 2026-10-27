@@ -1,0 +1,7 @@
+ok  latino de sempre (Latin-1) continua dobrando
+ok  romeno (ă â î ș ț, virgula e cedilha) dobra para ASCII
+ok  cirilico: minusculo, ё=е, nunca vira espaco
+ok  outras escritas passam; byte invalido vira espaco
+ok  destino curto: para na fronteira de caractere
+ok  contagem por caractere e apagar tira um caractere inteiro
+buscanorm: tudo ok

@@ -77,7 +77,7 @@ with tempfile.TemporaryDirectory(prefix='addon-patch-') as directory:
     exe = pathlib.Path(directory) / 'transport'
     c.write_text(harness)
     subprocess.run(['cc', '-w', '-Isrc', '-ffunction-sections', '-fdata-sections',
-                    '-Wl,-dead_strip', '-D__EMSCRIPTEN__', '-DNV_SUPABASE_URL="https://account.example"',
+                    '-ffunction-sections -fdata-sections -Wl,--gc-sections', '-D__EMSCRIPTEN__', '-DNV_SUPABASE_URL="https://account.example"',
                     '-DNV_SUPABASE_ANON_KEY="fixture-anon"', str(c), 'src/nuvem.c',
                     '-o', str(exe)], check=True)
     sys.exit(subprocess.run([str(exe)]).returncode)

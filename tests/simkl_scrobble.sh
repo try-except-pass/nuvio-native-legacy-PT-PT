@@ -10,11 +10,11 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/nuvio-simkl-scr-XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 export SIMKL_TEST_DIR="$tmp"
 compilar() {
-  cc ${flags[@]+"${flags[@]}"} -O1 -g -Wall -Wextra -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc ${flags[@]+"${flags[@]}"} -O1 -g -Wall -Wextra -Isrc -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined \
     -DSMK_SCR_ESPACO_MS="$1" -DSMK_SCR_ESPERA_MS=150 -Dusleep=simkl_teste_usleep \
     -c src/simkl.c -o "$tmp/simkl.o"
-  cc ${flags[@]+"${flags[@]}"} -O1 -g -Wall -Wextra -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc ${flags[@]+"${flags[@]}"} -O1 -g -Wall -Wextra -Isrc -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined \
     "$tmp/simkl.o" src/js.c src/traktscrobble.c src/metaep.c tests/simkl_scrobble.c \
     -o "$tmp/simkl_scrobble" -lpthread

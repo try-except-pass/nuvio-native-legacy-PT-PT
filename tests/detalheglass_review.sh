@@ -2,9 +2,9 @@
 # Regression proof + host configuration budgets + before/after PNGs. No installs.
 set -eu
 cd "$(dirname "$0")/.."
-out=/Volumes/ExternalSSD/tmp/detalheglass/fix2
+out=${TMPDIR:-/tmp}/detalheglass/fix2
 mkdir -p "$out/tmp"
-export TMPDIR="$out/tmp" OBJ=/Volumes/ExternalSSD/tmp/detalheglass/obj
+export TMPDIR="$out/tmp" OBJ=${TMPDIR:-/tmp}/detalheglass/obj
 export NUVIO_SHOT_VIDRO=1 NUVIO_SHOT_VIDRO_FOSCO=1 NUVIO_DETAIL_SHOT=1
 run() {
   local name=$1
@@ -54,7 +54,7 @@ for phase in before after; do
   done
 done
 while IFS= read -r bmp; do
-  sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null
+  ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null
   rm "$bmp"
 done < <(find "$out" -name '*.bmp')
 echo 'PASS: reviewed regressions rejected; current cards/menu/host budgets passed; PNGs saved'

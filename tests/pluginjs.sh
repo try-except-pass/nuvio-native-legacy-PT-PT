@@ -6,7 +6,7 @@
 #   SANITIZE=thread bash tests/pluginjs.sh # TSan
 set -euo pipefail
 cd "$(dirname "$0")/.."
-out="${NV_TMP:-/Volumes/ExternalSSD/nv-f09-tmp}"; mkdir -p "$out"
+out="${NV_TMP:-${TMPDIR:-/tmp}/nv-f09-tmp}"; mkdir -p "$out"
 tmp=$(mktemp -d "$out/pluginjs.XXXXXX")
 srv=""
 trap '[ -z "$srv" ] || kill "$srv" 2>/dev/null || true; rm -rf "$tmp"' EXIT
@@ -14,8 +14,8 @@ python3 tests/plugins_server.py "$tmp/porta" &
 srv=$!
 for i in $(seq 50); do [ -s "$tmp/porta" ] && break; sleep 0.1; done
 base="http://127.0.0.1:$(cat "$tmp/porta")"
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -pthread -Wno-macro-redefined -ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -pthread -Wno-macro-redefined -ffunction-sections -fdata-sections)
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 case "${SANITIZE:-0}" in
   1) flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer) ;;
   thread) flags+=(-fsanitize=thread -fno-omit-frame-pointer) ;;

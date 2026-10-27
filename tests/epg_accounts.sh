@@ -15,8 +15,8 @@ end = source.index('\n}', start) + 2
 Path(sys.argv[1]).write_text(source[start:end])
 PY
 flags+=(-ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 cc "${flags[@]}" -Wno-unused-function -Wno-sign-compare -Wno-macro-redefined -I"$work" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -I/usr/include -I/usr/include/SDL2 \
   tests/epg_shared_consumers.c tests/epg_accounts.c src/xmltv.c -lz -lpthread -lm -o "$work/test"
 "$work/test" "$work/data"

@@ -15,7 +15,7 @@ ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
 cc -fsyntax-only src/detail.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined
 
 # Ninguem le a fileira com a coluna crua. As duas formas abaixo sao exatamente

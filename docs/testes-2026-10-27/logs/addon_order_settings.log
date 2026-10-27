@@ -1,0 +1,237 @@
+In file included from tests/../src/ajustes_ux_desenho.inc:1472,
+                 from tests/../src/ajustes.c:10687,
+                 from tests/addon_order_settings.c:2:
+tests/../src/ajustes_ux_fileiras.inc: In function ‘ajFilLer’:
+tests/../src/ajustes_ux_fileiras.inc:58:76: warning: ‘%s’ directive output may be truncated writing up to 713279 bytes into a region of size 2048 [-Wformat-truncation=]
+   58 |         snprintf(ajFilCache[fil][dif][1], sizeof ajFilCache[fil][dif][1], "%s", it[j].backdrop);
+      |                                                                            ^~
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from tests/../src/ajustes.h:12,
+                 from tests/../src/ajustes.c:5:
+In function ‘snprintf’,
+    inlined from ‘ajFilLer’ at tests/../src/ajustes_ux_fileiras.inc:58:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 713280 bytes into a destination of size 2048
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+In file included from tests/../src/ajustes_ux_desenho.inc:1468:
+tests/../src/ajustes_ux_previa.inc: In function ‘ajMetaTitulo’:
+tests/../src/ajustes_ux_previa.inc:38:53: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size between 29 and 92 [-Wformat-truncation=]
+   38 |             snprintf(meta[i], sizeof meta[i], "%s · %s", g, mm); }
+      |                                                     ^~      ~~
+In function ‘snprintf’,
+    inlined from ‘ajMetaTitulo’ at tests/../src/ajustes_ux_previa.inc:38:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 131 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_desenho.inc: In function ‘ajCapsC’:
+tests/../src/ajustes_ux_desenho.inc:244:100: warning: ‘%s’ directive output may be truncated writing up to 249 bytes into a region of size 240 [-Wformat-truncation=]
+  244 |         if (txt_tracking(e, t, 243, 242, 239, -1, 0, 1, track) <= maxW) { snprintf(up, sizeof up, "%s", t); break; } }
+      |                                                                                                    ^~   ~
+In function ‘snprintf’,
+    inlined from ‘ajCapsC’ at tests/../src/ajustes_ux_desenho.inc:244:75:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 250 bytes into a destination of size 240
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+In file included from tests/../src/ajustes_ux_desenho.inc:1471:
+tests/../src/ajustes_ux_ilha.inc: In function ‘ajUsbPainel’:
+tests/../src/ajustes_ux_ilha.inc:634:29: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size 160 [-Wformat-truncation=]
+  634 |       snprintf(vs[n], 160, "%s · %s", u.nome[0] ? u.nome : u.caminho, ajUsbFs(u.fs));
+      |                             ^~
+In function ‘snprintf’,
+    inlined from ‘ajUsbPainel’ at tests/../src/ajustes_ux_ilha.inc:634:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 291 bytes into a destination of size 160
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+In file included from tests/../src/ajustes_ux_cenas.inc:1132,
+                 from tests/../src/ajustes_ux_desenho.inc:1469:
+tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘rOrdem’:
+tests/../src/ajustes_ux_cenas_reproducao.inc:301:28: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 4 [-Wformat-truncation=]
+  301 |     snprintf(b, sizeof b, "%d", pos);
+      |                            ^~
+tests/../src/ajustes_ux_cenas_reproducao.inc:301:27: note: directive argument in the range [-2147483647, 2147483647]
+  301 |     snprintf(b, sizeof b, "%d", pos);
+      |                           ^~~~
+In function ‘snprintf’,
+    inlined from ‘rOrdem’ at tests/../src/ajustes_ux_cenas_reproducao.inc:301:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 12 bytes into a destination of size 4
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes.c: In function ‘desenhaFolhaFiltros’:
+tests/../src/ajustes.c:9007:36: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 160 [-Wformat-truncation=]
+ 9007 |     snprintf(texto, sizeof texto, "%s", cfg.grupos);
+      |                                    ^~   ~~~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘ffValor’ at tests/../src/ajustes.c:9007:5,
+    inlined from ‘desenhaFolhaFiltros’ at tests/../src/ajustes_ux_ilha.inc:1881:30:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 512 bytes into a destination of size 160
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘ajcNovaReproducao’:
+tests/../src/ajustes_ux_cenas_reproducao.inc:721:30: warning: ‘%+d’ directive output may be truncated writing between 3 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+  721 |       snprintf(b, sizeof b, "%+d s", off);
+      |                              ^~~
+In function ‘rSeekr’,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+tests/../src/ajustes_ux_cenas_reproducao.inc:721:29: note: directive argument in the range [-2147483648, -61]
+  721 |       snprintf(b, sizeof b, "%+d s", off);
+      |                             ^~~~~~~
+In function ‘snprintf’,
+    inlined from ‘rSeekr’ at tests/../src/ajustes_ux_cenas_reproducao.inc:721:7,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 6 and 14 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘ajcNovaReproducao’:
+tests/../src/ajustes_ux_cenas_reproducao.inc:721:30: warning: ‘%+d’ directive output may be truncated writing between 3 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+  721 |       snprintf(b, sizeof b, "%+d s", off);
+      |                              ^~~
+In function ‘rSeekr’,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+tests/../src/ajustes_ux_cenas_reproducao.inc:721:29: note: directive argument in the range [61, 2147483647]
+  721 |       snprintf(b, sizeof b, "%+d s", off);
+      |                             ^~~~~~~
+In function ‘snprintf’,
+    inlined from ‘rSeekr’ at tests/../src/ajustes_ux_cenas_reproducao.inc:721:7,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 6 and 14 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘ajcNovaReproducao’:
+tests/../src/ajustes_ux_cenas_reproducao.inc:673:30: warning: ‘%d’ directive output may be truncated writing between 1 and 9 bytes into a region of size 8 [-Wformat-truncation=]
+  673 |       snprintf(b, sizeof b, "%d:%02d", mm / 60, mm % 60);
+      |                              ^~
+In function ‘rSeekr’,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+tests/../src/ajustes_ux_cenas_reproducao.inc:673:29: note: directive argument in the range [-35791394, 35791394]
+  673 |       snprintf(b, sizeof b, "%d:%02d", mm / 60, mm % 60);
+      |                             ^~~~~~~~~
+tests/../src/ajustes_ux_cenas_reproducao.inc:673:29: note: directive argument in the range [-59, 59]
+In function ‘snprintf’,
+    inlined from ‘rSeekr’ at tests/../src/ajustes_ux_cenas_reproducao.inc:673:7,
+    inlined from ‘ajcNovaReproducao’ at tests/../src/ajustes_ux_cenas_reproducao.inc:862:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 14 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+In file included from tests/../src/ajustes_ux_desenho.inc:1475:
+tests/../src/ajustes_ux_secoes.inc: In function ‘ajcRepFonte’:
+tests/../src/ajustes_ux_secoes.inc:824:41: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 4 [-Wformat-truncation=]
+  824 |     { char n[4]; snprintf(n, sizeof n, "%d", i + 1); ajcTxt(n, 11, 1, 240, by + 8, 0, 0.45f); }
+      |                                         ^~
+tests/../src/ajustes_ux_secoes.inc:824:40: note: directive argument in the range [-2147483645, 4]
+  824 |     { char n[4]; snprintf(n, sizeof n, "%d", i + 1); ajcTxt(n, 11, 1, 240, by + 8, 0, 0.45f); }
+      |                                        ^~~~
+In function ‘snprintf’,
+    inlined from ‘ajcRepFonte’ at tests/../src/ajustes_ux_secoes.inc:824:18:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 12 bytes into a destination of size 4
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+In file included from tests/../src/ajustes_ux_cenas.inc:1135:
+tests/../src/ajustes_ux_cenas_home.inc: In function ‘ajCenaGerada’:
+tests/../src/ajustes_ux_cenas_home.inc:653:28: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+  653 |     snprintf(b, sizeof b, "%d", i + 1);
+      |                            ^~
+In function ‘ajcHCwFurthest’,
+    inlined from ‘ajcNovaHome’ at tests/../src/ajustes_ux_cenas_home.inc:878:26,
+    inlined from ‘ajcCenaOpcao’ at tests/../src/ajustes_ux_cenas.inc:1141:7,
+    inlined from ‘ajCenaGerada’ at tests/../src/ajustes_ux_cenas.inc:1211:16:
+tests/../src/ajustes_ux_cenas_home.inc:653:27: note: directive argument in the range [-2147483644, 8]
+  653 |     snprintf(b, sizeof b, "%d", i + 1);
+      |                           ^~~~
+In function ‘snprintf’,
+    inlined from ‘ajcHCwFurthest’ at tests/../src/ajustes_ux_cenas_home.inc:653:5,
+    inlined from ‘ajcNovaHome’ at tests/../src/ajustes_ux_cenas_home.inc:878:26,
+    inlined from ‘ajcCenaOpcao’ at tests/../src/ajustes_ux_cenas.inc:1141:7,
+    inlined from ‘ajCenaGerada’ at tests/../src/ajustes_ux_cenas.inc:1211:16:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 12 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_ilha.inc: In function ‘ajDesenharPlugins’:
+tests/../src/ajustes_ux_ilha.inc:1966:44: warning: ‘%s’ directive output may be truncated writing up to 599 bytes into a region of size 128 [-Wformat-truncation=]
+ 1966 |       snprintf(nomes[i], sizeof nomes[i], "%s", q.nome[0] ? q.nome : q.url);
+      |                                            ^~
+In function ‘snprintf’,
+    inlined from ‘ajDesenharPlugins’ at tests/../src/ajustes_ux_ilha.inc:1966:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 600 bytes into a destination of size 128
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes_ux_fileiras.inc: In function ‘desenhaFileiras’:
+tests/../src/ajustes_ux_fileiras.inc:317:36: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+  317 |         snprintf(num, sizeof num, "%d", i);
+      |                                    ^~
+tests/../src/ajustes_ux_fileiras.inc:317:35: note: directive argument in the range [-2147483648, 2147483646]
+  317 |         snprintf(num, sizeof num, "%d", i);
+      |                                   ^~~~
+In function ‘snprintf’,
+    inlined from ‘desenhaFileiras’ at tests/../src/ajustes_ux_fileiras.inc:317:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 12 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/ajustes.c: In function ‘ajustes_aplicar_blob’:
+tests/../src/ajustes.c:5798:38: warning: ‘%s’ directive output may be truncated writing up to 399 bytes into a region of size 160 [-Wformat-truncation=]
+ 5798 |       snprintf(bruto, sizeof bruto, "%s", embrulho);
+      |                                      ^~   ~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘ajustes_aplicar_blob’ at tests/../src/ajustes.c:5798:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 400 bytes into a destination of size 160
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+add-on order settings: PASS (mode, stored preferences, existing priorities)

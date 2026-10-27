@@ -13,8 +13,8 @@ done
 flags=(-O1 -g -Isrc -Wno-deprecated-declarations -Wno-macro-redefined)
 libs=()
 if [ "$(uname -s)" = Darwin ]; then
-  flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
-  libs+=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+  flags+=(-I/usr/include -I/usr/include/SDL2)
+  libs+=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 else
   read -r -a depflags <<< "$(pkg-config --cflags sdl2 SDL2_image SDL2_ttf glesv2 egl zlib)"
   read -r -a deplibs <<< "$(pkg-config --libs sdl2 SDL2_image SDL2_ttf glesv2 egl zlib)"

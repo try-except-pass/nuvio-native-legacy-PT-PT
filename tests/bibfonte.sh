@@ -42,9 +42,9 @@ for source in "$root"/src/*.c "$root"/src/dts/*.c; do
   sources+=("$source")
 done
 cc "${flags[@]+${flags[@]}}" "${sources[@]}" "$root/tests/bibfonte.c" "$root/tests/bibfonte_library.c" "$root/tests/bibfonte_discovery.c" "$root/tests/bibfonte_menu.c" "$root/tests/bibfonte_detail.c" "$tmp/detail-action.c" \
-  -I"$root/src" -O0 -ffunction-sections -fdata-sections -Wl,-dead_strip -o "$tmp/test" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I"$root/src" -O0 -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections -o "$tmp/test" \
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 "$tmp/test" "$@"
 if [ "$#" -gt 0 ]; then "$tmp/test"; fi

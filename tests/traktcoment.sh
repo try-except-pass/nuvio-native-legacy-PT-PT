@@ -2,7 +2,7 @@
 # Offline regressions and PNGs; reuses the detail harness and its object cache.
 set -eu
 cd "$(dirname "$0")/.."
-OUT=/Volumes/ExternalSSD/tmp/traktcoment
+OUT=${TMPDIR:-/tmp}/traktcoment
 export TMPDIR="$OUT/tmp"
 export OBJ="$OUT/obj"
 mkdir -p "$OUT" "$TMPDIR" "$OBJ"
@@ -12,7 +12,7 @@ if [ "$mode" = build ]; then
   exit
 fi
 if [ "$mode" = data ]; then
-  cc -O1 -g -Wall -Wextra -DNV_EXTRAS_TESTE -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc -O1 -g -Wall -Wextra -DNV_EXTRAS_TESTE -Isrc -I/usr/include -I/usr/include/SDL2 \
     src/extras.c src/notasfontes.c src/js.c tests/traktcoment_data.c -lpthread -o "$TMPDIR/traktcoment-data"
   "$TMPDIR/traktcoment-data"
   exit
@@ -32,7 +32,7 @@ elif [ "$mode" = before ] || [ "$mode" = after ]; then
       filme-comentarios filme-comentarios-foco serie-comentarios serie-comentarios-pilula \
       filme-comentarios-sem-foco serie-comentarios-sem-foco
     for bmp in "$OUT/$mode-glass-$glass/"*.bmp; do
-      sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null
+      ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null
     done
   done
 else

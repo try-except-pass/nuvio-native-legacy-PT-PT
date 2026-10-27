@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 tmp="${TMPDIR:-/tmp}"
 bin="$tmp/nuvio-sync-resumo-corrida"
-cc -O1 -g -Isrc -Itests -pthread -fsanitize=thread -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Isrc -Itests -pthread -fsanitize=thread -I/usr/include -I/usr/include/SDL2 \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-unused-function \
   src/sync.c tests/stub_contapend.c src/catordem.c src/catordemcache.c src/contacache.c src/js.c src/jsw.c \
   tests/sync_resumo_corrida.c -o "$bin"

@@ -1,0 +1,48 @@
+capmkv: Chapters na janela do cabecalho
+  5 capitulos lidos da janela                                    ok
+  um Range so (a janela)                                         ok
+  ChapterTimeStart em ns -> 1260 s                               ok
+capmkv: Chapters a 5 GiB, achados pelo SeekHead (elemento > 64 KB)
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+  5 capitulos lidos alem da janela                               ok
+  janela + Range de 64 KB + Range do tamanho exato               ok
+  posicao de 64 bits sem dar a volta                             ok
+capmkv: pre-busca do mkvass serve o cabecalho sem rede
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+  sem a janela: so os Range do Chapters                          ok
+capmkv: CDN recusa o Range extra (503), recua e acerta
+[mkv] capitulos pelo SeekHead (pos 5368709120): 0
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+  segunda tentativa leu os capitulos                             ok
+capmkv: SeekHead nao aponta Chapters e eles estao fora da janela
+  0 capitulos, sem chutar posicao                                ok
+  nenhum Range extra                                             ok
+capmkv: regras de nome -> trechos (as mesmas da LG)
+  abertura + creditos + previa                                   ok
+  Opening 90-180 s                                               ok
+  Ending 1260 s ate a previa                                     ok
+  Preview nao e credito: so marca o fim                          ok
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+  alimenta o modulo de intro                                     ok
+  creditos = Ending (nome vale sem duracao)                      ok
+  filme: End Credits ate o fim, sem previa                       ok
+  sem nome util: nenhum trecho (nada de chute)                   ok
+[mkv] 3 capitulos; creditos nomeados em 0s, ultimo em 1300s
+  ultimo capitulo sem duracao: nao vale                          ok
+  ultimo capitulo no ultimo quarto vale                          ok
+  ultimo capitulo antes dos 75% nao vale                         ok
+capmkv: fio lateral e cache por URL
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+[mkv] capitulos (android/tpk): 5
+  fio entregou os trechos ao modulo de intro                     ok
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+  mesma URL de novo: cache, nenhum pedido                        ok
+  e os creditos continuam la                                     ok
+  MP4 nao tem capitulo Matroska: nem pede                        ok
+capmkv: fio de A atrasado nao publica capitulos em B
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+[mkv] capitulos de um video anterior descartados
+  B sem creditos vindos de A                                     ok
+  B sem trechos de intro vindos de A                             ok
+capmkv: ok

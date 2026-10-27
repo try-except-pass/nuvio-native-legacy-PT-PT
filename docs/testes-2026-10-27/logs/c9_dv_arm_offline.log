@@ -1,0 +1,14 @@
+==> compilando para ARM
+warning: constant `LONG8` is never used
+  --> src/lib.rs:99:7
+   |
+99 | const LONG8: bool = core::mem::size_of::<c_long>() == 8;
+   |       ^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+    Finished `release` profile [optimized] target(s) in 0.04s
+DV7 library: /workspace/nuvio-app/build/dv7/libnuvio_dv7.a
+  motor P2P: DESLIGADO (sem pasta; NUVIO_P2P_MOTOR=<vazio>)
+tools/ctr.sh: line 174: docker: command not found
+tools/ctr.sh: line 38: docker: command not found

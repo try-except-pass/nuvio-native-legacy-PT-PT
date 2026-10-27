@@ -47,5 +47,5 @@ for name in layers:
 code += 'puts("ok: Home overlays reject FPS measurements"); return 0; }\n'
 pathlib.Path(sys.argv[1]).write_text(code)
 PY
-cc "$work/guard.c" src/fpscena.c -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -lm -o "$work/guard"
+cc "$work/guard.c" src/fpscena.c -Isrc -I/usr/include -I/usr/include/SDL2 -lm -o "$work/guard"
 "$work/guard"

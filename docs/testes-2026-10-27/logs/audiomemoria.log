@@ -1,0 +1,33 @@
+ok   E1 abre no ingles preferido
+[audio] escolha a mao lembrada neste titulo: ja (Japanese · AAC 2.0)
+ok   a escolha foi gravada no arquivo do perfil 1
+ok   E2 na mesma sessao: japones
+ok   app reiniciado: nada na sessao ate abrir o titulo
+[audio] 1 escolha(s) gravada(s) no perfil 1
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   E3 depois de fechar o app: japones (o defeito: voltava ao ingles)
+[audio] outro titulo: a faixa escolhida a mao no anterior nao vale aqui
+ok   outro titulo no meio: o preferido dele
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   de volta ao anime: japones
+[audio] outro titulo: a faixa escolhida a mao no anterior nao vale aqui
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   id com temporada:episodio vale a serie
+[audio] escolha a mao lembrada neste titulo: ja (Japanese · AAC 2.0)
+[audio] 1 escolha(s) gravada(s) no perfil 1
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   mesmo bingeGroup, depois de reiniciar: a faixa exata (a segunda japonesa)
+ok   outro bingeGroup: o numero nao vale, o primeiro japones
+ok   fonte sem bingeGroup: o primeiro japones
+ok   perfil 2: ingles, o preferido
+[audio] 1 escolha(s) gravada(s) no perfil 1
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   perfil 1 de novo: a escolha dele
+[audio] outro titulo: a faixa escolhida a mao no anterior nao vale aqui
+[audio] escolha a mao lembrada neste titulo: en (English	Dub · AAC 2.0)
+[audio] 2 escolha(s) gravada(s) no perfil 1
+[audio] escolha a mao gravada deste titulo: ja (Japanese · AAC 2.0), com bingeGroup
+ok   linha com TAB gravada sem estragar as outras
+ok   sair da conta apaga os arquivos
+ok   e a escolha nao volta
+audiomemoria: ok

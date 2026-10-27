@@ -1,0 +1,33 @@
+src/catordem.c: In function ‘lerItens’:
+src/catordem.c:122:29: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size between 64 and 190 [-Wformat-truncation=]
+  122 |   snprintf(dst, tam, "%s_%s_%s", addon, tipo, cat);
+      |                             ^~                ~~~
+In file included from /usr/include/stdio.h:980,
+                 from src/catordem.c:3:
+In function ‘snprintf’,
+    inlined from ‘chaveDoItem’ at src/catordem.c:122:3,
+    inlined from ‘lerItens’ at src/catordem.c:149:10:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 3 and 224 bytes into a destination of size 192
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+cache local da ordem de catalogos:
+[catordem] 2 na ordem da conta, 1 desligadas
+  resposta remota aceita                                     ok     (obtido 1, esperado 1)
+[catordem] ordem guardada no cache local (perfil 3)
+  cache do perfil 3 gravado                                  ok     (obtido 1, esperado 1)
+[catordem] 2 na ordem da conta, 1 desligadas
+[catordem] ordem restaurada do cache local (perfil 3)
+  ordem volta do cache depois do update                      ok     (obtido 1, esperado 1)
+  duas chaves restauradas                                    ok     (obtido 2, esperado 2)
+  catalogo oculto restaurado                                 ok     (obtido 1, esperado 1)
+  perfil diferente nao usa cache                             ok     (obtido 0, esperado 0)
+  conta diferente nao usa cache                              ok     (obtido 0, esperado 0)
+  logout apaga cache                                         ok     (obtido 0, esperado 0)
+
+PASSOU

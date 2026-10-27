@@ -62,6 +62,6 @@ with tempfile.TemporaryDirectory(prefix='epinfo-host-') as tmp:
     cfile = Path(tmp) / 'check.c'
     binary = Path(tmp) / 'check'
     cfile.write_text(program)
-    subprocess.run(['cc', '-std=c99', '-Isrc', '-I/opt/homebrew/include/SDL2',
-                    '-I/opt/homebrew/include', str(cfile), '-lm', '-o', str(binary)], check=True)
+    subprocess.run(['cc', '-std=c99', '-Isrc', '-I/usr/include/SDL2',
+                    '-I/usr/include', str(cfile), '-lm', '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)

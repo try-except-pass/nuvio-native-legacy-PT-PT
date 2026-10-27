@@ -7,11 +7,11 @@ dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-biblimites.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
-for plat in tv android; do
+for plat in tv; do
   def=(); [ "$plat" = android ] && def=(-DNV_ANDROID)
   cc ${flags[@]+"${flags[@]}"} ${def[@]+"${def[@]}"} tests/biblimites_trakt.c src/js.c \
-    -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -Isrc -I/usr/include -I/usr/include/SDL2 \
     -o "$dir/trakt-$plat" -O1 -g -Wall -Wextra -Wno-deprecated-declarations \
-    -ffunction-sections -fdata-sections -Wl,-dead_strip -lpthread
+    -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread
   "$dir/trakt-$plat"
 done

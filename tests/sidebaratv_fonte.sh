@@ -17,7 +17,7 @@ a = s.index('enum { PESO_REGULAR')
 b = s.index('}', s.index('void txt_estilo_medidas(')) + 1
 Path(sys.argv[1]).write_text(s[a:b] + '\n')
 PY
-cc tests/sidebaratv_fonte.c -Isrc -I"$work" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc tests/sidebaratv_fonte.c -Isrc -I"$work" -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined \
-  -Wl,-undefined,dynamic_lookup -o "$work/teste"
+  -Wl,--unresolved-symbols=ignore-all -o "$work/teste"
 "$work/teste"

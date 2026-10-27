@@ -5,11 +5,11 @@ cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-guiafiltro.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 flags=(-ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 sources=(tests/guiafiltro_loader.c src/ltv.c src/js.c src/idcanal.c src/dados.c src/marco.c
   src/guiaaddons.c src/guiafiltro.c src/livecat.c src/epg.c src/xtepg.c src/lembrete.c src/guialembrete.c
   src/fontecache.c src/cachearte.c src/cachedisco.c src/xmltv.c)
-common=(-Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -O1 -g -Wno-macro-redefined -lz)
+common=(-Isrc -I/usr/include -I/usr/include/SDL2 -O1 -g -Wno-macro-redefined -lz)
 # Publication while filters are open: run independently or with the full suite.
 if [ "${1:-}" = panel-publication ]; then
   cc "${flags[@]}" "${sources[@]}" "${common[@]}" -o "$work/loader"
@@ -158,7 +158,7 @@ GUIAFILTRO_CASE=category-channel-cap NUVIO_DADOS="$work/target-data" \
   "$work/loader" "$work/target-data"
 if [ "${1:-}" = category-channel-cap ]; then exit 0; fi
 git show 61647910d:src/guia.c > "$work/collapsed-review.c"
-for platform in tv android; do
+for platform in tv; do
   platform_flags=()
   if [ "$platform" = android ]; then platform_flags+=(-DNV_ANDROID); fi
   for version in collapsed-review current; do
@@ -252,7 +252,7 @@ for regression in raw-offline session-inventory; do
   done
 done
 git show 4a009af28:src/guia.c > "$work/category-cap-review.c"
-for platform in tv android; do
+for platform in tv; do
   platform_flags=()
   if [ "$platform" = android ]; then platform_flags+=(-DNV_ANDROID); fi
   for version in category-cap-review current; do

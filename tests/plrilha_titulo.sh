@@ -3,5 +3,5 @@
 set -eu
 cd "$(dirname "$0")/.."
 w=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-plrt.XXXXXX"); trap 'rm -rf "$w"' EXIT
-cc tests/plrilha_titulo.c -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -o "$w/t" -lm -Wno-macro-redefined
+cc tests/plrilha_titulo.c -Isrc -I/usr/include -I/usr/include/SDL2 -o "$w/t" -lm -Wno-macro-redefined
 "$w/t"

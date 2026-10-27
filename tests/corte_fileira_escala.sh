@@ -9,5 +9,5 @@ mkdir -p "$saida"
 if [ -n "${1:-}" ]; then export NV_CORTE_PNG=1; fi
 NV_CFLAGS="${NV_CFLAGS:--O0}" NV_CORTE=1 NV_AMIGOS=1 bash tests/homelayouts_shot.sh "$saida" 0 | grep '^\[corte\]'
 rc=${PIPESTATUS[0]}
-for f in "$saida"/h-corte-*.bmp; do [ -e "$f" ] && sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"; done
+for f in "$saida"/h-corte-*.bmp; do [ -e "$f" ] && ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"; done
 exit "$rc"

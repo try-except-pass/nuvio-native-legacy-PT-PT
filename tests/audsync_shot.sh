@@ -3,14 +3,14 @@ export TMPDIR="${TMPDIR:-/tmp}"
 TMPDIR="${TMPDIR%/}"
 # Capturas da opcao "Por audio" (F06) na linha de AutoSync. Nao entra na suite
 # (*_shot.sh): janela GL. Legenda externa por HTTP local; PCM sintetico.
-#   bash tests/audsync_shot.sh /Volumes/ExternalSSD/nv-f06-shots/audsync
+#   bash tests/audsync_shot.sh ${TMPDIR:-/tmp}/nv-f06-shots/audsync
 set -eu
 cd "$(dirname "$0")/.."
 sources=()
 for source in src/*.c src/dts/*.c; do [ "$source" != src/main.c ] && sources+=("$source"); done
 cc "${sources[@]}" tests/audsync_shot.c -Isrc -Itests -o ${TMPDIR:-/tmp}/nuvio-audsync-shot \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 D=$(mktemp -d); W=$(mktemp -d)
 # A mesma timeline do teste (semente 99), servida como SRT.

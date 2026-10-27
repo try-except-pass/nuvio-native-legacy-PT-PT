@@ -1,0 +1,83 @@
+src/dados.c: In function ‘gravarInterno’:
+src/dados.c:186:32: warning: ‘.tmp’ directive output may be truncated writing 4 bytes into a region of size between 1 and 600 [-Wformat-truncation=]
+  186 |   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
+      |                                ^~~~
+In file included from /usr/include/stdio.h:980,
+                 from src/dados.c:7:
+In function ‘snprintf’,
+    inlined from ‘gravarInterno’ at src/dados.c:186:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 604 bytes into a destination of size 600
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/dados.c: In function ‘dados_cliente_id’:
+src/dados.c:325:40: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  325 |     snprintf(linha, sizeof linha, "%s\n", clienteId);
+      |                                        ^
+In function ‘snprintf’,
+    inlined from ‘dados_cliente_id’ at src/dados.c:325:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 65 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+avisodisp: ok
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.
+cc1: fatal error: cannot open ‘/tmp/nvtestes.r1BgR1/avisodisp.WV2Kxb/cco11Rjq.s’ for writing: No such file or directory
+compilation terminated.

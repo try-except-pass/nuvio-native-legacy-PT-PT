@@ -16,5 +16,5 @@ DADOS="$(mktemp -d "$TMPDIR/nuvio-vazio.XXXXXX")"
 trap 'rm -rf "$DADOS"' EXIT
 cc ${flags[@]+"${flags[@]}"} -O1 -g -w "${sources[@]}" tests/arranque_vazio.c -Isrc \
   $(sdl2-config --cflags) -o "$BIN" -Wl,--allow-multiple-definition \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lGLESv2 -lEGL -lz -lm -lpthread -ldl
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lGLESv2 -lEGL -lm -lpthread -ldl -lz -lm -lpthread -ldl
 NUVIO_DADOS="$DADOS" SDL_VIDEODRIVER=offscreen ASAN_OPTIONS=detect_leaks=0 "$BIN"

@@ -9,7 +9,7 @@ trap 'rm -f "$bin"' EXIT
 if [ "$(uname -s)" = Linux ]; then
   read -r -a sdlFlags <<< "$(pkg-config --cflags --libs sdl2)"
 else
-  sdlFlags=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -lSDL2)
+  sdlFlags=(-I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2)
 fi
 cc -DNV_PONT_WEBOS_TESTE tests/ponteiro_webos.c src/ponteiro.c -Isrc -o "$bin" -Wall -Wextra \
   "${sdlFlags[@]}" -lm \

@@ -22,8 +22,8 @@ for source in src/*.c src/dts/*.c; do
 done
 # Nunca executar um binario velho se o compilador falhar.
 if ! cc "${sources[@]}" tests/colestilos_shot.c -Isrc -o "$NUVIO_DADOS/shot" \
-  -O1 -g ${NV_CFLAGS:-} -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g ${NV_CFLAGS:-} -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined \
   >"$NUVIO_DADOS/build.log" 2>&1; then
   cat "$NUVIO_DADOS/build.log" >&2
@@ -33,5 +33,5 @@ grep -E "colestilos|error|home\.c" "$NUVIO_DADOS/build.log" || true
 "$NUVIO_DADOS/shot" "$saida/cole"
 for f in "$saida"/cole-*.bmp; do
   [ -e "$f" ] || continue
-  sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
+  ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
 done

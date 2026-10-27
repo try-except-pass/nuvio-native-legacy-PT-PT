@@ -7,7 +7,7 @@ TMPDIR="${TMPDIR%/}"
 #
 #   bash tests/vertfileira_shot.sh /tmp/nv-vertfileira
 #
-# Cada BMP vira PNG (sips) e o BMP e apagado.
+# Cada BMP vira PNG (ffmpeg) e o BMP e apagado.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -25,8 +25,8 @@ done
 binario="${NV_BINARY:-$NUVIO_DADOS/shot}"
 if [ -z "${NV_REUSE:-}" ]; then
 if ! cc "${sources[@]}" tests/vertfileira_shot.c -Isrc -o "$binario" \
-  -O1 -g ${NV_CFLAGS:-} -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g ${NV_CFLAGS:-} -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined \
   >"$NUVIO_DADOS/build.log" 2>&1; then
   cat "$NUVIO_DADOS/build.log" >&2
@@ -37,5 +37,5 @@ fi
 "$binario" "$saida/v"
 for f in "$saida"/v-*.bmp; do
   [ -e "$f" ] || continue
-  sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
+  ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
 done

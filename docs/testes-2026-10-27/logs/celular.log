@@ -1,0 +1,7 @@
+tests/celular.c: In function ‘main’:
+tests/celular.c:97:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+   97 |     for (i = 0; i < CEL_CORPO_MAX * 3 + 10; i++) fputc('a', g); fclose(g); }
+      |     ^~~
+tests/celular.c:97:65: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+   97 |     for (i = 0; i < CEL_CORPO_MAX * 3 + 10; i++) fputc('a', g); fclose(g); }
+      |                                                                 ^~~~~~

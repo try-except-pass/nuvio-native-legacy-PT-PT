@@ -14,7 +14,7 @@ trap 'rm -rf "$NUVIO_DADOS"' EXIT
 # Worktree-local object cache: rerunning pixel checks only rebuilds changed code.
 obj="${TMPDIR:-/tmp}/nuvio-ctxinfo-obj-$(pwd | cksum | cut -d' ' -f1)"
 mkdir -p "$obj"
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
        -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined)
 objects=()
 for source in src/*.c src/dts/*.c; do
@@ -29,7 +29,7 @@ for source in src/*.c src/dts/*.c; do
   fi
 done
 cc "${flags[@]}" "${objects[@]}" tests/ctxinfo_shot.c -o "$NUVIO_DADOS/shot" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   >>"$NUVIO_DADOS/build.log" 2>&1 || { cat "$NUVIO_DADOS/build.log" >&2; exit 1; }
 grep -E "ctxinfo|ctxmenu|error" "$NUVIO_DADOS/build.log" || true
 NUVIO_SHOT_FONTE="${NUVIO_SHOT_FONTE:-3}" "$NUVIO_DADOS/shot" "$saida"

@@ -1,0 +1,21 @@
+In file included from tests/amigosarte.c:2:
+src/artemetahub.h: In function ‘refazer’:
+src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/artemetahub.h:10:
+In function ‘snprintf’,
+    inlined from ‘arte_metahub_preencher’ at src/artemetahub.h:21:3,
+    inlined from ‘completarArteFeed’ at /tmp/nvtestes.r1BgR1/amigosarte.OZ6I18/nuvio-amigosarte.vIQVdr/feed.inc:21:7,
+    inlined from ‘refazer’ at /tmp/nvtestes.r1BgR1/amigosarte.OZ6I18/nuvio-amigosarte.vIQVdr/feed.inc:44:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+amigosarte: PASS (missing titles, poster, hero, deduplication, refresh, existing art)

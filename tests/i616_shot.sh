@@ -9,7 +9,7 @@ out = root / '.evidencias' / 'i616'
 out.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='nv-i616-shot-') as tmp:
     work = pathlib.Path(tmp)
-    flags = ['-O1', '-g', '-Isrc', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2',
+    flags = ['-O1', '-g', '-Isrc', '-I/usr/include', '-I/usr/include/SDL2',
              '-Wno-deprecated-declarations', '-Wno-macro-redefined']
     def compile(source):
         obj = work / (str(source).replace('/', '_') + '.o')
@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix='nv-i616-shot-') as tmp:
     sources = sorted(pathlib.Path('src').glob('*.c')) + sorted(pathlib.Path('src/dts').glob('*.c'))
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         objects = dict(zip(map(str, sources), pool.map(compile, sources)))
-    libs = ['-L/opt/homebrew/lib', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-framework', 'OpenGL']
+    libs = ['-L/usr/lib/x86_64-linux-gnu', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl']
     # Link the unmodified production objects as the host build.
     subprocess.run(['cc', *objects.values(), *libs, '-o', str(work / 'host')], check=True)
     print('PASS host build', flush=True)

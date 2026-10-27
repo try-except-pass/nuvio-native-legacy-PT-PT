@@ -1,4 +1,3 @@
-**Android TV and Mobile in one APK:** Automatic selects TV on Android TV / Google TV and Mobile on phones and tablets. In Settings > Appearance, **Interface mode** can override it with TV or Mobile. Mobile enables phone layouts, direct touch scrolling, portrait browsing, and the native keyboard; full-screen playback uses landscape. The choice is saved only on this device, and switching keeps the same app, account, and data. See [Android interface modes](docs/android/INTERFACE-MODES.md) for details.
 
 <picture>
   <source media="(max-width: 640px)" srcset="docs/assets/nuvio-readme-banner-mobile.png">
@@ -180,7 +179,6 @@ to fix bugs. You can also turn on automatic log sending in Settings.
 ## Building
 
 ```bash
-bash tools/mac.sh              # build and run on macOS (UI only, no video)
 bash tools/linux.sh            # build and run on Linux (UI only, no video)
 bash tools/linux.sh --build    # compile the Linux desktop preview only
 bash tools/linux.sh --preview  # browse the Linux UI without signing in

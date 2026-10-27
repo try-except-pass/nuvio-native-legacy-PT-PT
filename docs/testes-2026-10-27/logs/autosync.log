@@ -1,0 +1,40 @@
+src/legenda.c: In function ‘extrairSrt’:
+src/legenda.c:130:7: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  130 |       if(l>resta)l=resta;memcpy(texto+usado,p,l);usado+=l;texto[usado]=0;
+      |       ^~
+src/legenda.c:130:26: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  130 |       if(l>resta)l=resta;memcpy(texto+usado,p,l);usado+=l;texto[usado]=0;
+      |                          ^~~~~~
+src/legenda.c: In function ‘legenda_carregar_com’:
+src/legenda.c:835:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  835 |     if(pronto)pronto(NULL,g,0,u); free(p);
+      |     ^~
+src/legenda.c:835:35: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  835 |     if(pronto)pronto(NULL,g,0,u); free(p);
+      |                                   ^~~~
+src/legenda.c: In function ‘legenda_documento_dados’:
+src/legenda.c:1078:3: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1078 |   if(n)*n=d?d->n:0;return d?d->cues:NULL;
+      |   ^~
+src/legenda.c:1078:20: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1078 |   if(n)*n=d?d->n:0;return d?d->cues:NULL;
+      |                    ^~~~~~
+tests/autosync.c: In function ‘stress’:
+tests/autosync.c:89:7: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   89 |       if(r.tempoMs>maiorTempo)maiorTempo=r.tempoMs;casos++;
+      |       ^~
+tests/autosync.c:89:52: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   89 |       if(r.tempoMs>maiorTempo)maiorTempo=r.tempoMs;casos++;
+      |                                                    ^~~~~
+[autosync] subtitle_sync rejected reason=low_confidence slot=0 kind=offset offset_ms=0 scale=1.00000 pieces=0 anchors=0 matched=31 coverage=0.775 confidence=0.780 alternative=0.749 kept=0 regions=2 err=1165ms elapsed_ms=0
+janela +30 s: modo=0 estado=3 motivo=low_confidence offset=0 aplicado=0
+[autosync] subtitle_sync rejected reason=low_confidence slot=0 kind=offset offset_ms=0 scale=1.00000 pieces=0 anchors=0 matched=31 coverage=0.775 confidence=0.780 alternative=0.749 kept=0 regions=2 err=1165ms elapsed_ms=0
+janela +30 s: modo=1 estado=3 motivo=low_confidence offset=0 aplicado=0
+[autosync] subtitle_sync accepted reason=accepted slot=0 kind=offset offset_ms=10000 scale=1.00000 pieces=1 anchors=0 matched=40 coverage=1.000 confidence=1.000 alternative=0.955 kept=0 regions=3 err=0ms elapsed_ms=0
+[autosync] subtitle_sync rejected reason=region_disagreement slot=0 kind=offset offset_ms=0 scale=1.00000 pieces=0 anchors=0 matched=40 coverage=1.000 confidence=0.998 alternative=0.953 kept=0 regions=3 err=0ms elapsed_ms=0
+[autosync] subtitle_sync accepted reason=accepted slot=0 kind=offset offset_ms=5000 scale=1.00000 pieces=1 anchors=0 matched=120 coverage=1.000 confidence=1.000 alternative=0.562 kept=0 regions=3 err=0ms elapsed_ms=1
+[autosync] subtitle_sync accepted reason=accepted slot=1 kind=offset offset_ms=-1000 scale=1.00000 pieces=1 anchors=0 matched=120 coverage=1.000 confidence=1.000 alternative=0.566 kept=0 regions=3 err=0ms elapsed_ms=1
+[autosync] subtitle_sync accepted reason=accepted slot=0 kind=offset offset_ms=5000 scale=1.00000 pieces=1 anchors=0 matched=120 coverage=1.000 confidence=1.000 alternative=0.562 kept=0 regions=3 err=0ms elapsed_ms=1
+[autosync] subtitle_sync accepted reason=accepted slot=1 kind=scale offset_ms=14697 scale=0.95904 pieces=1 anchors=0 matched=120 coverage=1.000 confidence=1.000 alternative=0.570 kept=0 regions=3 err=0ms elapsed_ms=3
+autosync synthetic host stress: max analysis 157 ms; 7999 cues/document
+autosync: 575 corpus/state/parser checks passed

@@ -4,7 +4,7 @@
 #   bash tests/quadroc.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-cc -O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 \
   -Wall -Wextra tests/quadroc.c -o "${TMPDIR:-/tmp}/quadroc-teste"
 "${TMPDIR:-/tmp}/quadroc-teste"
 rm -f "${TMPDIR:-/tmp}/quadroc-teste"

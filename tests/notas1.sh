@@ -14,7 +14,7 @@ if [ "$#" -gt 0 ]; then
   git show "$1:src/notasfontes.c" > "$baseline/notasfontes.c"
   sources=("$baseline/extras.c" "$baseline/notasfontes.c")
 fi
-cc -O1 -g -Wall -Wextra -DNV_EXTRAS_TESTE -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Wall -Wextra -DNV_EXTRAS_TESTE -Isrc -I/usr/include -I/usr/include/SDL2 \
   "${sources[@]}" src/js.c tests/notas1.c \
   -lpthread -o ${TMPDIR:-/tmp}/nuvio-notas1-tests
 ${TMPDIR:-/tmp}/nuvio-notas1-tests

@@ -1,0 +1,16 @@
+In file included from tests/armazenamento.c:8:
+tests/../src/dados.c: In function ‘gravarInterno’:
+tests/../src/dados.c:186:32: error: ‘.tmp’ directive output may be truncated writing 4 bytes into a region of size between 1 and 600 [-Werror=format-truncation=]
+  186 |   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
+      |                                ^~~~
+tests/../src/dados.c:186:3: note: ‘snprintf’ output between 5 and 604 bytes into a destination of size 600
+  186 |   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/dados.c: In function ‘dados_cliente_id’:
+tests/../src/dados.c:325:40: error: ‘snprintf’ output may be truncated before the last format character [-Werror=format-truncation=]
+  325 |     snprintf(linha, sizeof linha, "%s\n", clienteId);
+      |                                        ^
+tests/../src/dados.c:325:5: note: ‘snprintf’ output between 2 and 65 bytes into a destination of size 64
+  325 |     snprintf(linha, sizeof linha, "%s\n", clienteId);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

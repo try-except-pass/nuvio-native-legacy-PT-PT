@@ -17,7 +17,7 @@ for f in src/central.c src/dvtela.c src/registro.c src/diagnostico.c src/novidad
   if grep -nE 'static int (ehVoltar|teclaVoltar)\(' "$f"; then echo "  FALHOU: $f ainda tem predicado proprio"; falhou=1; fi
 done
 if [ ! -f src/teclavoltar.h ]; then echo "  FALHOU: src/teclavoltar.h nao existe"; echo "teclavoltar: FALHOU"; exit 1; fi
-cc -O1 -g -Wall -Wextra -Isrc -I/opt/homebrew/include tests/teclavoltar.c -o "$tmp/nuvio-teclavoltar"
+cc -O1 -g -Wall -Wextra -Isrc -I/usr/include tests/teclavoltar.c -o "$tmp/nuvio-teclavoltar"
 "$tmp/nuvio-teclavoltar" || falhou=1
 if [ "$falhou" != 0 ]; then echo "teclavoltar: FALHOU"; exit 1; fi
 echo "teclavoltar.sh: ok"

@@ -2,9 +2,9 @@
 # Focused regression checks; optional baseline source, no checkout changes.
 set -eu
 cd "$(dirname "$0")/.."
-out=${NUVIO_DETAIL_OUT:-/Volumes/ExternalSSD/tmp/detalheglass/fix2}
+out=${NUVIO_DETAIL_OUT:-${TMPDIR:-/tmp}/detalheglass/fix2}
 mkdir -p "$out/tmp" "$out/obj"
-export TMPDIR="$out/tmp" OBJ=/Volumes/ExternalSSD/tmp/detalheglass/obj
+export TMPDIR="$out/tmp" OBJ=${TMPDIR:-/tmp}/detalheglass/obj
 export NUVIO_DETAIL_CHECK=cards NUVIO_SHOT_VIDRO_FOSCO=1 NUVIO_SHOT_LAYOUT=2
 status=0
 for glass in 1 0; do

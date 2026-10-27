@@ -19,7 +19,7 @@ cc "${flags[@]}" -Isrc -O1 -g -Wall -Wextra src/legref.c src/legenda.c src/assre
 "$D/t" "$FX"
 # HTTP REAL (rede.c + libcurl) contra servidor Range local: completo, redirect
 # para outra origem, e servidor que ignora Range (recusa sem baixar o arquivo).
-cc -Isrc -I/opt/homebrew/include -O1 -g src/legref.c src/legenda.c src/assrender.c src/rede.c src/redeurl.c \
+cc -Isrc -I/usr/include -O1 -g src/legref.c src/legenda.c src/assrender.c src/rede.c src/redeurl.c \
   src/dados.c tests/legref_http.c -pthread -lm -lz -Wno-deprecated-declarations -o "$D/http"
 P=$((20000 + RANDOM % 20000))
 python3 tests/legref_rangesrv.py "$FX" $P & S1=$!

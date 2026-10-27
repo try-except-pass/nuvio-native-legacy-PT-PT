@@ -7,6 +7,6 @@ set -eu
 cd "$(dirname "$0")/.."
 cc src/catalogo.c src/progresso.c src/focus.c src/ajustes.c src/posterprov.c src/redeurl.c src/colecoes.c src/js.c src/catordem.c src/fileiras.c src/artehero.c src/cwordem.c src/cwretido.c src/ajlog.c src/fonteregra.c src/regexjs.c src/curadoria.c tests/herorotacao.c tests/amigosfil_stub.c \
   -Isrc -o ${TMPDIR:-/tmp}/nuvio-herorotacao-tests -O1 -g -ffunction-sections -fdata-sections \
-  -DCURADORIA_TESTE -Wl,-dead_strip -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
+  -DCURADORIA_TESTE -ffunction-sections -fdata-sections -Wl,--gc-sections -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-herorotacao-tests "$@"

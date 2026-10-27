@@ -16,8 +16,8 @@ SAIDA="${1:-${TMPDIR:-/tmp}/nuvio-folha}"
 D="$SAIDA-artes"
 mkdir -p "$D"
 cc -O2 tests/corviva_folha_shot.c src/corviva.c -Isrc \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -o ${TMPDIR:-/tmp}/nuvio-corviva-folha
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -o ${TMPDIR:-/tmp}/nuvio-corviva-folha
 args=()
 while read -r tt nome; do
   [ -z "$tt" ] && continue

@@ -16,8 +16,8 @@ for source in src/*.c src/dts/*.c; do
   fi
 done
 cc -DNV_SHOT_HOOKS "${sources[@]}" tests/player_glass_shot.c -Isrc -o "$work/shot" \
-  -O1 -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 mkdir -p "$1" "$work/dados"
 for v in 0 1; do

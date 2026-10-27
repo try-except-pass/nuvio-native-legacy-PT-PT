@@ -8,8 +8,8 @@ if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit
 dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-traktcwdup.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 cc ${flags[@]+"${flags[@]}"} src/trakt.c src/metaep.c tests/stub_fichameta.c src/js.c src/metaprov.c tests/trakt_cw_dup.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -o "$dir/teste" -O1 -g -Wall -Wextra -Wl,-dead_strip -lpthread
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
+  -o "$dir/teste" -O1 -g -Wall -Wextra -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread
 "$dir/teste" >/dev/null
 COM_CERT=1 "$dir/teste" >/dev/null
 SEM_NOTA=1 "$dir/teste" >/dev/null

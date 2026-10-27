@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 work=$(mktemp -d ${TMPDIR:-/tmp}/nuvio-guiacache.XXXXXX)
 trap 'rm -rf "$work"' EXIT
 flags=(-ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 if [ "${GUIACACHE_BASELINE:-0}" = 1 ]; then
   git show ba0639cf0:src/guia.c > "$work/guia.c"
@@ -23,7 +23,7 @@ cc ${backup_extra[@]+"${backup_extra[@]}"} ${flags[@]+"${flags[@]}"} tests/guiac
   src/ltv.c src/js.c src/idcanal.c src/dados.c src/marco.c src/guiaaddons.c src/guiafiltro.c \
   src/epg.c src/xtepg.c src/lembrete.c src/guialembrete.c \
   src/fontecache.c src/cachearte.c src/cachedisco.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -O1 -g -Wno-macro-redefined -lpthread -lm -o "$work/test"
 # 5000 canais (a TV do dono): o fio le o cache, o desenho so adota.
 mkdir -p "$work/bench"; NUVIO_DADOS="$work/bench" GUIACACHE_BENCH=5000 "$work/test" "$work/bench"

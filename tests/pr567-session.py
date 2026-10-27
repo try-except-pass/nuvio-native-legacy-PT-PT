@@ -65,6 +65,6 @@ int main(void) {
 with tempfile.TemporaryDirectory() as tmp:
     src = Path(tmp) / 'session.c'
     src.write_text(code)
-    includes = ['-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2'] if sys.platform == 'darwin' else subprocess.check_output(['pkg-config', '--cflags', 'sdl2'], text=True).split()
+    includes = ['-I/usr/include', '-I/usr/include/SDL2'] if sys.platform == 'darwin' else subprocess.check_output(['pkg-config', '--cflags', 'sdl2'], text=True).split()
     subprocess.run(['cc', '-Wall', '-Wextra', '-Isrc', *includes, str(src), 'src/fontepref.c', '-lpthread', '-o', tmp + '/session'], check=True)
     subprocess.run([tmp + '/session'], check=True)

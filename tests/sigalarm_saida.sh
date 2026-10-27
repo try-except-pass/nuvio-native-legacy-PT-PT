@@ -13,7 +13,7 @@
 # video_encerrar, chega o SIGTERM, e o processo tem de sumir em ate 7 s sem KILL.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 W="$(mktemp -d "$TMPDIR/nv-sigalarm.XXXXXX")"
 trap 'rm -rf "$W"' EXIT
 awk '/^#ifdef NV_SINAL_TERMINAR/ && !f {g=1}

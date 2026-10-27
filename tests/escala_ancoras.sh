@@ -4,11 +4,11 @@
 set -euo pipefail
 SECONDS=0
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 w=$(mktemp -d "$TMPDIR/nv-ancoras.XXXXXX")
 trap 'rm -rf "$w"' EXIT
-export NV_ANCHOR_SHOTS="${NV_ANCHOR_SHOTS:-/Volumes/ExternalSSD/tmp/rev/escalafixa-shots}"
+export NV_ANCHOR_SHOTS="${NV_ANCHOR_SHOTS:-${TMPDIR:-/tmp}/rev/escalafixa-shots}"
 mkdir -p "$NV_ANCHOR_SHOTS"
 # Optional independent failure proof against a committed production revision.
 if [ -n "${NV_ANCHOR_BASELINE:-}" ]; then
@@ -24,7 +24,7 @@ for source in pathlib.Path('tests').glob('escala_ancoras*.c'):
     (work/'fixtures'/source.name).write_text(text)
 PY
 fi
-flags=(-DAJUSTES_TESTE -O0 -w -Isrc -Itests -I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
+flags=(-DAJUSTES_TESTE -O0 -w -Isrc -Itests -I/usr/include -I/usr/include/SDL2)
 # Instrument the renderer itself, including internal gfx_cor/material calls.
 python3 - "$w/gfx.c" <<'PY'
 import pathlib, sys
@@ -48,7 +48,7 @@ if [ -n "${NV_ANCHOR_BASELINE:-}" ]; then
 fi
 printf '%s\n' "${srcs[@]}" | xargs -P 12 -I{} sh -c \
   'cc "$@" -c "$0" -o "'"$w"'/$(echo "$0" | tr / _).o"' {} "${flags[@]}"
-cc "$w"/*.o -Wl,-dead_strip -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -o "$w/t"
+cc "$w"/*.o -ffunction-sections -fdata-sections -Wl,--gc-sections -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -o "$w/t"
 NUVIO_DADOS="$w" "$w/t"
 if [ -z "${NV_ANCHOR_FULL:-}${NV_ANCHOR_BASELINE:-}${NV_ANCHOR_UPCOMING:-}" ]; then
   # Reuse support objects; replace only the two production modules under review.
@@ -65,7 +65,7 @@ PY
   for module in home detail; do
     cc "${flags[@]}" -c "$w/${module}_fixture.c" -o "$w/tests_escala_ancoras_${module}.c.o"
   done
-  cc "$w"/*.o -Wl,-dead_strip -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -o "$w/baseline"
+  cc "$w"/*.o -ffunction-sections -fdata-sections -Wl,--gc-sections -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -o "$w/baseline"
   mkdir -p "$w/baseline-data" "$NV_ANCHOR_SHOTS/baseline"
   baseline_rc=0
   NUVIO_DADOS="$w/baseline-data" NV_ANCHOR_SHOTS="$NV_ANCHOR_SHOTS/baseline" "$w/baseline" > "$w/baseline.log" 2>&1 || baseline_rc=$?

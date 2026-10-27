@@ -7,7 +7,7 @@ TMPDIR="${TMPDIR%/}"
 #
 #   bash tests/homelayouts_shot.sh /tmp/nv-home-layouts-shots [012]
 #
-# Cada BMP vira PNG (sips) e o BMP e apagado — sao 8 MB por captura.
+# Cada BMP vira PNG (ffmpeg) e o BMP e apagado — sao 8 MB por captura.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -30,8 +30,8 @@ if [ -n "${NV_DINPALCO_AUDIT:-}" ]; then audit_flags+=(-DNV_DINPALCO_AUDIT); fi
 # Nunca executar um binario velho se o compilador falhar. O filtro anterior
 # terminava em `|| true` e escondia inclusive erros de link.
 if ! cc "${sources[@]}" "${audit_flags[@]}" tests/homelayouts_shot.c -Isrc -o "$NUVIO_DADOS/shot" \
-  -O1 -g ${NV_CFLAGS:-} -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g ${NV_CFLAGS:-} -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined \
   >"$NUVIO_DADOS/build.log" 2>&1; then
   cat "$NUVIO_DADOS/build.log" >&2
@@ -58,5 +58,5 @@ fi
 [ -n "${NV_KEEP:-}" ] && exit 0   # deixa os BMP, para comparar byte a byte
 for f in "$saida"/h-*.bmp; do
   [ -e "$f" ] || continue
-  sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
+  ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
 done

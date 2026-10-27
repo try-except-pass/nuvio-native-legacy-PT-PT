@@ -4,9 +4,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-guia-logos.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-out=/Volumes/ExternalSSD/tmp/rev/livelogos
+out=${TMPDIR:-/tmp}/rev/livelogos
 mkdir -p "$out"
-flags=(-ffunction-sections -fdata-sections -Wl,-dead_strip)
+flags=(-ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections)
 sources=(src/ltv.c src/js.c src/idcanal.c src/dados.c src/marco.c src/guiaaddons.c
   src/xtream.c src/epg.c src/xmltv.c src/lembrete.c src/guialembrete.c
   src/fontecache.c src/cachearte.c src/cachedisco.c
@@ -16,8 +16,8 @@ compile() {
   local root=$1
   shift
   cc "${flags[@]}" "$@" tests/guia_logos.c "${sources[@]/#/$root/}" \
-    -I"$root/src" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-    -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -O1 -g \
+    -I"$root/src" -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+    -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -O1 -g \
     -Wno-deprecated-declarations -Wno-macro-redefined -o "$work/test"
 }
 expect_failure() {

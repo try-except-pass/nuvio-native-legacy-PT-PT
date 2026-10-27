@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 D=$(mktemp -d "${TMPDIR:-/tmp}/nv-seekprobe.XXXXXX")
 trap 'kill ${S1:-} ${S2:-} 2>/dev/null || true; rm -rf "$D"' EXIT
 head -c 4096 /dev/zero > "$D/f.mkv"
-cc -Isrc -I/opt/homebrew/include -O1 -g -Wall -Wextra src/seekprobe.c src/rede.c src/redeurl.c src/dados.c \
+cc -Isrc -I/usr/include -O1 -g -Wall -Wextra src/seekprobe.c src/rede.c src/redeurl.c src/dados.c \
   tests/seekprobe.c -pthread -lm -lz -Wno-deprecated-declarations -o "$D/t"
 P=$((20000 + RANDOM % 20000))
 python3 tests/legref_rangesrv.py "$D" $P & S1=$!

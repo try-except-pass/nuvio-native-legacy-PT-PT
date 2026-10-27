@@ -4,9 +4,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-pengu565.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 \
   -ffunction-sections -fdata-sections -Wall -Wno-unused-function -Wno-macro-redefined)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 cc "${flags[@]}" -DPENGU_ADDONS tests/pengu.c src/js.c src/watchstate.c -lpthread -o "$dir/manifest"
 "$dir/manifest"
 

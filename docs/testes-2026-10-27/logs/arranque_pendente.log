@@ -1,0 +1,20 @@
+ok: antigo=500: relato novo inteiro no pendente (inicio)
+ok: antigo=500: relato novo inteiro no pendente (fim)
+ok: antigo=500: relatoPendente == arquivo
+ok: antigo=500: rastro da etapa presente
+ok: antigo=500: algo do relato velho continua
+ok: antigo=500: relato velho pequeno vai inteiro
+ok: antigo=500: sem aviso de corte
+ok: antigo=7000: relato novo inteiro no pendente (inicio)
+ok: antigo=7000: relato novo inteiro no pendente (fim)
+ok: antigo=7000: relatoPendente == arquivo
+ok: antigo=7000: rastro da etapa presente
+ok: antigo=7000: algo do relato velho continua
+ok: antigo=7000: log diz que o relato velho foi cortado
+ok: antigo=40000: relato novo inteiro no pendente (inicio)
+ok: antigo=40000: relato novo inteiro no pendente (fim)
+ok: antigo=40000: relatoPendente == arquivo
+ok: antigo=40000: rastro da etapa presente
+ok: antigo=40000: algo do relato velho continua
+ok: antigo=40000: log diz que o relato velho foi cortado
+arranque_pendente: ok

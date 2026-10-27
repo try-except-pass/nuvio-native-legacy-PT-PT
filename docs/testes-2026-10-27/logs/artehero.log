@@ -1,0 +1,35 @@
+tests/artehero.c: In function ‘main’:
+tests/artehero.c:605:64: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  605 |       snprintf(s.backdropCatalogo, sizeof s.backdropCatalogo, "%s", s.poster);
+      |                                                                ^~   ~~~~~~~~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/artehero.h:21,
+                 from tests/artehero.c:2:
+In function ‘snprintf’,
+    inlined from ‘main’ at tests/artehero.c:605:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/artehero.c: In function ‘main’:
+tests/artehero.c:606:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  606 |       snprintf(s.backdrop, sizeof s.backdrop, "%s", s.poster);
+      |                                                ^~   ~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘main’ at tests/artehero.c:606:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+nuvio-artehero-tests: tests/artehero.c:553: main: Assertion `artehero_logo_sessao(&vazio) == NULL' failed.
+tests/artehero.sh: line 20: 39373 Aborted                 ${TMPDIR:-/tmp}/nuvio-artehero-tests

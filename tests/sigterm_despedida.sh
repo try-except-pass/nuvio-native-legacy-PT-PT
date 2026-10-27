@@ -10,15 +10,15 @@
 # Nunca aperta Play: a tela de login basta, avisos e seguro iniciam antes dela.
 set -u
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 W=$(mktemp -d "$TMPDIR/nv-sigterm.XXXXXX")
 BIN="$W/app"
 ENV_D=$(tools/env.sh)
 eval cc src/*.c src/dts/*.c -o "$BIN" -O1 -g "$ENV_D" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz \
-  -framework OpenGL -Wno-deprecated-declarations || { echo "FALHOU: compilacao"; exit 2; }
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz \
+  -lGLESv2 -lEGL -lm -lpthread -ldl -Wno-deprecated-declarations || { echo "FALHOU: compilacao"; exit 2; }
 DADOS="$W/dados"; mkdir -p "$DADOS"
 PID=""
 trap '[ -n "$PID" ] && kill -KILL "$PID" 2>/dev/null; rm -rf "$W"' EXIT

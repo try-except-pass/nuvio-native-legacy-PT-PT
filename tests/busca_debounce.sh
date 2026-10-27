@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/nuvio-busca-deb-XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 flags=(-DNV_TRAKT_CLIENT_ID='"chave-de-teste"' -O1 -g -Isrc
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+  -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined)
 redir=()
 for f in desc_buscar desc_busca_n_alvos desc_busca_alvo_n desc_busca_alvo_item desc_busca_alvo_titulo \
@@ -23,7 +23,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" "$tmp/busca.o" tests/busca_debounce.c -x c - "${flags[@]}" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -o "$tmp/t" <<'EOS'
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -o "$tmp/t" <<'EOS'
 int novidades1312_aberto(void) { return 0; }
 int novidades1312_primeira_vez(void) { return 0; }
 void novidades1312_atualizar(float dt, unsigned int agora) { (void)dt; (void)agora; }

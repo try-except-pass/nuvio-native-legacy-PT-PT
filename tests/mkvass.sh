@@ -10,9 +10,9 @@ TMPDIR="${TMPDIR%/}"
 #   bash tests/mkvass.sh
 set -eu
 cd "$(dirname "$0")/.."
-cc -I/opt/homebrew/include tests/video_url.c src/video.c -o ${TMPDIR:-/tmp}/nuvio-video-url-test
+cc -I/usr/include tests/video_url.c src/video.c -o ${TMPDIR:-/tmp}/nuvio-video-url-test
 ${TMPDIR:-/tmp}/nuvio-video-url-test
-FFMPEG=${FFMPEG:-/opt/homebrew/bin/ffmpeg}
+FFMPEG=${FFMPEG:-ffmpeg}
 [ -x "$FFMPEG" ] || { echo "mkvass.sh: ffmpeg nao encontrado em $FFMPEG"; exit 1; }
 
 DIR=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-mkvass.XXXXXX")
@@ -59,7 +59,7 @@ EOF
 # e sem Cues nenhum. mkvmerge renumera as faixas na ordem (video 1, audio 2,
 # legenda 3), a mesma da fixture do ffmpeg, entao a faixa 3 continua sendo a
 # legenda. Sem mkvmerge os dois casos sao pulados, com aviso.
-MKVMERGE=${MKVMERGE:-/opt/homebrew/bin/mkvmerge}
+MKVMERGE=${MKVMERGE:-mkvmerge}
 SEMCUES=""; NOCUES=""; SEMREL=""
 if [ -x "$MKVMERGE" ]; then
   "$MKVMERGE" -q -o "$DIR/semcues.mkv" --cues 2:none "$DIR/t.mkv" >/dev/null 2>&1 || true
@@ -115,7 +115,7 @@ RPS=${MKVASS_TESTE_RPS:-12}
 cc ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"} -Isrc -DMKVASS_VARRE_JANELA_SEG=30.0 -DMKVASS_RANGES_POR_SEG=$RPS -DMKVASS_TESTE_ESCALA=${MKVASS_TESTE_ESCALA:-3}.0 \
   -DMKVASS_PAUSA_CDN_INI_MS=150L -DMKVASS_PAUSA_CDN_MAX_MS=600L \
   -DMKVASS_RECUO_INI_MS=20L -DMKVASS_RECUO_MAX_MS=160L tests/mkvass.c src/mkvass.c src/imgsub.c src/pgs.c src/assrender.c src/legenda.c src/rede.c src/redeurl.c src/dados.c src/mkv.c \
-  -o ${TMPDIR:-/tmp}/nuvio-mkvass-tests -O1 -g -Wall -I/opt/homebrew/include \
+  -o ${TMPDIR:-/tmp}/nuvio-mkvass-tests -O1 -g -Wall -I/usr/include \
   -Wno-deprecated-declarations
 mkdir -p "$DIR/dados"
 if [ "${NUVIO_MKVASS_LLDB:-0}" = "1" ]; then

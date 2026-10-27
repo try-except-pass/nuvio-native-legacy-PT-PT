@@ -30,4 +30,4 @@ assert len(entries) <= 35
 print('PASS: release notes/card parity, translated keys and aligned language tables')
 PY
 export NUVIO_SHOT_SO=showoff NUVIO_SHOT_FONTE=3
-bash tests/novidades_cartao_shot.sh "${1:-/Volumes/ExternalSSD/tmp/rev/novidades207}"
+bash tests/novidades_cartao_shot.sh "${1:-${TMPDIR:-/tmp}/rev/novidades207}"

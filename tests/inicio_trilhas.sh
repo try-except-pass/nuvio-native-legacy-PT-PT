@@ -5,9 +5,9 @@ dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-inicio-trilhas.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 rc=0
 for plataforma in NV_ANDROID NV_TPK NV_HOST; do
-  cc -O1 -g -D"$plataforma" -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc -O1 -g -D"$plataforma" -Isrc -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined \
-    -ffunction-sections -fdata-sections -Wl,-dead_strip \
+    -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections \
     src/inicio.c tests/inicio_trilhas.c -o "$dir/$plataforma"
   resultado=0
   "$dir/$plataforma" || resultado=$?

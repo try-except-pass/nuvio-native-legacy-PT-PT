@@ -2,7 +2,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 flags=(-std=gnu11 -Isrc -O1 -g -ffunction-sections -fdata-sections -Wno-unused-function)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 read -r -a sdk <<< "$(pkg-config --cflags sdl2)"
 out=$(mktemp "${TMPDIR:-/tmp}/nuvio-topx-catalogs.XXXXXX")
 trap 'rm -f "$out"' EXIT

@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 cc ${flags[@]+"${flags[@]}"} -DNV_WEBP_ANIM src/gif.c tests/gifwebp.c \
-  -Isrc -I/opt/homebrew/include -L/opt/homebrew/lib -lwebpmux -lwebpdemux -lwebp \
+  -Isrc -I/usr/include -L/usr/lib/x86_64-linux-gnu -lwebpmux -lwebpdemux -lwebp \
   -o ${TMPDIR:-/tmp}/nuvio-gifwebp-tests -O1 -g -pthread \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-gifwebp-tests

@@ -3,7 +3,7 @@
 # preserva o pacing lateral (janela de 12 s). Sem rede, sem midia.
 set -eu
 cd "$(dirname "$0")/.."
-export TMPDIR=/Volumes/ExternalSSD/tmp/jobtmp
+export TMPDIR=${TMPDIR:-/tmp}
 mkdir -p "$TMPDIR"
 dir=$(mktemp -d "$TMPDIR/nuvio-plx-adocao.XXXXXX")
 trap 'rm -rf "$dir"' EXIT

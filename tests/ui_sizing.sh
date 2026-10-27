@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nv-ui-sizing.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 export NUVIO_DADOS="$work/data"
-export UI_SIZING_OUT="/Volumes/ExternalSSD/tmp/nv-205-ui-sizing"
+export UI_SIZING_OUT="${TMPDIR:-/tmp}/nv-205-ui-sizing"
 mkdir -p "$NUVIO_DADOS" "$UI_SIZING_OUT"
 unset NUVIO_TAMANHO_UI
 sources=()
@@ -14,8 +14,8 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/ui_sizing_settings.c tests/ui_sizing.c -Isrc -o "$work/test" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined >"$work/build.log" 2>&1 || { tail -40 "$work/build.log"; exit 1; }
 if [ "${1:-}" = --red ]; then
   "$work/test" --baseline

@@ -5,7 +5,7 @@
 # -DNV_ANDROID (the deferred background and the alpha-bits gate live there);
 # the rest of the app stays the desktop build.
 #
-#   bash tests/dina_pisca_shot.sh /Volumes/ExternalSSD/tmp/pisca/dina
+#   bash tests/dina_pisca_shot.sh ${TMPDIR:-/tmp}/pisca/dina
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -16,9 +16,9 @@ export NUVIO_DADOS
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-dina-build.XXXXXX")
 trap 'rm -rf "$NUVIO_DADOS" "$work"' EXIT
 
-flags=(-O1 -g -DNV_SHOT_HOOKS -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -DNV_SHOT_HOOKS -Isrc -I/usr/include -I/usr/include/SDL2
        -Wno-deprecated-declarations -Wno-macro-redefined)
-libs=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+libs=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 objects=()
 for source in src/*.c src/dts/*.c tests/dina_pisca_shot.c; do
   case "$source" in src/main.c|src/gfx.c) continue;; esac

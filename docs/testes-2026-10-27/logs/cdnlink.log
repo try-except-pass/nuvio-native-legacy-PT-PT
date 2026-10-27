@@ -1,0 +1,33 @@
+ok   add-on https link: yes
+ok   local converter/proxy: no
+ok   localhost: no
+ok   HLS playlist: no
+ok   DASH manifest: no
+ok   not http: no
+ok   redirect to the TorBox CDN: accepted
+ok   same link: nothing to gain
+ok   same host: nothing to gain
+ok   redirect to a local address: refused
+ok   host for logs: no credentials, port, path or token
+ok   the source check's link is reused right away
+ok   still reused at 59 s
+ok   not reused after 60 s (resolved again at open)
+ok   other link: nothing
+ok   newest entry kept
+ok   oldest entry dropped
+ok   validity: 2 h 30
+[fonte-cdn] resolved mediafusionfortheweebs.midnightignite.me -> nexus-176.neur.tb-cdn.st in 0 ms
+ok   resolve does not send the app's own X-Nuvio- header (the fake refuses it)
+[fonte-cdn] resolved mediafusionfortheweebs.midnightignite.me -> nexus-176.neur.tb-cdn.st in 0 ms
+ok   resolve: the CDN address
+ok   resolve: remembered for the next open
+ok   different headers never reuse signed links
+ok   new account never reuses signed links
+ok   stale source-check worker cannot publish
+ok   stale resolver result rejected
+ok   stale resolver cannot populate new session cache
+[fonte-cdn] could not resolve addon.test in 0 ms (HTTP 0): the player gets the add-on link
+ok   resolve fails: nothing
+[fonte-cdn] addon.test does not redirect to another host (0 ms): the player gets the add-on link
+ok   no redirect to another host: nothing
+cdnlink: ok

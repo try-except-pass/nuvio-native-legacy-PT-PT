@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-ilha-relogio-largura.XXXXXXXX")
 trap 'rm -rf "$dir"' EXIT
-cc tests/ilha_relogio_largura.c -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -Wl,-undefined,dynamic_lookup -o "$dir/test" \
+cc tests/ilha_relogio_largura.c -Isrc -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -Wl,--unresolved-symbols=ignore-all -o "$dir/test" \
   -Wall -Wno-macro-redefined -Wno-deprecated-declarations -Wno-unused-function
 "$dir/test"

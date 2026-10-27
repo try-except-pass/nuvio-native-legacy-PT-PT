@@ -7,13 +7,13 @@
 # NUVIO_VIDRO_BASELINE=<rev>: same harness against that revision's gfx.c.
 set -eu
 cd "$(dirname "$0")/.."
-out="${1:-/Volumes/ExternalSSD/tmp/rev/vidrotelas/depois}"
+out="${1:-${TMPDIR:-/tmp}/rev/vidrotelas/depois}"
 mkdir -p "$out"
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-vidro-telas.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 flags=(-O1 -g -DNV_SHOT_HOOKS -DAJUSTES_TESTE -DNV_TRAKT_CLIENT_ID='"chave-de-teste"' -Isrc
-       -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined)
-libs=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+       -I/usr/include -I/usr/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined)
+libs=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 objects=()
 pids=()
 for source in src/*.c src/dts/*.c; do

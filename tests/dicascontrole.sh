@@ -3,7 +3,7 @@
 # Shot mode follows the existing hidden SDL/GL FBO harness, no account/network.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 dados=$(mktemp -d "$TMPDIR/nuvio-dicascontrole.XXXXXX")
 export NUVIO_DADOS="$dados"
@@ -14,15 +14,15 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc -DAJUSTES_TESTE -DNV_TOUCH_UI "${sources[@]}" tests/dicascontrole.c -Isrc -o "$dados/test" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
-cc -DNV_TOUCH_UI -fsyntax-only src/main.c -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -DNV_TOUCH_UI -fsyntax-only src/main.c -Isrc -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined
 "$dados/test" "$dados" first
 "$dados/test" "$dados" repeat
 if [ "${1:-}" = shot ]; then
-  saida="${2:-/Volumes/ExternalSSD/tmp/rev/dicascontrole}"
+  saida="${2:-${TMPDIR:-/tmp}/rev/dicascontrole}"
   mkdir -p "$saida"
   "$dados/test" "$dados" shot "$saida"
 fi

@@ -1,0 +1,188 @@
+In file included from tests/../src/biblioteca.c:69,
+                 from tests/biblioteca_filtro.c:6:
+tests/../src/artemetahub.h: In function ‘itemFiltro’:
+tests/../src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from tests/../src/menu.h:16,
+                 from tests/../src/biblioteca.c:64:
+In function ‘snprintf’,
+    inlined from ‘arte_metahub_preencher’ at tests/../src/artemetahub.h:21:3,
+    inlined from ‘itemFiltro’ at tests/../src/biblioteca.c:587:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/biblioteca.c: In function ‘biblioteca_desenhar_’:
+tests/../src/biblioteca.c:2300:38: warning: ‘%s’ directive output may be truncated writing up to 259 bytes into a region of size 220 [-Wformat-truncation=]
+ 2300 |     snprintf(resumo, sizeof resumo, "%s", comDica);
+      |                                      ^~   ~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘desenhaResumo’ at tests/../src/biblioteca.c:2300:5,
+    inlined from ‘biblioteca_desenhar_’ at tests/../src/biblioteca.c:2352:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 260 bytes into a destination of size 220
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/biblioteca.c: In function ‘biblioteca_desenhar_’:
+tests/../src/biblioteca.c:1877:53: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 8 [-Wformat-truncation=]
+ 1877 |     if (ehAnoMeta(item)) snprintf(ano, sizeof ano, "%s", item);
+      |                                                     ^~   ~~~~
+In function ‘snprintf’,
+    inlined from ‘linhaMeta’ at tests/../src/biblioteca.c:1877:26,
+    inlined from ‘desenhaLinhaTitulo’ at tests/../src/biblioteca.c:2032:5,
+    inlined from ‘biblioteca_desenhar_’ at tests/../src/biblioteca.c:2445:13:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 96 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/salvos.c: In function ‘salvos_aplicar_catalogo’:
+src/salvos.c:364:47: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  364 |     if (c) snprintf(marcaId, sizeof marcaId, "%s", c->imdb);
+      |                                               ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/salvos.h:36,
+                 from src/salvos.c:4:
+In function ‘snprintf’,
+    inlined from ‘salvos_aplicar_catalogo’ at src/salvos.c:364:12:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+[salvos] 12 titulos na lista local do perfil 1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=126 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=126 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=126 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=126 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=129 colecao=126 total=129 cat_unicos=126 locais_fora=3 excl_tipo=0 excl_meta=0 grade=129 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=129 grade=129 navegaveis=129 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=129 colecao=126 total=129 cat_unicos=126 locais_fora=3 excl_tipo=0 excl_meta=0 grade=129 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=129 grade=129 navegaveis=129 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=129 colecao=126 total=129 cat_unicos=126 locais_fora=3 excl_tipo=0 excl_meta=0 grade=129 colunas=1 linhas=129 teto_linhas=698
+fixture: Salvos=129 grade=129 navegaveis=129 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=1 ocultar=1 exibicao=1 salvos=129 colecao=126 total=129 cat_unicos=126 locais_fora=3 excl_tipo=118 excl_meta=0 grade=11 colunas=1 linhas=11 teto_linhas=698
+fixture: Salvos=129 grade=11 navegaveis=11 ocultar=1 tipo=1 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=2 ocultar=1 exibicao=1 salvos=129 colecao=126 total=129 cat_unicos=126 locais_fora=3 excl_tipo=11 excl_meta=0 grade=118 colunas=1 linhas=118 teto_linhas=698
+fixture: Salvos=129 grade=118 navegaveis=118 ocultar=1 tipo=2 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=2 grade=128 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=128 navegaveis=128 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=7 linhas=19 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=1 grade=125 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=125 navegaveis=125 ocultar=1 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=0 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=7 linhas=18 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=0
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=2 grade=128 colunas=1 linhas=128 teto_linhas=698
+fixture: Salvos=130 grade=128 navegaveis=128 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=1 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=1 grade=125 colunas=1 linhas=125 teto_linhas=698
+fixture: Salvos=130 grade=125 navegaveis=125 ocultar=1 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=1 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=126 cat_unicos=126 locais_fora=0 excl_tipo=0 excl_meta=0 grade=126 colunas=1 linhas=126 teto_linhas=698
+fixture: Salvos=130 grade=126 navegaveis=126 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=0 excl_meta=0 grade=130 colunas=1 linhas=130 teto_linhas=698
+fixture: Salvos=130 grade=130 navegaveis=130 ocultar=0 tipo=0 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=1 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=118 excl_meta=0 grade=12 colunas=1 linhas=12 teto_linhas=698
+fixture: Salvos=130 grade=12 navegaveis=12 ocultar=0 tipo=1 exibicao=1
+[biblioteca] perfil=1 modo=0 tipo=2 ocultar=0 exibicao=1 salvos=130 colecao=126 total=130 cat_unicos=126 locais_fora=4 excl_tipo=12 excl_meta=0 grade=118 colunas=1 linhas=118 teto_linhas=698
+fixture: Salvos=130 grade=118 navegaveis=118 ocultar=0 tipo=2 exibicao=1
+biblioteca filtro: PASS (regressao sintetica; sem prova da TV)
+biblioteca diagnostico (tv): PASS

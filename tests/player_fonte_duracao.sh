@@ -5,7 +5,7 @@ dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-fonte-duracao.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 export NUVIO_DADOS="$dir/dados"
 mkdir -p "$NUVIO_DADOS"
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined)
 pure=()
 if [ "${SANITIZE:-0}" = 1 ]; then pure+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
@@ -20,5 +20,5 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${flags[@]}" -DNV_SHOT_HOOKS "${sources[@]}" tests/player_fonte_duracao.c "$dir/video.o" \
-  -o "$dir/test" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -o "$dir/test" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 "$dir/test"

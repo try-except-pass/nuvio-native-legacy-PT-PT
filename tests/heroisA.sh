@@ -17,7 +17,7 @@ PY
 fi
 SECONDS=0
 ulimit -c 0
-export TMPDIR=/Volumes/ExternalSSD/tmp/jobtmp
+export TMPDIR=${TMPDIR:-/tmp}
 export NUVIO_DADOS
 NUVIO_DADOS=$(mktemp -d "$TMPDIR/nuvio-heroisA.XXXXXX")
 trap 'rc=$?; rm -rf "$NUVIO_DADOS"; printf "Hero A runner: rc=%d, elapsed=%ds\n" "$rc" "$SECONDS"' EXIT
@@ -36,7 +36,7 @@ from pathlib import Path
 import subprocess, sys
 root = Path.cwd()
 out = Path(sys.argv[1])
-flags = ['-O1', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2',
+flags = ['-O1', '-I/usr/include', '-I/usr/include/SDL2',
          '-Wno-deprecated-declarations']
 jobs, objects = [], {}
 for name, source in [('test', root), ('baseline', out/'base'),
@@ -67,8 +67,8 @@ def compile(command):
 with ThreadPoolExecutor(max_workers=8) as pool:
     list(pool.map(compile, jobs))
 for name, paths in objects.items():
-    subprocess.run(['cc', *paths, '-o', str(out/(name+'.bin')), '-L/opt/homebrew/lib',
-                    '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-framework', 'OpenGL'], check=True)
+    subprocess.run(['cc', *paths, '-o', str(out/(name+'.bin')), '-L/usr/lib/x86_64-linux-gnu',
+                    '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl'], check=True)
 PY
 set +e
 "$NUVIO_DADOS/reviewed.bin" --fade > "$NUVIO_DADOS/mask.log" 2>&1

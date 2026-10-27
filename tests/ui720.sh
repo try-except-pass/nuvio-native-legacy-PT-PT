@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-ui720.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-out="${1:-/Volumes/ExternalSSD/tmp/rev/ui720}"
+out="${1:-${TMPDIR:-/tmp}/rev/ui720}"
 mkdir -p "$out" "$work/data"
 # Existing Android SDK only; never install a compiler/runtime for this check.
 angle="$HOME/Library/Android/sdk/emulator/lib64/gles_angle"
@@ -33,10 +33,10 @@ done
 mkdir -p "$work/src/dts" "$work/tests"
 printf '%s\0' "${sources[@]}" tests/ui720.c tests/ui720_settings.c |
   xargs -0 -P 8 -I '{}' cc '{}' -c -o "$work/{}.o" -DAJUSTES_TESTE -Isrc -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined
 cc "$work"/src/*.o "$work"/src/dts/*.o "$work"/tests/*.o -o "$work/test" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 ui_rc=0
 NUVIO_DADOS="$work/data" "$work/test" "$out" "${@:2}" > "$out/results.txt" 2>&1 || ui_rc=$?
 rg '^(GPU |METRIC |BLIT |FRAME |CHOICE |PASS |FAIL |\[gpu-nivel\] ampliar=)' "$out/results.txt"

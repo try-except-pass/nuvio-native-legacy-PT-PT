@@ -12,7 +12,7 @@ sources=()
 for source in src/*.c src/dts/*.c; do
   [ "$source" != src/main.c ] && sources+=("$source")
 done
-gl=(-framework OpenGL)
+gl=(-lGLESv2 -lEGL -lm -lpthread -ldl)
 if [ "${1:-}" = gles ]; then
   angle="${NV_ANGLE_DIR:-$HOME/Library/Android/sdk/emulator/lib64/gles_angle}"
   ndk=$(ls -d "$HOME"/Library/Android/sdk/ndk/*/toolchains/llvm/prebuilt/*/sysroot/usr/include 2>/dev/null | tail -1)
@@ -22,8 +22,8 @@ if [ "${1:-}" = gles ]; then
   gl=(-DNV_GLES_NO_MAC -I"$work/inc" -L"$angle" -lEGL -lGLESv2 -Wl,-rpath,"$angle" -Wl,-headerpad_max_install_names)
 fi
 cc "${sources[@]}" tests/fundo_assado.c -Isrc -o "$work/test" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz "${gl[@]}" \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz "${gl[@]}" \
   -Wno-deprecated-declarations -Wno-macro-redefined
 if [ "${1:-}" = gles ]; then   # o ANGLE do emulador se chama ./libEGL.dylib
   for l in libEGL libGLESv2; do install_name_tool -change "./$l.dylib" "$angle/$l.dylib" "$work/test" || true; done

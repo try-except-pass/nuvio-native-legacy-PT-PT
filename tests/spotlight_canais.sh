@@ -16,8 +16,8 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/spotlight_canais.c -Isrc -o "$tmp/t" -O1 -g \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 sleep 0.3
 "$tmp/t" rede "http://127.0.0.1:$PORTA" | grep -E '^(spotlight|guia|fonte|PASS)|\[guia\]|\[spotlight\]'

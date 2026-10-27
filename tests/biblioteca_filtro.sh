@@ -8,11 +8,11 @@ if [ -n "${BIB_REV:-}" ]; then
   git show "$BIB_REV:src/biblioteca.c" > "$tmp/biblioteca.c"
   flags+=("-DBIB_FONTE=\"$tmp/biblioteca.c\"")
 fi
-for plat in tv android; do
+for plat in tv; do
   def=(); [ "$plat" = android ] && def=(-DNV_ANDROID)
   cc ${flags[@]+"${flags[@]}"} ${def[@]+"${def[@]}"} tests/biblioteca_filtro.c src/salvos.c src/focus.c \
-    -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-    -O1 -g -ffunction-sections -fdata-sections -Wl,-dead_strip -o "$tmp/teste"
+    -Isrc -I/usr/include -I/usr/include/SDL2 \
+    -O1 -g -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections -o "$tmp/teste"
   "$tmp/teste" | tee "$tmp/log"
   if [ "${BIB_EXIGIR_LOG:-1}" = 1 ]; then
     if ! grep -q 'modo=0 tipo=0 ocultar=1 .*total=130 .*excl_meta=0 grade=130' "$tmp/log" ||

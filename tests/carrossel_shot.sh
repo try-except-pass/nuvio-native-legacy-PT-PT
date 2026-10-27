@@ -7,7 +7,7 @@ TMPDIR="${TMPDIR%/}"
 #
 #   bash tests/carrossel_shot.sh /tmp/nv-carrossel
 #
-# Cada BMP vira PNG (sips) e o BMP e apagado — sao 8 MB por captura.
+# Cada BMP vira PNG (ffmpeg) e o BMP e apagado — sao 8 MB por captura.
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -27,8 +27,8 @@ done
 binario="${NV_BINARY:-$NUVIO_DADOS/shot}"
 if [ -z "${NV_REUSE:-}" ]; then
 if ! cc "${sources[@]}" tests/carrossel_shot.c -Isrc -o "$binario" \
-  -O1 -g ${NV_CFLAGS:-} -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g ${NV_CFLAGS:-} -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined \
   >"$NUVIO_DADOS/build.log" 2>&1; then
   cat "$NUVIO_DADOS/build.log" >&2
@@ -40,5 +40,5 @@ fi
 [ -n "${NV_KEEP:-}" ] && exit 0   # deixa os BMP, para comparar byte a byte
 for f in "$saida"/c-*.bmp; do
   [ -e "$f" ] || continue
-  sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
+  ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
 done

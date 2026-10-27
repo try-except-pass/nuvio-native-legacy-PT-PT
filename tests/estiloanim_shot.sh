@@ -17,8 +17,8 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 if ! cc "${sources[@]}" tests/estiloanim_shot.c -Isrc -o "$NUVIO_DADOS/shot" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   ${NV_SHOT_CFLAGS:-} -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined \
   >"$NUVIO_DADOS/build.log" 2>&1; then
   cat "$NUVIO_DADOS/build.log" >&2

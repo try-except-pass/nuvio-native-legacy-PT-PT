@@ -21,8 +21,8 @@ guia_shot="$raiz/tests/guia_shot.c"
 [ -f "$guia_shot" ] || { echo "sem tests/guia_shot.c em $raiz" >&2; exit 1; }
 cp "$aqui/tests/fluidez_perf_guia.c" "$tmp/fluidez_perf_guia.c"
 cc ${flags[@]+"${flags[@]}"} -DNV_FLUIDEZ_PERF "${sources[@]}" "$tmp/fluidez_perf_guia.c" -Isrc -I"$raiz/tests" \
-  -o "$tmp/perf" -O1 -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -o "$tmp/perf" -O1 -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 printf '%-28s %-6s %6s %6s %6s %6s %6s %6s\n' estado vidro fill vis rects progs binds cheios
 for v in 0 1; do

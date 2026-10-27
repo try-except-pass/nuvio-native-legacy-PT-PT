@@ -6,7 +6,7 @@ cd "$ROOT"
 
 # Focused syntax gate for the three surfaces in this change; no link or full app build.
 cc -fsyntax-only src/guia.c src/streams.c src/recenviar.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined
 
 # Both Guide drawers use the configured Glass leaf and retain an opaque path.

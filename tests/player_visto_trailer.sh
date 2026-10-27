@@ -5,7 +5,7 @@ dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-visto-trailer.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 export NUVIO_DADOS="$dir/dados"
 mkdir -p "$NUVIO_DADOS"
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined)
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 renomes=()
@@ -35,5 +35,5 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${flags[@]}" -DNV_SHOT_HOOKS "${sources[@]}" "${1:-tests/player_visto_trailer.c}" "$dir/video.o" "$dir/trakt.o" "$dir/visto.o" "$dir/ajustes.o" "$dir/descoberta.o" "$dir/player.o" "$dir/rede.o" \
-  -o "$dir/test" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -o "$dir/test" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 "$dir/test"

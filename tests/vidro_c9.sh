@@ -2,13 +2,13 @@
 # Deterministic, offline GL budget and PNGs at 1080p/4K. No TV required.
 set -eu
 cd "$(dirname "$0")/.."
-out="${1:-/Volumes/ExternalSSD/tmp/rev/vidroc9/depois}"
+out="${1:-${TMPDIR:-/tmp}/rev/vidroc9/depois}"
 mkdir -p "$out"
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-vidro-c9.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-O1 -g -DNV_SHOT_HOOKS -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -DNV_SHOT_HOOKS -Isrc -I/usr/include -I/usr/include/SDL2
        -Wno-deprecated-declarations -Wno-macro-redefined)
-libs=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+libs=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 objects=()
 for source in src/*.c src/dts/*.c tests/vidro_c9.c; do
   case "$source" in src/main.c|src/gfx.c) continue;; esac

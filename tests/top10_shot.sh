@@ -10,12 +10,12 @@ import subprocess
 import tempfile
 
 root = Path.cwd()
-out = Path('/Volumes/ExternalSSD/tmp/rev')
+out = Path(tempfile.gettempdir()) / 'rev'
 out.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='nv-top10-shot-') as tmp:
     work = Path(tmp)
-    flags = ['-O1', '-g', '-Isrc', '-Itests', '-I/opt/homebrew/include',
-             '-I/opt/homebrew/include/SDL2', '-Wno-deprecated-declarations',
+    flags = ['-O1', '-g', '-Isrc', '-Itests', '-I/usr/include',
+             '-I/usr/include/SDL2', '-Wno-deprecated-declarations',
              '-Wno-macro-redefined']
     def compile(source):
         obj = work / (str(source).replace('/', '_') + '.o')
@@ -25,8 +25,8 @@ with tempfile.TemporaryDirectory(prefix='nv-top10-shot-') as tmp:
     sources = sorted(Path('src').glob('*.c')) + sorted(Path('src/dts').glob('*.c'))
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         objects = dict(zip(map(str, sources), pool.map(compile, sources)))
-    libs = ['-L/opt/homebrew/lib', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf',
-            '-lz', '-framework', 'OpenGL']
+    libs = ['-L/usr/lib/x86_64-linux-gnu', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf',
+            '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl']
     # Keep production objects for the final host build; capture transport is offline.
     network = work / 'offline.c'
     source = Path('src/rede.c').read_text().replace(

@@ -10,7 +10,7 @@ cat > "$dir/sonda.c" <<'C'
 int stream_url_serve(const char *u, const char *c) { (void)u; (void)c; return 0; }
 C
 sani=""; [ "${SANITIZE:-0}" = 1 ] && sani="-fsanitize=address,undefined"
-cc -O1 -g -Wall -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Wall -Isrc -I/usr/include -I/usr/include/SDL2 \
   $sani \
   src/fontevolta.c "$dir/sonda.c" tests/fontevolta.c -o "$dir/t" -lpthread
 "$dir/t"

@@ -1,0 +1,40 @@
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/xtream.c:141:49: note: format string is defined here
+  141 |            "servidor\t%s\nusuario\t%s\nsenha\t%s\nconexoesModo\t%d\n", servidor, usuario, senha, conexoesModo);
+      |                                                 ^~~~~~~~~~~~~~~~
+In file included from /usr/include/stdio.h:980,
+                 from src/iptvid.h:4,
+                 from src/xtream.c:2:
+In function ‘snprintf’,
+    inlined from ‘gravar’ at src/xtream.c:137:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 205 and 660 bytes into a destination of size 640
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/xtream.c: In function ‘xtream_servidor_curto’:
+src/xtream.c:215:34: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size 128 [-Wformat-truncation=]
+  215 |   snprintf(curto, sizeof curto, "%s", p[0] ? p : "-");
+      |                                  ^~
+In function ‘snprintf’,
+    inlined from ‘xtream_servidor_curto’ at src/xtream.c:215:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 256 bytes into a destination of size 128
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from tests/amigos_estilos_shot.c:68:
+tests/shot_arte.h: In function ‘shot_arte_carregar’:
+tests/shot_arte.h:43:17: error: ‘GL_UNPACK_ROW_LENGTH’ undeclared (first use in this function); did you mean ‘GL_INFO_LOG_LENGTH’?
+   43 |   glPixelStorei(GL_UNPACK_ROW_LENGTH, t->pitch / 4);
+      |                 ^~~~~~~~~~~~~~~~~~~~
+      |                 GL_INFO_LOG_LENGTH
+tests/shot_arte.h:43:17: note: each undeclared identifier is reported only once for each function it appears in
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics

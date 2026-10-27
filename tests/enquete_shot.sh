@@ -15,7 +15,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/enquete_shot.c -Isrc -o "${TMPDIR:-/tmp}/nuvio-enquete-shot" \
-  -O1 -g -DNV_LEVE -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -DNV_LEVE -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -w
 "${TMPDIR:-/tmp}/nuvio-enquete-shot" "${1:-${TMPDIR:-/tmp}/nuvio-enquete}"

@@ -7,7 +7,7 @@ set -eu
 cd "$(dirname "$0")/.."
 obj="${TMPDIR:-/tmp}/nuvio-foco-obj"
 mkdir -p "$obj"
-flags=(-DNV_TOUCH_UI -O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-DNV_TOUCH_UI -O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined -w)
 objs=()
 for source in src/*.c src/dts/*.c; do
@@ -24,5 +24,5 @@ wait
 binary="$(mktemp "${TMPDIR:-/tmp}/nuvio-foco-acento.XXXXXX")"
 trap 'rm -f "$binary"' EXIT
 cc "${flags[@]}" "${objs[@]}" tests/foco_acento.c -o "$binary" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 "$binary"

@@ -14,8 +14,8 @@ cc src/*.c src/dts/*.c -o ${TMPDIR:-/tmp}/nuvio-crash -O0 -g \
   -DNV_SUPABASE_URL='""' -DNV_SUPABASE_ANON_KEY='""' -DNV_TV_LOGIN_BASE='""' \
   -DNV_TRAKT_CLIENT_ID='""' -DNV_TRAKT_CLIENT_SECRET='""' \
   -DNV_SIMKL_CLIENT_ID='""' -DNV_SIMKL_APP='""' -DNV_TMDB_API_KEY='""' \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf \
-  -framework OpenGL -Wno-deprecated-declarations 2>/dev/null
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf \
+  -lGLESv2 -lEGL -lm -lpthread -ldl -Wno-deprecated-declarations 2>/dev/null
 echo "dados descartaveis em $NUVIO_DADOS"
 lldb -b -o run -o "bt all" -o quit -- ${TMPDIR:-/tmp}/nuvio-crash "$(pwd)/deploy/app/art" 2>&1

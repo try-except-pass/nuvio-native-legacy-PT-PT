@@ -13,5 +13,5 @@ if a < 0: a = s.index('static void refazer(void) {')
 b = s.index('// Consume account changes', a)
 Path(sys.argv[1]).write_text(s[a:b])
 PY
-cc tests/amigosarte.c -I"$tmp" -Isrc -I/opt/homebrew/include/SDL2 -O1 -Wall -Wextra -o "$tmp/test"
+cc tests/amigosarte.c -I"$tmp" -Isrc -I/usr/include/SDL2 -O1 -Wall -Wextra -o "$tmp/test"
 "$tmp/test"

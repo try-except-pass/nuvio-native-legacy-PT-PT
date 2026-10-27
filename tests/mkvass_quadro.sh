@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 DIR=$(mktemp -d ${TMPDIR:-/tmp}/nuvio-mkvass-quadro.XXXXXX)
 trap 'rm -rf "$DIR"' EXIT
 flags=(-ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections -pthread -lm); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-Wl,--gc-sections -pthread -lm); fi
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all); fi
 cc tests/mkvass_quadro.c -Isrc -O1 -g -Wall -Wextra -Wno-deprecated-declarations \
   "${flags[@]}" -o "$DIR/test"

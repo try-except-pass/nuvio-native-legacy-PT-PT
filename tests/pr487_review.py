@@ -110,7 +110,7 @@ with tempfile.TemporaryDirectory(prefix='pr487-review-') as temp:
     binary = Path(temp) / 'probe'
     cfile.write_text(probe)
     subprocess.run(['cc', str(cfile), 'src/stream_parse.c', 'src/js.c', 'src/badges.c', 'src/linguas.c', 'src/fontefiltro.c',
-                    '-Isrc', '-I/opt/homebrew/include', '-O1', '-g', '-ffunction-sections',
-                    '-fdata-sections', '-Wl,-dead_strip', '-fsanitize=address,undefined,float-cast-overflow',
+                    '-Isrc', '-I/usr/include', '-O1', '-g', '-ffunction-sections',
+                    '-fdata-sections', '-ffunction-sections -fdata-sections -Wl,--gc-sections', '-fsanitize=address,undefined,float-cast-overflow',
                     '-fno-omit-frame-pointer', '-fno-sanitize-recover=all', '-o', str(binary)], cwd=root, check=True)
     raise SystemExit(subprocess.run([str(binary)], cwd=root).returncode)

@@ -1,0 +1,21 @@
+src/catordem.c: In function ‘lerItens’:
+src/catordem.c:122:29: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size between 64 and 190 [-Wformat-truncation=]
+  122 |   snprintf(dst, tam, "%s_%s_%s", addon, tipo, cat);
+      |                             ^~                ~~~
+In file included from /usr/include/stdio.h:980,
+                 from src/catordem.c:3:
+In function ‘snprintf’,
+    inlined from ‘chaveDoItem’ at src/catordem.c:122:3,
+    inlined from ‘lerItens’ at src/catordem.c:149:10:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 3 and 224 bytes into a destination of size 192
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/usr/bin/ld: /tmp/nvtestes.r1BgR1/addons_pull_enabled.YciVV4/cclhRdfB.o: in function `empurrarAjustes':
+/workspace/nuvio-app/tests/../src/sync.c:1125:(.text.rodar+0x1226): undefined reference to `ajustes_edicao_perfil'
+collect2: error: ld returned 1 exit status

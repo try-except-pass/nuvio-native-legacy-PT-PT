@@ -12,8 +12,8 @@ trap 'rm -rf "$task_dir"' EXIT
 export NUVIO_DADOS="$task_dir"
 flags=(-std=gnu11 -O0 -g -DNV_TOUCH_UI -DAJUSTES_TESTE -Isrc)
 if [[ "$(uname -s)" == Darwin ]]; then
-  flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib)
-  libs=(-lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+  flags+=(-I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu)
+  libs=(-lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 else
   pkg-config --exists sdl2 SDL2_image SDL2_ttf
   flags+=(-DNV_LINUX_DESKTOP)

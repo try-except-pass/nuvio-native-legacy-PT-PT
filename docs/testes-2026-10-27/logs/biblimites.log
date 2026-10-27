@@ -1,0 +1,137 @@
+In file included from tests/biblimites_trakt.c:13:
+tests/../src/trakt.c: In function ‘trakt_perfil’:
+tests/../src/trakt.c:2159:7: warning: this ‘while’ clause does not guard... [-Wmisleading-indentation]
+ 2159 |       while(*p&&(unsigned char)*p<=' ')p++; if(*p!='{')break; f=js_fim(p);
+      |       ^~~~~
+tests/../src/trakt.c:2159:45: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘while’
+ 2159 |       while(*p&&(unsigned char)*p<=' ')p++; if(*p!='{')break; f=js_fim(p);
+      |                                             ^~
+In file included from tests/../src/trakt.c:5:
+tests/../src/artemetahub.h: In function ‘arte_metahub_preencher’:
+tests/../src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+In file included from /usr/include/stdio.h:980,
+                 from tests/nvtmp.h:7,
+                 from tests/biblimites_trakt.c:6:
+In function ‘snprintf’,
+    inlined from ‘arte_metahub_preencher’ at tests/../src/artemetahub.h:21:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘doBlocoTrakt’:
+tests/../src/trakt.c:420:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  420 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+In function ‘snprintf’,
+    inlined from ‘doBlocoTrakt’ at tests/../src/trakt.c:420:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘enfeitar’:
+tests/../src/trakt.c:647:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  647 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+In function ‘snprintf’,
+    inlined from ‘enfeitar’ at tests/../src/trakt.c:647:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘enfeitar’:
+tests/../src/trakt.c:835:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  835 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+In function ‘snprintf’,
+    inlined from ‘enfeitar’ at tests/../src/trakt.c:835:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘trakt_carregar’:
+tests/../src/trakt.c:358:36: warning: ‘%s’ directive output may be truncated writing up to 299 bytes into a region of size 128 [-Wformat-truncation=]
+  358 |     snprintf(token, sizeof token, "%s", linha);
+      |                                    ^~   ~~~~~
+In function ‘snprintf’,
+    inlined from ‘trakt_carregar’ at tests/../src/trakt.c:358:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 300 bytes into a destination of size 128
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘trakt_social’:
+tests/../src/trakt.c:2050:9: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size between 98 and 124 [-Wformat-truncation=]
+ 2050 |         snprintf(d->direcao, sizeof d->direcao, i18n("T%dE%d%s%s"), d->temporada,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2051 |                  d->episodio, d->nomeEpisodio[0] ? "  \xc2\xb7  " : "",
+      |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2052 |                  d->nomeEpisodio);
+      |                  ~~~~~~~~~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘trakt_social’ at tests/../src/trakt.c:2050:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 150 bytes into a destination of size 128
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘trakt_continuar’:
+tests/../src/trakt.c:1804:86: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+ 1804 |           snprintf(playLocal[nPlayLocal].chave, sizeof playLocal[nPlayLocal].chave, "%s", d->imdb);
+      |                                                                                      ^~
+In function ‘snprintf’,
+    inlined from ‘trakt_continuar’ at tests/../src/trakt.c:1804:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 28
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘trakt_continuar’:
+tests/../src/trakt.c:1658:68: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+ 1658 |           snprintf(playLocal[k].chave, sizeof playLocal[k].chave, "%s", v[achou].imdb);
+      |                                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘dedupObras’ at tests/../src/trakt.c:1658:11,
+    inlined from ‘trakt_continuar’ at tests/../src/trakt.c:1812:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 64 bytes into a destination of size 28
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/trakt.c: In function ‘trakt_continuar’:
+tests/../src/trakt.c:1884:42: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 32 [-Wformat-truncation=]
+ 1884 |           snprintf(p->id, sizeof p->id, "%s", d->imdb);
+      |                                          ^~
+In function ‘snprintf’,
+    inlined from ‘trakt_continuar’ at tests/../src/trakt.c:1884:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 64 bytes into a destination of size 32
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+[trakt] watchlist: 400 de 600 (paginas 4)
+[trakt] watchlist: teto 400 da plataforma; 200 ficaram de fora
+biblimites trakt (tv): PASS

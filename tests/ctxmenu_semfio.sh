@@ -21,8 +21,8 @@ for source in src/*.c src/dts/*.c; do
 done
 cc "${sources[@]}" tests/ctxmenu_semfio.c -Isrc -o "$tmp/teste" \
   -DNV_TRAKT_CLIENT_ID='"chave-de-teste"' \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -w
 NUVIO_DADOS="$tmp/dados" "$tmp/teste" || falhou=1
 if [ "$falhou" != 0 ]; then echo "ctxmenu_semfio: FALHOU"; exit 1; fi

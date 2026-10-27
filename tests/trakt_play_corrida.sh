@@ -4,12 +4,12 @@
 #   bash tests/trakt_play_corrida.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 dir=$(mktemp -d "$TMPDIR/nuvio-traktplay.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 cc src/trakt.c src/metaep.c tests/stub_fichameta.c src/js.c src/metaprov.c tests/trakt_play_corrida.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -o "$dir/teste" -O1 -g -fsanitize=thread -Wall -Wextra -Wl,-dead_strip -lpthread
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
+  -o "$dir/teste" -O1 -g -fsanitize=thread -Wall -Wextra -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread
 rc=0
 TSAN_OPTIONS="halt_on_error=1 exitcode=66" "$dir/teste" >"$dir/saida" 2>"$dir/erro" || rc=$?
 if [ "$rc" != 0 ] || grep -q "ThreadSanitizer" "$dir/erro"; then

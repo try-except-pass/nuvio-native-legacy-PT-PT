@@ -14,7 +14,7 @@ done
 (
   cd "$work"
   cc -c "${sources[@]}" "$root/tests/corviva_shot.c" -I"$root/src" -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations
 )
 git show f246d8e91:src/corviva.c > "$work/corviva-before.c"
@@ -22,7 +22,7 @@ for version in before after; do
   source="$work/corviva-before.c"
   [ "$version" = after ] && source=src/corviva.c
   cc "$source" "$work"/*.o -Isrc -o "$work/$version" -O0 \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
  done
 for mode in before vivid light; do
   binary=after
@@ -34,7 +34,7 @@ for mode in before vivid light; do
   for screen in home detail; do
     bmp="$work/$mode-detail.bmp"
     [ "$screen" = home ] && bmp="$work/$mode-1-home-dinamica-vermelho.bmp"
-    sips -s format png "$bmp" --out "docs/shots/artepastel/$mode-$screen.png" >/dev/null
+    ffmpeg -nostdin -loglevel error -y -i "$bmp" "docs/shots/artepastel/$mode-$screen.png" >/dev/null
   done
   tail -1 "$work/$mode.log"
 done

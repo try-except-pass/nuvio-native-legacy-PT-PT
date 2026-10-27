@@ -32,11 +32,11 @@ end = picker.index('  if (foco >= perfis_n())', start)
 (work / 'pin-result.inc').write_text(picker[start:end])
 PY
 flags=(-O1 -g -Isrc -Itests -I"$work" -pthread
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+  -I/usr/include -I/usr/include/SDL2
   -ffunction-sections -fdata-sections -DNV_DESC_MIN_MS=0ull
   -Wno-deprecated-declarations -Wno-unused-function)
 gc=(-Wl,--gc-sections)
-if [ "$(uname -s)" = Darwin ]; then gc=(-Wl,-dead_strip); fi
+if [ "$(uname -s)" = Darwin ]; then gc=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 cc "${flags[@]}" tests/pinrows.c src/perfis.c src/jsw.c src/homeestado.c src/catalogo.c \
   src/progresso.c src/cwordem.c src/cotacat.c src/js.c src/metaprov.c src/colecoes.c \
   src/redeurl.c src/catordem.c "${gc[@]}" -o "$work/test"

@@ -9,13 +9,13 @@ flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 cc ${flags[@]+"${flags[@]}"} src/simklauth.c src/credfio.c src/js.c src/jsw.c \
   tests/simklauth_perfil.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -o ${TMPDIR:-/tmp}/nuvio-simklauth-tests -O1 -g -lpthread \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-simklauth-tests
 cc ${flags[@]+"${flags[@]}"} src/simklauth.c src/credfio.c src/js.c src/jsw.c \
   tests/simklauth_poll.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -o ${TMPDIR:-/tmp}/nuvio-simklauth-poll -O1 -g -lpthread \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-simklauth-poll

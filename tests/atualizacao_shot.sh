@@ -27,7 +27,7 @@ done
 ENV_D=$(tools/env.sh)
 eval cc "${sources[@]}" tests/atualizacao_shot.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-update-shot \
   -O1 -g -DNV_AT_INSTALA=1 "$ENV_D" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-update-shot "$@"

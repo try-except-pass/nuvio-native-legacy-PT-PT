@@ -1,0 +1,37 @@
+src/artereserva.c: In function ‘ateTemporada’:
+src/artereserva.c:216:63: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 40 [-Wformat-truncation=]
+  216 |       snprintf(dst->v[dst->n].still, sizeof dst->v[0].still, "%s", c);
+      |                                                               ^~   ~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/descoberta.h:14,
+                 from src/artereserva.c:3:
+In function ‘snprintf’,
+    inlined from ‘ateTemporada’ at src/artereserva.c:216:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 128 bytes into a destination of size 40
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/busca_arte.c: In function ‘main’:
+tests/busca_arte.c:19:44: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+   19 |   snprintf(c.backdrop, sizeof c.backdrop, "%s", c.poster);
+      |                                            ^~   ~~~~~~~~
+In file included from /usr/include/stdio.h:980,
+                 from tests/artereserva.c:5,
+                 from tests/busca_arte.c:3:
+In function ‘snprintf’,
+    inlined from ‘main’ at tests/busca_arte.c:19:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+[tex] fundo tmdblogo de tmdb:1796809: /remain-logo.png
+[tex] fundo tmdb de tmdb:1796809: /remain-bg.jpg
+PASS: metahub 404 -> TMDB logo; negative cache -> title; tmdb Search backdrop

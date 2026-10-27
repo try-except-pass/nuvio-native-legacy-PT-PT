@@ -47,7 +47,7 @@ int main(void) {
 ''')
     for platform in ('NV_ANDROID', 'NV_TPK', '__EMSCRIPTEN__', '__APPLE__'):
         binary = Path(tmp) / platform
-        subprocess.run(['cc', str(c), '-Isrc', '-I/opt/homebrew/include/SDL2', '-U__APPLE__', '-D'+platform, '-o', str(binary)], check=True)
+        subprocess.run(['cc', str(c), '-Isrc', '-I/usr/include/SDL2', '-U__APPLE__', '-D'+platform, '-o', str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
         print('PASS', platform, 'CH+/CH− down/up, Saved/search and platform zap semantics')
 PY

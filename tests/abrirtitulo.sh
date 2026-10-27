@@ -12,7 +12,7 @@ trap 'rm -rf "$work"' EXIT
 # com o mesmo conjunto de link de tests/cateps.sh.
 cc ${flags[@]+"${flags[@]}"} src/catalogo.c src/cwordem.c tests/abrirtitulo.c src/cotacat.c \
   src/js.c src/metaprov.c src/colecoes.c src/redeurl.c src/catordem.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -o "$work/abrirtitulo-tests" -O1 -g -DCOM_SEMENTE \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined
 "$work/abrirtitulo-tests"

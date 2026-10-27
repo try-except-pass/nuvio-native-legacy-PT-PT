@@ -5,8 +5,8 @@ cd "$(dirname "$0")/.."
 [ -f tests/plugin_rodar.c ] || { echo 'missing tests/plugin_rodar.c' >&2; exit 1; }
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-plugin-rodar.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
-cc -O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -pthread \
-  -Wno-macro-redefined -ffunction-sections -fdata-sections -Wl,-dead_strip \
+cc -O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -pthread \
+  -Wno-macro-redefined -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections \
   src/qjs.c src/pluginjs.c src/plugrede.c src/htmlq.c src/rede.c src/redeurl.c \
   src/stream_parse.c src/fontefiltro.c src/linguas.c src/badges.c src/js.c tests/plugin_rodar.c -o "$tmp/rodar"
 if [ "$#" -gt 0 ]; then "$tmp/rodar" "$@"; exit; fi

@@ -2,9 +2,9 @@
 # Reject empty/banded captures and compare matching 1080p states.
 set -eu
 cd "$(dirname "$0")/.."
-after=${1:-/Volumes/ExternalSSD/tmp/rev/avaliar21-png}
+after=${1:-${TMPDIR:-/tmp}/rev/avaliar21-png}
 before=${2:-}
-comparison=${3:-/Volumes/ExternalSSD/tmp/rev/avaliar21-polish-png}
+comparison=${3:-${TMPDIR:-/tmp}/rev/avaliar21-polish-png}
 names=(reacao-simples reacao-estrelas reacao-tags reacao-glass reacao-tags-glass reacao-rec reacao-detalhe reacao-detalhe-nota title-rating episode-rating)
 check() {
   local file=$1 expected=$2 dimensions colors

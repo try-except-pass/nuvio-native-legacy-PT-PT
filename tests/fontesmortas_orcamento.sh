@@ -15,8 +15,8 @@ PY
 flags=(-std=gnu11 -O1 -g -Isrc -I"$dir" -pthread
        -Wall -Wextra -Wno-deprecated-declarations -ffunction-sections -fdata-sections)
 if [ "$(uname -s)" = Darwin ]; then
-  flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
-  linker=(-Wl,-dead_strip)
+  flags+=(-I/usr/include -I/usr/include/SDL2)
+  linker=(-ffunction-sections -fdata-sections -Wl,--gc-sections)
 else
   flags+=(-DNV_LINUX_DESKTOP)
   linker=(-Wl,--gc-sections -lm)

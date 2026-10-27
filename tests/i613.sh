@@ -6,7 +6,7 @@ trap 'if [ -f "$work/log" ]; then pid=$(awk -F= "/^server pid=/{print \$2}" "$wo
 flags=(-O1 -g -Isrc -Wno-deprecated-declarations -Wno-macro-redefined -Wno-return-type -ffunction-sections -fdata-sections)
 if [ "$(uname -s)" = Darwin ]; then
   jdk="${JAVA_HOME:-$(/usr/libexec/java_home)}"
-  flags+=(-I"$jdk/include" -I"$jdk/include/darwin" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wl,-dead_strip)
+  flags+=(-I"$jdk/include" -I"$jdk/include/darwin" -I/usr/include -I/usr/include/SDL2 -ffunction-sections -fdata-sections -Wl,--gc-sections)
 else
   jdk="${JAVA_HOME:?Set JAVA_HOME to a JDK containing JNI headers}"
   read -r -a sdl_flags <<< "$(pkg-config --cflags sdl2)"

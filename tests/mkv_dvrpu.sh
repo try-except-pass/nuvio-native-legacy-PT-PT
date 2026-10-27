@@ -10,7 +10,7 @@
 #   bash tests/mkv_dvrpu.sh
 set -eu
 cd "$(dirname "$0")/.."
-FFMPEG=${FFMPEG:-/opt/homebrew/bin/ffmpeg}
+FFMPEG=${FFMPEG:-ffmpeg}
 [ -x "$FFMPEG" ] || { echo "mkv_dvrpu.sh: ffmpeg nao encontrado em $FFMPEG"; exit 1; }
 DIR=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-dvrpu.XXXXXX")
 trap 'rm -rf "$DIR"' EXIT
@@ -35,5 +35,5 @@ PY
   -map 0:v -map 1:a -c:v copy -c:a ac3 -metadata:s:a:0 language=pol "$DIR/rpu.mkv"
 . tests/mkvcore_flag.sh
 cc -Isrc tests/mkv_dvrpu.c src/mkv.c src/rede.c src/redeurl.c \
-  -o "$DIR/t" -O1 -g -Wall -I/opt/homebrew/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
+  -o "$DIR/t" -O1 -g -Wall -I/usr/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
 "$DIR/t" "$DIR/rpu.mkv" "$DIR/hdr10.mkv"

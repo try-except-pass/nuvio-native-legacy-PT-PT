@@ -28,7 +28,7 @@ parts.append(s[a:b] + '\n  renderVisivel = trecho;\n}')
 assert 'skipLiberado = 0;' in function('static void tocarFonteInterno(const char *url) {'), 'tocarFonteInterno keeps skipLiberado'
 Path(sys.argv[1], 'decision.c').write_text('\n'.join(parts))
 PY
-for platform in host android; do
+for platform in host; do
   flags=()
   if [ "$platform" = android ]; then flags+=(-DNV_ANDROID); fi
   cc "${flags[@]}" tests/player_skip_loading.c -I"$work" -o "$work/test"

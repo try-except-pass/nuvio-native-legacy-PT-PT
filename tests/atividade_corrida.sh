@@ -4,7 +4,7 @@ set -eu
 cd "$(dirname "$0")/.."
 bin="$(mktemp -d)/atividade-corrida"
 trap 'rm -rf "$(dirname "$bin")"' EXIT
-flags=(-O1 -g -Isrc -pthread -Wall -I/opt/homebrew/include -L/opt/homebrew/lib)
+flags=(-O1 -g -Isrc -pthread -Wall -I/usr/include -L/usr/lib/x86_64-linux-gnu)
 if [ "${SANITIZE:-0}" = 1 ]; then
   flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
 fi

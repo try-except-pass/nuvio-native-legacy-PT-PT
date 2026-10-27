@@ -101,7 +101,7 @@ with tempfile.TemporaryDirectory(prefix='nv-fallback-') as tmp:
     c = root / 'fallback.c'
     c.write_text(harness)
     binary = root / 'fallback'
-    subprocess.run(['cc', str(c), '-I/opt/homebrew/include', '-L/opt/homebrew/lib',
+    subprocess.run(['cc', str(c), '-I/usr/include', '-L/usr/lib/x86_64-linux-gnu',
                     '-lSDL2', '-lSDL2_image', '-o', str(binary)], check=True)
     for w, h, allowed in [(8192, 8192, 0), (64, 40000, 0), (1024, 2049, 0),
                            (1024, 2048, 1), (32, 32, 1)]:

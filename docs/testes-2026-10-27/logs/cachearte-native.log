@@ -1,0 +1,35 @@
+tests/cachearte.c: In function ‘main’:
+tests/cachearte.c:38:32: error: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 512 [-Werror=format-truncation=]
+   38 |   snprintf(path, sizeof path, "%s/%s", dir, name);
+      |                                ^~      ~~~
+tests/cachearte.c:38:3: note: ‘snprintf’ output between 2 and 1088 bytes into a destination of size 512
+   38 |   snprintf(path, sizeof path, "%s/%s", dir, name);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/cachearte.c:42:46: error: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 512 [-Werror=format-truncation=]
+   42 |   snprintf(profilePath, sizeof profilePath, "%s/%s", dir, name);
+      |                                              ^~      ~~~
+tests/cachearte.c:42:3: note: ‘snprintf’ output between 2 and 1088 bytes into a destination of size 512
+   42 |   snprintf(profilePath, sizeof profilePath, "%s/%s", dir, name);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/cachearte.c:46:38: error: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 512 [-Werror=format-truncation=]
+   46 |   snprintf(ignored, sizeof ignored, "%s/%s.parcial", dir, name);
+      |                                      ^~              ~~~
+tests/cachearte.c:46:3: note: ‘snprintf’ output between 10 and 1096 bytes into a destination of size 512
+   46 |   snprintf(ignored, sizeof ignored, "%s/%s.parcial", dir, name);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+src/cachearte.c: In function ‘cachearte_nativo_protegido’:
+src/cachearte.c:358:3: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+  358 |   if (!path) return 0; base = base_name(path);
+      |   ^~
+src/cachearte.c:358:24: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  358 |   if (!path) return 0; base = base_name(path);
+      |                        ^~~~
+src/cachearte.c: In function ‘cachearte_nativo_essencial’:
+src/cachearte.c:366:3: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+  366 |   if (!path) return 0; base = base_name(path);
+      |   ^~
+src/cachearte.c:366:24: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  366 |   if (!path) return 0; base = base_name(path);
+      |                        ^~~~
+cc1: all warnings being treated as errors

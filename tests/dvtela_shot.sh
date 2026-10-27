@@ -10,8 +10,8 @@ sources=()
 for source in src/*.c src/dts/*.c; do [ "$source" != src/main.c ] && sources+=("$source"); done
 BIN="${TMPDIR:-/tmp}/nuvio-dvtela-shot"
 cc -DNV_SHOT_HOOKS "${sources[@]}" tests/dvtela_shot.c -Isrc -o "$BIN" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 mkdir -p "$(dirname "${1:-${TMPDIR:-/tmp}/nv-dvtela/dv}")"
 D=$(mktemp -d); trap 'rm -rf "$D"' EXIT

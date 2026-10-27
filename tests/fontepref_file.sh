@@ -26,7 +26,7 @@ done
 cflags=()
 libs=()
 if [ "$(uname -s)" = Darwin ]; then
-  cflags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -framework OpenGL)
+  cflags+=(-I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lGLESv2 -lEGL -lm -lpthread -ldl)
   libs=(-lSDL2 -lSDL2_image -lSDL2_ttf -lz)
 else
   cflags+=($(pkg-config --cflags sdl2 SDL2_image SDL2_ttf))

@@ -6,4 +6,4 @@ export NV_DINPALCO=matrix NV_DINPALCO_AUDIT=1
 export NV_TIPOS='trend_series=13,drama_movie=17'
 export NV_AJ='socialLocal 1
 palcoFundoLocal 2'
-bash tests/homelayouts_shot.sh "${1:-/Volumes/ExternalSSD/tmp/rev/dinpalco/after}" 20
+bash tests/homelayouts_shot.sh "${1:-${TMPDIR:-/tmp}/rev/dinpalco/after}" 20

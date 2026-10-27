@@ -12,9 +12,9 @@ if command -v pkg-config >/dev/null && pkg-config --exists sdl2; then
   read -r -a sdl <<< "$(pkg-config --cflags sdl2)"
 fi
 # The source includes SDL2/...; Homebrew's parent include path is needed too.
-sdl+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
+sdl+=(-I/usr/include -I/usr/include/SDL2)
 if [ "$(uname -s)" = Darwin ]; then
-  strip=(-Wl,-dead_strip)
+  strip=(-ffunction-sections -fdata-sections -Wl,--gc-sections)
 else
   strip=(-Wl,--gc-sections)
 fi
@@ -25,6 +25,6 @@ for source in src/*.c src/dts/*.c; do
 done
 "${CC:-cc}" "${sources[@]}" tests/ajustes_creditos.c -Isrc "${sdl[@]}" \
   -D_GNU_SOURCE -O1 -g -ffunction-sections -fdata-sections "${strip[@]}" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined -o "$dir/teste"
 "$dir/teste" "$dir/data"

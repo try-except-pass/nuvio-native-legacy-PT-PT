@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-traktcw.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 cc src/trakt.c src/metaep.c tests/stub_fichameta.c src/js.c src/metaprov.c tests/trakt_cw_vistas.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -o "$dir/teste" -O1 -g -Wall -Wextra -Wl,-dead_strip -lpthread
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
+  -o "$dir/teste" -O1 -g -Wall -Wextra -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread
 for mode in current missing stale; do
   TRAKT_META="$mode" "$dir/teste" | grep -E 'trakt-cw-vistas|PASS'
 done

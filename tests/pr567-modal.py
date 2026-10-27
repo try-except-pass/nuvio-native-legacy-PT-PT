@@ -102,7 +102,7 @@ draw = source[source.index('static void desenhaPartes('):source.index('static vo
 with tempfile.TemporaryDirectory() as tmp:
     c = Path(tmp) / 'modal.c'
     c.write_text(code)
-    subprocess.run(['cc', '-O1', '-I.', '-Isrc', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2', str(c), 'src/partes.c', 'src/js.c', '-lpthread', '-lm', '-o', str(Path(tmp)/'modal')], check=True)
+    subprocess.run(['cc', '-O1', '-I.', '-Isrc', '-I/usr/include', '-I/usr/include/SDL2', str(c), 'src/partes.c', 'src/js.c', '-lpthread', '-lm', '-o', str(Path(tmp)/'modal')], check=True)
     subprocess.run([str(Path(tmp)/'modal')], check=True)
 assert 'ptMontar();' not in draw, 'draw must reuse prepared rows'
 print('PASS draw reuses prepared rows')

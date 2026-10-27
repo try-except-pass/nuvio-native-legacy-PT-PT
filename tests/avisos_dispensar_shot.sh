@@ -22,8 +22,8 @@ monta() {   # $1 = raiz das fontes, $2 = binario, $3.. = -D extras
     sources+=("$source")
   done
   cc "${sources[@]}" tests/avisos_dispensar_shot.c -I"$raiz/src" -o "$bin" "$@" \
-    -O1 -g -DNV_LEVE -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -w
+    -O1 -g -DNV_LEVE -I/usr/include -I/usr/include/SDL2 \
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -w
 }
 roda() {   # $1 = binario, $2 = prefixo
   mkdir -p "$tmp/dados-$2"
@@ -39,5 +39,5 @@ monta "." "$tmp/depois" -DDEPOIS
 roda "$tmp/depois" depois
 for f in "$saida"/*.bmp; do
   [ -e "$f" ] || continue
-  sips -s format png "$f" --out "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
+  ffmpeg -nostdin -loglevel error -y -i "$f" "${f%.bmp}.png" >/dev/null 2>&1 && rm -f "$f"
 done

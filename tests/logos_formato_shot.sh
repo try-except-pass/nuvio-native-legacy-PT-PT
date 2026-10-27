@@ -7,7 +7,7 @@ TMPDIR="${TMPDIR%/}"
 #   bash tests/logos_formato_shot.sh /tmp/nv-logos-shots/depois/player
 set -eu
 cd "$(dirname "$0")/.."
-FLAGS="-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined"
+FLAGS="-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined"
 OBJ=$(mktemp -d ${TMPDIR:-/tmp}/nuvio-logos-obj.XXXXXX)
 trap 'rm -rf "$OBJ"' EXIT
 # video.c com os leitores de formato e de estado renomeados: o harness define os dele.
@@ -22,6 +22,6 @@ done
 NUVIO_DADOS=$(mktemp -d ${TMPDIR:-/tmp}/nuvio-logos-dados.XXXXXX)
 export NUVIO_DADOS
 cc $FLAGS "${sources[@]}" "$OBJ/video.o" tests/logos_formato_shot.c -o ${TMPDIR:-/tmp}/nuvio-logos-shot \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 ${TMPDIR:-/tmp}/nuvio-logos-shot "$@"
 rm -rf "$NUVIO_DADOS"

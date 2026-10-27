@@ -11,9 +11,6 @@
 # Mac (o mesmo de sempre) e uma conta logada em ~/.nuvio para o smoke (que
 # trabalha numa COPIA e nunca aperta Reproduzir).
 cd "$(dirname "$0")/.." || exit 1
-if [ -z "${TMPDIR:-}" ] || [ "$TMPDIR" = "/tmp" ]; then
-  [ -d /Volumes/ExternalSSD/tmp ] && export TMPDIR=/Volumes/ExternalSSD/tmp
-fi
 GRAPHIFY_PY="${GRAPHIFY_PY:-$HOME/.local/pipx/venvs/graphifyy/bin/python}"
 SMOKE=1; COMPLETO=0; SMOKE_ARGS=()
 for a in "$@"; do

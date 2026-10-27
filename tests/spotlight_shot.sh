@@ -21,12 +21,12 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/spotlight_shot.c -Isrc -o "$tmp/shot" -O1 -g \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NUVIO_DADOS="$dados" SPOT_CANAIS_BASE="http://127.0.0.1:8767" "$tmp/shot" "$saida"
-if command -v sips >/dev/null 2>&1; then
+if command -v ffmpeg >/dev/null 2>&1; then
   for b in "$saida"-*.bmp; do
-    sips -s format jpeg -Z 1400 "$b" --out "${b%.bmp}.jpg" >/dev/null
+    ffmpeg -nostdin -loglevel error -y -i "$b" -vf scale=1400:1400:force_original_aspect_ratio=decrease "${b%.bmp}.jpg" >/dev/null
   done
 fi

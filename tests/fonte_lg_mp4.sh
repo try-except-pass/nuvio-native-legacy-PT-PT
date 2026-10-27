@@ -11,9 +11,9 @@ for source in src/*.c src/dts/*.c; do
   case "$source" in src/main.c|src/streams.c) continue;; esac
   sources+=("$source")
 done
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined)
-libs=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+libs=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 mkdir -p "$dir/obj"
 for s in "${sources[@]}"; do
   o="$dir/obj/$(echo "$s" | tr / _).o"

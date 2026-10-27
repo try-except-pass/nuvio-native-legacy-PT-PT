@@ -16,7 +16,7 @@ a = s.index('{ static Uint32 vodPosEm;')
 b = s.index('\n      } }\n', a) + len('\n      } }\n')
 Path(sys.argv[1]).write_text(s[a:b])
 PY
-cc -O1 -g -Isrc -I"$work" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Isrc -I"$work" -I/usr/include -I/usr/include/SDL2 \
   tests/player_vod_parado.c -o "$work/test" -Wno-deprecated-declarations
 "$work/test" "$work/saida.txt"
 echo "player_vod_parado: PASS"

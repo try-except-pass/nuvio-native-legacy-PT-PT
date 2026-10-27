@@ -2,7 +2,7 @@
 # Offline native rating renderer against all eight approved 01 Ilha states.
 set -eu
 cd "$(dirname "$0")/.."
-output=${1:-/Volumes/ExternalSSD/tmp/rev/avaliar-ilha-png}
+output=${1:-${TMPDIR:-/tmp}/rev/avaliar-ilha-png}
 mkdir -p "$output"
 TMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/avaliar-ilha.XXXXXX")
 export TMPDIR
@@ -18,5 +18,5 @@ for name,data in [('back.png',bg),('thumb.png',thumb)]:
 PY
 NV_ILHA_SHOTS=1 NV_ILHA_THUMB="$TMPDIR/thumb.png" NUVIO_SHOT_ARTE="$TMPDIR/back.png" bash tests/reacao_shot.sh "$output"
 for state in a-repouso b-reacao c-estrelas d-salvo e-episodio f-varredura-01 f-varredura-02 f-varredura-03; do
-  magick "/Volumes/ExternalSSD/tmp/avaliar-mock2/01-ilha-$state.png" "$output/app-$state.png" +append "$output/mock-app-$state.png"
+  magick "${TMPDIR:-/tmp}/avaliar-mock2/01-ilha-$state.png" "$output/app-$state.png" +append "$output/mock-app-$state.png"
 done

@@ -13,8 +13,8 @@ for s in src/*.c src/dts/*.c; do
   [ "$s" = src/main.c ] || sources+=("$s")
 done
 cc -DNV_SHOT_HOOKS "${sources[@]}" tests/player_fosco.c -Isrc -Itests -o "$tmp/t" \
-  -O1 -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 caps="${1:-$tmp/caps}"
 mkdir -p "$tmp/dados" "$caps"

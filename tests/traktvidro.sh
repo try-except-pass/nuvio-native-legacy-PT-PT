@@ -5,7 +5,7 @@
 #   bash tests/traktvidro.sh shots   - PNGs (quality Alta=2, Automatica=0) into $OUT
 set -eu
 cd "$(dirname "$0")/.."
-OUT=/Volumes/ExternalSSD/tmp/traktvidro
+OUT=${TMPDIR:-/tmp}/traktvidro
 export TMPDIR="$OUT/tmp" OBJ="$OUT/obj"
 mkdir -p "$OUT" "$TMPDIR" "$OBJ"
 mode=${1:-check}
@@ -24,7 +24,7 @@ case "$mode" in
         d="$OUT/$when-q$q"
         if [ $when = before ]; then export NUVIO_DETAIL_SOURCE="$OUT/detail-before.c"; else unset NUVIO_DETAIL_SOURCE; fi
         bash tests/detalhe_glass_shot.sh "$d" filme-comentarios filme-comentarios-foco filme-elenco filme-colecao
-        for bmp in "$d"/*.bmp; do sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null; done
+        for bmp in "$d"/*.bmp; do ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null; done
       done
     done ;;
 esac

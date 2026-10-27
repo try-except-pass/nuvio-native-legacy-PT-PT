@@ -6,7 +6,7 @@ dir=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-trakt512.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 flags=(-O1 -g -Wall -Wextra -ffunction-sections -fdata-sections)
 case "$(uname -s)" in
-  Darwin) flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wl,-dead_strip) ;;
+  Darwin) flags+=(-I/usr/include -I/usr/include/SDL2 -ffunction-sections -fdata-sections -Wl,--gc-sections) ;;
   *) flags+=(-Wl,--gc-sections) ;;
 esac
 if [ "${SANITIZE:-0}" = 1 ]; then

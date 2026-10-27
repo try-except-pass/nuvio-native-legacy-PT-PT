@@ -8,7 +8,7 @@ trap 'rm -rf "$dir"' EXIT
 cat > "$dir/sonda.c" <<'C'
 int stream_url_serve(const char *u, const char *c) { (void)u; (void)c; return 0; }
 C
-if [ "$(uname)" = Darwin ]; then inc=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
+if [ "$(uname)" = Darwin ]; then inc=(-I/usr/include -I/usr/include/SDL2)
 else read -r -a inc <<< "$(pkg-config --cflags sdl2)"; fi
 cc -O1 -g -Wall -Isrc "${inc[@]}" ${SANITIZE:+-fsanitize=address,undefined} \
   "$dir/sonda.c" tests/fontevolta_persistir.c src/fontefiltro.c src/linguas.c -o "$dir/t" -lpthread

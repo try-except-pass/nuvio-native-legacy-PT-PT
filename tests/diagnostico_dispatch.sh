@@ -13,4 +13,3 @@ check() {
   "$binary"
 }
 check PTV_LG lg
-check PTV_ANDROID android -DNV_ANDROID

@@ -11,8 +11,8 @@ cd "$(dirname "$0")/.."
 fontes=()
 for f in src/*.c src/dts/*.c; do [ "$f" != src/main.c ] && fontes+=("$f"); done
 cc "${fontes[@]}" tests/perfil_shot.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-perfil-shot \
-  -O1 -g -DNV_SOCIALVIS_DEMO -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -DNV_SOCIALVIS_DEMO -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 
 # PASTA DESCARTAVEL. NUVIO_DADOS e a unica variavel que dados_iniciar()

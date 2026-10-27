@@ -1,0 +1,414 @@
+src/catalogo.c: In function ‘cat_historico_estado_id’:
+src/catalogo.c:407:27: warning: the address of ‘contapend_estado’ will always evaluate as ‘true’ [-Waddress]
+  407 |   return contapend_estado ? contapend_estado(imdb, tipo, 0, 0, 0, estado) : estado;
+      |                           ^
+src/catalogo.c: In function ‘cacheApagarTemporarios’:
+src/catalogo.c:984:43: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size between 188 and 699 [-Wformat-truncation=]
+  984 |     snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
+      |                                           ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/catalogo.c:4:
+In function ‘snprintf’,
+    inlined from ‘cacheApagarTemporarios’ at src/catalogo.c:984:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 768 bytes into a destination of size 700
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:543:67: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  543 |     if (rel[0]) snprintf(it->backdrop, sizeof it->backdrop, "%s/%s", dirArte, rel);
+      |                                                                   ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:543:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:550:59: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  550 |     if (rel[0]) snprintf(it->logo, sizeof it->logo, "%s/%s", dirArte, rel);
+      |                                                           ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:550:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:610:54: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  610 |       snprintf(itens[i].imdb, sizeof itens[i].imdb, "%s", linha);
+      |                                                      ^~   ~~~~~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:610:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:643:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |                                                  ^~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:643:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:643:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |                                                  ^~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:643:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:692:78: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  692 |       if (c2[0]) snprintf(itens[i].provLogo, sizeof itens[i].provLogo, "%s/%s", dirArte, c2);
+      |                                                                              ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:692:18:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:737:67: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  737 |           if (rel[0]) snprintf(ep->thumb, sizeof ep->thumb, "%s/%s", dirArte, rel); }
+      |                                                                   ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:737:23:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+tests/busca555.c:329:13: warning: ‘abrir’ defined but not used [-Wunused-function]
+  329 | static void abrir(void) {
+      |             ^~~~~
+tests/busca555.c:318:13: warning: ‘catalogoDe’ defined but not used [-Wunused-function]
+  318 | static void catalogoDe(const char *imdb, const char *tipo, const char *titulo,
+      |             ^~~~~~~~~~
+tests/busca555.c:306:13: warning: ‘catalogoCom’ defined but not used [-Wunused-function]
+  306 | static void catalogoCom(const char *imdb, const char *tipo, const char *titulo) {
+      |             ^~~~~~~~~~~
+tests/busca555.c:300:13: warning: ‘limparCacheMeta’ defined but not used [-Wunused-function]
+  300 | static void limparCacheMeta(void) {
+      |             ^~~~~~~~~~~~~~~
+tests/busca555.c:293:12: warning: ‘pediu’ defined but not used [-Wunused-function]
+  293 | static int pediu(const char *trecho) {
+      |            ^~~~~
+tests/busca555.c:219:20: warning: ‘META_SERIE_ADDON’ defined but not used [-Wunused-variable]
+  219 | static const char *META_SERIE_ADDON =
+      |                    ^~~~~~~~~~~~~~~~
+In file included from tests/busca555.c:22:
+tests/../src/descoberta.c:859:12: warning: ‘lerBusca’ defined but not used [-Wunused-function]
+  859 | static int lerBusca(const char *tipo, const char *termo, CatItem *saida,
+      |            ^~~~~~~~
+tests/../src/descoberta.c: In function ‘deMetaTmdb’:
+tests/../src/descoberta.c:9100:80: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 480 [-Wformat-truncation=]
+ 9100 |     snprintf(d->backdrop, sizeof d->backdrop, "https://image.tmdb.org/t/p/w1280%s", v);
+      |                                                                                ^~   ~
+In file included from /usr/include/stdio.h:980,
+                 from tests/../src/addonurl.h:42,
+                 from tests/../src/catalogo.h:11,
+                 from tests/../src/descoberta.h:14,
+                 from tests/../src/descoberta.c:2:
+In function ‘snprintf’,
+    inlined from ‘deMetaTmdb’ at tests/../src/descoberta.c:9100:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 33 and 544 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘deMetaTmdb’:
+tests/../src/descoberta.c:9101:51: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+ 9101 |   else snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                   ^~
+In function ‘snprintf’,
+    inlined from ‘deMetaTmdb’ at tests/../src/descoberta.c:9101:8:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘deMetaTmdb’:
+tests/../src/descoberta.c:9104:47: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 480 [-Wformat-truncation=]
+ 9104 |              "https://image.tmdb.org/t/p/w1280%s", v);
+      |                                               ^~   ~
+In function ‘snprintf’,
+    inlined from ‘deMetaTmdb’ at tests/../src/descoberta.c:9103:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 33 and 544 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘tmdbMontarUrl’:
+tests/../src/descoberta.c:9249:45: warning: ‘%02d’ directive output may be truncated writing between 2 and 11 bytes into a region of size between 0 and 7 [-Wformat-truncation=]
+ 9249 |           snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                                             ^~~~
+tests/../src/descoberta.c:9249:39: note: directive argument in the range [-2147483647, 2147483647]
+ 9249 |           snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                                       ^~~~~~~~~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘tmdbMontarUrl’ at tests/../src/descoberta.c:9249:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 11 and 36 bytes into a destination of size 12
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘deMeta’:
+tests/../src/descoberta.c:1403:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+ 1403 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+In function ‘snprintf’,
+    inlined from ‘deMeta’ at tests/../src/descoberta.c:1403:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘deMeta’:
+tests/../src/descoberta.c:1427:42: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 1427 |       snprintf(d->tipo, sizeof d->tipo, "%s", proprio);
+      |                                          ^~   ~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘deMeta’ at tests/../src/descoberta.c:1427:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 16 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘desc_continuar_otimista’:
+tests/../src/descoberta.c:3920:47: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size between 0 and 63 [-Wformat-truncation=]
+ 3920 |     snprintf(novo.imdb, sizeof novo.imdb, "%s:%d:%d", base, novo.temporada, novo.episodio);
+      |                                               ^~
+tests/../src/descoberta.c:3920:43: note: directive argument in the range [0, 2147483647]
+ 3920 |     snprintf(novo.imdb, sizeof novo.imdb, "%s:%d:%d", base, novo.temporada, novo.episodio);
+      |                                           ^~~~~~~~~~
+tests/../src/descoberta.c:3920:43: note: directive argument in the range [1, 2147483647]
+In function ‘snprintf’,
+    inlined from ‘desc_continuar_otimista’ at tests/../src/descoberta.c:3920:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 86 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘filtrarRemoto’:
+tests/../src/descoberta.c:3295:43: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size between 0 and 63 [-Wformat-truncation=]
+ 3295 |   snprintf(it->imdb, sizeof it->imdb, "%s:%d:%d", serie, t, e);
+      |                                           ^~
+In function ‘snprintf’,
+    inlined from ‘ajustarASeguir’ at tests/../src/descoberta.c:3295:3,
+    inlined from ‘filtrarRemoto’ at tests/../src/descoberta.c:3383:29:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 5 and 88 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘salvarSnapshot’:
+tests/../src/descoberta.c:4340:58: warning: ‘%s’ directive output may be truncated writing up to 7839 bytes into a region of size 192 [-Wformat-truncation=]
+ 4340 |         snprintf(todas[m].chave, sizeof todas[m].chave, "%s", pendSnap[k].chave);
+      |                                                          ^~
+In function ‘snprintf’,
+    inlined from ‘salvarSnapshot’ at tests/../src/descoberta.c:4340:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 7840 bytes into a destination of size 192
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘fioSinopseHero’:
+tests/../src/descoberta.c:6939:56: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 6939 |   snprintf(hsNeg[vaga].imdb, sizeof hsNeg[vaga].imdb, "%s", imdb);
+      |                                                        ^~
+In function ‘snprintf’,
+    inlined from ‘hsNegGuardar’ at tests/../src/descoberta.c:6939:3,
+    inlined from ‘fioSinopseHero’ at tests/../src/descoberta.c:7012:19:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘buscarEps’:
+tests/../src/descoberta.c:8645:53: warning: ‘%s’ directive output may be truncated writing up to 1259 bytes into a region of size 64 [-Wformat-truncation=]
+ 8645 |   if (!pedido) snprintf(epAlvoId, sizeof epAlvoId, "%s", orig->imdb);
+      |                                                     ^~
+In function ‘snprintf’,
+    inlined from ‘buscarEps’ at tests/../src/descoberta.c:8645:16:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 1260 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘buscarEps’:
+tests/../src/descoberta.c:8646:34: warning: ‘%s’ directive output may be truncated writing up to 1259 bytes into a region of size 64 [-Wformat-truncation=]
+ 8646 |   snprintf(meuId, sizeof meuId, "%s", orig->imdb);
+      |                                  ^~
+In function ‘snprintf’,
+    inlined from ‘buscarEps’ at tests/../src/descoberta.c:8646:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 1260 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘buscarEps’:
+tests/../src/descoberta.c:8483:38: warning: ‘%s’ directive output may be truncated writing up to 31 bytes into a region of size 24 [-Wformat-truncation=]
+ 8483 |     snprintf(mf->tt, sizeof mf->tt, "%s", arm.imdb);
+      |                                      ^~   ~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘metaCatalogoResolver’ at tests/../src/descoberta.c:8483:5,
+    inlined from ‘buscarEps’ at tests/../src/descoberta.c:8686:45:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 32 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘buscarEps’:
+tests/../src/descoberta.c:8478:48: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 8478 |   if (ehImdb) snprintf(mf->tt, sizeof mf->tt, "%s", id);
+      |                                                ^~   ~~
+In function ‘snprintf’,
+    inlined from ‘metaCatalogoResolver’ at tests/../src/descoberta.c:8478:15,
+    inlined from ‘buscarEps’ at tests/../src/descoberta.c:8686:45:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘buscarEps’:
+tests/../src/descoberta.c:8887:40: warning: ‘%s’ directive output may be truncated writing up to 1259 bytes into a region of size 24 [-Wformat-truncation=]
+ 8887 |       snprintf(idBase, sizeof idBase, "%s", it->imdb);
+      |                                        ^~
+In function ‘snprintf’,
+    inlined from ‘buscarEps’ at tests/../src/descoberta.c:8887:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 1260 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘montar’:
+tests/../src/descoberta.c:2561:46: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 352 [-Wformat-truncation=]
+ 2561 |       snprintf(desativar, sizeof desativar, "%s_%s_%s_%s", base, tipo, id, nome);
+      |                                              ^~
+......
+ 2612 |   base = origem;
+      |          ~~~~~~                               
+In function ‘snprintf’,
+    inlined from ‘escolherPelaCota’ at tests/../src/descoberta.c:2561:7,
+    inlined from ‘lerManifesto’ at tests/../src/descoberta.c:2644:23,
+    inlined from ‘montar’ at tests/../src/descoberta.c:4904:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 4 and 2248 bytes into a destination of size 352
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘montar’:
+tests/../src/descoberta.c:2431:54: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 300 [-Wformat-truncation=]
+ 2431 |   snprintf(nomeCat[i].base, sizeof nomeCat[i].base, "%s", base);
+      |                                                      ^~
+......
+ 2612 |   base = origem;
+      |          ~~~~~~                                       
+In function ‘snprintf’,
+    inlined from ‘registrarNomeCatalogo’ at tests/../src/descoberta.c:2431:3,
+    inlined from ‘lerManifesto’ at tests/../src/descoberta.c:2672:7,
+    inlined from ‘montar’ at tests/../src/descoberta.c:4904:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 300
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘montar’:
+tests/../src/descoberta.c:2737:52: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 352 [-Wformat-truncation=]
+ 2612 |   base = origem;
+      |          ~~~~~~                                     
+......
+ 2737 |       snprintf(d->desativar, sizeof d->desativar, "%s_%s_%s_%s", base, tipo, id, nome);
+      |                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘lerManifesto’ at tests/../src/descoberta.c:2737:7,
+    inlined from ‘montar’ at tests/../src/descoberta.c:4904:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 4 and 2248 bytes into a destination of size 352
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/descoberta.c: In function ‘montar’:
+tests/../src/descoberta.c:2743:54: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 2743 |         snprintf(d->nomeAddon, sizeof d->nomeAddon, "%s",
+      |                                                      ^~
+In function ‘snprintf’,
+    inlined from ‘lerManifesto’ at tests/../src/descoberta.c:2743:9,
+    inlined from ‘montar’ at tests/../src/descoberta.c:4904:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 96 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~

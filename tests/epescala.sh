@@ -2,13 +2,13 @@
 # Renderer-backed bounds and PNG matrix. Optional baseline keeps FAIL evidence.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 w=$(mktemp -d "$TMPDIR/epescala.XXXXXX")
 trap 'rm -rf "$w"' EXIT
 export NUVIO_DADOS="$w/data"
 mkdir -p "$NUVIO_DADOS"
-out=/Volumes/ExternalSSD/tmp/rev/epescala-png
+out=${TMPDIR:-/tmp}/rev/epescala-png
 mkdir -p "$out"
 phase=${NV_EPESCALA_PHASE:-after}
 python3 - "$w/gfx.c" <<'PY'
@@ -25,7 +25,7 @@ s=s.replace(needle,'''  if (!miniAtiva) {
 '''+needle,1)
 pathlib.Path(sys.argv[1]).write_text('#include "gfx.h"\nvoid epescala_probe(GfxRect,GfxModo,float,int,GfxRect);\n'+s)
 PY
-flags=(-O0 -w -Isrc -Itests -I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
+flags=(-O0 -w -Isrc -Itests -I/usr/include -I/usr/include/SDL2)
 sources=("$w/gfx.c" tests/epescala_shot.c)
 if [ "$phase" = before ]; then
   baseline=c9e4f803844f4a74c784b3306bd07aece224ba02
@@ -49,7 +49,7 @@ printf '%s\n' "${sources[@]}" | xargs -P 12 -I{} sh -c '
   case "$0" in */episodios.c|src/epcoment.c) set -- "$@" -include tests/epescala_fixture.h;; src/ilha.c) set -- "$@" -Dtime=epescala_time;; esac
   cc "$@" -c "$0" -o "'"$w"'/$(echo "$0" | tr / _).o"
 ' {} "${flags[@]}"
-cc "$w"/*.o -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -o "$w/test"
+cc "$w"/*.o -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -o "$w/test"
 "$w/test" "$out" "$phase"
 if [ "$phase" = after ] && [ -f "$out/before-1920x1080-ui1.00-text1.00.png" ]; then
   cmp "$out/before-1920x1080-ui1.00-text1.00.png" "$out/after-1920x1080-ui1.00-text1.00.png"

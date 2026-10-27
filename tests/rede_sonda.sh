@@ -48,8 +48,8 @@ s.serve_forever()
 PY
 srv=$!
 for i in $(seq 50); do [ -s "$tmp/porta" ] && break; sleep 0.1; done
-flags=(-O1 -g -Wall -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
-       -ffunction-sections -fdata-sections -Wl,-dead_strip -Wno-deprecated-declarations -pthread)
+flags=(-O1 -g -Wall -Isrc -I/usr/include -I/usr/include/SDL2
+       -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections -Wno-deprecated-declarations -pthread)
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 cc "${flags[@]}" tests/rede_sonda.c src/rede.c src/redeurl.c src/streams.c src/naovideo.c -o "$tmp/teste"
 "$tmp/teste" "http://127.0.0.1:$(cat "$tmp/porta")"

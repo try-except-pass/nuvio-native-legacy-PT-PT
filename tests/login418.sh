@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 dir=$(mktemp -d "$TMPDIR/login418.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 flags=(-O1 -g -Isrc -pthread -Wall -Wextra)

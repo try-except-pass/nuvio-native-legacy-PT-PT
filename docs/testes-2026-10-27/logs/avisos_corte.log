@@ -1,0 +1,5 @@
+In file included from tests/avisos_corte.c:8:
+tests/../src/avisos_corte.inc:7:15: warning: ‘lerRegistroCabecaCauda’ defined but not used [-Wunused-function]
+    7 | static size_t lerRegistroCabecaCauda(FILE *f, char *texto, size_t max) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~
+avisos_corte: ok

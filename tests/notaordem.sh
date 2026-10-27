@@ -15,10 +15,10 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc -DAJUSTES_TESTE "${sources[@]}" tests/notas_shot.c -Isrc -o "${TMPDIR}/nuvio-notaordem-ui" \
-  -O0 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O0 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
-mkdir -p /Volumes/ExternalSSD/tmp/rev/notasep
-NUVIO_NOTAORDEM_TEST=1 "${TMPDIR}/nuvio-notaordem-ui" "${1:-/Volumes/ExternalSSD/tmp/rev/notasep/after}"
+mkdir -p ${TMPDIR:-/tmp}/rev/notasep
+NUVIO_NOTAORDEM_TEST=1 "${TMPDIR}/nuvio-notaordem-ui" "${1:-${TMPDIR:-/tmp}/rev/notasep/after}"
 python3 tests/notaepisodio.py
 bash tests/cateps.sh

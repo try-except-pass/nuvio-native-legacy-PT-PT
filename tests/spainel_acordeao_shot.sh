@@ -25,7 +25,7 @@ done
 # fotografar as telas de envio sem um servidor no ar.
 cc "${sources[@]}" tests/spainel_acordeao_shot.c -Isrc -o /var/folders/tb/3tdgxb_151x63831hfnszg1n9cg9nz/T//nv-acordeao-shot \
   -O1 -g \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 /var/folders/tb/3tdgxb_151x63831hfnszg1n9cg9nz/T//nv-acordeao-shot "$@"

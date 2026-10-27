@@ -7,8 +7,8 @@
 #   bash tests/barra27_shot.sh [outdir] [mockdir]
 set -eu
 cd "$(dirname "$0")/.."
-out="${1:-/Volumes/ExternalSSD/tmp/rev/barra27}"
-mock="${2:-/Volumes/ExternalSSD/tmp/rev/glassdesign}"
+out="${1:-${TMPDIR:-/tmp}/rev/barra27}"
+mock="${2:-${TMPDIR:-/tmp}/rev/glassdesign}"
 mkdir -p "$out"
 NUVIO_SHOT_TOPO=1 NUVIO_SHOT_PILULA=1 NUVIO_SHOT_SO_MENU=1 NUVIO_SHOT_VIDRO_OPAC=78 \
   bash tests/vidro_menu_shot.sh "$out/build" >/dev/null

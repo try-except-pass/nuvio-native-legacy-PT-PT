@@ -63,7 +63,7 @@ RECOVERY_OFF=1 "$task_tmp/controller" timestamp
 # Exercise the real resampler and HTTP workers with allow_p7=0.
 flags=(-std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-misleading-indentation -Wno-implicit-const-int-float-conversion -ffunction-sections -fdata-sections)
 link=(-Wl,--gc-sections)
-if [[ $(uname -s) == Darwin ]]; then link=(-Wl,-dead_strip); fi
+if [[ $(uname -s) == Darwin ]]; then link=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 cc "${flags[@]}" $(pkg-config --cflags libavformat libavcodec libswresample libavutil) \
   tests/dts_timestamp_engine.c "${link[@]}" \
   $(pkg-config --libs libavformat libavcodec libswresample libavutil) -lm -lpthread -o "$task_tmp/timestamp"

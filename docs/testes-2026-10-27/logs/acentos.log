@@ -1,0 +1,83 @@
+ok      0 Branco       (WHITE): tinta escura 16.61:1
+ok      0 Branco       (WHITE): familia = a tinta que contrasta mais
+ok      0 Branco       (WHITE): marca sobre a ilha 16.6:1 (>= 7)
+ok      0 Branco       (WHITE): pilula contra a ilha 16.6:1 (>= 3)
+ok      0 Branco       (WHITE): marca/HDR/luz = corviva_tokens
+ok      1 Carmesim     (CRIMSON): tinta branca 4.62:1
+ok      1 Carmesim     (CRIMSON): familia = a tinta que contrasta mais
+ok      1 Carmesim     (CRIMSON): marca sobre a ilha 11.0:1 (>= 7)
+ok      1 Carmesim     (CRIMSON): marca/HDR/luz = corviva_tokens
+ok      2 Oceano       (OCEAN): tinta branca 4.66:1
+ok      2 Oceano       (OCEAN): familia = a tinta que contrasta mais
+ok      2 Oceano       (OCEAN): marca sobre a ilha 11.5:1 (>= 7)
+ok      2 Oceano       (OCEAN): marca/HDR/luz = corviva_tokens
+ok      3 Violeta      (VIOLET): tinta branca 4.67:1
+ok      3 Violeta      (VIOLET): familia = a tinta que contrasta mais
+ok      3 Violeta      (VIOLET): marca sobre a ilha 11.0:1 (>= 7)
+ok      3 Violeta      (VIOLET): marca/HDR/luz = corviva_tokens
+ok      4 Esmeralda    (EMERALD): tinta branca 4.59:1
+ok      4 Esmeralda    (EMERALD): familia = a tinta que contrasta mais
+ok      4 Esmeralda    (EMERALD): marca sobre a ilha 11.9:1 (>= 7)
+ok      4 Esmeralda    (EMERALD): marca/HDR/luz = corviva_tokens
+ok      5 Âmbar        (AMBER): tinta branca 4.66:1
+ok      5 Âmbar        (AMBER): familia = a tinta que contrasta mais
+ok      5 Âmbar        (AMBER): marca sobre a ilha 11.1:1 (>= 7)
+ok      5 Âmbar        (AMBER): marca/HDR/luz = corviva_tokens
+ok      6 Rosa         (ROSE): tinta branca 4.69:1
+ok      6 Rosa         (ROSE): familia = a tinta que contrasta mais
+ok      6 Rosa         (ROSE): marca sobre a ilha 10.9:1 (>= 7)
+ok      6 Rosa         (ROSE): marca/HDR/luz = corviva_tokens
+ok      7 Dourado      (GOLD): tinta escura 12.11:1
+ok      7 Dourado      (GOLD): familia = a tinta que contrasta mais
+ok      7 Dourado      (GOLD): marca sobre a ilha 12.1:1 (>= 7)
+ok      7 Dourado      (GOLD): pilula contra a ilha 12.1:1 (>= 3)
+ok      7 Dourado      (GOLD): marca/HDR/luz = corviva_tokens
+ok      8 Jade         (JADE): tinta escura 12.30:1
+ok      8 Jade         (JADE): familia = a tinta que contrasta mais
+ok      8 Jade         (JADE): marca sobre a ilha 12.3:1 (>= 7)
+ok      8 Jade         (JADE): pilula contra a ilha 12.3:1 (>= 3)
+ok      8 Jade         (JADE): marca/HDR/luz = corviva_tokens
+ok      9 Ouro rosé    (ROSE_GOLD): tinta escura 11.15:1
+ok      9 Ouro rosé    (ROSE_GOLD): familia = a tinta que contrasta mais
+ok      9 Ouro rosé    (ROSE_GOLD): marca sobre a ilha 11.2:1 (>= 7)
+ok      9 Ouro rosé    (ROSE_GOLD): pilula contra a ilha 11.2:1 (>= 3)
+ok      9 Ouro rosé    (ROSE_GOLD): marca/HDR/luz = corviva_tokens
+ok     10 Azul ártico  (ARCTIC_BLUE): tinta escura 12.42:1
+ok     10 Azul ártico  (ARCTIC_BLUE): familia = a tinta que contrasta mais
+ok     10 Azul ártico  (ARCTIC_BLUE): marca sobre a ilha 12.4:1 (>= 7)
+ok     10 Azul ártico  (ARCTIC_BLUE): pilula contra a ilha 12.4:1 (>= 3)
+ok     10 Azul ártico  (ARCTIC_BLUE): marca/HDR/luz = corviva_tokens
+ok     11 Grafite      (GRAPHITE): tinta escura 8.04:1
+ok     11 Grafite      (GRAPHITE): familia = a tinta que contrasta mais
+ok     11 Grafite      (GRAPHITE): marca sobre a ilha 8.0:1 (>= 7)
+ok     11 Grafite      (GRAPHITE): pilula contra a ilha 8.0:1 (>= 3)
+ok     11 Grafite      (GRAPHITE): marca/HDR/luz = corviva_tokens
+ok     16 Champagne: tinta escura 12.69:1
+ok     16 Champagne: familia = a tinta que contrasta mais
+ok     16 Champagne: marca sobre a ilha 12.7:1 (>= 7)
+ok     16 Champagne: pilula contra a ilha 12.7:1 (>= 3)
+ok     16 Champagne: marca/HDR/luz = corviva_tokens
+ok     17 Sálvia: tinta escura 11.59:1
+ok     17 Sálvia: familia = a tinta que contrasta mais
+ok     17 Sálvia: marca sobre a ilha 11.6:1 (>= 7)
+ok     17 Sálvia: pilula contra a ilha 11.6:1 (>= 3)
+ok     17 Sálvia: marca/HDR/luz = corviva_tokens
+ok     18 Lavanda: tinta escura 10.43:1
+ok     18 Lavanda: familia = a tinta que contrasta mais
+ok     18 Lavanda: marca sobre a ilha 10.4:1 (>= 7)
+ok     18 Lavanda: pilula contra a ilha 10.4:1 (>= 3)
+ok     18 Lavanda: marca/HDR/luz = corviva_tokens
+ok     19 Vinho: tinta branca 4.66:1
+ok     19 Vinho: familia = a tinta que contrasta mais
+ok     19 Vinho: marca sobre a ilha 11.0:1 (>= 7)
+ok     19 Vinho: marca/HDR/luz = corviva_tokens
+ok     20 Petróleo: tinta branca 4.61:1
+ok     20 Petróleo: familia = a tinta que contrasta mais
+ok     20 Petróleo: marca sobre a ilha 11.6:1 (>= 7)
+ok     20 Petróleo: marca/HDR/luz = corviva_tokens
+ok     21 Índigo: tinta branca 4.64:1
+ok     21 Índigo: familia = a tinta que contrasta mais
+ok     21 Índigo: marca sobre a ilha 11.2:1 (>= 7)
+ok     21 Índigo: marca/HDR/luz = corviva_tokens
+ok    18 acentos fixos (18), 9 claros (9)
+tudo ok

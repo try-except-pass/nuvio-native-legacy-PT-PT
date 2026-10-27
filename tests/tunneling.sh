@@ -6,8 +6,8 @@ trap 'rm -rf "$dir"' EXIT
 for platform in desktop android; do
   flags=()
   if [ "$platform" = android ]; then flags+=(-DNV_ANDROID); fi
-  cc -O1 -ffunction-sections -fdata-sections -Wl,-dead_strip \
-    -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc -O1 -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections \
+    -Isrc -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined \
     "${flags[@]}" tests/tunneling.c -o "$dir/$platform"
   "$dir/$platform"

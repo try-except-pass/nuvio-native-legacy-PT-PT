@@ -1,0 +1,79 @@
+src/legenda.c: In function ‘extrairSrt’:
+src/legenda.c:130:7: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  130 |       if(l>resta)l=resta;memcpy(texto+usado,p,l);usado+=l;texto[usado]=0;
+      |       ^~
+src/legenda.c:130:26: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  130 |       if(l>resta)l=resta;memcpy(texto+usado,p,l);usado+=l;texto[usado]=0;
+      |                          ^~~~~~
+src/legenda.c: In function ‘legenda_carregar_com’:
+src/legenda.c:835:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  835 |     if(pronto)pronto(NULL,g,0,u); free(p);
+      |     ^~
+src/legenda.c:835:35: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  835 |     if(pronto)pronto(NULL,g,0,u); free(p);
+      |                                   ^~~~
+src/legenda.c: In function ‘legenda_documento_dados’:
+src/legenda.c:1078:3: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1078 |   if(n)*n=d?d->n:0;return d?d->cues:NULL;
+      |   ^~
+src/legenda.c:1078:20: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1078 |   if(n)*n=d?d->n:0;return d?d->cues:NULL;
+      |                    ^~~~~~
+-- vad: speech bursts in noise -> one segment per line, edges within 100 ms
+-- vad: noise only / music only / silence -> no speech
+-- align: known offset recovered within 50 ms
+   off 2.5 -> 2500 ms score 0.990 alt 0.375 (accepted_candidate)
+-- align: known offset recovered within 50 ms
+   off -1.2 -> -1200 ms score 0.992 alt 0.374 (accepted_candidate)
+-- align: known offset recovered within 50 ms
+   off 12.0 -> 12000 ms score 0.991 alt 0.378 (accepted_candidate)
+-- align: known offset recovered within 50 ms
+   off -25.0 -> -25000 ms score 0.991 alt 0.377 (accepted_candidate)
+-- align: known offset recovered within 50 ms
+   off 0.0 -> 0 ms score 0.993 alt 0.375 (accepted_candidate)
+-- align: music-only window rejected (no speech)
+-- align: speech that matches no subtitle activity -> low confidence/ambiguous
+   unrelated: low_confidence score 0.178
+-- platform without PCM: no 'Por audio', the reason is shown
+[legsync] automatico: sem plano (etapa 0, legenda baixada, referencia indisponivel nesta plataforma)
+[legsync] manual: audio -> recusada (sem referencia nesta plataforma)
+-- toggle off (default): nothing about audio
+-- passthrough: reported, never switched off
+-- accepted: +2.5 s found by audio, applied once, undo keeps manual
+[legsync] manual: audio -> aceita (trabalhando)
+[audsync] audio_sync window reason=ok offset_ms=2500 score=0.989 alt=0.367 speech=0.54 segments=74
+[autosync] subtitle_sync accepted reason=accepted slot=0 kind=offset offset_ms=2505 scale=1.00000 pieces=1 anchors=0 matched=71 coverage=1.000 confidence=0.996 alternative=0.754 kept=0 regions=3 err=5ms elapsed_ms=1
+[legsync] manual: sincronizada
+   accepted 2505 ms
+-- accepted: -1.2 s, with a seek in the middle (window restarts)
+[legsync] manual: audio -> aceita (trabalhando)
+[audsync] audio_sync window reason=ok offset_ms=-1200 score=0.986 alt=0.352 speech=0.56 segments=76
+[autosync] subtitle_sync accepted reason=accepted slot=0 kind=offset offset_ms=-1193 scale=1.00000 pieces=1 anchors=0 matched=74 coverage=1.000 confidence=0.994 alternative=0.771 kept=0 regions=3 err=5ms elapsed_ms=1
+[legsync] manual: sincronizada
+-- music only: refused, nothing changed
+[legsync] manual: audio -> aceita (trabalhando)
+[audsync] audio_sync window reason=no_speech offset_ms=0 score=0.000 alt=0.000 speech=0.00 segments=0
+[legsync] audio_sync rejected reason=no_speech restarts=0 dropped=0
+[legsync] manual: nao deu
+-- cancel: player close
+[legsync] manual: audio -> aceita (trabalhando)
+[legsync] automatico: sem plano (etapa 0, legenda baixando, referencia indisponivel nesta plataforma)
+-- cancel: source change mid-listen
+[legsync] automatico: sem plano (etapa 0, legenda baixada, referencia indisponivel nesta plataforma)
+[legsync] manual: audio -> aceita (trabalhando)
+-- cancel: subtitle track change (embedded chosen)
+[legsync] manual: audio -> aceita (trabalhando)
+[legsync] automatico: sem plano (etapa 9, legenda baixando, referencia indisponivel nesta plataforma)
+-- cancel: audio track change
+[legsync] automatico: sem plano (etapa 0, legenda baixada, referencia indisponivel nesta plataforma)
+[legsync] manual: audio -> aceita (trabalhando)
+-- cancel: toggle switched off mid-listen
+[legsync] manual: audio -> aceita (trabalhando)
+-- passthrough starts mid-listen: unavailable, tap disarmed
+[legsync] manual: audio -> aceita (trabalhando)
+[legsync] audio_sync rejected reason=passthrough restarts=0 dropped=0
+[legsync] manual: nao deu
+-- Parar stops listening
+[legsync] manual: audio -> aceita (trabalhando)
+-- ring: bounded, producer never waits, overflow drops and restarts the window
+audsync: 23 casos ok

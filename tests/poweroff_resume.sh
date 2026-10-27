@@ -3,7 +3,7 @@ set -eu
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nv-poweroff.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined)
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -Wno-deprecated-declarations -Wno-macro-redefined)
 renames=()
 for name in tocar parar pausar buscar pausa_confirmada tocando pronto ativo falhou conflito_recurso pos duracao url_atual; do
   renames+=("-Dvideo_$name=nv_base_video_$name")
@@ -28,7 +28,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${flags[@]}" "${sources[@]}" tests/poweroff_resume.c "$work/player.o" "$work/video.o" "$work/discovery.o" "$work/data.o" "$work/network.o" "$work/simkl.o" \
-  -o "$work/test" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -o "$work/test" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 for mode in periodic background cadence; do
   mkdir "$work/$mode"
   NUVIO_DADOS="$work/$mode" "$work/test" "$mode"

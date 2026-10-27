@@ -7,7 +7,7 @@ TMPDIR="${TMPDIR%/}"
 #   bash tests/posterprov.sh
 set -eu
 cd "$(dirname "$0")/.."
-cc -O1 -g -Wall -Wextra -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+cc -O1 -g -Wall -Wextra -Isrc -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined \
   src/posterprov.c src/redeurl.c tests/posterprov.c -lpthread -o ${TMPDIR:-/tmp}/nuvio-posterprov-tests
 ${TMPDIR:-/tmp}/nuvio-posterprov-tests
@@ -17,7 +17,7 @@ ${TMPDIR:-/tmp}/nuvio-posterprov-tests
 # descoberta.c, com o conjunto de link de tests/detalheanime.sh).
 cc src/catalogo.c src/cwordem.c tests/posteraddon.c src/cotacat.c \
   src/js.c src/metaprov.c src/colecoes.c src/redeurl.c src/catordem.c src/artefontes.c \
-  -Isrc -Itests -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -Itests -I/usr/include -I/usr/include/SDL2 \
   -o ${TMPDIR:-/tmp}/nuvio-posteraddon-tests -O1 -g \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-posteraddon-tests

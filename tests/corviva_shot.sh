@@ -6,7 +6,7 @@ TMPDIR="${TMPDIR%/}"
 # *_shot.sh): precisa de janela GL e de olho humano.
 #
 #   bash tests/corviva_shot.sh /tmp/nuvio-corviva
-#   sips -s format png /tmp/nuvio-corviva-1-home-dinamica-vermelho.bmp --out x.png
+#   ffmpeg -nostdin -loglevel error -y -i /tmp/nuvio-corviva-1-home-dinamica-vermelho.bmp x.png
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -20,8 +20,8 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/corviva_shot.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-corviva-shot \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined 2>&1 \
   | grep -E "corviva_shot|error" || true
 ${TMPDIR:-/tmp}/nuvio-corviva-shot "$@"

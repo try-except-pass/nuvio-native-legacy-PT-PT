@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-interface-modo.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-std=c11 -O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
+flags=(-std=c11 -O1 -g -Isrc -I/usr/include -I/usr/include/SDL2)
 if [ "${SANITIZE:-0}" = 1 ]; then
   flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
 fi

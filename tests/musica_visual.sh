@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -euo pipefail
-node /Volumes/ExternalSSD/tmp/musica-visual/render.cjs "${@:---check-only}"
+node ${TMPDIR:-/tmp}/musica-visual/render.cjs "${@:---check-only}"

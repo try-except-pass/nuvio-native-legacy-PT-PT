@@ -1,0 +1,4 @@
+/usr/bin/ld: /tmp/nvtestes.r1BgR1/ajweb.PoCJ0w/ccaQT6Xp.o: in function `atender':
+ajweb.c:(.text+0x1583): undefined reference to `registro_arquivo'
+/usr/bin/ld: ajweb.c:(.text+0x18ee): undefined reference to `registro_mascarar'
+collect2: error: ld returned 1 exit status

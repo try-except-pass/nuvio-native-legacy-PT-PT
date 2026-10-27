@@ -75,5 +75,5 @@ int main(void) {
 PY
 cc -std=gnu11 -O1 -g -Wall -Wextra -Werror "$work/prefs.c" -o "$work/prefs"
 (cd "$work" && ./prefs)
-cc -std=gnu11 -O1 -g -Wall -Wextra -Werror -DNV_ANDROID -Isrc -I/opt/homebrew/include src/extplayer.c tests/extplayer_decisao.c -o "$work/ta"
+cc -std=gnu11 -O1 -g -Wall -Wextra -Werror -DNV_ANDROID -Isrc -I/usr/include src/extplayer.c tests/extplayer_decisao.c -o "$work/ta"
 "$work/ta"

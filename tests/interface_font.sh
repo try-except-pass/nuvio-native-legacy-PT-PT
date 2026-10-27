@@ -12,8 +12,8 @@ done
 flags=(-O0 -g -std=gnu11 -Isrc -Wno-deprecated-declarations)
 libs=(-lz -lm -lpthread)
 if [ "$(uname -s)" = Darwin ]; then
-  flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
-  libs+=(-L/opt/homebrew/lib -framework OpenGL)
+  flags+=(-I/usr/include -I/usr/include/SDL2)
+  libs+=(-L/usr/lib/x86_64-linux-gnu -lGLESv2 -lEGL -lm -lpthread -ldl)
 else
   libs+=(-lGLESv2)
 fi

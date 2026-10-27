@@ -48,7 +48,7 @@ int main(void) {
 }
 ''')
     binary = Path(tmp) / 't'
-    subprocess.run(['cc', str(c), '-Isrc', '-I/opt/homebrew/include/SDL2', '-o', str(binary)], check=True)
+    subprocess.run(['cc', str(c), '-Isrc', '-I/usr/include/SDL2', '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
     print('PASS spotAtalho: CH- abre como AMARELA, menos no guia e no keyup')
 PY

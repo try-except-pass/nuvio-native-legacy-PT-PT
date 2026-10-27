@@ -1,0 +1,34 @@
+In file included from tests/buffer_overlay.c:4:
+tests/../src/desempenho.c: In function ‘montar’:
+tests/../src/desempenho.c:73:28: error: ‘ UI fps’ directive output may be truncated writing 7 bytes into a region of size between 1 and 24 [-Werror=format-truncation=]
+   73 |   snprintf(b, sizeof b, "%s UI fps", a);
+      |                            ^~~~~~~
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from tests/../src/desempenho.h:23,
+                 from tests/../src/desempenho.c:2:
+In function ‘snprintf’,
+    inlined from ‘montar’ at tests/../src/desempenho.c:73:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 8 and 31 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/desempenho.c: In function ‘montar’:
+tests/../src/desempenho.c:79:30: error: ‘ ms’ directive output may be truncated writing 3 bytes into a region of size between 1 and 24 [-Werror=format-truncation=]
+   79 |     snprintf(b, sizeof b, "%s ms", a);
+      |                              ^~~
+In function ‘snprintf’,
+    inlined from ‘montar’ at tests/../src/desempenho.c:79:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 4 and 27 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

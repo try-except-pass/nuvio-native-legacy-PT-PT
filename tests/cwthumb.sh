@@ -11,6 +11,6 @@ cc src/catalogo.c src/progresso.c src/focus.c src/ajustes.c src/ajlog.c src/post
   src/artehero.c src/cwordem.c src/cwretido.c src/fonteregra.c src/regexjs.c \
   tests/cwthumb_home.c tests/amigosfil_stub.c \
   -Isrc -o "$work/test" -O1 -g -ffunction-sections -fdata-sections \
-  -Wl,-dead_strip -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
+  -ffunction-sections -fdata-sections -Wl,--gc-sections -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
 "$work/test"

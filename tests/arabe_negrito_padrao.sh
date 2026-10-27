@@ -5,9 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-arabe-negrito.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-F="-O0 -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Isrc -w"
+F="-O0 -I/usr/include -I/usr/include/SDL2 -Isrc -w"
 for source in src/*.c src/dts/*.c tests/arabe_negrito_padrao.c; do
   [ "$source" != src/main.c ] && echo "$source"
 done | xargs -P 8 -I{} sh -c 'cc -c $0 '"$F"' -o '"$work"'/$(echo $0 | tr / _).o' {}
-cc "$work"/*.o -o "$work/test" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+cc "$work"/*.o -o "$work/test" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 NUVIO_SEM_RESERVA_DE_SISTEMA=1 NUVIO_DADOS="$work" "$work/test" | grep -v "^\[t\]\|^fonte\|^reserva\|^\[leg\]"

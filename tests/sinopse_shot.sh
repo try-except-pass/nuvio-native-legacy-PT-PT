@@ -1,6 +1,6 @@
 #!/bin/bash
 # Home hero synopsis, Normal x Grande, pt/de/ru, BMP at 1080p. Not in the suite (needs a GL window).
-#   bash tests/sinopse_shot.sh /Volumes/ExternalSSD/tmp/rev/sinopse
+#   bash tests/sinopse_shot.sh ${TMPDIR:-/tmp}/rev/sinopse
 set -eu
 cd "$(dirname "$0")/.."
 
@@ -16,7 +16,7 @@ for source in src/*.c src/dts/*.c; do
 done
 eval cc -DNV_SHOT_HOOKS '"${sources[@]}"' tests/sinopse_shot.c -Isrc -o /tmp/nuvio-sinopse-shot \
   -O1 -g "$ENV_D" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 /tmp/nuvio-sinopse-shot "$NUVIO_DADOS" "$@"

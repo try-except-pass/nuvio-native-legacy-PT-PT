@@ -2,7 +2,7 @@
 # Focused review regressions; local GL only, no network/install/deploy.
 set -eu
 cd "$(dirname "$0")/.."
-out=/Volumes/ExternalSSD/tmp/vidromenu/fix
+out=${TMPDIR:-/tmp}/vidromenu/fix
 mkdir -p "$out/after" "$out/opaque"
 NUVIO_DADOS=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-detglass-dados-fix.XXXXXX")
 export NUVIO_DADOS

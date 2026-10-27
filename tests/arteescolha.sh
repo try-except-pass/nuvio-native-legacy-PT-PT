@@ -18,7 +18,7 @@ trap 'rm -rf "$NUVIO_DADOS" "$obj"' EXIT
 
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
-comum=(-Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -O1 -g
+comum=(-Isrc -I/usr/include -I/usr/include/SDL2 -O1 -g
        -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined)
 for alvo in lg; do
   def=()

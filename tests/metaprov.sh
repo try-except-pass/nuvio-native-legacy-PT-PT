@@ -5,5 +5,5 @@ set -eu
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-metaprov.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-cc -std=gnu11 -Wall -Wextra -pthread ${NV_CFLAGS:--I/opt/homebrew/include -I/opt/homebrew/include/SDL2} -Isrc tests/metaprov.c src/metaprov.c -o "$work/test"
+cc -std=gnu11 -Wall -Wextra -pthread ${NV_CFLAGS:--I/usr/include -I/usr/include/SDL2} -Isrc tests/metaprov.c src/metaprov.c -o "$work/test"
 "$work/test"

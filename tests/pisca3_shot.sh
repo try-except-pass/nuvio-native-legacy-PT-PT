@@ -3,7 +3,7 @@
 # frames must hash identical (tests/pisca3_shot.c). GLES2 of ANGLE (the TV's
 # dialect and FBO rules, as tests/fundo_assado.sh): not in the suite.
 #
-#   bash tests/pisca3_shot.sh /Volumes/ExternalSSD/tmp/pisca3
+#   bash tests/pisca3_shot.sh ${TMPDIR:-/tmp}/pisca3
 set -eu
 cd "$(dirname "$0")/.."
 saida="${1:-${TMPDIR:-/tmp}/nv-pisca3}"
@@ -18,7 +18,7 @@ ndk=$(ls -d "$HOME"/Library/Android/sdk/ndk/*/toolchains/llvm/prebuilt/*/sysroot
 mkdir -p "$work/inc"
 for d in GLES2 EGL KHR; do ln -s "$ndk/$d" "$work/inc/$d"; done
 # One upload stripe per pump exposes the C9's slow-upload lifetime across frames.
-flags=(-O1 -g -DNV_GLES_NO_MAC -DNV_SHOT_HOOKS -DNV_TEX_UPLOAD_BUDGET_MS=0.0 -I"$work/inc" -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -DNV_GLES_NO_MAC -DNV_SHOT_HOOKS -DNV_TEX_UPLOAD_BUDGET_MS=0.0 -I"$work/inc" -Isrc -I/usr/include -I/usr/include/SDL2
        -Wno-deprecated-declarations -Wno-macro-redefined -include tests/pisca3_gles.h ${NV_CFLAGS:-})
 objects=()
 pids=()
@@ -41,7 +41,7 @@ for source in src/*.c src/dts/*.c tests/pisca3_shot.c; do
   fi
 done
 for pid in "${pids[@]}"; do wait "$pid"; done
-cc "${objects[@]}" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz \
+cc "${objects[@]}" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz \
   -L"$angle" -lEGL -lGLESv2 -Wl,-rpath,"$angle" -Wl,-headerpad_max_install_names -o "$work/shot"
 for l in libEGL libGLESv2; do install_name_tool -change "./$l.dylib" "$angle/$l.dylib" "$work/shot" 2>/dev/null || true; done
 codesign -f -s - "$work/shot" 2>/dev/null || true

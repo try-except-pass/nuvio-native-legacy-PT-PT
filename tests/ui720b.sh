@@ -12,23 +12,23 @@ done
 mkdir -p "$work/src/dts" "$work/tests"
 printf '%s\0' "${sources[@]}" tests/ui720b.c |
   xargs -0 -P 8 -I '{}' cc '{}' -c -o "$work/{}.o" -Isrc -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined
 cc "$work"/src/*.o "$work"/src/dts/*.o "$work"/tests/*.o -o "$work/test" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 python3 tests/ui720_surface.py
 python3 tests/ui720b_host.py
 for panel in 3840x2160 1920x1080 1280x720 7680x4320 invalid 0x2160 desktop4k; do
   env -u NUVIO_PANEL_SIZE -u NUVIO_PANEL_SOURCE "$work/test" "$panel"
 done
 cc tests/ui720b_panel.c src/js.c -DNV_WEBOS -Isrc -o "$work/panel" \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -lSDL2
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu -lSDL2
 "$work/panel"
 # Compile both native discovery branches; no SDK installation or target access.
 for platform in NV_WEBOS NV_TPK; do
   cc tests/ui720b.c -c -o "$work/$platform.o" -D"$platform" -Isrc -O0 \
-    -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+    -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations -Wno-macro-redefined
 done
 cc src/main.c -DNV_WEBOS -fsyntax-only -Isrc \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations
+  -I/usr/include -I/usr/include/SDL2 -Wno-deprecated-declarations

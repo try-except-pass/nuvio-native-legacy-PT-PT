@@ -17,7 +17,7 @@ port=$(sed -n '1p' "$tmp/port")
 base="http://127.0.0.1:$port"
 mkdir -p "$tmp/dados"
 flags=(-O1 -g -std=gnu11 -Wall -Wextra -Werror -Isrc -pthread)
-flags+=(-I/opt/homebrew/include)
+flags+=(-I/usr/include)
 if command -v sdl2-config >/dev/null; then
   # shellcheck disable=SC2207
   flags+=($(sdl2-config --cflags) -I"$(sdl2-config --prefix)/include")

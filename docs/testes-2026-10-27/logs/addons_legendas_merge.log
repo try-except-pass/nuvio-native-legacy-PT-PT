@@ -1,0 +1,68 @@
+In file included from tests/addons_legendas.c:6,
+                 from tests/addons_legendas_merge.c:3:
+tests/../src/addons.c: In function ‘addons_consulta_consultar’:
+tests/../src/addons.c:3662:3: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 3662 |   if (fios < 1) fios = 1; if (fios > ADD_FIOS) fios = ADD_FIOS;
+      |   ^~
+tests/../src/addons.c:3662:27: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 3662 |   if (fios < 1) fios = 1; if (fios > ADD_FIOS) fios = ADD_FIOS;
+      |                           ^~
+tests/addons_legendas.c: In function ‘addons_legendas_main’:
+tests/addons_legendas.c:274:1: warning: control reaches end of non-void function [-Wreturn-type]
+  274 | }
+      | ^
+tests/../src/addons.c: In function ‘carregarSemTrava’:
+tests/../src/addons.c:539:62: warning: ‘%s’ directive output may be truncated writing up to 2303 bytes into a region of size 64 [-Wformat-truncation=]
+  539 |     snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s", linha);
+      |                                                              ^~   ~~~~~
+tests/../src/addons.c:539:5: note: ‘snprintf’ output between 1 and 2304 bytes into a destination of size 64
+  539 |     snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s", linha);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/addons.c: In function ‘adicionarSemTrava’:
+tests/../src/addons.c:1824:60: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+ 1824 |   snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s",
+      |                                                            ^~
+tests/../src/addons.c:1824:3: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 64
+ 1824 |   snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s",
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1825 |            nome && *nome ? nome : nova);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/addons.c: In function ‘buscarUmAddon’:
+tests/../src/addons.c:1494:44: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 1024 [-Wformat-truncation=]
+ 1494 |           snprintf(d->url, sizeof d->url, "%s", link);
+      |                                            ^~   ~~~~
+tests/../src/addons.c:1494:11: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 1024
+ 1494 |           snprintf(d->url, sizeof d->url, "%s", link);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/addons.c:1500:50: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 1500 |           snprintf(d->idioma, sizeof d->idioma, "%s", cod);
+      |                                                  ^~   ~~~
+tests/../src/addons.c:1500:11: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+ 1500 |           snprintf(d->idioma, sizeof d->idioma, "%s", cod);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/addons.c:1502:52: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 96 [-Wformat-truncation=]
+ 1502 |           snprintf(d->arquivo, sizeof d->arquivo, "%s", nome);
+      |                                                    ^~   ~~~~
+tests/../src/addons.c:1502:11: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 96
+ 1502 |           snprintf(d->arquivo, sizeof d->arquivo, "%s", nome);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/../src/addons.c:1512:63: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 64 [-Wformat-truncation=]
+ 1512 |           if (nome[0]) snprintf(d->rotulo, sizeof d->rotulo, "%s", nome);
+      |                                                               ^~   ~~~~
+tests/../src/addons.c:1512:24: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 64
+ 1512 |           if (nome[0]) snprintf(d->rotulo, sizeof d->rotulo, "%s", nome);
+      |                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from tests/addons_legendas_prazo.c:2:
+tests/../src/faixas.c: In function ‘lembrarAddon’:
+tests/../src/faixas.c:928:36: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 48 [-Wformat-truncation=]
+  928 |   snprintf(e.nome, sizeof e.nome, "%s", l->provedor[0] ? l->provedor : l->rotulo);
+      |                                    ^~
+tests/../src/faixas.c:928:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 48
+  928 |   snprintf(e.nome, sizeof e.nome, "%s", l->provedor[0] ? l->provedor : l->rotulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+test: tests/addons_legendas_merge.c:25: main: Assertion `nLegs == 8' failed.
+tests/addons_legendas_merge.sh: line 10:  4477 Aborted                 "$work/test" > "$work/log"

@@ -33,12 +33,12 @@ if [ "${1:-all}" = prepared ]; then
   python3 tests/rebuffer_prepared.py
   exit 0
 fi
-flags=(-std=gnu11 -O1 -g -Isrc -pthread -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -ffunction-sections -fdata-sections -Wno-deprecated-declarations)
-cc "${flags[@]}" tests/rebuffer_policy.c src/fontefalha.c src/fontefiltro.c src/linguas.c src/fonteantecipa.c src/inicio.c src/fontesonda.c -Wl,-dead_strip -lm -o "$dir/policy"
+flags=(-std=gnu11 -O1 -g -Isrc -pthread -I/usr/include -I/usr/include/SDL2 -ffunction-sections -fdata-sections -Wno-deprecated-declarations)
+cc "${flags[@]}" tests/rebuffer_policy.c src/fontefalha.c src/fontefiltro.c src/linguas.c src/fonteantecipa.c src/inicio.c src/fontesonda.c -ffunction-sections -fdata-sections -Wl,--gc-sections -lm -o "$dir/policy"
 case "${1:-all}" in all|policy) "$dir/policy" "$dir";; esac
 if [ "${1:-all}" != policy ]; then
   jdk=$(/usr/libexec/java_home)
-  cc "${flags[@]}" -I"$jdk/include" -I"$jdk/include/darwin" -Wno-macro-redefined tests/rebuffer_diagnostics.c -Wl,-dead_strip -lpthread -o "$dir/diagnostics"
+  cc "${flags[@]}" -I"$jdk/include" -I"$jdk/include/darwin" -Wno-macro-redefined tests/rebuffer_diagnostics.c -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread -o "$dir/diagnostics"
   "$dir/diagnostics" > "$dir/log"
   python3 - "$dir/log" <<'PY'
 import sys

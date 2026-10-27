@@ -1,0 +1,73 @@
+ok  tmdb: outro backdrop existe
+ok  tmdb: padrao e o backdrop_path da raiz
+ok  tmdb: outro = sem texto, maior nota, nao o padrao
+ok  tmdb: evitar o do card; empate de nota vai para mais votos
+ok  tmdb /images: exclui o padrao dado pelo /find
+ok  tmdb: so o padrao = nao ha outro
+ok  idioma: fundo ar vence a raiz ko
+ok  idioma: sem fr, o sem texto de maior nota
+ok  idioma: raiz sem texto fica
+ok  idioma: so ko = nada
+ok  idioma: sem lista, fica a raiz
+ok  idioma: logo ar, o primeiro (svg fora)
+ok  idioma: sem de, o ingles (nunca ko)
+ok  idioma: sem ar nem en, o sem idioma
+ok  idioma: so ko = nenhum logo
+ok  fanart filme: sem texto, mais likes
+ok  fanart: filme nao tem showbackground
+ok  fanart serie: showbackground
+ok  kitsu busca: primeiro com o ano certo
+ok  kitsu busca: ano decide a temporada
+ok  kitsu busca: filme nao casa com serie TV
+ok  kitsu busca: ano longe = nada
+ok  kitsu por id
+ok  anilist: banner
+ok  anilist: ano longe = nada
+ok  anilist: banner null
+ok  apple: 1920x1080.jpg
+ok  apple: 1280x720.jpg
+ok  apple: sem marcador = nada
+ok  codificar: sem barra nem espaco
+ok  decodificar: volta igual
+ok  decodificar: para na barra
+artefontes: tudo ok
+In file included from tests/trailerapple-arte.c:4:
+tests/../src/trailerapple.c: In function ‘lerDisco’:
+tests/../src/trailerapple.c:75:132: warning: ‘%s’ directive output may be truncated writing up to 1199 bytes into a region of size 1024 [-Wformat-truncation=]
+   75 |   if (fgets(linha, sizeof linha, f)) { linha[strcspn(linha, "\r\n")] = 0; if (strcmp(linha, "-")) snprintf(e->url, sizeof e->url, "%s", linha); }
+      |                                                                                                                                    ^~   ~~~~~
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from tests/../src/ajustes.h:12,
+                 from tests/../src/trailerapple.c:15:
+In function ‘snprintf’,
+    inlined from ‘lerDisco’ at tests/../src/trailerapple.c:75:99:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 1200 bytes into a destination of size 1024
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+[arte-apple] busca titulo=Dune: Part Two ano=2024 tipo=Movie candidatos=1 id=umc.cmc.363aycnv6vy9qgekvew6fveb9 ano_encontrado=2024 arte=1
+ok  apple: Dune: Part Two 2024 -> shelfImageBackground
+[arte-apple] busca titulo=Dune ano=2021 tipo=Movie candidatos=1 id=umc.cmc.2l7qj9p33t3jww1roxi8cgiw5 ano_encontrado=2021 arte=1
+[arte-apple] busca titulo=Dune ano=1984 tipo=Movie candidatos=1 id=umc.cmc.7edgw5obp2gwx0xsyhla10zbc ano_encontrado=1984 arte=1
+ok  apple: mesmo nome, o ano escolhe a arte certa
+[arte-apple] busca titulo=Dune: Part Two ano=2024 tipo=Show candidatos=0 id=- ano_encontrado=0 arte=0
+[arte-apple] busca titulo=Dune: Part Two ano=2019 tipo=Movie candidatos=0 id=- ano_encontrado=0 arte=0
+ok  apple: tipo e ano errados nao inventam arte
+[arte-apple] busca titulo=Silo ano=2023 tipo=Show candidatos=1 id=serie ano_encontrado=2023 arte=0
+PASS Silo: Show vence Movie/Season homonimos
+[arte-apple] busca titulo=Silo ano=2023 tipo=Show candidatos=2 id=- ano_encontrado=0 arte=0
+PASS Silo: dois Shows do mesmo ano recusados
+[arte-apple] busca titulo=Dune: Part Two ano=2024 tipo=Show candidatos=0 id=- ano_encontrado=0 arte=0
+PASS arte nao tenta filme quando o pedido e serie
+[arte-apple] busca titulo=Dune: Part Two ano=2024 tipo=Movie candidatos=1 id=umc.cmc.363aycnv6vy9qgekvew6fveb9 ano_encontrado=2024 arte=1
+PASS cache negativo de serie nao bloqueia filme
+[arte-apple] busca titulo=Dune: Part Two ano=2019 tipo=Movie candidatos=0 id=- ano_encontrado=0 arte=0
+PASS cache por IMDb nao ignora ano do pedido
+PASS cache positivo de filme nao fornece arte para serie
+trailerapple-arte: tudo ok

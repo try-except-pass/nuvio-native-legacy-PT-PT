@@ -11,8 +11,8 @@ bin=$(mktemp "${TMPDIR:-/tmp}/nuvio-colecao-layout.XXXXXXXX")
 log=$(mktemp "${TMPDIR:-/tmp}/nuvio-colecao-layout-log.XXXXXXXX")
 trap 'rm -f "$bin" "$log"' EXIT
 if ! "${CC:-cc}" "${sources[@]}" tests/colecao_layout.c -Isrc -o "$bin" -O1 \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined >"$log" 2>&1; then
   cat "$log" >&2
   exit 1

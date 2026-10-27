@@ -1,0 +1,129 @@
+In file included from tests/fonte_ordem_addon.c:3,
+                 from tests/aiostream_instances_ui.c:2:
+tests/../src/streams.c: In function ‘atualizarProvedores’:
+tests/../src/streams.c:3421:58: warning: ‘%s’ directive output may be truncated writing up to 41471 bytes into a region of size 96 [-Wformat-truncation=]
+ 3421 |     snprintf(abas[nAbas].nome, sizeof abas[nAbas].nome, "%s", parcial[p].nome);
+      |                                                          ^~
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from tests/../src/streams.h:14,
+                 from tests/../src/streams.c:1:
+In function ‘snprintf’,
+    inlined from ‘atualizarProvedores’ at tests/../src/streams.c:3421:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 41472 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘atualizarProvedores’:
+tests/../src/streams.c:3434:72: warning: ‘%s’ directive output may be truncated writing up to 1871 bytes into a region of size 96 [-Wformat-truncation=]
+ 3434 |     snprintf(provedores[nProvedores], sizeof provedores[nProvedores], "%s", abas[i].nome);
+      |                                                                        ^~
+In function ‘snprintf’,
+    inlined from ‘atualizarProvedores’ at tests/../src/streams.c:3434:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 1872 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘dicaTorrents’:
+tests/../src/streams.c:1821:52: warning: ‘%s’ directive output may be truncated writing up to 13311 bytes into a region of size 190 [-Wformat-truncation=]
+ 1821 |       snprintf(nomes + len, sizeof nomes - len, "%s%s: %d", len ? ", " : " (", descartadosAddon[i].nome, total);
+      |                                                    ^~
+tests/../src/streams.c:1821:49: note: directive argument in the range [1, 2147483647]
+ 1821 |       snprintf(nomes + len, sizeof nomes - len, "%s%s: %d", len ? ", " : " (", descartadosAddon[i].nome, total);
+      |                                                 ^~~~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘dicaTorrents’ at tests/../src/streams.c:1821:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 6 and 13326 bytes into a destination of size 192
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘stream_urls_para_aquecer’:
+tests/../src/streams.c:1760:32: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 256 [-Wformat-truncation=]
+ 1760 |       snprintf(dst[q++], 256, "%s", lista[i].url);
+      |                                ^~
+In function ‘snprintf’,
+    inlined from ‘stream_urls_para_aquecer’ at tests/../src/streams.c:1760:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 4096 bytes into a destination of size 256
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘corpoFolha’:
+tests/../src/streams.c:3698:40: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 148 and 156 [-Wformat-truncation=]
+ 3698 |   if (estado) snprintf(buf, tam, "%s · %s", i18n(estado), origem);
+      |                                        ^~                 ~~~~~~
+In function ‘snprintf’,
+    inlined from ‘legendaProvedor’ at tests/../src/streams.c:3698:15,
+    inlined from ‘corpoFolha’ at tests/../src/streams.c:5867:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 5 or more bytes (assuming 172) into a destination of size 160
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘corpoFolha’:
+tests/../src/streams.c:3956:23: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 96 [-Wformat-truncation=]
+ 3956 |   snprintf(nome, tn, "%s", nomeFolha[0] ? nomeFolha : s->provedor);
+      |                       ^~
+In function ‘snprintf’,
+    inlined from ‘tituloConteudo’ at tests/../src/streams.c:3956:3,
+    inlined from ‘corpoFolha’ at tests/../src/streams.c:5947:12:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 160 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+tests/../src/streams.c: In function ‘stream_primeira_boa_sessao’:
+tests/../src/streams.c:1950:68: warning: ‘%s’ directive output may be truncated writing up to 33 bytes into a region of size between 0 and 32 [-Wformat-truncation=]
+ 1950 |     snprintf(tam, sizeof tam, "min=%dGB max=%dGB out-of-range=%d/%d%s", tamMin, tamMax, foraTam, n,
+      |                                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘logarEscolha’ at tests/../src/streams.c:1950:5,
+    inlined from ‘stream_primeira_boa_sessao’ at tests/../src/streams.c:2697:63:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 33 and 106 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/stream_parse.c: In function ‘stream_extrair’:
+src/stream_parse.c:1133:56: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size between 0 and 2048 [-Wformat-truncation=]
+ 1133 |         snprintf(s.descricao, sizeof s.descricao, "%s%s%s", titulo,
+      |                                                        ^~
+ 1134 |                  descricao[0] ? "\n" : "", descricao);
+      |                                            ~~~~~~~~~    
+In file included from /usr/include/stdio.h:980,
+                 from /usr/include/SDL2/SDL_stdinc.h:37,
+                 from /usr/include/SDL2/SDL_main.h:25,
+                 from /usr/include/SDL2/SDL.h:32,
+                 from src/streams.h:14,
+                 from src/stream_parse.c:1:
+In function ‘snprintf’,
+    inlined from ‘stream_extrair’ at src/stream_parse.c:1133:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 4096 bytes into a destination of size 2048
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+/usr/bin/ld: /tmp/nvtestes.r1BgR1/aiostream_instances.YIP6ld/ccYc90qR.o: in function `atualizarProvedores':
+/workspace/nuvio-app/tests/aiostream_instances_ui.c:3393:(.text.atualizarProvedores+0x4b): undefined reference to `addons_parcial_abas'
+collect2: error: ld returned 1 exit status

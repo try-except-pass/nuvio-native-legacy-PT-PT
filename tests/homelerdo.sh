@@ -5,9 +5,9 @@ set -eu
 cd "$(dirname "$0")/.."
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-homelerdo.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-O1 -DNV_SHOT_HOOKS -DAJUSTES_TESTE -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -DNV_SHOT_HOOKS -DAJUSTES_TESTE -Isrc -I/usr/include -I/usr/include/SDL2
        -Wno-deprecated-declarations -Wno-macro-redefined -include tests/homelerdo_gl.h)
-libs=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+libs=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 gfx_source=src/gfx.c
 if [ -n "${NUVIO_HOMELERDO_BASELINE:-}" ]; then
   git show "$NUVIO_HOMELERDO_BASELINE:src/gfx.c" > "$work/gfx.c"; gfx_source="$work/gfx.c"

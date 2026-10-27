@@ -10,6 +10,6 @@ cd "$(dirname "$0")/.."
 tmp="${TMPDIR:-/tmp}"
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
-cc ${flags[@]+"${flags[@]}"} tests/arranque_pendente.c -Isrc -I/opt/homebrew/include -o "$tmp/nuvio-arranque-pendente" -O1 -g \
+cc ${flags[@]+"${flags[@]}"} tests/arranque_pendente.c -Isrc -I/usr/include -o "$tmp/nuvio-arranque-pendente" -O1 -g \
   -Wall -Wno-format-truncation -Wno-unused-function
 "$tmp/nuvio-arranque-pendente" "$tmp/nuvio-arranque-pendente-log.txt"

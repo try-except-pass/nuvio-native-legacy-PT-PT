@@ -1,0 +1,138 @@
+src/catalogo.c: In function ‘cat_historico_estado_id’:
+src/catalogo.c:407:27: warning: the address of ‘contapend_estado’ will always evaluate as ‘true’ [-Waddress]
+  407 |   return contapend_estado ? contapend_estado(imdb, tipo, 0, 0, 0, estado) : estado;
+      |                           ^
+src/catalogo.c: In function ‘cacheApagarTemporarios’:
+src/catalogo.c:984:43: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size between 188 and 699 [-Wformat-truncation=]
+  984 |     snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
+      |                                           ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/catalogo.c:4:
+In function ‘snprintf’,
+    inlined from ‘cacheApagarTemporarios’ at src/catalogo.c:984:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 2 and 768 bytes into a destination of size 700
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:543:67: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  543 |     if (rel[0]) snprintf(it->backdrop, sizeof it->backdrop, "%s/%s", dirArte, rel);
+      |                                                                   ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:543:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:550:59: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  550 |     if (rel[0]) snprintf(it->logo, sizeof it->logo, "%s/%s", dirArte, rel);
+      |                                                           ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:550:17:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:610:54: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  610 |       snprintf(itens[i].imdb, sizeof itens[i].imdb, "%s", linha);
+      |                                                      ^~   ~~~~~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:610:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:643:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |                                                  ^~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:643:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:643:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |                                                  ^~
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:643:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:692:78: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  692 |       if (c2[0]) snprintf(itens[i].provLogo, sizeof itens[i].provLogo, "%s/%s", dirArte, c2);
+      |                                                                              ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:692:18:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/catalogo.c: In function ‘cat_carregar’:
+src/catalogo.c:737:67: warning: ‘__builtin___snprintf_chk’ output may be truncated before the last format character [-Wformat-truncation=]
+  737 |           if (rel[0]) snprintf(ep->thumb, sizeof ep->thumb, "%s/%s", dirArte, rel); }
+      |                                                                   ^
+In function ‘snprintf’,
+    inlined from ‘cat_carregar’ at src/catalogo.c:737:23:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 2 or more bytes (assuming 513) into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+src/tendencia.c: In function ‘tend_registrar’:
+src/tendencia.c:92:50: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   92 |     snprintf(fila.imdb[k], sizeof fila.imdb[k], "%s", itens[f->ini + k].imdb);
+      |                                                  ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from src/tendencia.h:22,
+                 from src/tendencia.c:1:
+In function ‘snprintf’,
+    inlined from ‘tend_registrar’ at src/tendencia.c:92:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 64 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/usr/bin/ld: /tmp/ccnv8aHo.o: in function `pedirIdiomas':
+/workspace/nuvio-app/src/catalogo.c:2184:(.text+0xeee): undefined reference to `desc_chave_tmdb_reserva'
+/usr/bin/ld: /workspace/nuvio-app/src/catalogo.c:2187:(.text+0xf42): undefined reference to `idiomaorig_pedir'
+collect2: error: ld returned 1 exit status

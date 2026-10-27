@@ -5,7 +5,7 @@
 # c0dc799a3 = the tree right before the A3 screen).
 set -eu
 cd "$(dirname "$0")/.."
-export TMPDIR=${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}
+export TMPDIR=${TMPDIR:-/tmp}
 mkdir -p "$TMPDIR"
 work=$(mktemp -d "$TMPDIR/nuvio-loadtela-shot.XXXXXX")
 trap 'rm -rf "$work"' EXIT
@@ -13,8 +13,8 @@ build() {   # $1 = src dir
   local sources=() source
   for source in "$1"/*.c "$1"/dts/*.c; do [ "$(basename "$source")" != main.c ] && sources+=("$source"); done
   cc -DNV_SHOT_HOOKS "${sources[@]}" tests/player_loadtela_shot.c -I"$1" -o "$work/shot" \
-    -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+    -O1 -g -I/usr/include -I/usr/include/SDL2 \
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
     -Wl,-U,_player_morph_de -Wno-deprecated-declarations -Wno-macro-redefined
 }
 run() {   # $1 = outdir, $2 = optional style ("canto")
@@ -22,7 +22,7 @@ run() {   # $1 = outdir, $2 = optional style ("canto")
   NUVIO_DADOS="$work/dados" NUVIO_TESTE_DIR="$work/dados" "$work/shot" "$1" ${2:+"$2"}
 }
 if [ $# -ge 1 ]; then build "${2:-src}"; run "$1" "${3:-}"; exit; fi
-out=/Volumes/ExternalSSD/tmp/loadtela
+out=${TMPDIR:-/tmp}/loadtela
 mkdir -p "$work/antes"
 git archive "${ANTES_REF:-c0dc799a3}" src | tar -x -C "$work/antes"
 build "$work/antes/src"; run "$out/antes"

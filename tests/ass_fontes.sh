@@ -11,6 +11,6 @@ fi
 flags=(-O1 -g)
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 "${CC:-cc}" "${flags[@]}" -DNV_ASS_LIBASS -Isrc tests/ass_fontes.c src/assrender.c src/bidi.c tests/ass_render_stub.c -o ${TMPDIR:-/tmp}/nuvio-ass-fontes-test \
-  $(pkg-config --cflags --libs libass) -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -framework OpenGL -Wno-deprecated-declarations -Wno-macro-redefined
+  $(pkg-config --cflags --libs libass) -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lGLESv2 -lEGL -lm -lpthread -ldl -Wno-deprecated-declarations -Wno-macro-redefined
 ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}" ${TMPDIR:-/tmp}/nuvio-ass-fontes-test

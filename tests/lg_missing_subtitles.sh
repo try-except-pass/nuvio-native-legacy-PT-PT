@@ -54,5 +54,5 @@ int main(void) {
 ''')
 PY
 cc -Isrc "$DIR/test.c" src/faixasmkv.c src/mkv.c src/linguas.c src/rede.c src/redeurl.c src/audioinfo.c \
-  -o "$DIR/test" -O1 -g -Wall -I/opt/homebrew/include -Wno-deprecated-declarations
+  -o "$DIR/test" -O1 -g -Wall -I/usr/include -Wno-deprecated-declarations
 "$DIR/test"

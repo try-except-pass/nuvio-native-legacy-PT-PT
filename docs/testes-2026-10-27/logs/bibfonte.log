@@ -1,0 +1,2118 @@
+/workspace/nuvio-app/src/addons.c: In function ‘carregarSemTrava’:
+/workspace/nuvio-app/src/addons.c:539:62: warning: ‘%s’ directive output may be truncated writing up to 2303 bytes into a region of size 64 [-Wformat-truncation=]
+  539 |     snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s", linha);
+      |                                                              ^~   ~~~~~
+/workspace/nuvio-app/src/addons.c:539:5: note: ‘snprintf’ output between 1 and 2304 bytes into a destination of size 64
+  539 |     snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s", linha);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/addons.c: In function ‘buscarUmAddon’:
+/workspace/nuvio-app/src/addons.c:1494:44: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 1024 [-Wformat-truncation=]
+ 1494 |           snprintf(d->url, sizeof d->url, "%s", link);
+      |                                            ^~   ~~~~
+/workspace/nuvio-app/src/addons.c:1494:11: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 1024
+ 1494 |           snprintf(d->url, sizeof d->url, "%s", link);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/addons.c:1500:50: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 1500 |           snprintf(d->idioma, sizeof d->idioma, "%s", cod);
+      |                                                  ^~   ~~~
+/workspace/nuvio-app/src/addons.c:1500:11: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+ 1500 |           snprintf(d->idioma, sizeof d->idioma, "%s", cod);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/addons.c:1502:52: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 96 [-Wformat-truncation=]
+ 1502 |           snprintf(d->arquivo, sizeof d->arquivo, "%s", nome);
+      |                                                    ^~   ~~~~
+/workspace/nuvio-app/src/addons.c:1502:11: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 96
+ 1502 |           snprintf(d->arquivo, sizeof d->arquivo, "%s", nome);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/addons.c:1512:63: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 64 [-Wformat-truncation=]
+ 1512 |           if (nome[0]) snprintf(d->rotulo, sizeof d->rotulo, "%s", nome);
+      |                                                               ^~   ~~~~
+/workspace/nuvio-app/src/addons.c:1512:24: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 64
+ 1512 |           if (nome[0]) snprintf(d->rotulo, sizeof d->rotulo, "%s", nome);
+      |                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/addons.c: In function ‘adicionarSemTrava’:
+/workspace/nuvio-app/src/addons.c:1824:60: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+ 1824 |   snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s",
+      |                                                            ^~
+/workspace/nuvio-app/src/addons.c:1824:3: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 64
+ 1824 |   snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s",
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1825 |            nome && *nome ? nome : nova);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/agenda.c: In function ‘agenda_hoje’:
+/workspace/nuvio-app/src/agenda.c:158:37: warning: ‘%02d’ directive output may be truncated writing between 2 and 11 bytes into a region of size between 0 and 7 [-Wformat-truncation=]
+  158 |   snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                                     ^~~~
+/workspace/nuvio-app/src/agenda.c:158:31: note: directive argument in the range [-2147483647, 2147483647]
+  158 |   snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                               ^~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/agenda.c:158:3: note: ‘snprintf’ output between 11 and 36 bytes into a destination of size 12
+  158 |   snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  159 |            tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/agendaui.c: In function ‘desenhaEsquerda’:
+/workspace/nuvio-app/src/agendaui.c:1504:67: warning: ‘%s’ directive output may be truncated writing up to 239 bytes into a region of size between 177 and 396 [-Wformat-truncation=]
+ 1504 |     if (ep[0] && apoio[0]) snprintf(buf, sizeof buf, "%s \xc2\xb7 %s", ep, apoio);
+      |                                                                   ^~       ~~~~~
+/workspace/nuvio-app/src/agendaui.c:1504:28: note: ‘snprintf’ output between 5 and 463 bytes into a destination of size 400
+ 1504 |     if (ep[0] && apoio[0]) snprintf(buf, sizeof buf, "%s \xc2\xb7 %s", ep, apoio);
+      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/amigoperfil.c: In function ‘amigoperfil_desenhar’:
+/workspace/nuvio-app/src/amigoperfil.c:252:47: warning: ‘%s’ directive output may be truncated writing up to 199 bytes into a region of size between 164 and 195 [-Wformat-truncation=]
+  252 |         snprintf(t2, sizeof t2, "@%s \xc2\xb7 %s", perf.a.apelido, buf);
+      |                                               ^~                   ~~~
+/workspace/nuvio-app/src/amigoperfil.c:252:9: note: ‘snprintf’ output between 6 and 236 bytes into a destination of size 200
+  252 |         snprintf(t2, sizeof t2, "@%s \xc2\xb7 %s", perf.a.apelido, buf);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/amigoperfil.c:260:46: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 37 and 196 [-Wformat-truncation=]
+  260 |       snprintf(buf, sizeof buf, "%s \xc2\xb7 %s", st, perf.a.tit[0].titulo);
+      |                                              ^~       ~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/amigoperfil.c:260:7: note: ‘snprintf’ output between 5 and 323 bytes into a destination of size 200
+  260 |       snprintf(buf, sizeof buf, "%s \xc2\xb7 %s", st, perf.a.tit[0].titulo);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/amigoperfil.c:367:36: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 135 and 198 [-Wformat-truncation=]
+  367 |     snprintf(buf, sizeof buf, "%s: %s", perf.a.nome, st);
+      |                                    ^~                ~~
+/workspace/nuvio-app/src/amigoperfil.c:367:5: note: ‘snprintf’ output between 3 and 225 bytes into a destination of size 200
+  367 |     snprintf(buf, sizeof buf, "%s: %s", perf.a.nome, st);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/amigostitulo.c: In function ‘amigostitulo_montar’:
+/workspace/nuvio-app/src/amigostitulo.c:101:56: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 256 [-Wformat-truncation=]
+  101 |         snprintf(tmp[p].avatar, sizeof tmp[p].avatar, "%s", ev[j].pessoaAvatar);
+      |                                                        ^~
+/workspace/nuvio-app/src/amigostitulo.c:101:9: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 256
+  101 |         snprintf(tmp[p].avatar, sizeof tmp[p].avatar, "%s", ev[j].pessoaAvatar);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/amigostitulo.c: In function ‘amigostitulo_atualizar’:
+/workspace/nuvio-app/src/amigostitulo.c:167:67: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 256 [-Wformat-truncation=]
+  167 |       if (am->avatar[0]) snprintf(at->avatar, sizeof at->avatar, "%s", am->avatar);
+      |                                                                   ^~
+/workspace/nuvio-app/src/amigostitulo.c:167:26: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 256
+  167 |       if (am->avatar[0]) snprintf(at->avatar, sizeof at->avatar, "%s", am->avatar);
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/app.c: In function ‘resolverCanalXtream’:
+/workspace/nuvio-app/src/app.c:1433:48: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 4088 [-Wformat-truncation=]
+ 1433 |         snprintf(s[n].url, sizeof s[n].url, "%s%s", PROXYTS_PREFIXO, url);
+      |                                                ^~                    ~~~
+/workspace/nuvio-app/src/app.c:1433:9: note: ‘snprintf’ output between 9 and 4104 bytes into a destination of size 4096
+ 1433 |         snprintf(s[n].url, sizeof s[n].url, "%s%s", PROXYTS_PREFIXO, url);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/app.c: In function ‘preparoGuardar’:
+/workspace/nuvio-app/src/app.c:2149:48: warning: ‘%s’ directive output may be truncated writing up to 79 bytes into a region of size 64 [-Wformat-truncation=]
+ 2149 |   snprintf(preparo.alvo, sizeof preparo.alvo, "%s", j->id);
+      |                                                ^~
+/workspace/nuvio-app/src/app.c:2149:3: note: ‘snprintf’ output between 1 and 80 bytes into a destination of size 64
+ 2149 |   snprintf(preparo.alvo, sizeof preparo.alvo, "%s", j->id);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/app.c: In function ‘fonteViaDebrid’:
+/workspace/nuvio-app/src/app.c:2999:26: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 160 [-Wformat-truncation=]
+ 2999 |   snprintf(u, sizeof u, "%s", s->url);
+      |                          ^~
+/workspace/nuvio-app/src/app.c:2999:3: note: ‘snprintf’ output between 1 and 4096 bytes into a destination of size 160
+ 2999 |   snprintf(u, sizeof u, "%s", s->url);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/artereserva.c: In function ‘ateTemporada’:
+/workspace/nuvio-app/src/artereserva.c:216:63: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 40 [-Wformat-truncation=]
+  216 |       snprintf(dst->v[dst->n].still, sizeof dst->v[0].still, "%s", c);
+      |                                                               ^~   ~
+/workspace/nuvio-app/src/artereserva.c:216:7: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 40
+  216 |       snprintf(dst->v[dst->n].still, sizeof dst->v[0].still, "%s", c);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/atualizacao.c: In function ‘fioConsulta’:
+/workspace/nuvio-app/src/atualizacao.c:413:42: warning: ‘%s’ directive output may be truncated writing up to 47 bytes into a region of size 32 [-Wformat-truncation=]
+  413 |       snprintf(tagNova, sizeof tagNova, "%s", v);
+      |                                          ^~
+/workspace/nuvio-app/src/atualizacao.c:413:7: note: ‘snprintf’ output between 1 and 48 bytes into a destination of size 32
+  413 |       snprintf(tagNova, sizeof tagNova, "%s", v);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/avisos.c: In function ‘agoraTexto’:
+/workspace/nuvio-app/src/avisos.c:416:54: warning: ‘ (manual)’ directive output may be truncated writing 9 bytes into a region of size between 0 and 24 [-Wformat-truncation=]
+  416 |   snprintf(buf, sizeof buf, "%04d-%02d-%02d %02d:%02d (manual)", tmv.tm_year + 1900, tmv.tm_mon + 1,
+      |                                                      ^~~~~~~~~
+/workspace/nuvio-app/src/avisos.c:416:3: note: ‘snprintf’ output between 26 and 69 bytes into a destination of size 40
+  416 |   snprintf(buf, sizeof buf, "%04d-%02d-%02d %02d:%02d (manual)", tmv.tm_year + 1900, tmv.tm_mon + 1,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  417 |            tmv.tm_mday, tmv.tm_hour, tmv.tm_min);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/avisos.c: In function ‘fioCanalFn’:
+/workspace/nuvio-app/src/avisos.c:608:42: warning: ‘%s’ directive output may be truncated writing up to 71 bytes into a region of size 66 [-Wformat-truncation=]
+  608 |         snprintf(cid, sizeof cid, "canal:%s", id);
+      |                                          ^~   ~~
+/workspace/nuvio-app/src/avisos.c:608:9: note: ‘snprintf’ output between 7 and 78 bytes into a destination of size 72
+  608 |         snprintf(cid, sizeof cid, "canal:%s", id);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/avisos.c: In function ‘anunciarItem’:
+/workspace/nuvio-app/src/avisos.c:1193:44: warning: ‘%s’ directive output may be truncated writing up to 239 bytes into a region of size 160 [-Wformat-truncation=]
+ 1193 |       snprintf(m.titulo, sizeof m.titulo, "%s", txt);
+      |                                            ^~   ~~~
+/workspace/nuvio-app/src/avisos.c:1193:7: note: ‘snprintf’ output between 1 and 240 bytes into a destination of size 160
+ 1193 |       snprintf(m.titulo, sizeof m.titulo, "%s", txt);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/avisos.c:1178:34: warning: ‘%s’ directive output may be truncated writing up to 419 bytes into a region of size 240 [-Wformat-truncation=]
+ 1178 |       snprintf(txt, sizeof txt, "%s", it->texto);
+      |                                  ^~
+/workspace/nuvio-app/src/avisos.c:1178:7: note: ‘snprintf’ output between 1 and 420 bytes into a destination of size 240
+ 1178 |       snprintf(txt, sizeof txt, "%s", it->texto);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/avisos.c:1127:80: warning: ‘%s’ directive output may be truncated writing up to 419 bytes into a region of size 240 [-Wformat-truncation=]
+ 1127 |       if (!recomenda_item(0, r) || !r->titulo[0]) { snprintf(txt, sizeof txt, "%s", it->texto); e.tipo = ILHA_ACENTO; e.icone = "recomendar"; e.tecla = 1; e.ms = 8000u; break; }
+      |                                                                                ^~
+/workspace/nuvio-app/src/avisos.c:1127:53: note: ‘snprintf’ output between 1 and 420 bytes into a destination of size 240
+ 1127 |       if (!recomenda_item(0, r) || !r->titulo[0]) { snprintf(txt, sizeof txt, "%s", it->texto); e.tipo = ILHA_ACENTO; e.icone = "recomendar"; e.tecla = 1; e.ms = 8000u; break; }
+      |                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/catalogo.c: In function ‘cacheApagarTemporarios’:
+/workspace/nuvio-app/src/catalogo.c:984:43: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size between 188 and 699 [-Wformat-truncation=]
+  984 |     snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
+      |                                           ^~
+/workspace/nuvio-app/src/catalogo.c:984:5: note: ‘snprintf’ output between 2 and 768 bytes into a destination of size 700
+  984 |     snprintf(caminho, sizeof caminho, "%s/%s", dirCache, e->d_name);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c: In function ‘cat_carregar’:
+/workspace/nuvio-app/src/catalogo.c:543:67: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  543 |     if (rel[0]) snprintf(it->backdrop, sizeof it->backdrop, "%s/%s", dirArte, rel);
+      |                                                                   ^
+/workspace/nuvio-app/src/catalogo.c:543:17: note: ‘snprintf’ output 2 or more bytes (assuming 513) into a destination of size 512
+  543 |     if (rel[0]) snprintf(it->backdrop, sizeof it->backdrop, "%s/%s", dirArte, rel);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c:550:59: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  550 |     if (rel[0]) snprintf(it->logo, sizeof it->logo, "%s/%s", dirArte, rel);
+      |                                                           ^
+/workspace/nuvio-app/src/catalogo.c:550:17: note: ‘snprintf’ output 2 or more bytes (assuming 513) into a destination of size 512
+  550 |     if (rel[0]) snprintf(it->logo, sizeof it->logo, "%s/%s", dirArte, rel);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c:610:54: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  610 |       snprintf(itens[i].imdb, sizeof itens[i].imdb, "%s", linha);
+      |                                                      ^~   ~~~~~
+/workspace/nuvio-app/src/catalogo.c:610:7: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 64
+  610 |       snprintf(itens[i].imdb, sizeof itens[i].imdb, "%s", linha);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c:643:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |                                                  ^~
+/workspace/nuvio-app/src/catalogo.c:643:11: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 64
+  643 |           snprintf(itens[i].elenco[k].nome, 64, "%s", p2);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c:692:78: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  692 |       if (c2[0]) snprintf(itens[i].provLogo, sizeof itens[i].provLogo, "%s/%s", dirArte, c2);
+      |                                                                              ^
+/workspace/nuvio-app/src/catalogo.c:692:18: note: ‘snprintf’ output 2 or more bytes (assuming 513) into a destination of size 512
+  692 |       if (c2[0]) snprintf(itens[i].provLogo, sizeof itens[i].provLogo, "%s/%s", dirArte, c2);
+      |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/catalogo.c:737:67: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  737 |           if (rel[0]) snprintf(ep->thumb, sizeof ep->thumb, "%s/%s", dirArte, rel); }
+      |                                                                   ^
+/workspace/nuvio-app/src/catalogo.c:737:23: note: ‘snprintf’ output 2 or more bytes (assuming 513) into a destination of size 512
+  737 |           if (rel[0]) snprintf(ep->thumb, sizeof ep->thumb, "%s/%s", dirArte, rel); }
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/contalib.c: In function ‘contalib_aplicar_catalogo’:
+/workspace/nuvio-app/src/contalib.c:427:47: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  427 |     if (c) snprintf(marcaId, sizeof marcaId, "%s", c->imdb);
+      |                                               ^~
+/workspace/nuvio-app/src/contalib.c:427:12: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  427 |     if (c) snprintf(marcaId, sizeof marcaId, "%s", c->imdb);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/ctxinfo.c: In function ‘quebrarSinopse’:
+/workspace/nuvio-app/src/ctxinfo.c:228:40: warning: ‘%zu’ directive output may be truncated writing between 1 and 19 bytes into a region of size between 15 and 95 [-Wformat-truncation=]
+  228 |   snprintf(chave, sizeof chave, "%.80s|%zu", s, strlen(s));
+      |                                        ^~~
+/workspace/nuvio-app/src/ctxinfo.c:228:33: note: directive argument in the range [0, 9223372036854775805]
+  228 |   snprintf(chave, sizeof chave, "%.80s|%zu", s, strlen(s));
+      |                                 ^~~~~~~~~~~
+/workspace/nuvio-app/src/ctxinfo.c:228:3: note: ‘snprintf’ output between 3 and 101 bytes into a destination of size 96
+  228 |   snprintf(chave, sizeof chave, "%.80s|%zu", s, strlen(s));
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/ctxinfo.c:241:44: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  241 |       snprintf(tent, sizeof tent, "%s%s%.*s", linha, nl ? " " : "", (int)k, p);
+      |                                            ^
+/workspace/nuvio-app/src/ctxinfo.c:241:7: note: ‘snprintf’ output 1 or more bytes (assuming 301) into a destination of size 300
+  241 |       snprintf(tent, sizeof tent, "%s%s%.*s", linha, nl ? " " : "", (int)k, p);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/ctxinfo.c:254:58: warning: ‘%s’ directive output may be truncated writing up to 309 bytes into a region of size 300 [-Wformat-truncation=]
+  254 |           snprintf(sinCache.l[n], sizeof sinCache.l[n], "%s", tent); break; }
+      |                                                          ^~   ~~~~
+/workspace/nuvio-app/src/ctxinfo.c:254:11: note: ‘snprintf’ output between 1 and 310 bytes into a destination of size 300
+  254 |           snprintf(sinCache.l[n], sizeof sinCache.l[n], "%s", tent); break; }
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/dados.c: In function ‘gravarInterno’:
+/workspace/nuvio-app/src/dados.c:186:32: warning: ‘.tmp’ directive output may be truncated writing 4 bytes into a region of size between 1 and 600 [-Wformat-truncation=]
+  186 |   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
+      |                                ^~~~
+/workspace/nuvio-app/src/dados.c:186:3: note: ‘snprintf’ output between 5 and 604 bytes into a destination of size 600
+  186 |   snprintf(tmp, sizeof tmp, "%s.tmp", caminho);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/dados.c: In function ‘dados_cliente_id’:
+/workspace/nuvio-app/src/dados.c:325:40: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  325 |     snprintf(linha, sizeof linha, "%s\n", clienteId);
+      |                                        ^
+/workspace/nuvio-app/src/dados.c:325:5: note: ‘snprintf’ output between 2 and 65 bytes into a destination of size 64
+  325 |     snprintf(linha, sizeof linha, "%s\n", clienteId);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/desempenho.c: In function ‘montar’:
+/workspace/nuvio-app/src/desempenho.c:73:28: warning: ‘ UI fps’ directive output may be truncated writing 7 bytes into a region of size between 1 and 24 [-Wformat-truncation=]
+   73 |   snprintf(b, sizeof b, "%s UI fps", a);
+      |                            ^~~~~~~
+/workspace/nuvio-app/src/desempenho.c:73:3: note: ‘snprintf’ output between 8 and 31 bytes into a destination of size 24
+   73 |   snprintf(b, sizeof b, "%s UI fps", a);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/desempenho.c:79:30: warning: ‘ ms’ directive output may be truncated writing 3 bytes into a region of size between 1 and 24 [-Wformat-truncation=]
+   79 |     snprintf(b, sizeof b, "%s ms", a);
+      |                              ^~~
+/workspace/nuvio-app/src/desempenho.c:79:5: note: ‘snprintf’ output between 4 and 27 bytes into a destination of size 24
+   79 |     snprintf(b, sizeof b, "%s ms", a);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/diagnostico.c: In function ‘montarAmostraArtes’:
+/workspace/nuvio-app/src/diagnostico.c:894:64: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  894 |     snprintf(d.arte[d.nArte].url, sizeof d.arte[d.nArte].url, "%s", c->poster);
+      |                                                                ^~
+/workspace/nuvio-app/src/diagnostico.c:894:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+  894 |     snprintf(d.arte[d.nArte].url, sizeof d.arte[d.nArte].url, "%s", c->poster);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/diagnostico.c: In function ‘guardarCandidata’:
+/workspace/nuvio-app/src/diagnostico.c:1441:38: warning: ‘%s’ directive output may be truncated writing up to 191 bytes into a region of size 64 [-Wformat-truncation=]
+ 1441 |   snprintf(c->nome, sizeof c->nome, "%s", s->rotulo);
+      |                                      ^~
+/workspace/nuvio-app/src/diagnostico.c:1441:3: note: ‘snprintf’ output between 1 and 192 bytes into a destination of size 64
+ 1441 |   snprintf(c->nome, sizeof c->nome, "%s", s->rotulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/src/diagnostico.c:2960:
+/workspace/nuvio-app/src/diagnostico_ilha.inc: In function ‘dgVazaoResultado’:
+/workspace/nuvio-app/src/diagnostico_ilha.inc:630:30: warning: ‘%d’ directive output may be truncated writing between 1 and 9 bytes into a region of size 8 [-Wformat-truncation=]
+  630 |       snprintf(t, sizeof t, "%d s", nseg * i / 4);
+      |                              ^~
+/workspace/nuvio-app/src/diagnostico_ilha.inc:630:29: note: directive argument in the range [0, 536870911]
+  630 |       snprintf(t, sizeof t, "%d s", nseg * i / 4);
+      |                             ^~~~~~
+/workspace/nuvio-app/src/diagnostico_ilha.inc:630:7: note: ‘snprintf’ output between 4 and 12 bytes into a destination of size 8
+  630 |       snprintf(t, sizeof t, "%d s", nseg * i / 4);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/discord.c: In function ‘montar’:
+/workspace/nuvio-app/src/discord.c:532:46: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 128 [-Wformat-truncation=]
+  532 |   snprintf(p->detalhes, sizeof p->detalhes, "%s", ci->titulo);
+      |                                              ^~
+/workspace/nuvio-app/src/discord.c:532:3: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 128
+  532 |   snprintf(p->detalhes, sizeof p->detalhes, "%s", ci->titulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/discord.c:576:44: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 128 [-Wformat-truncation=]
+  576 |   snprintf(p->arteTxt, sizeof p->arteTxt, "%s", ci->titulo);
+      |                                            ^~
+/workspace/nuvio-app/src/discord.c:576:3: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 128
+  576 |   snprintf(p->arteTxt, sizeof p->arteTxt, "%s", ci->titulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/enquete.c: In function ‘mostrarOpcoes’:
+/workspace/nuvio-app/src/enquete.c:329:72: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 40 [-Wformat-truncation=]
+  329 |   for (i = 0; i < cur.n; i++) snprintf(m.botao[i], sizeof m.botao[i], "%s", cur.texto[i]);
+      |                                                                        ^~
+/workspace/nuvio-app/src/enquete.c:329:31: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 40
+  329 |   for (i = 0; i < cur.n; i++) snprintf(m.botao[i], sizeof m.botao[i], "%s", cur.texto[i]);
+      |                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/esmaecer.c: In function ‘esmaecer_desenhar’:
+/workspace/nuvio-app/src/esmaecer.c:174:46: warning: ‘%s’ directive output may be truncated writing up to 11 bytes into a region of size 8 [-Wformat-truncation=]
+  174 |           snprintf(horaTxt, sizeof horaTxt, "%s", h);
+      |                                              ^~   ~
+/workspace/nuvio-app/src/esmaecer.c:174:11: note: ‘snprintf’ output between 1 and 12 bytes into a destination of size 8
+  174 |           snprintf(horaTxt, sizeof horaTxt, "%s", h);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/estatvivoui.c: In function ‘montarTela’:
+/workspace/nuvio-app/src/estatvivoui.c:336:51: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  336 |   if (s) snprintf(tela.addon, sizeof tela.addon, "%s", s->provedor);
+      |                                                   ^~
+/workspace/nuvio-app/src/estatvivoui.c:336:10: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+  336 |   if (s) snprintf(tela.addon, sizeof tela.addon, "%s", s->provedor);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/explorar.c: In function ‘metaObra’:
+/workspace/nuvio-app/src/explorar.c:178:49: warning: ‘%d’ directive output may be truncated writing between 1 and 2 bytes into a region of size between 0 and 9 [-Wformat-truncation=]
+  178 |     snprintf(nota, sizeof nota, "   ·   TMDB %d.%d", o->nota / 10, o->nota % 10);
+      |                                                 ^~
+/workspace/nuvio-app/src/explorar.c:178:33: note: directive argument in the range [-9, 9]
+  178 |     snprintf(nota, sizeof nota, "   ·   TMDB %d.%d", o->nota / 10, o->nota % 10);
+      |                                 ^~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/explorar.c:178:5: note: ‘snprintf’ output between 17 and 27 bytes into a destination of size 24
+  178 |     snprintf(nota, sizeof nota, "   ·   TMDB %d.%d", o->nota / 10, o->nota % 10);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/explorar.c: In function ‘descer’:
+/workspace/nuvio-app/src/explorar.c:348:74: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 48 [-Wformat-truncation=]
+  348 |   else if (g->tipo == MAPA_GR_GENERO) snprintf(p->tema, sizeof p->tema, "%s", g->sub);
+      |                                                                          ^~
+/workspace/nuvio-app/src/explorar.c:348:39: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 48
+  348 |   else if (g->tipo == MAPA_GR_GENERO) snprintf(p->tema, sizeof p->tema, "%s", g->sub);
+      |                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/extras.c: In function ‘buscar’:
+/workspace/nuvio-app/src/extras.c:1342:58: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+ 1342 |                        "https://image.tmdb.org/t/p/w342%s", pp);
+      |                                                          ^
+/workspace/nuvio-app/src/extras.c:1341:15: note: ‘snprintf’ output between 32 and 231 bytes into a destination of size 230
+ 1341 |               snprintf(url2, sizeof url2,
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1342 |                        "https://image.tmdb.org/t/p/w342%s", pp);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/extras.c:1343:40: warning: ‘%s’ directive output may be truncated writing up to 229 bytes into a region of size 200 [-Wformat-truncation=]
+ 1343 |               snprintf(pp, sizeof pp, "%s", url2);
+      |                                        ^~   ~~~~
+/workspace/nuvio-app/src/extras.c:1343:15: note: ‘snprintf’ output between 1 and 230 bytes into a destination of size 200
+ 1343 |               snprintf(pp, sizeof pp, "%s", url2);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/extras.c:1352:65: warning: ‘%ld’ directive output may be truncated writing between 1 and 19 bytes into a region of size 11 [-Wformat-truncation=]
+ 1352 |               snprintf(rel[nr].imdb, sizeof rel[nr].imdb, "tmdb:%ld", tid);
+      |                                                                 ^~~
+/workspace/nuvio-app/src/extras.c:1352:59: note: directive argument in the range [1, 9223372036854775807]
+ 1352 |               snprintf(rel[nr].imdb, sizeof rel[nr].imdb, "tmdb:%ld", tid);
+      |                                                           ^~~~~~~~~~
+/workspace/nuvio-app/src/extras.c:1352:15: note: ‘snprintf’ output between 7 and 25 bytes into a destination of size 16
+ 1352 |               snprintf(rel[nr].imdb, sizeof rel[nr].imdb, "tmdb:%ld", tid);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/faixas.c: In function ‘lembrarAddon’:
+/workspace/nuvio-app/src/faixas.c:928:36: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 48 [-Wformat-truncation=]
+  928 |   snprintf(e.nome, sizeof e.nome, "%s", l->provedor[0] ? l->provedor : l->rotulo);
+      |                                    ^~
+/workspace/nuvio-app/src/faixas.c:928:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 48
+  928 |   snprintf(e.nome, sizeof e.nome, "%s", l->provedor[0] ? l->provedor : l->rotulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/faixasmkv.c: In function ‘aplicarUma’:
+/workspace/nuvio-app/src/faixasmkv.c:222:36: warning: ‘%s’ directive output may be truncated writing 6 bytes into a region of size between 1 and 48 [-Wformat-truncation=]
+  222 |       snprintf(rot, sizeof rot, "%s%s%s", base, SEP, i18n(ling_tipo_legenda_rotulo(f->tipoLeg)));
+      |                                    ^~
+/workspace/nuvio-app/src/faixasmkv.c:222:7: note: ‘snprintf’ output 7 or more bytes (assuming 54) into a destination of size 48
+  222 |       snprintf(rot, sizeof rot, "%s%s%s", base, SEP, i18n(ling_tipo_legenda_rotulo(f->tipoLeg)));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/faixasmkv.c:224:36: warning: ‘%s’ directive output may be truncated writing 6 bytes into a region of size between 1 and 48 [-Wformat-truncation=]
+  224 |       snprintf(rot, sizeof rot, "%s%s%s", base, SEP, m->nome);
+      |                                    ^~
+/workspace/nuvio-app/src/faixasmkv.c:224:7: note: ‘snprintf’ output between 7 and 101 bytes into a destination of size 48
+  224 |       snprintf(rot, sizeof rot, "%s%s%s", base, SEP, m->nome);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/faixasmkv.c:209:36: warning: ‘%s’ directive output may be truncated writing up to 47 bytes into a region of size between 1 and 48 [-Wformat-truncation=]
+  209 |     snprintf(rot, sizeof rot, "%s%s%s%s%s", base,
+      |                                    ^~
+/workspace/nuvio-app/src/faixasmkv.c:209:5: note: ‘snprintf’ output 1 or more bytes (assuming 95) into a destination of size 48
+  209 |     snprintf(rot, sizeof rot, "%s%s%s%s%s", base,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  210 |              (meio[0] || poeCh) ? SEP : "", meio,
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  211 |              (meio[0] && poeCh) ? " " : "", poeCh ? ch : "");
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/guia.c: In function ‘recLer’:
+/workspace/nuvio-app/src/guia.c:990:58: warning: ‘%s’ directive output may be truncated writing up to 2559 bytes into a region of size 64 [-Wformat-truncation=]
+  990 |     snprintf(rec[nRec].nome,   sizeof rec[nRec].nome,   "%s", a);
+      |                                                          ^~
+/workspace/nuvio-app/src/guia.c:990:5: note: ‘snprintf’ output between 1 and 2560 bytes into a destination of size 64
+  990 |     snprintf(rec[nRec].nome,   sizeof rec[nRec].nome,   "%s", a);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/guia.c: In function ‘empacotar’:
+/workspace/nuvio-app/src/guia.c:2182:70: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 2182 |     if(ordem<grupoNContas)snprintf(ltvF[i].nome,sizeof ltvF[i].nome,"%s",grupoContas[ordem].nome);
+      |                                                                      ^~
+/workspace/nuvio-app/src/guia.c:2182:27: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+ 2182 |     if(ordem<grupoNContas)snprintf(ltvF[i].nome,sizeof ltvF[i].nome,"%s",grupoContas[ordem].nome);
+      |                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/guia.c: In function ‘lerPagina’:
+/workspace/nuvio-app/src/guia.c:1390:47: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 1390 |       if (!gen[0]) snprintf(gen, sizeof gen, "%s", f->nome[0] ? f->nome : "Outros");
+      |                                               ^~
+/workspace/nuvio-app/src/guia.c:1390:20: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+ 1390 |       if (!gen[0]) snprintf(gen, sizeof gen, "%s", f->nome[0] ? f->nome : "Outros");
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/guia.c: In function ‘fioGuia’:
+/workspace/nuvio-app/src/guia.c:2057:40: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 2057 |       snprintf(u.nome, sizeof u.nome, "%s", c->nome);
+      |                                        ^~
+/workspace/nuvio-app/src/guia.c:2057:7: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+ 2057 |       snprintf(u.nome, sizeof u.nome, "%s", c->nome);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/guia.c: In function ‘descMolde’:
+/workspace/nuvio-app/src/guia.c:5268:72: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 5268 |       if (n < 8 && o->nq < 6) snprintf(o->q[o->nq++], sizeof o->q[0], "%s", tok);
+      |                                                                        ^~   ~~~
+/workspace/nuvio-app/src/guia.c:5268:31: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+ 5268 |       if (n < 8 && o->nq < 6) snprintf(o->q[o->nq++], sizeof o->q[0], "%s", tok);
+      |                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/guia.c: In function ‘desenharLinhaLista’:
+/workspace/nuvio-app/src/guia.c:6207:58: warning: ‘%s’ directive output may be truncated writing up to 11 bytes into a region of size between 8 and 19 [-Wformat-truncation=]
+ 6207 |           snprintf(faixa, sizeof faixa, "%s \xe2\x80\x93 %s", h1, h2);
+      |                                                          ^~       ~~
+/workspace/nuvio-app/src/guia.c:6207:11: note: ‘snprintf’ output between 6 and 28 bytes into a destination of size 24
+ 6207 |           snprintf(faixa, sizeof faixa, "%s \xe2\x80\x93 %s", h1, h2);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/home.c: In function ‘carregaDir’:
+/workspace/nuvio-app/src/home.c:725:36: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size between 0 and 511 [-Wformat-truncation=]
+  725 |     snprintf(destino[*n], 512, "%s/%s", caminho, e->d_name);
+      |                                    ^~
+/workspace/nuvio-app/src/home.c:725:5: note: ‘snprintf’ output between 2 and 768 bytes into a destination of size 512
+  725 |     snprintf(destino[*n], 512, "%s/%s", caminho, e->d_name);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/home.c: In function ‘sincronizarFileiras’:
+/workspace/nuvio-app/src/home.c:3009:76: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 3009 |     snprintf(fileiras[destino].catTipo, sizeof fileiras[destino].catTipo, "%s", cf->tipo);
+      |                                                                            ^~
+/workspace/nuvio-app/src/home.c:3009:5: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+ 3009 |     snprintf(fileiras[destino].catTipo, sizeof fileiras[destino].catTipo, "%s", cf->tipo);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/home.c: In function ‘home_trailer_passo_’:
+/workspace/nuvio-app/src/home.c:6005:56: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 6005 |     snprintf(heroTrailerImdb, sizeof heroTrailerImdb, "%s", ci->imdb);
+      |                                                        ^~
+/workspace/nuvio-app/src/home.c:6005:5: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 6005 |     snprintf(heroTrailerImdb, sizeof heroTrailerImdb, "%s", ci->imdb);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/ilha.c: In function ‘layoutModalAviso’:
+/workspace/nuvio-app/src/ilha.c:1419:34: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+ 1419 |         snprintf(pc, sizeof pc, "%d%%", p);
+      |                                  ^~
+/workspace/nuvio-app/src/ilha.c:1419:33: note: directive argument in the range [-2147483648, 100]
+ 1419 |         snprintf(pc, sizeof pc, "%d%%", p);
+      |                                 ^~~~~~
+/workspace/nuvio-app/src/ilha.c:1419:9: note: ‘snprintf’ output between 3 and 13 bytes into a destination of size 8
+ 1419 |         snprintf(pc, sizeof pc, "%d%%", p);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/ilhacart.c: In function ‘ilhacart_player_saiu’:
+/workspace/nuvio-app/src/ilhacart.c:89:70: warning: ‘%s’ directive output may be truncated writing up to 899 bytes into a region of size 420 [-Wformat-truncation=]
+   89 |   if (!vivo.sinopse[0]) snprintf(vivo.sinopse, sizeof vivo.sinopse, "%s", ci->sinopse);
+      |                                                                      ^~
+/workspace/nuvio-app/src/ilhacart.c:89:25: note: ‘snprintf’ output between 1 and 900 bytes into a destination of size 420
+   89 |   if (!vivo.sinopse[0]) snprintf(vivo.sinopse, sizeof vivo.sinopse, "%s", ci->sinopse);
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/ilhacart.c: In function ‘montarEstreia’:
+/workspace/nuvio-app/src/ilhacart.c:302:85: warning: ‘%s’ directive output may be truncated writing up to 899 bytes into a region of size 420 [-Wformat-truncation=]
+  302 |   if (!estreia.sinopse[0] && ci) snprintf(estreia.sinopse, sizeof estreia.sinopse, "%s", ci->sinopse);
+      |                                                                                     ^~
+/workspace/nuvio-app/src/ilhacart.c:302:34: note: ‘snprintf’ output between 1 and 900 bytes into a destination of size 420
+  302 |   if (!estreia.sinopse[0] && ci) snprintf(estreia.sinopse, sizeof estreia.sinopse, "%s", ci->sinopse);
+      |                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/jellyfin.c: In function ‘jf_ler_playbackinfo’:
+/workspace/nuvio-app/src/jellyfin.c:762:51: warning: ‘%s’ directive output may be truncated writing up to 1535 bytes into a region of size between 1532 and 2043 [-Wformat-truncation=]
+  762 |         snprintf(sp->url, sizeof sp->url, "%s/emby%s", c->base, tr);
+      |                                                   ^~            ~~
+/workspace/nuvio-app/src/jellyfin.c:762:9: note: ‘snprintf’ output between 6 and 2052 bytes into a destination of size 2048
+  762 |         snprintf(sp->url, sizeof sp->url, "%s/emby%s", c->base, tr);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/jellyfin.c: In function ‘jfi_esquecer’:
+/workspace/nuvio-app/src/jellyfin.c:1175:36: warning: ‘%s’ directive output may be truncated writing up to 79 bytes into a region of size between 8 and 598 [-Wformat-truncation=]
+ 1175 |     snprintf(a, sizeof a, "%s\n%s\n%s", I->conta.base, I->conta.token, I->conta.dispositivoId);
+      |                                    ^~
+/workspace/nuvio-app/src/jellyfin.c:1175:5: note: ‘snprintf’ output between 3 and 672 bytes into a destination of size 600
+ 1175 |     snprintf(a, sizeof a, "%s\n%s\n%s", I->conta.base, I->conta.token, I->conta.dispositivoId);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/jellyfin.c: In function ‘tarefaBibliotecas’:
+/workspace/nuvio-app/src/jellyfin.c:1569:58: warning: ‘ · ’ directive output may be truncated writing 4 bytes into a region of size between 1 and 96 [-Wformat-truncation=]
+ 1569 |     snprintf(fils[nf].titulo, sizeof fils[nf].titulo, "%s · %s", libs[i].nome, jf_tipo_nome(I->tipo));
+      |                                                          ^~~
+/workspace/nuvio-app/src/jellyfin.c:1569:5: note: ‘snprintf’ output 5 or more bytes (assuming 100) into a destination of size 96
+ 1569 |     snprintf(fils[nf].titulo, sizeof fils[nf].titulo, "%s · %s", libs[i].nome, jf_tipo_nome(I->tipo));
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/leitura.c: In function ‘fechaParagrafo’:
+/workspace/nuvio-app/src/leitura.c:292:38: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 900 [-Wformat-truncation=]
+  292 |     snprintf(c->txt, sizeof c->txt, "%s", parAtual);
+      |                                      ^~   ~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:292:5: note: ‘snprintf’ output between 1 and 4096 bytes into a destination of size 900
+  292 |     snprintf(c->txt, sizeof c->txt, "%s", parAtual);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c: In function ‘leitura_extrair’:
+/workspace/nuvio-app/src/leitura.c:532:99: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 320 [-Wformat-truncation=]
+  532 |           if (!strcmp(chave, "og:title") && !L->titulo[0]) snprintf(L->titulo, sizeof L->titulo, "%s", val);
+      |                                                                                                   ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:532:60: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 320
+  532 |           if (!strcmp(chave, "og:title") && !L->titulo[0]) snprintf(L->titulo, sizeof L->titulo, "%s", val);
+      |                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:533:97: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 320 [-Wformat-truncation=]
+  533 |           else if (!strcmp(chave, "twitter:title") && !twTit[0]) snprintf(twTit, sizeof twTit, "%s", val);
+      |                                                                                                 ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:533:66: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 320
+  533 |           else if (!strcmp(chave, "twitter:title") && !twTit[0]) snprintf(twTit, sizeof twTit, "%s", val);
+      |                                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:534:110: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 640 [-Wformat-truncation=]
+  534 |           else if (!strcmp(chave, "og:description") && !L->resumo[0]) snprintf(L->resumo, sizeof L->resumo, "%s", val);
+      |                                                                                                              ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:534:71: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 640
+  534 |           else if (!strcmp(chave, "og:description") && !L->resumo[0]) snprintf(L->resumo, sizeof L->resumo, "%s", val);
+      |                                                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:535:106: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 640 [-Wformat-truncation=]
+  535 |           else if (!strcmp(chave, "twitter:description") && !twDesc[0]) snprintf(twDesc, sizeof twDesc, "%s", val);
+      |                                                                                                          ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:535:73: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 640
+  535 |           else if (!strcmp(chave, "twitter:description") && !twDesc[0]) snprintf(twDesc, sizeof twDesc, "%s", val);
+      |                                                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:536:92: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 640 [-Wformat-truncation=]
+  536 |           else if (!strcmp(chave, "description") && !desc[0]) snprintf(desc, sizeof desc, "%s", val);
+      |                                                                                            ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:536:63: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 640
+  536 |           else if (!strcmp(chave, "description") && !desc[0]) snprintf(desc, sizeof desc, "%s", val);
+      |                                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/leitura.c:541:102: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 120 [-Wformat-truncation=]
+  541 |           else if (!strcmp(chave, "og:site_name") && !L->site[0]) snprintf(L->site, sizeof L->site, "%s", val);
+      |                                                                                                      ^~   ~~~
+/workspace/nuvio-app/src/leitura.c:541:67: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 120
+  541 |           else if (!strcmp(chave, "og:site_name") && !L->site[0]) snprintf(L->site, sizeof L->site, "%s", val);
+      |                                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/listas.c: In function ‘aplicarHome’:
+/workspace/nuvio-app/src/listas.c:228:48: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 84 [-Wformat-truncation=]
+  228 |     snprintf(v->id, sizeof v->id, "lista_trakt_%s", fixas[i].id);
+      |                                                ^~
+/workspace/nuvio-app/src/listas.c:228:5: note: ‘snprintf’ output between 13 and 108 bytes into a destination of size 96
+  228 |     snprintf(v->id, sizeof v->id, "lista_trakt_%s", fixas[i].id);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/listas.c: In function ‘montarFixadas’:
+/workspace/nuvio-app/src/listas.c:542:82: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 16 [-Wformat-truncation=]
+  542 |     else                                  snprintf(d->estado, sizeof d->estado, "%s", fixas[i].id);
+      |                                                                                  ^~
+/workspace/nuvio-app/src/listas.c:542:43: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 16
+  542 |     else                                  snprintf(d->estado, sizeof d->estado, "%s", fixas[i].id);
+      |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/listas.c: In function ‘fioListas’:
+/workspace/nuvio-app/src/listas.c:582:75: warning: ‘%s’ directive output may be truncated writing up to 299 bytes into a region of size 261 [-Wformat-truncation=]
+  582 |         snprintf(url, sizeof url, "https://api.trakt.tv/search/list?query=%s&limit=%d", termo, LST_MAX);
+      |                                                                           ^~            ~~~~~
+/workspace/nuvio-app/src/listas.c:582:9: note: ‘snprintf’ output between 49 and 348 bytes into a destination of size 300
+  582 |         snprintf(url, sizeof url, "https://api.trakt.tv/search/list?query=%s&limit=%d", termo, LST_MAX);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/mapa.c: In function ‘generosLocais’:
+/workspace/nuvio-app/src/mapa.c:1202:62: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 48 [-Wformat-truncation=]
+ 1202 |       snprintf(s->gen[s->nGen].nome, sizeof s->gen[0].nome, "%s", tok);
+      |                                                              ^~
+/workspace/nuvio-app/src/mapa.c:1202:7: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 48
+ 1202 |       snprintf(s->gen[s->nGen].nome, sizeof s->gen[0].nome, "%s", tok);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/mapa.c: In function ‘obraDoItem’:
+/workspace/nuvio-app/src/mapa.c:1212:38: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 1212 |   snprintf(o->imdb, sizeof o->imdb, "%s", !strncmp(ci->imdb, "tt", 2) ? ci->imdb : "");
+      |                                      ^~
+/workspace/nuvio-app/src/mapa.c:1212:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 1212 |   snprintf(o->imdb, sizeof o->imdb, "%s", !strncmp(ci->imdb, "tt", 2) ? ci->imdb : "");
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/mapa.c:1217:40: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 200 [-Wformat-truncation=]
+ 1217 |   snprintf(o->fundo, sizeof o->fundo, "%s", ci->backdrop);
+      |                                        ^~
+/workspace/nuvio-app/src/mapa.c:1217:3: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 200
+ 1217 |   snprintf(o->fundo, sizeof o->fundo, "%s", ci->backdrop);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/mapa.c: In function ‘sementeDoItem’:
+/workspace/nuvio-app/src/mapa.c:1248:62: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 200 [-Wformat-truncation=]
+ 1248 |         snprintf(s->gente[i].foto, sizeof s->gente[i].foto, "%s", ci->elenco[k].foto);
+      |                                                              ^~
+/workspace/nuvio-app/src/mapa.c:1248:9: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 200
+ 1248 |         snprintf(s->gente[i].foto, sizeof s->gente[i].foto, "%s", ci->elenco[k].foto);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/mapa.c: In function ‘coletar’:
+/workspace/nuvio-app/src/mapa.c:1306:56: warning: ‘%s’ directive output may be truncated writing up to 47 bytes into a region of size 24 [-Wformat-truncation=]
+ 1306 |       snprintf(s[n].obra.imdb, sizeof s[n].obra.imdb, "%s", id);
+      |                                                        ^~
+/workspace/nuvio-app/src/mapa.c:1306:7: note: ‘snprintf’ output between 1 and 48 bytes into a destination of size 24
+ 1306 |       snprintf(s[n].obra.imdb, sizeof s[n].obra.imdb, "%s", id);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/mapa.c: In function ‘vizColetarAmigos’:
+/workspace/nuvio-app/src/mapa.c:1956:58: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 200 [-Wformat-truncation=]
+ 1956 |       snprintf(a[n].obra.fundo, sizeof a[n].obra.fundo, "%s", ev->arte);
+      |                                                          ^~
+/workspace/nuvio-app/src/mapa.c:1956:7: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 200
+ 1956 |       snprintf(a[n].obra.fundo, sizeof a[n].obra.fundo, "%s", ev->arte);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/noticias.c: In function ‘interpretar’:
+/workspace/nuvio-app/src/noticias.c:239:48: warning: ‘%s’ directive output may be truncated writing up to 299 bytes into a region of size 240 [-Wformat-truncation=]
+  239 |       snprintf(nt->titulo, sizeof nt->titulo, "%s", buf);
+      |                                                ^~   ~~~
+/workspace/nuvio-app/src/noticias.c:239:7: note: ‘snprintf’ output between 1 and 300 bytes into a destination of size 240
+  239 |       snprintf(nt->titulo, sizeof nt->titulo, "%s", buf);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/noticias.c:243:46: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 80 [-Wformat-truncation=]
+  243 |       snprintf(nt->fonte, sizeof nt->fonte, "%s", fonte);
+      |                                              ^~   ~~~~~
+/workspace/nuvio-app/src/noticias.c:243:7: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 80
+  243 |       snprintf(nt->fonte, sizeof nt->fonte, "%s", fonte);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/noticias.c: In function ‘buscar’:
+/workspace/nuvio-app/src/noticias.c:354:69: warning: ‘%s’ directive output may be truncated writing up to 899 bytes into a region of size 863 [-Wformat-truncation=]
+  354 |     snprintf(url, sizeof url, "https://news.google.com/rss/search?q=%s&hl=%s&gl=%s&ceid=%s",
+      |                                                                     ^~
+  355 |              qc, PAR[lg].hl, PAR[lg].gl, PAR[lg].ceid);
+      |              ~~                                                      
+/workspace/nuvio-app/src/noticias.c:354:5: note: ‘snprintf’ output 52 or more bytes (assuming 951) into a destination of size 900
+  354 |     snprintf(url, sizeof url, "https://news.google.com/rss/search?q=%s&hl=%s&gl=%s&ceid=%s",
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  355 |              qc, PAR[lg].hl, PAR[lg].gl, PAR[lg].ceid);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/novidades148.c: In function ‘carregarTitulos’:
+/workspace/nuvio-app/src/novidades148.c:144:67: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size between 88 and 599 [-Wformat-truncation=]
+  144 |       if (rel[0]) snprintf(tit[i].fundo, sizeof tit[i].fundo, "%s/%s", dirArte, rel);
+      |                                                                   ^~            ~~~
+/workspace/nuvio-app/src/novidades148.c:144:19: note: ‘snprintf’ output between 2 and 1024 bytes into a destination of size 600
+  144 |       if (rel[0]) snprintf(tit[i].fundo, sizeof tit[i].fundo, "%s/%s", dirArte, rel);
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/novidades148.c:146:65: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size between 88 and 599 [-Wformat-truncation=]
+  146 |       if (rel[0]) snprintf(tit[i].logo, sizeof tit[i].logo, "%s/%s", dirArte, rel);
+      |                                                                 ^~            ~~~
+/workspace/nuvio-app/src/novidades148.c:146:19: note: ‘snprintf’ output between 2 and 1024 bytes into a destination of size 600
+  146 |       if (rel[0]) snprintf(tit[i].logo, sizeof tit[i].logo, "%s/%s", dirArte, rel);
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/novidades20.c: In function ‘rico’:
+/workspace/nuvio-app/src/novidades20.c:365:54: warning: ‘%s’ directive output may be truncated writing up to 259 bytes into a region of size 240 [-Wformat-truncation=]
+  365 |         snprintf(tr[nt - 1].s, sizeof tr[nt - 1].s, "%s", cand);
+      |                                                      ^~   ~~~~
+/workspace/nuvio-app/src/novidades20.c:365:9: note: ‘snprintf’ output between 1 and 260 bytes into a destination of size 240
+  365 |         snprintf(tr[nt - 1].s, sizeof tr[nt - 1].s, "%s", cand);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/novidades20.c:362:60: warning: ‘%s’ directive output may be truncated writing up to 259 bytes into a region of size 240 [-Wformat-truncation=]
+  362 |         if (nt < 8) { snprintf(tr[nt].s, sizeof tr[nt].s, "%s", cand); tr[nt].neg = b; tr[nt].w = wc; tr[nt].gap = gap; nt++; usado += wc + gap; }
+      |                                                            ^~   ~~~~
+/workspace/nuvio-app/src/novidades20.c:362:23: note: ‘snprintf’ output between 1 and 260 bytes into a destination of size 240
+  362 |         if (nt < 8) { snprintf(tr[nt].s, sizeof tr[nt].s, "%s", cand); tr[nt].neg = b; tr[nt].w = wc; tr[nt].gap = gap; nt++; usado += wc + gap; }
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/nuvem.c: In function ‘nuvem_configurar’:
+/workspace/nuvio-app/src/nuvem.c:58:101: warning: ‘%s’ directive output may be truncated writing up to 1199 bytes into a region of size 300 [-Wformat-truncation=]
+   58 |       if (fgets(linha, sizeof linha, f)) { tiraFim(linha); if (linha[0]) snprintf(url, sizeof url, "%s", linha); }
+      |                                                                                                     ^~   ~~~~~
+/workspace/nuvio-app/src/nuvem.c:58:74: note: ‘snprintf’ output between 1 and 1200 bytes into a destination of size 300
+   58 |       if (fgets(linha, sizeof linha, f)) { tiraFim(linha); if (linha[0]) snprintf(url, sizeof url, "%s", linha); }
+      |                                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/nuvem.c:60:113: warning: ‘%s’ directive output may be truncated writing up to 1199 bytes into a region of size 300 [-Wformat-truncation=]
+   60 |       if (fgets(linha, sizeof linha, f)) { tiraFim(linha); if (linha[0]) snprintf(baseLogin, sizeof baseLogin, "%s", linha); }
+      |                                                                                                                 ^~   ~~~~~
+/workspace/nuvio-app/src/nuvem.c:60:74: note: ‘snprintf’ output between 1 and 1200 bytes into a destination of size 300
+   60 |       if (fgets(linha, sizeof linha, f)) { tiraFim(linha); if (linha[0]) snprintf(baseLogin, sizeof baseLogin, "%s", linha); }
+      |                                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/p2p.c: In function ‘p2p_escolher_lista’:
+/workspace/nuvio-app/src/p2p.c:148:40: warning: ‘%02d’ directive output may be truncated writing between 2 and 10 bytes into a region of size between 4 and 12 [-Wformat-truncation=]
+  148 |     snprintf(pad1, sizeof pad1, "s%02de%02d", temporada, episodio);
+      |                                        ^~~~
+/workspace/nuvio-app/src/p2p.c:148:33: note: directive argument in the range [1, 2147483647]
+  148 |     snprintf(pad1, sizeof pad1, "s%02de%02d", temporada, episodio);
+      |                                 ^~~~~~~~~~~~
+/workspace/nuvio-app/src/p2p.c:148:5: note: ‘snprintf’ output between 7 and 23 bytes into a destination of size 16
+  148 |     snprintf(pad1, sizeof pad1, "s%02de%02d", temporada, episodio);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/p2p.c:149:37: warning: ‘%02d’ directive output may be truncated writing between 2 and 10 bytes into a region of size between 5 and 14 [-Wformat-truncation=]
+  149 |     snprintf(pad2, sizeof pad2, "%dx%02d", temporada, episodio);
+      |                                     ^~~~
+/workspace/nuvio-app/src/p2p.c:149:33: note: directive argument in the range [1, 2147483647]
+  149 |     snprintf(pad2, sizeof pad2, "%dx%02d", temporada, episodio);
+      |                                 ^~~~~~~~~
+/workspace/nuvio-app/src/p2p.c:149:5: note: ‘snprintf’ output between 5 and 22 bytes into a destination of size 16
+  149 |     snprintf(pad2, sizeof pad2, "%dx%02d", temporada, episodio);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/p2pmotor.c: In function ‘usbAndroidDirs’:
+/workspace/nuvio-app/src/p2pmotor.c:373:67: warning: ‘%s’ directive output may be truncated writing up to 1399 bytes into a region of size 600 [-Wformat-truncation=]
+  373 |     if (linha && *p && strlen(p) < 600) snprintf(dirs[n++], 600, "%s", p);
+      |                                                                   ^~
+/workspace/nuvio-app/src/p2pmotor.c:373:41: note: ‘snprintf’ output between 1 and 1400 bytes into a destination of size 600
+  373 |     if (linha && *p && strlen(p) < 600) snprintf(dirs[n++], 600, "%s", p);
+      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/p2pmotor.c: In function ‘p2pmotor_usb_info’:
+/workspace/nuvio-app/src/p2pmotor.c:688:46: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 256 [-Wformat-truncation=]
+  688 |     snprintf(o->caminho, sizeof o->caminho, "%s", mae);
+      |                                              ^~   ~~~
+/workspace/nuvio-app/src/p2pmotor.c:688:5: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 256
+  688 |     snprintf(o->caminho, sizeof o->caminho, "%s", mae);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/partes.c: In function ‘partes_copias’:
+/workspace/nuvio-app/src/partes.c:682:40: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 160 [-Wformat-truncation=]
+  682 |     snprintf(cp.nome, sizeof cp.nome, "%s", nome);
+      |                                        ^~   ~~~~
+/workspace/nuvio-app/src/partes.c:682:5: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 160
+  682 |     snprintf(cp.nome, sizeof cp.nome, "%s", nome);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/partes.c: In function ‘fioLista’:
+/workspace/nuvio-app/src/partes.c:1190:55: warning: ‘%s’ directive output may be truncated writing up to 23 bytes into a region of size 17 [-Wformat-truncation=]
+ 1190 |           { char c[24]; snprintf(c, sizeof c, "link + %s", l.como); snprintf(l.como, sizeof l.como, "%s", c); }
+      |                                                       ^~   ~~~~~~
+/workspace/nuvio-app/src/partes.c:1190:25: note: ‘snprintf’ output between 8 and 31 bytes into a destination of size 24
+ 1190 |           { char c[24]; snprintf(c, sizeof c, "link + %s", l.como); snprintf(l.como, sizeof l.como, "%s", c); }
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/partes.c: In function ‘novoPedido’:
+/workspace/nuvio-app/src/partes.c:1257:50: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size between 696 and 1398 [-Wformat-truncation=]
+ 1257 |   snprintf(pd->texto, sizeof pd->texto, "%s\n%s\n%s", s->arquivo, s->rotulo, s->descricao);
+      |                                                  ^~
+/workspace/nuvio-app/src/partes.c:1257:3: note: ‘snprintf’ output between 3 and 2752 bytes into a destination of size 1400
+ 1257 |   snprintf(pd->texto, sizeof pd->texto, "%s\n%s\n%s", s->arquivo, s->rotulo, s->descricao);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/perfil.c: In function ‘eventoDuelo’:
+/workspace/nuvio-app/src/perfil.c:437:54: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 128 [-Wformat-truncation=]
+  437 |     snprintf(dPedido.titulo, sizeof dPedido.titulo, "%s", dPerf.gostou[dCol].titulo);
+      |                                                      ^~
+/workspace/nuvio-app/src/perfil.c:437:5: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 128
+  437 |     snprintf(dPedido.titulo, sizeof dPedido.titulo, "%s", dPerf.gostou[dCol].titulo);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfil.c: In function ‘desenharAtividade’:
+/workspace/nuvio-app/src/perfil.c:923:40: warning: ‘ · ’ directive output may be truncated writing 4 bytes into a region of size between 1 and 200 [-Wformat-truncation=]
+  923 |       snprintf(tenta, sizeof tenta, "%s \xc2\xb7 %s %d", b,
+      |                                        ^~~~~~~~~~
+/workspace/nuvio-app/src/perfil.c:923:7: note: ‘snprintf’ output 7 or more bytes (assuming 206) into a destination of size 200
+  923 |       snprintf(tenta, sizeof tenta, "%s \xc2\xb7 %s %d", b,
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  924 |                i18n(dados.generos[g].nome), dados.generos[g].quantidade);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfil.c: In function ‘desenharDestaques’:
+/workspace/nuvio-app/src/perfil.c:962:50: warning: ‘%s’ directive output may be truncated writing up to 199 bytes into a region of size between 141 and 236 [-Wformat-truncation=]
+  962 |       snprintf(junto, sizeof junto, "%s \xc2\xb7 %s", dados.destaques[i].detalhe, linha);
+      |                                                  ^~                               ~~~~~
+/workspace/nuvio-app/src/perfil.c:962:7: note: ‘snprintf’ output between 5 and 299 bytes into a destination of size 240
+  962 |       snprintf(junto, sizeof junto, "%s \xc2\xb7 %s", dados.destaques[i].detalhe, linha);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfil.c:963:38: warning: ‘%s’ directive output may be truncated writing up to 239 bytes into a region of size 200 [-Wformat-truncation=]
+  963 |       snprintf(linha, sizeof linha, "%s", junto);
+      |                                      ^~   ~~~~~
+/workspace/nuvio-app/src/perfil.c:963:7: note: ‘snprintf’ output between 1 and 240 bytes into a destination of size 200
+  963 |       snprintf(linha, sizeof linha, "%s", junto);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/perfilcont.c: In function ‘perfilcont_de’:
+/workspace/nuvio-app/src/perfilcont.c:96:54: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 96 [-Wformat-truncation=]
+   96 |       snprintf(saida->epNome, sizeof saida->epNome, "%s", rascunho.nomeEpisodio);
+      |                                                      ^~   ~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfilcont.c:96:7: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 96
+   96 |       snprintf(saida->epNome, sizeof saida->epNome, "%s", rascunho.nomeEpisodio);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfilcont.c: In function ‘perfilcont_registrar’:
+/workspace/nuvio-app/src/perfilcont.c:131:44: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 96 [-Wformat-truncation=]
+  131 |       snprintf(s.epNome, sizeof s.epNome, "%s", rascunho.nomeEpisodio);
+      |                                            ^~   ~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/perfilcont.c:131:7: note: ‘snprintf’ output between 1 and 120 bytes into a destination of size 96
+  131 |       snprintf(s.epNome, sizeof s.epNome, "%s", rascunho.nomeEpisodio);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/perfilsel.c: In function ‘muralRecriar’:
+/workspace/nuvio-app/src/perfilsel.c:234:70: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  234 |     snprintf(muralCapas[muralN].url, sizeof muralCapas[muralN].url, "%s",
+      |                                                                      ^~
+/workspace/nuvio-app/src/perfilsel.c:234:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+  234 |     snprintf(muralCapas[muralN].url, sizeof muralCapas[muralN].url, "%s",
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  235 |              item->poster);
+      |              ~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/player.c: In function ‘wsIdentidade’:
+/workspace/nuvio-app/src/player.c:2109:38: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 16 [-Wformat-truncation=]
+ 2109 |   snprintf(e->imdb, sizeof e->imdb, "%s", c->imdb);
+      |                                      ^~
+/workspace/nuvio-app/src/player.c:2109:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 16
+ 2109 |   snprintf(e->imdb, sizeof e->imdb, "%s", c->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/player.c: In function ‘player_desenhar’:
+/workspace/nuvio-app/src/player.c:5975:44: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 16 [-Wformat-truncation=]
+ 5975 |     snprintf(nesteImdb, sizeof nesteImdb, "%s", c ? c->imdb : "");
+      |                                            ^~
+/workspace/nuvio-app/src/player.c:5975:5: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 16
+ 5975 |     snprintf(nesteImdb, sizeof nesteImdb, "%s", c ? c->imdb : "");
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/plex.c: In function ‘tarefaBibliotecas’:
+/workspace/nuvio-app/src/plex.c:1664:58: warning: ‘ · Plex’ directive output may be truncated writing 8 bytes into a region of size between 1 and 96 [-Wformat-truncation=]
+ 1664 |     snprintf(fils[nf].titulo, sizeof fils[nf].titulo, "%s · Plex", libs[i].nome);
+      |                                                          ^~~~~~~
+/workspace/nuvio-app/src/plex.c:1664:5: note: ‘snprintf’ output between 9 and 104 bytes into a destination of size 96
+ 1664 |     snprintf(fils[nf].titulo, sizeof fils[nf].titulo, "%s · Plex", libs[i].nome);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/plugins.c: In function ‘plugins_adicionar_repo’:
+/workspace/nuvio-app/src/plugins.c:551:70: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size 600 [-Wformat-truncation=]
+  551 |   snprintf(E.repos[E.nRepos].r.url, sizeof E.repos[E.nRepos].r.url, "%s", man);
+      |                                                                      ^~   ~~~
+/workspace/nuvio-app/src/plugins.c:551:3: note: ‘snprintf’ output between 1 and 700 bytes into a destination of size 600
+  551 |   snprintf(E.repos[E.nRepos].r.url, sizeof E.repos[E.nRepos].r.url, "%s", man);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/proxyts.c: In function ‘pxAtender’:
+/workspace/nuvio-app/src/proxyts.c:656:66: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 482 [-Wformat-truncation=]
+  656 |       snprintf(cab, sizeof cab, "HTTP/1.1 302 Found\r\nLocation: %s\r\nContent-Length: 0\r\n"
+      |                                                                  ^~
+/workspace/nuvio-app/src/proxyts.c:656:7: note: ‘snprintf’ output between 73 and 4168 bytes into a destination of size 512
+  656 |       snprintf(cab, sizeof cab, "HTTP/1.1 302 Found\r\nLocation: %s\r\nContent-Length: 0\r\n"
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  657 |                "Connection: close\r\n\r\n", c->fonte);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/reacao.c: In function ‘reacao_episodio_abrir’:
+/workspace/nuvio-app/src/reacao.c:1015:41: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 40 [-Wformat-truncation=]
+ 1015 |   char id[40]; snprintf(id, sizeof id, "%s:%d:%d", ci->imdb, t, e);
+      |                                         ^~
+/workspace/nuvio-app/src/reacao.c:1015:40: note: directive argument in the range [0, 2147483647]
+ 1015 |   char id[40]; snprintf(id, sizeof id, "%s:%d:%d", ci->imdb, t, e);
+      |                                        ^~~~~~~~~~
+/workspace/nuvio-app/src/reacao.c:1015:40: note: directive argument in the range [1, 2147483647]
+/workspace/nuvio-app/src/reacao.c:1015:16: note: ‘snprintf’ output between 5 and 86 bytes into a destination of size 40
+ 1015 |   char id[40]; snprintf(id, sizeof id, "%s:%d:%d", ci->imdb, t, e);
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/recenviar.c: In function ‘desenhaLinha’:
+/workspace/nuvio-app/src/recenviar.c:686:36: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 64 [-Wformat-truncation=]
+  686 |       snprintf(quem, sizeof quem, "%s", nome);
+      |                                    ^~   ~~~~
+/workspace/nuvio-app/src/recenviar.c:686:7: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 64
+  686 |       snprintf(quem, sizeof quem, "%s", nome);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/src/recomenda.c:34:
+/workspace/nuvio-app/src/artemetahub.h: In function ‘arte_metahub_preencher’:
+/workspace/nuvio-app/src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/src/artemetahub.h:21:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c: In function ‘recomenda_atividade_passo’:
+/workspace/nuvio-app/src/recomenda.c:1354:46: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 1354 |     snprintf(ativUltimo, sizeof ativUltimo, "%s", ci->imdb);
+      |                                              ^~
+/workspace/nuvio-app/src/recomenda.c:1354:5: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 1354 |     snprintf(ativUltimo, sizeof ativUltimo, "%s", ci->imdb);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c: In function ‘enviarPerfil’:
+/workspace/nuvio-app/src/recomenda.c:2399:63: warning: ‘%s’ directive output may be truncated writing up to 399 bytes into a region of size between 196 and 478 [-Wformat-truncation=]
+ 2399 |              "{\"apelido\":\"%s\",\"bio\":\"%s\",\"generos\":[%s],\"avatar\":%d,\"recentes\":%d}",
+      |                                                               ^~
+ 2400 |              ap, bi, gens, p.foto ? 1 : 0, p.recentes ? 1 : 0);
+      |                      ~~~~                                      
+/workspace/nuvio-app/src/recomenda.c:2399:14: note: directive argument in the range [0, 1]
+ 2399 |              "{\"apelido\":\"%s\",\"bio\":\"%s\",\"generos\":[%s],\"avatar\":%d,\"recentes\":%d}",
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:2399:14: note: directive argument in the range [0, 1]
+/workspace/nuvio-app/src/recomenda.c:2398:5: note: ‘snprintf’ output between 61 and 742 bytes into a destination of size 512
+ 2398 |     snprintf(corpo, sizeof corpo,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2399 |              "{\"apelido\":\"%s\",\"bio\":\"%s\",\"generos\":[%s],\"avatar\":%d,\"recentes\":%d}",
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2400 |              ap, bi, gens, p.foto ? 1 : 0, p.recentes ? 1 : 0);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c: In function ‘lerFeedCorpo’:
+/workspace/nuvio-app/src/recomenda.c:3005:40: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 3005 |     snprintf(d->pais, sizeof d->pais, "%s", d->socialNome);
+      |                                        ^~
+/workspace/nuvio-app/src/recomenda.c:3005:5: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+ 3005 |     snprintf(d->pais, sizeof d->pais, "%s", d->socialNome);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:3019:56: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 3019 |       snprintf(feed[nFeed].imdb, sizeof feed[0].imdb, "%s", d->imdb);
+      |                                                        ^~
+/workspace/nuvio-app/src/recomenda.c:3019:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 3019 |       snprintf(feed[nFeed].imdb, sizeof feed[0].imdb, "%s", d->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c: In function ‘registrar’:
+/workspace/nuvio-app/src/recomenda.c:1629:72: warning: ‘%s’ directive output may be truncated writing up to 699 bytes into a region of size between 620 and 779 [-Wformat-truncation=]
+ 1629 |       snprintf(corpoEu, sizeof corpoEu, "{\"nome\":\"%s\",\"avatar\":\"%s\"}", n, a);
+      |                                                                        ^~         ~
+/workspace/nuvio-app/src/recomenda.c:1629:7: note: ‘snprintf’ output between 24 and 882 bytes into a destination of size 800
+ 1629 |       snprintf(corpoEu, sizeof corpoEu, "{\"nome\":\"%s\",\"avatar\":\"%s\"}", n, a);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:1664:89: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 40 [-Wformat-truncation=]
+ 1664 |         if (!strcmp(prov, "letterboxd") && suj[0]) snprintf(lbLigado, sizeof lbLigado, "%s", suj);
+      |                                                                                         ^~   ~~~
+/workspace/nuvio-app/src/recomenda.c:1664:52: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 40
+ 1664 |         if (!strcmp(prov, "letterboxd") && suj[0]) snprintf(lbLigado, sizeof lbLigado, "%s", suj);
+      |                                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c: In function ‘rec_evento_de_trakt’:
+/workspace/nuvio-app/src/recomenda.c:3602:50: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 90 [-Wformat-truncation=]
+ 3602 |     snprintf(e->pessoa, sizeof e->pessoa, "trakt:%s", ci->socialSlug);
+      |                                                  ^~
+/workspace/nuvio-app/src/recomenda.c:3602:5: note: ‘snprintf’ output between 7 and 134 bytes into a destination of size 96
+ 3602 |     snprintf(e->pessoa, sizeof e->pessoa, "trakt:%s", ci->socialSlug);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:3600:44: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+ 3600 |     snprintf(e->pessoa, sizeof e->pessoa, "%s", ci->socialSlug);
+      |                                            ^~
+/workspace/nuvio-app/src/recomenda.c:3600:5: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+ 3600 |     snprintf(e->pessoa, sizeof e->pessoa, "%s", ci->socialSlug);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:3605:54: warning: ‘%s’ directive output may be truncated writing up to 767 bytes into a region of size 256 [-Wformat-truncation=]
+ 3605 |   snprintf(e->pessoaAvatar, sizeof e->pessoaAvatar, "%s", ci->socialAvatar);
+      |                                                      ^~
+/workspace/nuvio-app/src/recomenda.c:3605:3: note: ‘snprintf’ output between 1 and 768 bytes into a destination of size 256
+ 3605 |   snprintf(e->pessoaAvatar, sizeof e->pessoaAvatar, "%s", ci->socialAvatar);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/recomenda.c:3607:38: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 3607 |   snprintf(e->imdb, sizeof e->imdb, "%s", ci->imdb);
+      |                                      ^~
+/workspace/nuvio-app/src/recomenda.c:3607:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 3607 |   snprintf(e->imdb, sizeof e->imdb, "%s", ci->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/src/registro.c:568:
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘rgAparelho’:
+/workspace/nuvio-app/src/registro_ilha.inc:642:108: warning: ‘%s’ directive output may be truncated writing up to 31 bytes into a region of size 16 [-Wformat-truncation=]
+  642 |     if (x && x[1]) { char a[16], b[16]; snprintf(b, sizeof b, "%s", x + 1); *x = 0; snprintf(a, sizeof a, "%s", tela); snprintf(tela, sizeof tela, "%s × %s", a, b); } }
+      |                                                                                                            ^~   ~~~~
+/workspace/nuvio-app/src/registro_ilha.inc:642:85: note: ‘snprintf’ output between 1 and 32 bytes into a destination of size 16
+  642 |     if (x && x[1]) { char a[16], b[16]; snprintf(b, sizeof b, "%s", x + 1); *x = 0; snprintf(a, sizeof a, "%s", tela); snprintf(tela, sizeof tela, "%s × %s", a, b); } }
+      |                                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc:642:154: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size between 13 and 28 [-Wformat-truncation=]
+  642 |     if (x && x[1]) { char a[16], b[16]; snprintf(b, sizeof b, "%s", x + 1); *x = 0; snprintf(a, sizeof a, "%s", tela); snprintf(tela, sizeof tela, "%s × %s", a, b); } }
+      |                                                                                                                                                          ^~      ~
+/workspace/nuvio-app/src/registro_ilha.inc:642:120: note: ‘snprintf’ output between 5 and 35 bytes into a destination of size 32
+  642 |     if (x && x[1]) { char a[16], b[16]; snprintf(b, sizeof b, "%s", x + 1); *x = 0; snprintf(a, sizeof a, "%s", tela); snprintf(tela, sizeof tela, "%s × %s", a, b); } }
+      |                                                                                                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘inspProblemas’:
+/workspace/nuvio-app/src/registro_ilha.inc:962:33: warning: ‘%s’ directive output may be truncated writing up to 47 bytes into a region of size between 45 and 92 [-Wformat-truncation=]
+  962 |     snprintf(v, sizeof v, "%s · %s", e, a);
+      |                                 ^~      ~
+/workspace/nuvio-app/src/registro_ilha.inc:962:5: note: ‘snprintf’ output between 5 and 99 bytes into a destination of size 96
+  962 |     snprintf(v, sizeof v, "%s · %s", e, a);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘inspRede’:
+/workspace/nuvio-app/src/registro_ilha.inc:1008:109: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 1008 |     else if (h[i].tipicoMs >= 1000) { rgNum(v, sizeof v, h[i].tipicoMs / 1000.0, 1); snprintf(t, sizeof t, "%s s", v); }
+      |                                                                                                             ^~     ~
+/workspace/nuvio-app/src/registro_ilha.inc:1008:86: note: ‘snprintf’ output between 3 and 66 bytes into a destination of size 24
+ 1008 |     else if (h[i].tipicoMs >= 1000) { rgNum(v, sizeof v, h[i].tipicoMs / 1000.0, 1); snprintf(t, sizeof t, "%s s", v); }
+      |                                                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘desenhaVazio’:
+/workspace/nuvio-app/src/registro_ilha.inc:1158:42: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size between 1 and 400 [-Wformat-truncation=]
+ 1158 |         snprintf(tent, sizeof tent, "%s%s%s", lin1, lin1[0] ? " " : "", wd);
+      |                                          ^~                             ~~
+/workspace/nuvio-app/src/registro_ilha.inc:1158:9: note: ‘snprintf’ output 1 or more bytes (assuming 519) into a destination of size 400
+ 1158 |         snprintf(tent, sizeof tent, "%s%s%s", lin1, lin1[0] ? " " : "", wd);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘montaEtapas’:
+/workspace/nuvio-app/src/registro_ilha.inc:498:42: warning: ‘%s’ directive output may be truncated writing up to 99 bytes into a region of size between 37 and 100 [-Wformat-truncation=]
+  498 |       snprintf(e->tx, sizeof e->tx, "%s%s%s", nome, resto[0] ? " " : "", resto);
+      |                                          ^~                              ~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc:498:7: note: ‘snprintf’ output 1 or more bytes (assuming 163) into a destination of size 100
+  498 |       snprintf(e->tx, sizeof e->tx, "%s%s%s", nome, resto[0] ? " " : "", resto);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc:471:44: warning: ‘%s’ directive output may be truncated writing up to 99 bytes into a region of size between 37 and 100 [-Wformat-truncation=]
+  471 |         snprintf(e->tx, sizeof e->tx, "%s%s%s", nome, resto[0] ? " · " : "", resto);
+      |                                            ^~                                ~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc:471:9: note: ‘snprintf’ output 1 or more bytes (assuming 163) into a destination of size 100
+  471 |         snprintf(e->tx, sizeof e->tx, "%s%s%s", nome, resto[0] ? " · " : "", resto);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/registro_ilha.inc: In function ‘desenhaPainel’:
+/workspace/nuvio-app/src/registro_ilha.inc:1191:33: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 61 and 156 [-Wformat-truncation=]
+ 1191 |     snprintf(t, sizeof t, "%s · %s · .tpk 4/5", strncmp(a, "Samsung", 7) ? a : "Samsung", s);
+      |                                 ^~                                                        ~
+/workspace/nuvio-app/src/registro_ilha.inc:1191:5: note: ‘snprintf’ output between 17 and 271 bytes into a destination of size 160
+ 1191 |     snprintf(t, sizeof t, "%s · %s · .tpk 4/5", strncmp(a, "Samsung", 7) ? a : "Samsung", s);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/src/registro.c:569:
+/workspace/nuvio-app/src/registro_envio.inc: In function ‘registro_envio_desenharCorpo_’:
+/workspace/nuvio-app/src/registro_envio.inc:337:31: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 101 and 196 [-Wformat-truncation=]
+  337 |   snprintf(v, sizeof v, "%s · %s", a, s);
+      |                               ^~      ~
+/workspace/nuvio-app/src/registro_envio.inc:337:3: note: ‘snprintf’ output between 5 and 259 bytes into a destination of size 200
+  337 |   snprintf(v, sizeof v, "%s · %s", a, s);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/salvos.c: In function ‘salvos_aplicar_catalogo’:
+/workspace/nuvio-app/src/salvos.c:364:47: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  364 |     if (c) snprintf(marcaId, sizeof marcaId, "%s", c->imdb);
+      |                                               ^~
+/workspace/nuvio-app/src/salvos.c:364:12: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  364 |     if (c) snprintf(marcaId, sizeof marcaId, "%s", c->imdb);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/salvospainel.c: In function ‘vistosAgora’:
+/workspace/nuvio-app/src/salvospainel.c:670:38: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  670 |       snprintf(l->id, sizeof l->id, "%s", c->imdb);
+      |                                      ^~
+/workspace/nuvio-app/src/salvospainel.c:670:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  670 |       snprintf(l->id, sizeof l->id, "%s", c->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/salvospainel.c: In function ‘abrirMenuSocial’:
+/workspace/nuvio-app/src/salvospainel.c:1958:46: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 64 [-Wformat-truncation=]
+ 1958 |     snprintf(menuSxNome, sizeof menuSxNome, "%s", c.titulo);
+      |                                              ^~   ~~~~~~~~
+/workspace/nuvio-app/src/salvospainel.c:1958:5: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 64
+ 1958 |     snprintf(menuSxNome, sizeof menuSxNome, "%s", c.titulo);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/salvospainel.c: In function ‘reconstruir’:
+/workspace/nuvio-app/src/salvospainel.c:717:38: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  717 |       snprintf(l->id, sizeof l->id, "%s", c->imdb);
+      |                                      ^~
+/workspace/nuvio-app/src/salvospainel.c:717:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  717 |       snprintf(l->id, sizeof l->id, "%s", c->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/salvospainel.c: In function ‘desenhaAmigoLinha’:
+/workspace/nuvio-app/src/salvospainel.c:4295:57: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 97 and 256 [-Wformat-truncation=]
+ 4295 |     } else snprintf(linha2, sizeof linha2, "%s \xc2\xb7 %s", e->titulo, st);
+      |                                                         ^~              ~~
+/workspace/nuvio-app/src/salvospainel.c:4295:12: note: ‘snprintf’ output between 5 and 323 bytes into a destination of size 260
+ 4295 |     } else snprintf(linha2, sizeof linha2, "%s \xc2\xb7 %s", e->titulo, st);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/serieaud.c: In function ‘cardDigital’:
+/workspace/nuvio-app/src/serieaud.c:1014:34: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 8 [-Wformat-truncation=]
+ 1014 |         snprintf(pv, sizeof pv, "%d%%", pct);
+      |                                  ^~
+/workspace/nuvio-app/src/serieaud.c:1014:33: note: directive argument in the range [0, 2147483647]
+ 1014 |         snprintf(pv, sizeof pv, "%d%%", pct);
+      |                                 ^~~~~~
+/workspace/nuvio-app/src/serieaud.c:1014:9: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+ 1014 |         snprintf(pv, sizeof pv, "%d%%", pct);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/seriefrases.c: In function ‘extrairFalas’:
+/workspace/nuvio-app/src/seriefrases.c:371:40: warning: ‘%s’ directive output may be truncated writing up to 1199 bytes into a region of size 56 [-Wformat-truncation=]
+  371 |         snprintf(secao, sizeof secao, "%s", q);
+      |                                        ^~
+/workspace/nuvio-app/src/seriefrases.c:371:9: note: ‘snprintf’ output between 1 and 1200 bytes into a destination of size 56
+  371 |         snprintf(secao, sizeof secao, "%s", q);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/seriefrases.c: In function ‘buscar’:
+/workspace/nuvio-app/src/seriefrases.c:725:48: warning: ‘%s’ directive output may be truncated writing up to 219 bytes into a region of size 200 [-Wformat-truncation=]
+  725 |           snprintf(paginaWq, sizeof paginaWq, "%s", pagina);
+      |                                                ^~   ~~~~~~
+/workspace/nuvio-app/src/seriefrases.c:725:11: note: ‘snprintf’ output between 1 and 220 bytes into a destination of size 200
+  725 |           snprintf(paginaWq, sizeof paginaWq, "%s", pagina);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/src/simkl.c:15:
+/workspace/nuvio-app/src/artemetahub.h: In function ‘arte_metahub_preencher’:
+/workspace/nuvio-app/src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/src/artemetahub.h:21:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c: In function ‘simkl_ler_assistindo’:
+/workspace/nuvio-app/src/simkl.c:254:44: warning: ‘%ld’ directive output may be truncated writing between 1 and 19 bytes into a region of size 18 [-Wformat-truncation=]
+  254 |         snprintf(imdb, sizeof imdb, "simkl:%ld", id);
+      |                                            ^~~
+/workspace/nuvio-app/src/simkl.c:254:37: note: directive argument in the range [1, 9223372036854775807]
+  254 |         snprintf(imdb, sizeof imdb, "simkl:%ld", id);
+      |                                     ^~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c:254:9: note: ‘snprintf’ output between 8 and 26 bytes into a destination of size 24
+  254 |         snprintf(imdb, sizeof imdb, "simkl:%ld", id);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c:250:56: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+  250 |       if (id > 0) snprintf(imdb, sizeof imdb, "tmdb:%ld", id);
+      |                                                        ^
+/workspace/nuvio-app/src/simkl.c:250:19: note: ‘snprintf’ output between 7 and 25 bytes into a destination of size 24
+  250 |       if (id > 0) snprintf(imdb, sizeof imdb, "tmdb:%ld", id);
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c: In function ‘simkl_continuar’:
+/workspace/nuvio-app/src/simkl.c:893:62: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+  893 |       snprintf(play[nPlay].chave, sizeof play[nPlay].chave, "%s", saida[i].imdb);
+      |                                                              ^~
+/workspace/nuvio-app/src/simkl.c:893:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 28
+  893 |       snprintf(play[nPlay].chave, sizeof play[nPlay].chave, "%s", saida[i].imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c:886:63: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+  886 |       snprintf(proxLocal[nProxLocal++], sizeof proxLocal[0], "%s", prox[k].imdb);
+      |                                                               ^~
+/workspace/nuvio-app/src/simkl.c:886:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 28
+  886 |       snprintf(proxLocal[nProxLocal++], sizeof proxLocal[0], "%s", prox[k].imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/simkl.c: In function ‘simkl_plantowatch’:
+/workspace/nuvio-app/src/simkl.c:955:45: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  955 |       snprintf(ptw[nPtw++], sizeof ptw[0], "%s", saida[i].imdb);
+      |                                             ^~
+/workspace/nuvio-app/src/simkl.c:955:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  955 |       snprintf(ptw[nPtw++], sizeof ptw[0], "%s", saida[i].imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/social.c: In function ‘extrairAtividades’:
+/workspace/nuvio-app/src/social.c:95:42: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+   95 |     snprintf(a->pessoa,sizeof a->pessoa,"%s",d->pessoa.socialNome[0]?d->pessoa.socialNome:d->pessoa.socialSlug);
+      |                                          ^~
+/workspace/nuvio-app/src/social.c:95:5: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+   95 |     snprintf(a->pessoa,sizeof a->pessoa,"%s",d->pessoa.socialNome[0]?d->pessoa.socialNome:d->pessoa.socialSlug);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/social.c:106:75: warning: ‘%s’ directive output may be truncated writing up to 23 bytes into a region of size 16 [-Wformat-truncation=]
+  106 |     if(!imdb[0]){p=js_prox(f);continue;} snprintf(a->imdb,sizeof a->imdb,"%s",imdb);
+      |                                                                           ^~  ~~~~
+/workspace/nuvio-app/src/social.c:106:42: note: ‘snprintf’ output between 1 and 24 bytes into a destination of size 16
+  106 |     if(!imdb[0]){p=js_prox(f);continue;} snprintf(a->imdb,sizeof a->imdb,"%s",imdb);
+      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/social.c: In function ‘carregar’:
+/workspace/nuvio-app/src/social.c:129:65: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size between 0 and 18 [-Wformat-truncation=]
+  129 |         snprintf(a->horario,sizeof a->horario,"%02d/%02d/%04d · %s",local.tm_mday,local.tm_mon+1,local.tm_year+1900,h); }
+      |                                                                 ^~                                                  ~
+/workspace/nuvio-app/src/social.c:129:9: note: ‘snprintf’ output between 15 and 55 bytes into a destination of size 32
+  129 |         snprintf(a->horario,sizeof a->horario,"%02d/%02d/%04d · %s",local.tm_mday,local.tm_mon+1,local.tm_year+1900,h); }
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/social.c:130:40: warning: ‘%s’ directive output may be truncated writing up to 23 bytes into a region of size 16 [-Wformat-truncation=]
+  130 |       snprintf(a->imdb,sizeof a->imdb,"%s",rec[q].imdb);
+      |                                        ^~
+/workspace/nuvio-app/src/social.c:130:7: note: ‘snprintf’ output between 1 and 24 bytes into a destination of size 16
+  130 |       snprintf(a->imdb,sizeof a->imdb,"%s",rec[q].imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/src/socialvis.c:6:
+/workspace/nuvio-app/src/artemetahub.h: In function ‘arte_metahub_preencher’:
+/workspace/nuvio-app/src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/src/artemetahub.h:21:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/socialvis.c: In function ‘doCatalogo’:
+/workspace/nuvio-app/src/socialvis.c:187:45: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 90 [-Wformat-truncation=]
+  187 |       else snprintf(pid, sizeof pid, "trakt:%s", it->socialSlug);
+      |                                             ^~
+/workspace/nuvio-app/src/socialvis.c:187:12: note: ‘snprintf’ output between 7 and 134 bytes into a destination of size 96
+  187 |       else snprintf(pid, sizeof pid, "trakt:%s", it->socialSlug);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/socialvis.c:186:77: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+  186 |       if (!strncmp(it->socialSlug, "nuvio:", 6)) snprintf(pid, sizeof pid, "%s", it->socialSlug);
+      |                                                                             ^~
+/workspace/nuvio-app/src/socialvis.c:186:50: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+  186 |       if (!strncmp(it->socialSlug, "nuvio:", 6)) snprintf(pid, sizeof pid, "%s", it->socialSlug);
+      |                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/socialvis.c:191:54: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+  191 |       snprintf(e->pessoaNome, sizeof e->pessoaNome, "%s",
+      |                                                      ^~
+/workspace/nuvio-app/src/socialvis.c:191:7: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+  191 |       snprintf(e->pessoaNome, sizeof e->pessoaNome, "%s",
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  192 |                it->socialNome[0] ? it->socialNome : it->pais);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/socialvis.c:193:58: warning: ‘%s’ directive output may be truncated writing up to 767 bytes into a region of size 512 [-Wformat-truncation=]
+  193 |       snprintf(e->pessoaAvatar, sizeof e->pessoaAvatar, "%s", it->socialAvatar);
+      |                                                          ^~
+/workspace/nuvio-app/src/socialvis.c:193:7: note: ‘snprintf’ output between 1 and 768 bytes into a destination of size 512
+  193 |       snprintf(e->pessoaAvatar, sizeof e->pessoaAvatar, "%s", it->socialAvatar);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/socialvis.c:196:42: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  196 |       snprintf(e->imdb, sizeof e->imdb, "%s", it->imdb);
+      |                                          ^~
+/workspace/nuvio-app/src/socialvis.c:196:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  196 |       snprintf(e->imdb, sizeof e->imdb, "%s", it->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/spotlight.c: In function ‘linhaTitulo’:
+/workspace/nuvio-app/src/spotlight.c:377:45: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 30 and 93 [-Wformat-truncation=]
+  377 |   snprintf(l->chave, sizeof l->chave, "t|%s|%s", ci->imdb, ci->titulo);
+      |                                             ^~
+/workspace/nuvio-app/src/spotlight.c:377:3: note: ‘snprintf’ output between 4 and 226 bytes into a destination of size 96
+  377 |   snprintf(l->chave, sizeof l->chave, "t|%s|%s", ci->imdb, ci->titulo);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c: In function ‘montarColecoes’:
+/workspace/nuvio-app/src/spotlight.c:592:44: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 94 [-Wformat-truncation=]
+  592 |     snprintf(l->chave, sizeof l->chave, "c|%s", f->id);
+      |                                            ^~
+/workspace/nuvio-app/src/spotlight.c:592:5: note: ‘snprintf’ output between 3 and 98 bytes into a destination of size 96
+  592 |     snprintf(l->chave, sizeof l->chave, "c|%s", f->id);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c: In function ‘montarVazio’:
+/workspace/nuvio-app/src/spotlight.c:668:44: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 94 [-Wformat-truncation=]
+  668 |     snprintf(l->chave, sizeof l->chave, "r|%s", l->t1);
+      |                                            ^~
+/workspace/nuvio-app/src/spotlight.c:668:5: note: ‘snprintf’ output between 3 and 162 bytes into a destination of size 96
+  668 |     snprintf(l->chave, sizeof l->chave, "r|%s", l->t1);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c: In function ‘montarAjustes’:
+/workspace/nuvio-app/src/spotlight.c:737:42: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 41 and 200 [-Wformat-truncation=]
+  737 |       snprintf(l->t2, sizeof l->t2, "%s%s%s", resultados[i].caminho,
+      |                                          ^~
+/workspace/nuvio-app/src/spotlight.c:737:7: note: ‘snprintf’ output 1 or more bytes (assuming 319) into a destination of size 200
+  737 |       snprintf(l->t2, sizeof l->t2, "%s%s%s", resultados[i].caminho,
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  738 |                resultados[i].valor[0] ? "  ·  " : "", resultados[i].valor);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:739:44: warning: ‘%s’ directive output may be truncated writing up to 39 bytes into a region of size 32 [-Wformat-truncation=]
+  739 |       snprintf(l->icone, sizeof l->icone, "%s", resultados[i].icone[0] ? resultados[i].icone : "menu_settings");
+      |                                            ^~
+/workspace/nuvio-app/src/spotlight.c:739:7: note: ‘snprintf’ output between 1 and 40 bytes into a destination of size 32
+  739 |       snprintf(l->icone, sizeof l->icone, "%s", resultados[i].icone[0] ? resultados[i].icone : "menu_settings");
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:767:40: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 41 and 200 [-Wformat-truncation=]
+  767 |     snprintf(l->t2, sizeof l->t2, "%s%s%s%s", resultados[i].caminho,
+      |                                        ^~
+/workspace/nuvio-app/src/spotlight.c:767:5: note: ‘snprintf’ output 1 or more bytes (assuming 319) into a destination of size 200
+  767 |     snprintf(l->t2, sizeof l->t2, "%s%s%s%s", resultados[i].caminho,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  768 |              resultados[i].valor[0] ? "  ·  " : "", resultados[i].valor,
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  769 |              resultados[i].bloqueado ? "  ·  " : "");
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:774:42: warning: ‘%s’ directive output may be truncated writing up to 39 bytes into a region of size 32 [-Wformat-truncation=]
+  774 |     snprintf(l->icone, sizeof l->icone, "%s", resultados[i].icone[0] ? resultados[i].icone : "menu_settings");
+      |                                          ^~
+/workspace/nuvio-app/src/spotlight.c:774:5: note: ‘snprintf’ output between 1 and 40 bytes into a destination of size 32
+  774 |     snprintf(l->icone, sizeof l->icone, "%s", resultados[i].icone[0] ? resultados[i].icone : "menu_settings");
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c: In function ‘montarGuia’:
+/workspace/nuvio-app/src/spotlight.c:829:45: warning: ‘%s’ directive output may be truncated writing up to 399 bytes into a region of size 196 [-Wformat-truncation=]
+  829 |         snprintf(l->t2, sizeof l->t2, "%s · %s", i18n(ajustes_guia_capitulo(res[i])), tr); }
+      |                                             ^~                                        ~~
+/workspace/nuvio-app/src/spotlight.c:829:9: note: ‘snprintf’ output 5 or more bytes (assuming 404) into a destination of size 200
+  829 |         snprintf(l->t2, sizeof l->t2, "%s · %s", i18n(ajustes_guia_capitulo(res[i])), tr); }
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:843:42: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size between 41 and 200 [-Wformat-truncation=]
+  843 |       snprintf(l->t2, sizeof l->t2, "%s%s%s", r[k].caminho, r[k].valor[0] ? " · " : "", r[k].valor);
+      |                                          ^~
+/workspace/nuvio-app/src/spotlight.c:843:7: note: ‘snprintf’ output 1 or more bytes (assuming 319) into a destination of size 200
+  843 |       snprintf(l->t2, sizeof l->t2, "%s%s%s", r[k].caminho, r[k].valor[0] ? " · " : "", r[k].valor);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:844:44: warning: ‘%s’ directive output may be truncated writing up to 39 bytes into a region of size 32 [-Wformat-truncation=]
+  844 |       snprintf(l->icone, sizeof l->icone, "%s", r[k].icone[0] ? r[k].icone : "menu_settings");
+      |                                            ^~
+/workspace/nuvio-app/src/spotlight.c:844:7: note: ‘snprintf’ output between 1 and 40 bytes into a destination of size 32
+  844 |       snprintf(l->icone, sizeof l->icone, "%s", r[k].icone[0] ? r[k].icone : "menu_settings");
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c: In function ‘acionar’:
+/workspace/nuvio-app/src/spotlight.c:1183:50: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 140 [-Wformat-truncation=]
+ 1183 |       snprintf(pedido.nome, sizeof pedido.nome, "%s", l->t1);
+      |                                                  ^~
+/workspace/nuvio-app/src/spotlight.c:1183:7: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 140
+ 1183 |       snprintf(pedido.nome, sizeof pedido.nome, "%s", l->t1);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/spotlight.c:1172:50: warning: ‘%s’ directive output may be truncated writing up to 159 bytes into a region of size 140 [-Wformat-truncation=]
+ 1172 |       snprintf(pedido.nome, sizeof pedido.nome, "%s", l->t1);
+      |                                                  ^~
+/workspace/nuvio-app/src/spotlight.c:1172:7: note: ‘snprintf’ output between 1 and 160 bytes into a destination of size 140
+ 1172 |       snprintf(pedido.nome, sizeof pedido.nome, "%s", l->t1);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/spotpessoa.c: In function ‘spotpessoa_extrair’:
+/workspace/nuvio-app/src/spotpessoa.c:61:56: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+   61 |           snprintf(s.tituloTipo, sizeof s.tituloTipo, "%s", tipo);
+      |                                                        ^~   ~~~~
+/workspace/nuvio-app/src/spotpessoa.c:61:11: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+   61 |           snprintf(s.tituloTipo, sizeof s.tituloTipo, "%s", tipo);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/streamfitdiag.c: In function ‘streamfitdiag_medir’:
+/workspace/nuvio-app/src/streamfitdiag.c:115:7: warning: ‘memset’ writing 272 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+  115 |       memset(&ex[e], 0, sizeof ex[e]);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/streamfitdiag.c:110:11: note: at offset [-584115551984, -272] into destination object ‘ex’ of size 272
+  110 |     Extra ex[STREAMFITDIAG_CONEXOES > 1 ? STREAMFITDIAG_CONEXOES - 1 : 1];
+      |           ^~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/stream_parse.c: In function ‘stream_extrair’:
+/workspace/nuvio-app/src/stream_parse.c:1133:56: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size between 1 and 2048 [-Wformat-truncation=]
+ 1133 |         snprintf(s.descricao, sizeof s.descricao, "%s%s%s", titulo,
+      |                                                        ^~
+ 1134 |                  descricao[0] ? "\n" : "", descricao);
+      |                                            ~~~~~~~~~    
+/workspace/nuvio-app/src/stream_parse.c:1133:9: note: ‘snprintf’ output 1 or more bytes (assuming 4095) into a destination of size 2048
+ 1133 |         snprintf(s.descricao, sizeof s.descricao, "%s%s%s", titulo,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1134 |                  descricao[0] ? "\n" : "", descricao);
+      |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/streams.c: In function ‘stream_urls_para_aquecer’:
+/workspace/nuvio-app/src/streams.c:1760:32: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 256 [-Wformat-truncation=]
+ 1760 |       snprintf(dst[q++], 256, "%s", lista[i].url);
+      |                                ^~
+/workspace/nuvio-app/src/streams.c:1760:7: note: ‘snprintf’ output between 1 and 4096 bytes into a destination of size 256
+ 1760 |       snprintf(dst[q++], 256, "%s", lista[i].url);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/temporadas_grafico.c: In function ‘tgraf_dados’:
+/workspace/nuvio-app/src/temporadas_grafico.c:197:44: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  197 |   snprintf(dados.imdb, sizeof dados.imdb, "%s", ci->imdb);
+      |                                            ^~
+/workspace/nuvio-app/src/temporadas_grafico.c:197:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  197 |   snprintf(dados.imdb, sizeof dados.imdb, "%s", ci->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/tendencia.c: In function ‘tend_registrar’:
+/workspace/nuvio-app/src/tendencia.c:92:50: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   92 |     snprintf(fila.imdb[k], sizeof fila.imdb[k], "%s", itens[f->ini + k].imdb);
+      |                                                  ^~
+/workspace/nuvio-app/src/tendencia.c:92:5: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   92 |     snprintf(fila.imdb[k], sizeof fila.imdb[k], "%s", itens[f->ini + k].imdb);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/tex_cache.c: In function ‘tex_bombear’:
+/workspace/nuvio-app/src/tex_cache.c:4116:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+ 4116 |       snprintf(uploadPath, sizeof uploadPath, "%s", itens[alvo].caminho);
+      |                                                ^~
+/workspace/nuvio-app/src/tex_cache.c:4116:7: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+ 4116 |       snprintf(uploadPath, sizeof uploadPath, "%s", itens[alvo].caminho);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/text.c: In function ‘txt_iniciar’:
+/workspace/nuvio-app/src/text.c:1319:55: warning: ‘fonts/InterDisplay-Regular.ttf’ directive output may be truncated writing 30 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1319 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][0], 512, "%sfonts/InterDisplay-Regular.ttf", base);
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1319:3: note: ‘snprintf’ output between 31 and 542 bytes into a destination of size 512
+ 1319 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][0], 512, "%sfonts/InterDisplay-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1320:55: warning: ‘fonts/InterDisplay-Medium.ttf’ directive output may be truncated writing 29 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1320 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][1], 512, "%sfonts/InterDisplay-Medium.ttf", base);
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1320:3: note: ‘snprintf’ output between 30 and 541 bytes into a destination of size 512
+ 1320 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][1], 512, "%sfonts/InterDisplay-Medium.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1321:55: warning: ‘fonts/InterDisplay-Bold.ttf’ directive output may be truncated writing 27 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1321 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][2], 512, "%sfonts/InterDisplay-Bold.ttf", base);
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1321:3: note: ‘snprintf’ output between 28 and 539 bytes into a destination of size 512
+ 1321 |   snprintf(caminhoPeso[TXT_FAMILIA_INTER][2], 512, "%sfonts/InterDisplay-Bold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1322:60: warning: ‘fonts/Montserrat-Regular.ttf’ directive output may be truncated writing 28 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1322 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][0], 512, "%sfonts/Montserrat-Regular.ttf", base);
+      |                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1322:3: note: ‘snprintf’ output between 29 and 540 bytes into a destination of size 512
+ 1322 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][0], 512, "%sfonts/Montserrat-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1323:60: warning: ‘fonts/Montserrat-Medium.ttf’ directive output may be truncated writing 27 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1323 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][1], 512, "%sfonts/Montserrat-Medium.ttf", base);
+      |                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1323:3: note: ‘snprintf’ output between 28 and 539 bytes into a destination of size 512
+ 1323 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][1], 512, "%sfonts/Montserrat-Medium.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1324:60: warning: ‘fonts/Montserrat-Bold.ttf’ directive output may be truncated writing 25 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1324 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][2], 512, "%sfonts/Montserrat-Bold.ttf", base);
+      |                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1324:3: note: ‘snprintf’ output between 26 and 537 bytes into a destination of size 512
+ 1324 |   snprintf(caminhoPeso[TXT_FAMILIA_MONTSERRAT][2], 512, "%sfonts/Montserrat-Bold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1325:56: warning: ‘fonts/Roboto-Regular.ttf’ directive output may be truncated writing 24 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1325 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][0], 512, "%sfonts/Roboto-Regular.ttf", base);
+      |                                                        ^~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1325:3: note: ‘snprintf’ output between 25 and 536 bytes into a destination of size 512
+ 1325 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][0], 512, "%sfonts/Roboto-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1326:56: warning: ‘fonts/Roboto-Medium.ttf’ directive output may be truncated writing 23 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1326 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][1], 512, "%sfonts/Roboto-Medium.ttf", base);
+      |                                                        ^~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1326:3: note: ‘snprintf’ output between 24 and 535 bytes into a destination of size 512
+ 1326 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][1], 512, "%sfonts/Roboto-Medium.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1327:56: warning: ‘fonts/Roboto-Bold.ttf’ directive output may be truncated writing 21 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1327 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][2], 512, "%sfonts/Roboto-Bold.ttf", base);
+      |                                                        ^~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1327:3: note: ‘snprintf’ output between 22 and 533 bytes into a destination of size 512
+ 1327 |   snprintf(caminhoPeso[TXT_FAMILIA_ROBOTO][2], 512, "%sfonts/Roboto-Bold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1328:58: warning: ‘fonts/AtkinsonHyperlegibleNe...’ directive output may be truncated writing 42 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1328 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][0], 512, "%sfonts/AtkinsonHyperlegibleNext-Regular.ttf", base);
+      |                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1328:3: note: ‘snprintf’ output between 43 and 554 bytes into a destination of size 512
+ 1328 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][0], 512, "%sfonts/AtkinsonHyperlegibleNext-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1329:58: warning: ‘fonts/AtkinsonHyperlegibleNe...’ directive output may be truncated writing 41 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1329 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][1], 512, "%sfonts/AtkinsonHyperlegibleNext-Medium.ttf", base);
+      |                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1329:3: note: ‘snprintf’ output between 42 and 553 bytes into a destination of size 512
+ 1329 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][1], 512, "%sfonts/AtkinsonHyperlegibleNext-Medium.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1330:58: warning: ‘fonts/AtkinsonHyperlegibleNe...’ directive output may be truncated writing 39 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1330 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][2], 512, "%sfonts/AtkinsonHyperlegibleNext-Bold.ttf", base);
+      |                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1330:3: note: ‘snprintf’ output between 40 and 551 bytes into a destination of size 512
+ 1330 |   snprintf(caminhoPeso[TXT_FAMILIA_ATKINSON][2], 512, "%sfonts/AtkinsonHyperlegibleNext-Bold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1332:59: warning: ‘fonts/JetBrainsSans-Regular.ttf’ directive output may be truncated writing 31 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1332 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][0], 512, "%sfonts/JetBrainsSans-Regular.ttf", base);
+      |                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1332:3: note: ‘snprintf’ output between 32 and 543 bytes into a destination of size 512
+ 1332 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][0], 512, "%sfonts/JetBrainsSans-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1333:59: warning: ‘fonts/JetBrainsSans-SemiBold...’ directive output may be truncated writing 32 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1333 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][1], 512, "%sfonts/JetBrainsSans-SemiBold.ttf", base);
+      |                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1333:3: note: ‘snprintf’ output between 33 and 544 bytes into a destination of size 512
+ 1333 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][1], 512, "%sfonts/JetBrainsSans-SemiBold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1334:59: warning: ‘fonts/JetBrainsSans-Bold.ttf’ directive output may be truncated writing 28 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1334 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][2], 512, "%sfonts/JetBrainsSans-Bold.ttf", base);
+      |                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1334:3: note: ‘snprintf’ output between 29 and 540 bytes into a destination of size 512
+ 1334 |   snprintf(caminhoPeso[TXT_FAMILIA_JETBRAINS][2], 512, "%sfonts/JetBrainsSans-Bold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1335:36: warning: ‘fonts/JetBrainsMonoNL-Regula...’ directive output may be truncated writing 33 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1335 |   snprintf(caminhoMono[0], 512, "%sfonts/JetBrainsMonoNL-Regular.ttf", base);
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1335:3: note: ‘snprintf’ output between 34 and 545 bytes into a destination of size 512
+ 1335 |   snprintf(caminhoMono[0], 512, "%sfonts/JetBrainsMonoNL-Regular.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1336:36: warning: ‘fonts/JetBrainsMonoNL-SemiBo...’ directive output may be truncated writing 34 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1336 |   snprintf(caminhoMono[1], 512, "%sfonts/JetBrainsMonoNL-SemiBold.ttf", base);
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1336:3: note: ‘snprintf’ output between 35 and 546 bytes into a destination of size 512
+ 1336 |   snprintf(caminhoMono[1], 512, "%sfonts/JetBrainsMonoNL-SemiBold.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1337:36: warning: ‘fonts/Montserrat-ExtraLight-...’ directive output may be truncated writing 39 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 1337 |   snprintf(caminhoMono[2], 512, "%sfonts/Montserrat-ExtraLight-Relogio.ttf", base);
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:1337:3: note: ‘snprintf’ output between 40 and 551 bytes into a destination of size 512
+ 1337 |   snprintf(caminhoMono[2], 512, "%sfonts/Montserrat-ExtraLight-Relogio.ttf", base);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c: In function ‘desenhaBlocoLinha’:
+/workspace/nuvio-app/src/text.c:2242:40: warning: ‘…’ directive output may be truncated writing 3 bytes into a region of size between 1 and 512 [-Wformat-truncation=]
+ 2242 |       snprintf(teste, sizeof teste, "%s\xe2\x80\xa6", fim);
+      |                                        ^~~~~~~~~~~~
+/workspace/nuvio-app/src/text.c:2242:7: note: ‘snprintf’ output between 4 and 515 bytes into a destination of size 512
+ 2242 |       snprintf(teste, sizeof teste, "%s\xe2\x80\xa6", fim);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/trailerapple.c: In function ‘lerDisco’:
+/workspace/nuvio-app/src/trailerapple.c:75:132: warning: ‘%s’ directive output may be truncated writing up to 1199 bytes into a region of size 1024 [-Wformat-truncation=]
+   75 |   if (fgets(linha, sizeof linha, f)) { linha[strcspn(linha, "\r\n")] = 0; if (strcmp(linha, "-")) snprintf(e->url, sizeof e->url, "%s", linha); }
+      |                                                                                                                                    ^~   ~~~~~
+/workspace/nuvio-app/src/trailerapple.c:75:99: note: ‘snprintf’ output between 1 and 1200 bytes into a destination of size 1024
+   75 |   if (fgets(linha, sizeof linha, f)) { linha[strcspn(linha, "\r\n")] = 0; if (strcmp(linha, "-")) snprintf(e->url, sizeof e->url, "%s", linha); }
+      |                                                                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/src/trakt.c:5:
+/workspace/nuvio-app/src/artemetahub.h: In function ‘arte_metahub_preencher’:
+/workspace/nuvio-app/src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/src/artemetahub.h:21:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c: In function ‘trakt_carregar’:
+/workspace/nuvio-app/src/trakt.c:358:36: warning: ‘%s’ directive output may be truncated writing up to 299 bytes into a region of size 128 [-Wformat-truncation=]
+  358 |     snprintf(token, sizeof token, "%s", linha);
+      |                                    ^~   ~~~~~
+/workspace/nuvio-app/src/trakt.c:358:5: note: ‘snprintf’ output between 1 and 300 bytes into a destination of size 128
+  358 |     snprintf(token, sizeof token, "%s", linha);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c: In function ‘doBlocoTrakt’:
+/workspace/nuvio-app/src/trakt.c:420:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  420 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+/workspace/nuvio-app/src/trakt.c:420:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+  420 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c: In function ‘enfeitar’:
+/workspace/nuvio-app/src/trakt.c:647:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+  647 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/src/trakt.c:647:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+  647 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c:835:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  835 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+/workspace/nuvio-app/src/trakt.c:835:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+  835 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c: In function ‘dedupObras’:
+/workspace/nuvio-app/src/trakt.c:1658:68: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+ 1658 |           snprintf(playLocal[k].chave, sizeof playLocal[k].chave, "%s", v[achou].imdb);
+      |                                                                    ^~
+/workspace/nuvio-app/src/trakt.c:1658:11: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 28
+ 1658 |           snprintf(playLocal[k].chave, sizeof playLocal[k].chave, "%s", v[achou].imdb);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c: In function ‘trakt_continuar’:
+/workspace/nuvio-app/src/trakt.c:1804:86: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 28 [-Wformat-truncation=]
+ 1804 |           snprintf(playLocal[nPlayLocal].chave, sizeof playLocal[nPlayLocal].chave, "%s", d->imdb);
+      |                                                                                      ^~
+/workspace/nuvio-app/src/trakt.c:1804:11: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 28
+ 1804 |           snprintf(playLocal[nPlayLocal].chave, sizeof playLocal[nPlayLocal].chave, "%s", d->imdb);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/trakt.c:1884:42: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 32 [-Wformat-truncation=]
+ 1884 |           snprintf(p->id, sizeof p->id, "%s", d->imdb);
+      |                                          ^~
+/workspace/nuvio-app/src/trakt.c:1884:11: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 32
+ 1884 |           snprintf(p->id, sizeof p->id, "%s", d->imdb);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/trocaarte.c: In function ‘trocaarte_abrir’:
+/workspace/nuvio-app/src/trocaarte.c:309:44: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  309 |     snprintf(c->mostra, sizeof c->mostra, "%s", u ? u : "");
+      |                                            ^~
+/workspace/nuvio-app/src/trocaarte.c:309:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+  309 |     snprintf(c->mostra, sizeof c->mostra, "%s", u ? u : "");
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/vertudo.c: In function ‘lerEscolhas’:
+/workspace/nuvio-app/src/vertudo.c:474:31: warning: ‘%s’ directive output may be truncated writing up to 299 bytes into a region of size 160 [-Wformat-truncation=]
+  474 |     snprintf(chaves[n], 160, "%s", buf);
+      |                               ^~   ~~~
+/workspace/nuvio-app/src/vertudo.c:474:5: note: ‘snprintf’ output between 1 and 300 bytes into a destination of size 160
+  474 |     snprintf(chaves[n], 160, "%s", buf);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/vertudo.c: In function ‘vertudo_abrir’:
+/workspace/nuvio-app/src/vertudo.c:671:36: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+  671 |     snprintf(titulo,sizeof titulo,"%s",collection->title);
+      |                                    ^~
+/workspace/nuvio-app/src/vertudo.c:671:5: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+  671 |     snprintf(titulo,sizeof titulo,"%s",collection->title);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/vertudo.c: In function ‘carregarFonte’:
+/workspace/nuvio-app/src/vertudo.c:602:42: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+  602 |     snprintf(catalogId,sizeof catalogId,"%s",s->title);
+      |                                          ^~
+/workspace/nuvio-app/src/vertudo.c:602:5: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+  602 |     snprintf(catalogId,sizeof catalogId,"%s",s->title);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/vertudo.c: In function ‘vertudo_colecao’:
+/workspace/nuvio-app/src/vertudo.c:647:34: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+  647 |   snprintf(titulo,sizeof titulo,"%s",folder->title);openSource();
+      |                                  ^~
+/workspace/nuvio-app/src/vertudo.c:647:3: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+  647 |   snprintf(titulo,sizeof titulo,"%s",folder->title);openSource();
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/vertudo.c: In function ‘vitVoltarTudo’:
+/workspace/nuvio-app/src/vertudo.c:1812:36: warning: ‘%s’ directive output may be truncated writing up to 127 bytes into a region of size 96 [-Wformat-truncation=]
+ 1812 |   snprintf(titulo, sizeof titulo, "%s", collection->title);
+      |                                    ^~
+/workspace/nuvio-app/src/vertudo.c:1812:3: note: ‘snprintf’ output between 1 and 128 bytes into a destination of size 96
+ 1812 |   snprintf(titulo, sizeof titulo, "%s", collection->title);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/vertudo.c: In function ‘sagaCard’:
+/workspace/nuvio-app/src/vertudo.c:3107:30: warning: ‘%02d’ directive output may be truncated writing between 2 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+ 3107 |     snprintf(nn, sizeof nn, "%02d", i + 1);
+      |                              ^~~~
+/workspace/nuvio-app/src/vertudo.c:3107:29: note: directive argument in the range [-2147483647, 2147483647]
+ 3107 |     snprintf(nn, sizeof nn, "%02d", i + 1);
+      |                             ^~~~~~
+/workspace/nuvio-app/src/vertudo.c:3107:5: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+ 3107 |     snprintf(nn, sizeof nn, "%02d", i + 1);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/video.c: In function ‘lerMkv’:
+/workspace/nuvio-app/src/video.c:2096:63: warning: ‘%s’ directive output may be truncated writing up to 23 bytes into a region of size 16 [-Wformat-truncation=]
+ 2096 |         snprintf(dvAudioCodec[na++], sizeof dvAudioCodec[0], "%s", fx[j].codec);
+      |                                                               ^~
+/workspace/nuvio-app/src/video.c:2096:9: note: ‘snprintf’ output between 1 and 24 bytes into a destination of size 16
+ 2096 |         snprintf(dvAudioCodec[na++], sizeof dvAudioCodec[0], "%s", fx[j].codec);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/video.c: In function ‘bombearDts’:
+/workspace/nuvio-app/src/video.c:3222:44: warning: ‘%s’ directive output may be truncated writing up to 4095 bytes into a region of size 1024 [-Wformat-truncation=]
+ 3222 |       snprintf(dvMemUrl, sizeof dvMemUrl, "%s", urlAtual);
+      |                                            ^~   ~~~~~~~~
+/workspace/nuvio-app/src/video.c:3222:7: note: ‘snprintf’ output between 1 and 4096 bytes into a destination of size 1024
+ 3222 |       snprintf(dvMemUrl, sizeof dvMemUrl, "%s", urlAtual);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+/workspace/nuvio-app/src/xtream.c: In function ‘gravar’:
+/workspace/nuvio-app/src/xtream.c:138:12: warning: ‘
+conexoesModo	’ directive output may be truncated writing 14 bytes into a region of size between 7 and 452 [-Wformat-truncation=]
+  138 |            "# CREDENCIAL. Usuario e senha do Xtream vao dentro de toda URL de\n"
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/xtream.c:141:49: note: format string is defined here
+  141 |            "servidor\t%s\nusuario\t%s\nsenha\t%s\nconexoesModo\t%d\n", servidor, usuario, senha, conexoesModo);
+      |                                                 ^~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/xtream.c:137:3: note: ‘snprintf’ output between 205 and 660 bytes into a destination of size 640
+  137 |   snprintf(txt, sizeof txt,
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~
+  138 |            "# CREDENCIAL. Usuario e senha do Xtream vao dentro de toda URL de\n"
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  139 |            "# canal: valem como a assinatura. Nao versionar, nao empacotar, nao\n"
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  140 |            "# colar em issue nem em log.\n"
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  141 |            "servidor\t%s\nusuario\t%s\nsenha\t%s\nconexoesModo\t%d\n", servidor, usuario, senha, conexoesModo);
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/src/xtream.c: In function ‘xtream_servidor_curto’:
+/workspace/nuvio-app/src/xtream.c:215:34: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size 128 [-Wformat-truncation=]
+  215 |   snprintf(curto, sizeof curto, "%s", p[0] ? p : "-");
+      |                                  ^~
+/workspace/nuvio-app/src/xtream.c:215:3: note: ‘snprintf’ output between 1 and 256 bytes into a destination of size 128
+  215 |   snprintf(curto, sizeof curto, "%s", p[0] ? p : "-");
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/tests/bibfonte.c:3:
+/workspace/nuvio-app/tests/../src/ajustes.c: In function ‘ffValor’:
+/workspace/nuvio-app/tests/../src/ajustes.c:9007:36: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 160 [-Wformat-truncation=]
+ 9007 |     snprintf(texto, sizeof texto, "%s", cfg.grupos);
+      |                                    ^~   ~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes.c:9007:5: note: ‘snprintf’ output between 1 and 512 bytes into a destination of size 160
+ 9007 |     snprintf(texto, sizeof texto, "%s", cfg.grupos);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes.c: In function ‘ajustes_aplicar_blob’:
+/workspace/nuvio-app/tests/../src/ajustes.c:5798:38: warning: ‘%s’ directive output may be truncated writing up to 399 bytes into a region of size 160 [-Wformat-truncation=]
+ 5798 |       snprintf(bruto, sizeof bruto, "%s", embrulho);
+      |                                      ^~   ~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes.c:5798:7: note: ‘snprintf’ output between 1 and 400 bytes into a destination of size 160
+ 5798 |       snprintf(bruto, sizeof bruto, "%s", embrulho);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/tests/../src/ajustes.c:10687:
+/workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc: In function ‘ajCapsC’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:244:100: warning: ‘%s’ directive output may be truncated writing up to 249 bytes into a region of size 240 [-Wformat-truncation=]
+  244 |         if (txt_tracking(e, t, 243, 242, 239, -1, 0, 1, track) <= maxW) { snprintf(up, sizeof up, "%s", t); break; } }
+      |                                                                                                    ^~   ~
+/workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:244:75: note: ‘snprintf’ output between 1 and 250 bytes into a destination of size 240
+  244 |         if (txt_tracking(e, t, 243, 242, 239, -1, 0, 1, track) <= maxW) { snprintf(up, sizeof up, "%s", t); break; } }
+      |                                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:1468:
+/workspace/nuvio-app/tests/../src/ajustes_ux_previa.inc: In function ‘ajMetaTitulo’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_previa.inc:38:53: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size between 29 and 92 [-Wformat-truncation=]
+   38 |             snprintf(meta[i], sizeof meta[i], "%s · %s", g, mm); }
+      |                                                     ^~      ~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_previa.inc:38:13: note: ‘snprintf’ output between 5 and 131 bytes into a destination of size 96
+   38 |             snprintf(meta[i], sizeof meta[i], "%s · %s", g, mm); }
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/tests/../src/ajustes_ux_cenas.inc:1132,
+                 from /workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:1469:
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘rOrdem’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:301:28: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 4 [-Wformat-truncation=]
+  301 |     snprintf(b, sizeof b, "%d", pos);
+      |                            ^~
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:301:27: note: directive argument in the range [-2147483647, 2147483647]
+  301 |     snprintf(b, sizeof b, "%d", pos);
+      |                           ^~~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:301:5: note: ‘snprintf’ output between 2 and 12 bytes into a destination of size 4
+  301 |     snprintf(b, sizeof b, "%d", pos);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc: In function ‘rSeekr’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:673:30: warning: ‘%d’ directive output may be truncated writing between 1 and 9 bytes into a region of size 8 [-Wformat-truncation=]
+  673 |       snprintf(b, sizeof b, "%d:%02d", mm / 60, mm % 60);
+      |                              ^~
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:673:29: note: directive argument in the range [-35791394, 35791394]
+  673 |       snprintf(b, sizeof b, "%d:%02d", mm / 60, mm % 60);
+      |                             ^~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:673:29: note: directive argument in the range [-59, 59]
+/workspace/nuvio-app/tests/../src/ajustes_ux_cenas_reproducao.inc:673:7: note: ‘snprintf’ output between 5 and 14 bytes into a destination of size 8
+  673 |       snprintf(b, sizeof b, "%d:%02d", mm / 60, mm % 60);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:1471:
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc: In function ‘ajUsbPainel’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc:634:29: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size 160 [-Wformat-truncation=]
+  634 |       snprintf(vs[n], 160, "%s · %s", u.nome[0] ? u.nome : u.caminho, ajUsbFs(u.fs));
+      |                             ^~
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc:634:7: note: ‘snprintf’ output 5 or more bytes (assuming 260) into a destination of size 160
+  634 |       snprintf(vs[n], 160, "%s · %s", u.nome[0] ? u.nome : u.caminho, ajUsbFs(u.fs));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/nuvio-app/tests/../src/ajustes_ux_desenho.inc:1472:
+/workspace/nuvio-app/tests/../src/ajustes_ux_fileiras.inc: In function ‘desenhaFileiras’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_fileiras.inc:317:36: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size 8 [-Wformat-truncation=]
+  317 |         snprintf(num, sizeof num, "%d", i);
+      |                                    ^~
+/workspace/nuvio-app/tests/../src/ajustes_ux_fileiras.inc:317:35: note: directive argument in the range [-2147483648, 2147483646]
+  317 |         snprintf(num, sizeof num, "%d", i);
+      |                                   ^~~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_fileiras.inc:317:9: note: ‘snprintf’ output between 2 and 12 bytes into a destination of size 8
+  317 |         snprintf(num, sizeof num, "%d", i);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc: In function ‘ajDesenharPlugins’:
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc:1966:44: warning: ‘%s’ directive output may be truncated writing up to 599 bytes into a region of size 128 [-Wformat-truncation=]
+ 1966 |       snprintf(nomes[i], sizeof nomes[i], "%s", q.nome[0] ? q.nome : q.url);
+      |                                            ^~
+/workspace/nuvio-app/tests/../src/ajustes_ux_ilha.inc:1966:7: note: ‘snprintf’ output between 1 and 600 bytes into a destination of size 128
+ 1966 |       snprintf(nomes[i], sizeof nomes[i], "%s", q.nome[0] ? q.nome : q.url);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/bibfonte.c: In function ‘main’:
+/workspace/nuvio-app/tests/bibfonte.c:47:44: warning: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 512 [-Wformat-truncation=]
+   47 |   snprintf(dirAjustes, sizeof dirAjustes, "%s", dir);
+      |                                            ^~   ~~~
+/workspace/nuvio-app/tests/bibfonte.c:47:3: note: ‘snprintf’ output between 1 and 1024 bytes into a destination of size 512
+   47 |   snprintf(dirAjustes, sizeof dirAjustes, "%s", dir);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/tests/../src/biblioteca.c:69,
+                 from /workspace/nuvio-app/tests/bibfonte_library.c:4:
+/workspace/nuvio-app/tests/../src/artemetahub.h: In function ‘arte_metahub_preencher’:
+/workspace/nuvio-app/tests/../src/artemetahub.h:21:34: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |                                  ^~
+/workspace/nuvio-app/tests/../src/artemetahub.h:21:3: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+   21 |   snprintf(serie, sizeof serie, "%s", d->imdb);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/biblioteca.c: In function ‘linhaMeta’:
+/workspace/nuvio-app/tests/../src/biblioteca.c:1877:53: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 8 [-Wformat-truncation=]
+ 1877 |     if (ehAnoMeta(item)) snprintf(ano, sizeof ano, "%s", item);
+      |                                                     ^~   ~~~~
+/workspace/nuvio-app/tests/../src/biblioteca.c:1877:26: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 8
+ 1877 |     if (ehAnoMeta(item)) snprintf(ano, sizeof ano, "%s", item);
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/biblioteca.c: In function ‘desenhaResumo’:
+/workspace/nuvio-app/tests/../src/biblioteca.c:2300:38: warning: ‘%s’ directive output may be truncated writing up to 259 bytes into a region of size 220 [-Wformat-truncation=]
+ 2300 |     snprintf(resumo, sizeof resumo, "%s", comDica);
+      |                                      ^~   ~~~~~~~
+/workspace/nuvio-app/tests/../src/biblioteca.c:2300:5: note: ‘snprintf’ output between 1 and 260 bytes into a destination of size 220
+ 2300 |     snprintf(resumo, sizeof resumo, "%s", comDica);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/tests/bibfonte_discovery.c:3:
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘deMeta’:
+/workspace/nuvio-app/tests/../src/descoberta.c:1403:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+ 1403 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:1403:5: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+ 1403 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:1427:42: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 1427 |       snprintf(d->tipo, sizeof d->tipo, "%s", proprio);
+      |                                          ^~   ~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:1427:7: note: ‘snprintf’ output between 1 and 16 bytes into a destination of size 8
+ 1427 |       snprintf(d->tipo, sizeof d->tipo, "%s", proprio);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘ajustarASeguir’:
+/workspace/nuvio-app/tests/../src/descoberta.c:3295:43: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size between 0 and 63 [-Wformat-truncation=]
+ 3295 |   snprintf(it->imdb, sizeof it->imdb, "%s:%d:%d", serie, t, e);
+      |                                           ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:3295:3: note: ‘snprintf’ output between 5 and 88 bytes into a destination of size 64
+ 3295 |   snprintf(it->imdb, sizeof it->imdb, "%s:%d:%d", serie, t, e);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘desc_continuar_otimista’:
+/workspace/nuvio-app/tests/../src/descoberta.c:3920:47: warning: ‘%d’ directive output may be truncated writing between 1 and 11 bytes into a region of size between 0 and 63 [-Wformat-truncation=]
+ 3920 |     snprintf(novo.imdb, sizeof novo.imdb, "%s:%d:%d", base, novo.temporada, novo.episodio);
+      |                                               ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:3920:5: note: ‘snprintf’ output between 5 and 88 bytes into a destination of size 64
+ 3920 |     snprintf(novo.imdb, sizeof novo.imdb, "%s:%d:%d", base, novo.temporada, novo.episodio);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘lerManifesto’:
+/workspace/nuvio-app/tests/../src/descoberta.c:2737:52: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 352 [-Wformat-truncation=]
+ 2737 |       snprintf(d->desativar, sizeof d->desativar, "%s_%s_%s_%s", base, tipo, id, nome);
+      |                                                    ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:2737:7: note: ‘snprintf’ output between 4 and 2248 bytes into a destination of size 352
+ 2737 |       snprintf(d->desativar, sizeof d->desativar, "%s_%s_%s_%s", base, tipo, id, nome);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:2743:54: warning: ‘%s’ directive output may be truncated writing up to 95 bytes into a region of size 64 [-Wformat-truncation=]
+ 2743 |         snprintf(d->nomeAddon, sizeof d->nomeAddon, "%s",
+      |                                                      ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:2743:9: note: ‘snprintf’ output between 1 and 96 bytes into a destination of size 64
+ 2743 |         snprintf(d->nomeAddon, sizeof d->nomeAddon, "%s",
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2744 |                  an[0] ? an : (addonId[0] ? addonId : "addon")); }
+      |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘deMetaTmdb’:
+/workspace/nuvio-app/tests/../src/descoberta.c:9100:80: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 480 [-Wformat-truncation=]
+ 9100 |     snprintf(d->backdrop, sizeof d->backdrop, "https://image.tmdb.org/t/p/w1280%s", v);
+      |                                                                                ^~   ~
+/workspace/nuvio-app/tests/../src/descoberta.c:9100:5: note: ‘snprintf’ output between 33 and 544 bytes into a destination of size 512
+ 9100 |     snprintf(d->backdrop, sizeof d->backdrop, "https://image.tmdb.org/t/p/w1280%s", v);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:9101:51: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+ 9101 |   else snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                   ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:9101:8: note: ‘snprintf’ output between 1 and 2048 bytes into a destination of size 512
+ 9101 |   else snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:9104:47: warning: ‘%s’ directive output may be truncated writing up to 511 bytes into a region of size 480 [-Wformat-truncation=]
+ 9104 |              "https://image.tmdb.org/t/p/w1280%s", v);
+      |                                               ^~   ~
+/workspace/nuvio-app/tests/../src/descoberta.c:9103:5: note: ‘snprintf’ output between 33 and 544 bytes into a destination of size 512
+ 9103 |     snprintf(d->backdropTmdb, sizeof d->backdropTmdb,
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 9104 |              "https://image.tmdb.org/t/p/w1280%s", v);
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘metaCatalogoResolver’:
+/workspace/nuvio-app/tests/../src/descoberta.c:8478:48: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 8478 |   if (ehImdb) snprintf(mf->tt, sizeof mf->tt, "%s", id);
+      |                                                ^~   ~~
+/workspace/nuvio-app/tests/../src/descoberta.c:8478:15: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 8478 |   if (ehImdb) snprintf(mf->tt, sizeof mf->tt, "%s", id);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:8483:38: warning: ‘%s’ directive output may be truncated writing up to 31 bytes into a region of size 24 [-Wformat-truncation=]
+ 8483 |     snprintf(mf->tt, sizeof mf->tt, "%s", arm.imdb);
+      |                                      ^~   ~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:8483:5: note: ‘snprintf’ output between 1 and 32 bytes into a destination of size 24
+ 8483 |     snprintf(mf->tt, sizeof mf->tt, "%s", arm.imdb);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘buscarEps’:
+/workspace/nuvio-app/tests/../src/descoberta.c:8887:40: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 8887 |       snprintf(idBase, sizeof idBase, "%s", it->imdb);
+      |                                        ^~
+/workspace/nuvio-app/tests/../src/descoberta.c:8887:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 8887 |       snprintf(idBase, sizeof idBase, "%s", it->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c: In function ‘tmdbMontarUrl’:
+/workspace/nuvio-app/tests/../src/descoberta.c:9249:45: warning: ‘%02d’ directive output may be truncated writing between 2 and 11 bytes into a region of size between 0 and 7 [-Wformat-truncation=]
+ 9249 |           snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                                             ^~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:9249:39: note: directive argument in the range [-2147483647, 2147483647]
+ 9249 |           snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |                                       ^~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/descoberta.c:9249:11: note: ‘snprintf’ output between 11 and 36 bytes into a destination of size 12
+ 9249 |           snprintf(hoje, sizeof hoje, "%04d-%02d-%02d",
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 9250 |                    tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday); }
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/tests/bibfonte_menu.c:2:
+/workspace/nuvio-app/tests/../src/ctxmenu.c: In function ‘iniciarAssistido’:
+/workspace/nuvio-app/tests/../src/ctxmenu.c:887:52: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 16 [-Wformat-truncation=]
+  887 |       snprintf(operacaoImdb, sizeof operacaoImdb, "%s", ci->imdb);
+      |                                                    ^~
+/workspace/nuvio-app/tests/../src/ctxmenu.c:887:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 16
+  887 |       snprintf(operacaoImdb, sizeof operacaoImdb, "%s", ci->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ctxmenu.c: In function ‘aplicar’:
+/workspace/nuvio-app/tests/../src/ctxmenu.c:1038:60: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 1038 |       snprintf(pedCategoriaImdb, sizeof pedCategoriaImdb, "%s", ci->imdb);
+      |                                                            ^~
+/workspace/nuvio-app/tests/../src/ctxmenu.c:1038:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 1038 |       snprintf(pedCategoriaImdb, sizeof pedCategoriaImdb, "%s", ci->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/ctxmenu.c:983:52: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 16 [-Wformat-truncation=]
+  983 |       snprintf(operacaoImdb, sizeof operacaoImdb, "%s", ci->imdb);
+      |                                                    ^~
+/workspace/nuvio-app/tests/../src/ctxmenu.c:983:7: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 16
+  983 |       snprintf(operacaoImdb, sizeof operacaoImdb, "%s", ci->imdb);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+In file included from /workspace/nuvio-app/tests/bibfonte_detail.c:2:
+/workspace/nuvio-app/tests/../src/detail.c: In function ‘detail_evento_’:
+/workspace/nuvio-app/tests/../src/detail.c:2989:58: warning: ‘%s’ directive output may be truncated writing up to 63 bytes into a region of size 24 [-Wformat-truncation=]
+ 2989 |         snprintf(pedAssistidoId, sizeof pedAssistidoId, "%s", ci ? ci->imdb : "");
+      |                                                          ^~
+/workspace/nuvio-app/tests/../src/detail.c:2989:9: note: ‘snprintf’ output between 1 and 64 bytes into a destination of size 24
+ 2989 |         snprintf(pedAssistidoId, sizeof pedAssistidoId, "%s", ci ? ci->imdb : "");
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/nuvio-app/tests/../src/detail.c: In function ‘heroWeb’:
+/workspace/nuvio-app/tests/../src/detail.c:4720:43: warning: ‘%s’ directive output may be truncated writing up to 31 bytes into a region of size between 29 and 44 [-Wformat-truncation=]
+ 4720 |           snprintf(rot, sizeof rot, "%s · %s", ep, tf);
+      |                                           ^~       ~~
+/workspace/nuvio-app/tests/../src/detail.c:4720:11: note: ‘snprintf’ output between 5 and 51 bytes into a destination of size 48
+ 4720 |           snprintf(rot, sizeof rot, "%s · %s", ep, tf);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+[dados] gravando em /tmp/nvtestes.r1BgR1/bibfonte.VaoPzO/nuvio-bibfonte-de7mtz
+[simkl] simkl.txt migrado para simkl-p1.txt (so o perfil 1)
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.8 ms, DENTRO da trava 0.0 ms, progresso do disco 0.1 ms (fora da trava), total 0.8 ms
+PASS: restore default without Trakt closes editor
+PASS: restore default without Trakt selects Simkl
+PASS: restored source matches effective default
+PASS: detail/context save getters follow fallback
+PASS: Simkl-only + reaches Simkl
+PASS: toast names effective destination
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: + appears in Library
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Simkl save survives discovery rebuild
+PASS: menu offers remove on active source
+PASS: Simkl-only remove reaches Simkl
+[trakt] credencial da conta: ativa
+[trakt] credencial esquecida
+PASS: disconnected Trakt + falls back to Simkl
+[ajustes] aparencia -> Da arte + Cor da logo + Frost, sem vidro (migracao unica da 2.0)
+[ajustes] profundidade -> reflexo do foco ligado, 100% (migracao unica da 2.0.5)
+[ui] tamanho automatico: 0" -> 100%
+[trakt] credencial da conta: ativa
+[contalib] biblioteca da conta: 1 itens
+PASS: legacy account keeps Library source
+PASS: account save getters agree with Library
+PASS: Settings displays effective source
+PASS: Quick Settings displays effective source
+PASS: Quick Settings advances from Nuvio to Trakt
+PASS: Quick Settings reverses from Nuvio to Simkl
+[contalib] biblioteca da conta aplicada: 1 no catalogo (1 novos)
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: legacy account reaches Library
+PASS: explicit Trakt choice wins over account
+PASS: explicit choice survives reload
+[library-sync] source=trakt-watchlist profile=1 added=1 removed=0 kept=0 accepted=1
+[library-sync] source=trakt-collection profile=1 added=0 removed=0 kept=0 accepted=1
+[library-sync] source=trakt-watchlist profile=1 added=0 removed=0 kept=1 accepted=0
+PASS: Trakt watchlist still fetched for Agenda
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Trakt-only title stays outside Nuvio Library
+PASS: Trakt series remains in Agenda
+[cat] listas do Trakt na tela: 1 marcado(s), 0 novo(s)
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=2 colecao=0 total=2 cat_unicos=2 locais_fora=0 excl_tipo=0 excl_meta=0 grade=2 colunas=7 linhas=1 teto_linhas=698
+PASS: merge retains overlapping sources
+PASS: remove preserves unrelated remote source and Agenda mark
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: Nuvio item disappears after remote removal
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: Trakt-only title excluded under Simkl
+PASS: Trakt-only title offers save under Simkl
+PASS: Detail chooses add under Simkl
+PASS: Detail add reaches Simkl
+PASS: menu offers remove after Simkl add
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Trakt membership survives Simkl add
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Detail remove reaches Simkl
+PASS: Simkl remove preserves Trakt membership
+PASS: menu offers save after Simkl remove
+[perf] cat_definir_tudo: 2 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: duplicate title appears once in Simkl Library
+PASS: Detail sees Simkl membership on every copy
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Detail removes duplicate from Simkl instead of adding
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: duplicate removal clears Simkl on every copy
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: duplicate removal preserves Trakt on every copy
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[contalib] biblioteca da conta: 1 itens
+[contalib] biblioteca da conta aplicada: 1 no catalogo (0 novos)
+PASS: account-only duplicate absent from local file
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: account-only duplicate Detail reports saved
+PASS: account-only duplicate menu offers remove
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: account-only duplicate menu removes instead of adding
+[contalib] biblioteca da conta: 1 itens
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+PASS: sidebar includes local save under Nuvio
+PASS: sidebar excludes local-only save under Trakt
+PASS: sidebar excludes local-only save under Simkl
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+PASS: sidebar excludes Trakt-only title under Simkl
+PASS: sidebar includes selected remote title
+PASS: sidebar remote title offers remove
+PASS: sidebar preserves local save after source switches
+[perf] cat_definir_tudo: 1 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[rede] libcurl=8.5.0 tls_backend=OpenSSL/3.0.13 async_dns=threaded
+[ajustes] ajustes do perfil 1 restaurados desta TV (0 mudaram)
+PASS: upgraded profile initially uses Nuvio
+[ajustes] ajustes do perfil 2 restaurados desta TV (0 mudaram)
+PASS: upgraded profile initially uses Nuvio
+[ajustes] ajustes do perfil 1 restaurados desta TV (0 mudaram)
+PASS: profile reset clears explicit source
+[ajustes] ajustes do perfil 2 restaurados desta TV (0 mudaram)
+PASS: legacy B does not inherit A's explicit Trakt choice
+PASS: legacy B Settings displays Nuvio
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: legacy B excludes Trakt-only Library item
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: legacy B + stays in Nuvio
+[ajustes] ajustes do perfil 1 restaurados desta TV (1 mudaram)
+PASS: A restores explicit Trakt after reload
+[ajustes] ajustes do perfil 1 restaurados desta TV (2 mudaram)
+PASS: A restores explicit Simkl with source value
+[ajustes] ajustes do perfil 2 restaurados desta TV (2 mudaram)
+PASS: saved untouched B retains Nuvio precedence
+[ajustes] ajustes do perfil 3 restaurados desta TV (1 mudaram)
+PASS: missing profile does not inherit explicit source
+[perf] cat_definir_tudo: 2 itens, fora da trava 0.1 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.1 ms
+PASS: Nuvio title exists before remote removal
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: remote removal deletes local save
+PASS: remote removal clears selected source
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: remote removal leaves Nuvio Library empty
+PASS: remote removal leaves Nuvio sidebar empty
+PASS: remote removal clears Nuvio detail checkmark
+PASS: remote removal offers save under Nuvio
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: remote removal preserves unrelated source on every copy
+[perf] cat_definir_tudo: 2 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: Nuvio title exists before remote removal
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: remote removal deletes local save
+PASS: remote removal clears selected source
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: remote removal leaves Nuvio Library empty
+PASS: remote removal leaves Nuvio sidebar empty
+PASS: remote removal clears Nuvio detail checkmark
+PASS: remote removal offers save under Nuvio
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: remote removal preserves unrelated source on every copy
+[perf] cat_definir_tudo: 2 itens, fora da trava 0.1 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.1 ms
+[contalib] biblioteca da conta: 1 itens
+[contalib] biblioteca da conta aplicada: 1 no catalogo (0 novos)
+[contalib] biblioteca da conta: 1 itens
+[contalib] biblioteca da conta aplicada: 1 no catalogo (1 novos)
+PASS: remote account removal deletes stale local mirror
+PASS: remote account removal clears every duplicate
+PASS: remote account removal preserves Trakt membership
+PASS: remote account replacement stays removed after reconciliation
+[perf] cat_definir_tudo: 3 itens, fora da trava 0.1 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.1 ms
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+fonte Inter indisponivel: 
+fonte de interface Inter indisponivel; usando Inter
+PASS: open Library initially shows legacy Trakt source
+[contalib] biblioteca da conta: 1 itens
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: account arrival replaces equal-count open grid
+PASS: account arrival updates duplicate membership
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: account disconnect restores legacy Trakt grid
+[trakt] credencial esquecida
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=0 colecao=0 total=0 cat_unicos=0 locais_fora=0 excl_tipo=0 excl_meta=0 grade=0 colunas=7 linhas=0 teto_linhas=698
+PASS: Trakt disconnect fallback clears open grid and count
+PASS: fallback excludes Trakt duplicate membership
+[trakt] credencial da conta: ativa
+[biblioteca] perfil=1 modo=0 tipo=0 ocultar=0 exibicao=0 salvos=1 colecao=0 total=1 cat_unicos=1 locais_fora=0 excl_tipo=0 excl_meta=0 grade=1 colunas=7 linhas=1 teto_linhas=698
+PASS: membership refresh also synchronizes Library source
+PASS: reconnect restores open grid
+bibfonte: 0 failure(s)
+tests/bibfonte.sh: line 49: 53100 Segmentation fault      "$tmp/test" "$@"

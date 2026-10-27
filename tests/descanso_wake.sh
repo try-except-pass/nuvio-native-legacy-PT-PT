@@ -10,11 +10,11 @@ for source in src/*.c src/dts/*.c; do
 done
 cc "${sources[@]}" tests/descanso_wake.c -Isrc -o "$work/test" \
   -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 # Same sdl2-compat/ASan loader workaround as fontesmortas_manual.sh.
-[ ! -e /opt/homebrew/lib/libSDL3.dylib ] || ln -s /opt/homebrew/lib/libSDL3.dylib "$work/libSDL3.dylib"
+[ ! -e /usr/lib/x86_64-linux-gnu/libSDL3.dylib ] || ln -s /usr/lib/x86_64-linux-gnu/libSDL3.dylib "$work/libSDL3.dylib"
 NUVIO_DADOS="$work" "$work/test"
 
 # #205: a corrida do encerramento com o barramento LS2. O callback do
@@ -29,7 +29,7 @@ done
 glib_flags=($(pkg-config --cflags --libs glib-2.0))
 cc "${luna_sources[@]}" tests/descanso_luna.c -Isrc -o "$work/test_luna" "${glib_flags[@]}" \
   -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NUVIO_DADOS="$work" "$work/test_luna"

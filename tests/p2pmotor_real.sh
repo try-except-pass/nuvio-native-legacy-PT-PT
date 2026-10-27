@@ -28,12 +28,12 @@ san=()
 if [ "${SANITIZE:-0}" = 1 ]; then san=(-fsanitize=address,undefined -fno-omit-frame-pointer)
 elif [ "${SANITIZE:-0}" = thread ]; then san=(-fsanitize=thread -fno-omit-frame-pointer); fi
 for f in tests/p2pmotor_real.c src/p2p.c src/p2pmotor.c src/p2pmotor_motor.c src/js.c src/rede.c src/redeurl.c src/dados.c; do
-  cc -c -O1 -g "${san[@]}" -DNV_P2P_MOTOR -Isrc -I"$E/include" -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  cc -c -O1 -g "${san[@]}" -DNV_P2P_MOTOR -Isrc -I"$E/include" -I/usr/include -I/usr/include/SDL2 \
     -Wno-deprecated-declarations "$f" -o "$T/$(basename "${f%.c}").o"
 done
 LIBS=("$B/libnuvio_engine.a" "$B/_deps/nuvio_libtorrent-build/libtorrent-rasterbar.a"
-      "$O/lib/libssl.a" "$O/lib/libcrypto.a" -framework Security -framework CoreFoundation
-      -framework SystemConfiguration)
+      "$O/lib/libssl.a" "$O/lib/libcrypto.a"  
+      )
 if [ "${NV_P2P_DLOPEN:-0}" = 1 ]; then
   # Caminho do .tpk: o motor numa .so a parte, aberta por dlopen ao lado do
   # binario (p2pmotor_motor.c, -DNV_P2P_MOTOR_DLOPEN). Recompila so a fronteira.

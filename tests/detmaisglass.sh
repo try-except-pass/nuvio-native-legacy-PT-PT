@@ -5,9 +5,9 @@
 # before = detmais.c at e047eecee; other sources stay current.
 set -eu
 cd "$(dirname "$0")/.."
-OUT=${NUVIO_DETAIL_OUT:-/Volumes/ExternalSSD/tmp/detalheglass/fix2}
+OUT=${NUVIO_DETAIL_OUT:-${TMPDIR:-/tmp}/detalheglass/fix2}
 export TMPDIR="$OUT/tmp"
-export OBJ="${OBJ:-/Volumes/ExternalSSD/tmp/detalheglass/obj}"
+export OBJ="${OBJ:-${TMPDIR:-/tmp}/detalheglass/obj}"
 mkdir -p "$OUT" "$TMPDIR" "$OBJ"
 mode=${1:-check}
 export NUVIO_SHOT_VIDRO=1 NUVIO_SHOT_VIDRO_FOSCO=1
@@ -25,7 +25,7 @@ for glass in ${@:-0 1}; do
   dir="$OUT/mais-$mode/glass-$glass"
   NUVIO_SHOT_VIDRO=$glass bash tests/detalhe_glass_shot.sh "$dir" filme-mais serie-mais >/dev/null
   for bmp in "$dir"/*.bmp; do
-    sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null
+    ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null
     rm -f "$bmp"
   done
 done

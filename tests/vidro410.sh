@@ -9,7 +9,7 @@ for source in src/*.c src/dts/*.c; do
 done
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-vidro410.XXXXXX")
 trap 'rm -rf "$work"' EXIT
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2
        -Wno-deprecated-declarations -Wno-macro-redefined)
 rc=0
 for plataforma in host tpk; do
@@ -19,7 +19,7 @@ for plataforma in host tpk; do
   # dead_strip descarta integracoes Tizen que este teste nao executa.
   cc "${flags[@]}" "${target[@]}" -c tests/vidro410.c -o "$work/ajustes.o"
   cc "${sources[@]}" "$work/ajustes.o" "${flags[@]}" -o "$work/teste" \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -Wl,-dead_strip
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -ffunction-sections -fdata-sections -Wl,--gc-sections
   NUVIO_DADOS="$work" "$work/teste" || rc=1
 done
 exit "$rc"

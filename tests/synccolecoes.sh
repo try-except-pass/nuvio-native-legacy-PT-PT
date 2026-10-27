@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 cd "$(dirname "$0")/.."
-flags=(-O1 -g -Isrc -pthread -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-misleading-indentation)
+flags=(-O1 -g -Isrc -pthread -I/usr/include -I/usr/include/SDL2 -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-misleading-indentation)
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 bin="$(mktemp "${TMPDIR:-/tmp}/nuvio-synccolecoes.XXXXXXXX")"
 dir="$(mktemp -d "${TMPDIR:-/tmp}/nuvio-synccolecoes-dir.XXXXXXXX")"

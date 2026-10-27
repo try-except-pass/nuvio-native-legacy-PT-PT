@@ -4,7 +4,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 D=$(mktemp -d); trap 'rm -rf "$D"' EXIT
-out="${1:-/Volumes/ExternalSSD/tmp/fontessombra/after}"
+out="${1:-${TMPDIR:-/tmp}/fontessombra/after}"
 mkdir -p "$out" "$D/data"
 sources=()
 for source in src/*.c src/dts/*.c; do
@@ -16,7 +16,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 bin="$D/test"
-flags=(-DNV_SHOT_HOOKS -Isrc -O0 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2
+flags=(-DNV_SHOT_HOOKS -Isrc -O0 -g -I/usr/include -I/usr/include/SDL2
   -Wno-deprecated-declarations -Wno-macro-redefined)
 if [ -n "${2:-}" ] && ! rg -q 'stream_folha_pilula_x' "$D/streams.c"; then
   flags+=(-DNV_BASELINE)
@@ -25,7 +25,7 @@ objs=()
 for source in "${sources[@]}" tests/fontes_sombra.c; do objs+=("$D/$(echo "$source" | tr '/' '_').o"); done
 printf '%s\n' "${sources[@]}" tests/fontes_sombra.c |
   xargs -P 8 -I{} sh -c 'cc "$@" -c {} -o "$0/$(echo {} | tr / _).o"' "$D" "${flags[@]}"
-cc "${objs[@]}" -o "$bin" -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+cc "${objs[@]}" -o "$bin" -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 modes=(no-clock detail player detail-glass player-glass)
 for mode in "${modes[@]}"; do
   NUVIO_DADOS="$D/data" NUVIO_TESTE_DIR="$D/data" "$bin" "$out/$mode" "$mode"

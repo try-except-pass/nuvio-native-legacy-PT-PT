@@ -6,5 +6,5 @@ cd "$(dirname "$0")/.."
 . tests/mkvcore_flag.sh
 cc -Isrc tests/mkv_tracks_relayout.c src/mkv.c \
   -o "${TMPDIR:-/tmp}/nuvio-mkv-tracks-relayout" -O1 -g -Wall \
-  -I/opt/homebrew/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
+  -I/usr/include -Wno-deprecated-declarations ${MKVCORE_CC[@]+"${MKVCORE_CC[@]}"}
 "${TMPDIR:-/tmp}/nuvio-mkv-tracks-relayout"

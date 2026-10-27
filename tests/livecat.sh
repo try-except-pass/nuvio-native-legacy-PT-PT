@@ -14,9 +14,9 @@ rc=0
 NUVIO_DADOS="$tmp/unit" "$tmp/unidade" | grep -v "^\[dados\]" || rc=1
 NUVIO_DADOS="$tmp/unit" "$tmp/unidade" restart | grep -v "^\[dados\]"
 flags=(-ffunction-sections -fdata-sections)
-if [ "$(uname -s)" = Darwin ]; then flags+=(-Wl,-dead_strip); else flags+=(-Wl,--gc-sections); fi
+if [ "$(uname -s)" = Darwin ]; then flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); else flags+=(-ffunction-sections -fdata-sections -Wl,--gc-sections); fi
 cc tests/livecat_guia.c src/guiafiltro.c src/livecat.c src/dados.c src/ltv.c src/js.c src/idcanal.c -Isrc \
-  -DNV_REC_URL='"http://rec.test"' -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -DNV_REC_URL='"http://rec.test"' -I/usr/include -I/usr/include/SDL2 \
   -O1 -g -fsanitize-coverage=trace-pc-guard -Wno-macro-redefined "${flags[@]}" -o "$tmp/guia"
 # Run both integration regressions even when one fails (FAIL-before evidence).
 NUVIO_DADOS="$tmp/guide" "$tmp/guia" || rc=1
@@ -29,8 +29,8 @@ for source in src/*.c src/dts/*.c; do
 done
 cc "${sources[@]}" tests/livecat_toggle.c -Isrc -o "$tmp/toggle" -O1 \
   -DNV_SUPABASE_URL='""' -DNV_SUPABASE_ANON_KEY='""' -DNV_TV_LOGIN_BASE='""' \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib \
-  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL -Wno-deprecated-declarations
+  -I/usr/include -I/usr/include/SDL2 -L/usr/lib/x86_64-linux-gnu \
+  -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl -Wno-deprecated-declarations
 NUVIO_DADOS="$tmp/toggle-data" "$tmp/toggle" || rc=1
 [ "$rc" = 0 ] || exit "$rc"
 node servidor/recomendacoes/teste-livetvcat.mjs

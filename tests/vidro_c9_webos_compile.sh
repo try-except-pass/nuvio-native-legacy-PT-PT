@@ -17,6 +17,6 @@ ctr_run --rm --network none -v "$PWD:/work:ro" -w /work \
     -DNV_TRAKT_CLIENT_ID=\"\" -DNV_TRAKT_CLIENT_SECRET=\"\" \
     -DNV_SIMKL_CLIENT_ID=\"\" -DNV_SIMKL_APP=\"\" -DNV_TMDB_API_KEY=\"\" \
     -I"$sr/usr/include" -I"$sr/usr/include/SDL2" \
-    -lSDL2 -lSDL2_image -lSDL2_ttf -lGLESv2 -lEGL -ldl -lpthread -lz -lm
+    -lSDL2 -lSDL2_image -lSDL2_ttf -lGLESv2 -lEGL -lm -lpthread -ldl -ldl -lpthread -lz -lm
   file /tmp/nuvio-vidro-c9.arm
 '

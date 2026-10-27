@@ -2,7 +2,7 @@
 # Real GL rendering: Stage budget, fixed geometry, crossfades, layouts and glass.
 set -eu
 cd "$(dirname "$0")/.."
-output="${1:-/Volumes/ExternalSSD/tmp/rev/palcolimpo}"
+output="${1:-${TMPDIR:-/tmp}/rev/palcolimpo}"
 phase="${2:-after}"
 mkdir -p "$output"
 NUVIO_DADOS=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-homelayouts-shot.XXXXXX")
@@ -31,8 +31,8 @@ if [ "$phase" = before ] || [ "$phase" = original-before ] || [ "$phase" = revie
   baseline_flags+=("-DPALCO_BASELINE=\"$NUVIO_DADOS/home-baseline.c\"")
 fi
 cc "${sources[@]}" "${baseline_flags[@]}" tests/palcolimpo.c -Isrc -o "$NUVIO_DADOS/shot" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations >"$output/$phase-build.log" 2>&1
 rc=0
 scales="0.85 1"
@@ -49,7 +49,7 @@ for scale in $scales; do
 done
 for bmp in "$output/$phase-"*.bmp; do
   [ -e "$bmp" ] || continue
-  sips -s format png "$bmp" --out "${bmp%.bmp}.png" >/dev/null
+  ffmpeg -nostdin -loglevel error -y -i "$bmp" "${bmp%.bmp}.png" >/dev/null
   rm "$bmp"
 done
 exit "$rc"

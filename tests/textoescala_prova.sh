@@ -26,8 +26,8 @@ BASE_REF="${NV_BASE:-f22761e28}"   # fork point of agente/205-textoescala
 W="${NV_REUSE:-$(mktemp -d "$TMPDIR/nv-textoescala.XXXXXX")}"
 [ -n "${NV_KEEP:-}" ] && echo "keeping $W" || trap 'rm -rf "$W"' EXIT
 TESTS="$PWD/tests"
-CFLAGS=(-O1 -w -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -DNV_TRAKT_CLIENT_ID='"chave-de-teste"')
-LIBS=(-L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL)
+CFLAGS=(-O1 -w -I/usr/include -I/usr/include/SDL2 -DNV_TRAKT_CLIENT_ID='"chave-de-teste"')
+LIBS=(-L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl)
 
 # objs <srcroot> <objdir> [extra cc flags]: every source, with the spy renames
 objs() {
@@ -94,7 +94,7 @@ run() {
   if [ -n "${NV_PNG_OUT:-}" ] && [ "$t" = new ] && case "$tag" in p85|p100|p130) true;; *) false;; esac; then   # keep a few frames per run as PNG
     find "$saida" \( -name '*.png' -o -name '*.bmp' \) | sort | while read -r f; do
       [[ "$(basename "$f")" =~ ${NV_PNG_PICK:-.*} ]] || continue
-      sips -s format png "$f" --out "$NV_PNG_OUT/$s-$tag-$(basename "${f%.*}").png" >/dev/null 2>&1
+      ffmpeg -nostdin -loglevel error -y -i "$f" "$NV_PNG_OUT/$s-$tag-$(basename "${f%.*}").png" >/dev/null 2>&1
     done
   fi
   rm -rf "$saida"   # the disk is shared; only the hashes are kept

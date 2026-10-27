@@ -5,7 +5,7 @@
 #   bash tests/plx_recusa_trava.sh [/caminho/captura.png]
 set -eu
 cd "$(dirname "$0")/.."
-export TMPDIR="${TMPDIR:-/Volumes/ExternalSSD/tmp/jobtmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 NUVIO_DADOS=$(mktemp -d "$TMPDIR/nuvio-plx-trava.XXXXXX")
 export NUVIO_DADOS
@@ -17,8 +17,8 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/plx_recusa_trava.c -Isrc -o "$out" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NV_SEM_RECUSA=1 "$out"
 "$out" "${1:-}"

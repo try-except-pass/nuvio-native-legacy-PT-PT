@@ -1,0 +1,499 @@
+src/addons.c: In function ‘lerDeclaracao’:
+src/addons.c:1926:38: warning: ‘%s’ directive output may be truncated writing up to 191 bytes into a region of size 24 [-Wformat-truncation=]
+ 1926 |     snprintf(pref[k], ADD_PREF_TAM, "%s", prefTopo[k]);
+      |                                      ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/addons.h:15,
+                 from src/addons.c:1:
+In function ‘snprintf’,
+    inlined from ‘lerDeclaracao’ at src/addons.c:1926:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 192 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘lerDeclaracao’:
+src/addons.c:1948:71: warning: ‘%s’ directive output may be truncated writing up to 191 bytes into a region of size 24 [-Wformat-truncation=]
+ 1948 |             for (k = 0; k < np; k++) snprintf(pref[k], ADD_PREF_TAM, "%s", pr[k]);
+      |                                                                       ^~
+In function ‘snprintf’,
+    inlined from ‘lerDeclaracao’ at src/addons.c:1948:38:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 192 bytes into a destination of size 24
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘buscarUmAddon’:
+src/addons.c:1494:44: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 1024 [-Wformat-truncation=]
+ 1494 |           snprintf(d->url, sizeof d->url, "%s", link);
+      |                                            ^~   ~~~~
+In function ‘snprintf’,
+    inlined from ‘buscarUmAddon’ at src/addons.c:1494:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 2048 bytes into a destination of size 1024
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘buscarUmAddon’:
+src/addons.c:1500:50: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+ 1500 |           snprintf(d->idioma, sizeof d->idioma, "%s", cod);
+      |                                                  ^~   ~~~
+In function ‘snprintf’,
+    inlined from ‘buscarUmAddon’ at src/addons.c:1500:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 16 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘buscarUmAddon’:
+src/addons.c:1502:52: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 96 [-Wformat-truncation=]
+ 1502 |           snprintf(d->arquivo, sizeof d->arquivo, "%s", nome);
+      |                                                    ^~   ~~~~
+In function ‘snprintf’,
+    inlined from ‘buscarUmAddon’ at src/addons.c:1502:11:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 120 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘buscarUmAddon’:
+src/addons.c:1512:63: warning: ‘%s’ directive output may be truncated writing up to 119 bytes into a region of size 64 [-Wformat-truncation=]
+ 1512 |           if (nome[0]) snprintf(d->rotulo, sizeof d->rotulo, "%s", nome);
+      |                                                               ^~   ~~~~
+In function ‘snprintf’,
+    inlined from ‘buscarUmAddon’ at src/addons.c:1512:24:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 1 and 120 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘adicionarSemTrava’:
+src/addons.c:1824:60: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 64 [-Wformat-truncation=]
+ 1824 |   snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s",
+      |                                                            ^~
+In function ‘snprintf’,
+    inlined from ‘adicionarSemTrava’ at src/addons.c:1824:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘carregarSemTrava’:
+src/addons.c:539:62: warning: ‘%s’ directive output may be truncated writing up to 2303 bytes into a region of size 64 [-Wformat-truncation=]
+  539 |     snprintf(addon[nAddon].nome, sizeof addon[nAddon].nome, "%s", linha);
+      |                                                              ^~   ~~~~~
+In function ‘snprintf’,
+    inlined from ‘carregarSemTrava’ at src/addons.c:539:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2304 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_exportar’:
+src/addons.c:657:52: warning: ‘%s’ directive output may be truncated writing up to 510975 bytes into a region of size 64 [-Wformat-truncation=]
+  657 |     snprintf(saida[k].nome, sizeof saida[k].nome, "%s", addon[i].nome);
+      |                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘addons_exportar’ at src/addons.c:657:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 510976 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_inicio_info’:
+src/addons.c:994:52: warning: ‘%s’ directive output may be truncated writing up to 510975 bytes into a region of size 64 [-Wformat-truncation=]
+  994 |         snprintf(o->pendente, sizeof o->pendente, "%s", addon[i].nome);
+      |                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘addons_inicio_info’ at src/addons.c:994:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 510976 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_inicio_info’:
+src/addons.c:998:64: warning: ‘%s’ directive output may be truncated writing up to 510975 bytes into a region of size 64 [-Wformat-truncation=]
+  998 |       snprintf(o->semRespostaNome, sizeof o->semRespostaNome, "%s", addon[i].nome);
+      |                                                                ^~
+In function ‘snprintf’,
+    inlined from ‘addons_inicio_info’ at src/addons.c:998:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 510976 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_inicio_info’:
+src/addons.c:1003:52: warning: ‘%s’ directive output may be truncated writing up to 7679 bytes into a region of size 64 [-Wformat-truncation=]
+ 1003 |         snprintf(o->pendente, sizeof o->pendente, "%s", progNomeEx[i]);
+      |                                                    ^~
+In function ‘snprintf’,
+    inlined from ‘addons_inicio_info’ at src/addons.c:1003:9:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 7680 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_inicio_info’:
+src/addons.c:1007:64: warning: ‘%s’ directive output may be truncated writing up to 7679 bytes into a region of size 64 [-Wformat-truncation=]
+ 1007 |       snprintf(o->semRespostaNome, sizeof o->semRespostaNome, "%s", progNomeEx[i]);
+      |                                                                ^~
+In function ‘snprintf’,
+    inlined from ‘addons_inicio_info’ at src/addons.c:1007:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 7680 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_parcial_abas’:
+src/addons.c:1064:48: warning: ‘%s’ directive output may be truncated writing up to 510975 bytes into a region of size 96 [-Wformat-truncation=]
+ 1064 |     snprintf(out[k].nome, sizeof out[k].nome, "%s", addon[i].nome);
+      |                                                ^~
+In function ‘snprintf’,
+    inlined from ‘addons_parcial_abas’ at src/addons.c:1064:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 510976 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_parcial_abas’:
+src/addons.c:1072:48: warning: ‘%s’ directive output may be truncated writing up to 7679 bytes into a region of size 96 [-Wformat-truncation=]
+ 1072 |     snprintf(out[k].nome, sizeof out[k].nome, "%s", progNomeEx[i]);
+      |                                                ^~
+In function ‘snprintf’,
+    inlined from ‘addons_parcial_abas’ at src/addons.c:1072:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 7680 bytes into a destination of size 96
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_parcial_abas’:
+src/addons.c:1073:50: warning: ‘%s’ directive output may be truncated writing up to 6399 bytes into a region of size 40 [-Wformat-truncation=]
+ 1073 |     snprintf(out[k].chave, sizeof out[k].chave, "%s", progChaveEx[i]);
+      |                                                  ^~
+In function ‘snprintf’,
+    inlined from ‘addons_parcial_abas’ at src/addons.c:1073:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 6400 bytes into a destination of size 40
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+src/addons.c: In function ‘addons_consulta_capturar’:
+src/addons.c:3421:40: warning: ‘%s’ directive output may be truncated writing up to 510975 bytes into a region of size 64 [-Wformat-truncation=]
+ 3421 |     snprintf(a->nome, sizeof a->nome, "%s", addon[i].nome);
+      |                                        ^~
+In function ‘snprintf’,
+    inlined from ‘addons_consulta_capturar’ at src/addons.c:3421:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 510976 bytes into a destination of size 64
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+tests/addonslista.c: In function ‘main’:
+tests/addonslista.c:331:38: warning: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 600 [-Wformat-truncation=]
+  331 |   snprintf(caminho, sizeof caminho, "%s/addons.txt", dir);
+      |                                      ^~              ~~~
+In file included from /usr/include/stdio.h:980,
+                 from tests/addonslista.c:12:
+In function ‘snprintf’,
+    inlined from ‘main’ at tests/addonslista.c:331:3:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 12 and 1035 bytes into a destination of size 600
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+[addons] 3 configurados, 2 fornecem stream
+[addons] fora da busca de fontes: So legenda (ainda sem manifesto)
+[addons] fora da busca de fontes: Fonte e catalogo (ainda sem manifesto)
+[addons] fora da busca de fontes: Formato antigo (ainda sem manifesto)
+[addons] 2 de 3 consultados por fonte
+[addons] Fonte e catalogo: de https://exemplo.test
+[addons] Fonte e catalogo: manifesto sem "resources" legivel; capacidades ficam supostas
+[addons] stream host=exemplo.test HTTP 200
+[addons] Fonte e catalogo: 0 fontes (14 bytes, 0 ms)
+[addons] Formato antigo: de https://antigo.test
+[addons] Formato antigo: manifesto sem "resources" legivel; capacidades ficam supostas
+[addons] stream host=antigo.test HTTP 200
+[addons] Formato antigo: 0 fontes (14 bytes, 0 ms)
+[addons] stream host=exemplo.test HTTP 200
+[addons] Fonte e catalogo: 0 fontes (14 bytes, 0 ms)
+[addons] stream host=antigo.test HTTP 0
+[addons] Formato antigo: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=antigo.test HTTP 0
+[addons] Formato antigo: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=exemplo.test HTTP 200
+[addons] Fonte e catalogo: 1 fontes (39 bytes, 0 ms)
+[addons] stream host=antigo.test HTTP 0
+[addons] Formato antigo: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=antigo.test HTTP 0
+[addons] Formato antigo: stream query failed (0 ms, budget 10 s; reason above)
+[addons] primeira resposta em 0 ms: Fonte e catalogo
+[addons] busca parcial encerrada em 0 ms
+[addons] Fonte e catalogo: desligado
+[addons] fora da busca de fontes: So legenda (ainda sem manifesto)
+[addons] fora da busca de fontes: Fonte e catalogo (desligado)
+[addons] 1 de 3 consultados por fonte
+[addons] stream host=antigo.test HTTP 0
+[addons] Formato antigo: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=antigo.test HTTP 200
+[addons] stream host=antigo.test HTTP 200 (missing streams array)
+[addons] Formato antigo: stream query failed (0 ms, budget 30 s; reason above)
+[addons] Formato antigo: desligado
+[addons] fora da busca de fontes: So legenda (ainda sem manifesto)
+[addons] fora da busca de fontes: Fonte e catalogo (desligado)
+[addons] fora da busca de fontes: Formato antigo (desligado)
+[addons] 0 de 3 consultados por fonte
+[addons] instalado pelo guia: Canal TV (https://canal.test)
+[addons] Canal TV: de https://canal.test
+[addons] Canal TV: manifesto sem "resources" legivel; capacidades ficam supostas
+[addons] stream host=canal.test HTTP 200
+[addons] stream host=canal.test HTTP 200
+[addons] Canal TV: respondeu como "channel" (nao como "tv")
+[addons] Canal TV: 1 fontes (42 bytes, 0 ms)
+FALHOU ordem sem manifesto: obtido "channel,tv,channel,", esperado "tv,channel,"
+[addons] Canal TV: de https://canal.test
+[addons] Canal TV: id do manifesto = com.frostview
+[addons] Canal TV: catalogo=1 stream=1 legenda=0 meta=1
+FALHOU channel declarado traz a fonte: obtido 3, esperado 2
+FALHOU ordem com manifesto: obtido "", esperado "tv,channel,"
+FALHOU canal vazio: obtido "(sem causa)", esperado "Canal TV não tem fonte para este canal agora"
+FALHOU channel mudo, tv vazio: obtido "(sem causa)", esperado "Canal TV não tem fonte para este canal agora"
+[addons] instalado pelo guia: IPTV Caseiro (https://live.test)
+[addons] IPTV Caseiro: de https://live.test
+[addons] IPTV Caseiro: id do manifesto = org.livecaseiro
+[addons] IPTV Caseiro: catalogo=1 stream=1 legenda=0 meta=1
+[addons] stream host=live.test HTTP 200
+[addons] IPTV Caseiro: 1 fontes (41 bytes, 0 ms)
+FALHOU tv sem fonte -> declarado live traz: obtido 3, esperado 2
+FALHOU ordem tv->live: obtido "", esperado "tv,live,"
+[addons] instalado pelo guia: Live Sport (https://sport.test)
+[addons] Live Sport: de https://sport.test
+[addons] Live Sport: id do manifesto = org.sport
+[addons] Live Sport: catalogo=1 stream=1 legenda=0 meta=0
+[addons] stream host=sport.test HTTP 0
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: respondeu como "sport" (nao como "tv")
+[addons] Live Sport: 1 fontes (44 bytes, 0 ms)
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: 1 fontes (44 bytes, 0 ms)
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: 1 fontes (44 bytes, 0 ms)
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: respondeu como "iptv" (nao como "event")
+[addons] Live Sport: 1 fontes (44 bytes, 0 ms)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (0 ms, budget 12 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (20 s)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (0 ms, budget 20 s; reason above)
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: 0 fontes (14 bytes, 12000 ms)
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: 0 fontes (14 bytes, 12000 ms)
+[addons] stream host=sport.test HTTP 200
+[addons] Live Sport: 0 fontes (14 bytes, 11500 ms)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (12000 ms, budget 12 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (20 s)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (20000 ms, budget 20 s; reason above)
+[addons] instalado pelo guia: Lento (https://lento.test)
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+FALHOU R2 primeira busca tem duas tentativas: obtido 4, esperado 2
+FALHOU R2 cancelamento nao faz HTTP: obtido 4, esperado 2
+[addons] stream host=lento.test HTTP 200
+[addons] Lento: 1 fontes (39 bytes, 0 ms)
+[addons] primeira resposta em 0 ms: Lento
+[addons] busca completa em 0 ms
+[addons] stream host=lento.test HTTP 200
+[addons] Lento: 1 fontes (39 bytes, 0 ms)
+[addons] primeira resposta em 0 ms: Lento
+[addons] busca completa em 0 ms
+FALHOU prazo da 1a rodada (filme): obtido 12, esperado 30
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+FALHOU addon morto: requisicoes da consulta: obtido 4, esperado 2
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 10 s; reason above)
+FALHOU addon morto: requisicoes da consulta: obtido 4, esperado 2
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+FALHOU addon morto: requisicoes da consulta: obtido 2, esperado 1
+[addons] instalado pelo guia: OpenSubtitles v3 (https://legenda.test)
+[addons] OpenSubtitles v3: de https://legenda.test
+[addons] OpenSubtitles v3: id do manifesto = org.stremio.opensubtitlesv3
+[addons] OpenSubtitles v3: catalogo=0 stream=0 legenda=1 meta=0
+[addons] OpenSubtitles v3: o manifesto nao declara stream; fora do resumo da busca
+legenda.test: 1 pedido(s) de manifesto, 0 de stream
+FALHOU so de legenda: um pedido de stream, sem segunda chance: obtido 0, esperado 1
+motivo: 
+[addons] stream host=live.test HTTP 0
+[addons] IPTV Caseiro: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=lento.test HTTP 0
+[addons] Lento: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 2 sem resposta: segunda tentativa (30 s; )1 mudo(s) seguidos pulado(s)
+[addons] stream host=live.test HTTP 0
+[addons] IPTV Caseiro: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=sport.test HTTP 0
+[addons] Live Sport: stream query failed (0 ms, budget 30 s; reason above)
+[addons] instalado pelo guia: Meta A (https://meta-a.test)
+[addons] instalado pelo guia: Meta B (https://meta-b.test)
+[addons] instalado pelo guia: Meta C (https://meta-c.test)
+[addons] Meta A: de https://meta-a.test
+[addons] Meta A: id do manifesto = m.a
+[addons] Meta A: catalogo=1 stream=0 legenda=0 meta=1
+[addons] Meta B: de https://meta-b.test
+[addons] Meta B: id do manifesto = m.b
+[addons] Meta B: catalogo=0 stream=0 legenda=1 meta=1
+[addons] Meta C: de https://meta-c.test
+[addons] Meta C: id do manifesto = m.c
+[addons] Meta C: catalogo=0 stream=1 legenda=0 meta=0
+[addons] instalado pelo guia: Pref A (https://pref-a.test)
+[addons] instalado pelo guia: Pref B (https://pref-b.test)
+[addons] instalado pelo guia: Pref C (https://pref-c.test)
+[addons] instalado pelo guia: Pref D (https://pref-d.test)
+[addons] instalado pelo guia: Pref E (https://pref-e.test)
+[addons] instalado pelo guia: Pref F (https://pref-f.test)
+[addons] Pref A: de https://pref-a.test
+[addons] Pref A: id do manifesto = p.a
+[addons] Pref A: catalogo=1 stream=1 legenda=0 meta=1
+[addons] Pref B: de https://pref-b.test
+[addons] Pref B: id do manifesto = p.b
+[addons] Pref B: catalogo=1 stream=1 legenda=0 meta=1
+[addons] Pref C: de https://pref-c.test
+[addons] Pref C: id do manifesto = p.c
+[addons] Pref C: catalogo=0 stream=0 legenda=0 meta=1
+[addons] Pref D: de https://pref-d.test
+[addons] Pref D: id do manifesto = p.d
+[addons] Pref D: catalogo=0 stream=0 legenda=0 meta=1
+[addons] Pref E: de https://pref-e.test
+[addons] Pref E: id do manifesto = p.e
+[addons] Pref E: catalogo=0 stream=1 legenda=0 meta=0
+[addons] 2 vindos da conta
+[addons] 1 desligados na conta: nao consultados
+[addons] fora da busca de fontes: Ligado (ainda sem manifesto)
+[addons] fora da busca de fontes: Desligado (desligado)
+[addons] 1 de 2 consultados por fonte
+[addons] stream host=ligado.test HTTP 0
+[addons] Ligado: stream query failed (0 ms, budget 30 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (30 s)
+[addons] stream host=ligado.test HTTP 0
+[addons] Ligado: stream query failed (0 ms, budget 30 s; reason above)
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] Ligado: stream query failed (0 ms, budget 12 s; reason above)
+[addons] 1 sem resposta: segunda tentativa (20 s)
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] stream host=ligado.test HTTP 0
+[addons] Ligado: stream query failed (0 ms, budget 10 s; reason above)
+[addons] 100 vindos da conta
+[addons] 128 vindos da conta
+[addons] 2 da conta ficaram de fora: o app guarda no maximo 128
+[addons] 0 configurados, 0 fornecem stream
+[addons] instalado pelo guia: Disabled source (https://desligado.test)
+[addons] Disabled source: desligado
+[addons] fora da busca de fontes: Disabled source (desligado)
+[addons] 0 de 1 consultados por fonte
+[addons] instalado pelo guia: Anime TT Kitsu (https://anime.test)
+[addons] Anime TT Kitsu: de https://anime.test
+[addons] Anime TT Kitsu: id do manifesto = org.anime.tk
+[addons] Anime TT Kitsu: catalogo=0 stream=1 legenda=0 meta=0
+[addons] stream host=anime.test HTTP 200
+[addons] ARM: 2 ids do mesmo titulo para as fontes
+[addons] stream host=anime.test HTTP 200
+[addons] Anime TT Kitsu: 2 fontes pelo id tt2560140:1:5
+[addons] Anime TT Kitsu: +1 fontes pelos ids do mesmo titulo
+[addons] Anime TT Kitsu: 3 fontes (74 bytes, 0 ms)
+[addons] stream host=anime.test HTTP 200
+[addons] ARM: 2 ids do mesmo titulo para as fontes
+[addons] stream host=anime.test HTTP 200
+[addons] Anime TT Kitsu: 2 fontes pelo id kitsu:7442:5
+[addons] Anime TT Kitsu: +1 fontes pelos ids do mesmo titulo
+[addons] Anime TT Kitsu: 3 fontes (74 bytes, 0 ms)
+[addons] stream host=anime.test HTTP 200
+[addons] Anime TT Kitsu: 0 fontes (14 bytes, 0 ms)
+[addons] stream host=anime.test HTTP 200
+[addons] Anime TT Kitsu: 0 fontes (14 bytes, 0 ms)
+[addons] stream host=anime.test HTTP 200
+[addons] Anime TT Kitsu: 0 fontes (14 bytes, 0 ms)
+[addons] instalado pelo guia: AIOStreams (https://aio.test)
+[addons] AIOStreams: de https://aio.test
+[addons] AIOStreams: id do manifesto = com.aiostreams.viren070.x
+[addons] AIOStreams: catalogo=0 stream=1 legenda=0 meta=0
+[addons] stream host=aio.test HTTP 200
+[addons] ARM: 2 ids do mesmo titulo para as fontes
+[addons] stream host=aio.test HTTP 200
+[addons] AIOStreams: 0 fontes pelo id mal:16498:5
+[addons] stream host=aio.test HTTP 200
+[addons] AIOStreams: 2 fontes pelo id tt2560140:1:5
+[addons] AIOStreams: +1 fontes pelos ids do mesmo titulo
+[addons] AIOStreams: 3 fontes (210 bytes, 0 ms)
+14 falha(s)

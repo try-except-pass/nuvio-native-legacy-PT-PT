@@ -10,13 +10,13 @@ done
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-gpunivel-ajuda.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 cc "${sources[@]}" tests/ajustes_p2p_motivo.c -Isrc -o "$work/teste" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NUVIO_DADOS="$work" "$work/teste"
 cc "${sources[@]}" tests/ajustes_p2p_motivo.c -Isrc -o "$work/teste_android" -DP2PM_ANDROID_VISIVEL \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 NUVIO_DADOS="$work" "$work/teste_android"
 # #205: a linha precisa estar na TELA do Android, nao so fora de foraDestaPlataforma.

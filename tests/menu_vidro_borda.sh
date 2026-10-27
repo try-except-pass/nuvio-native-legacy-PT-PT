@@ -12,6 +12,6 @@ a = s.index('void gfx_vidro_borda(')
 b = s.index('\n}', a) + 2
 Path(sys.argv[1]).write_text(s[a:b] + '\n')
 PY
-cc tests/menu_vidro_borda.c -Isrc -I"$work" -I/opt/homebrew/include \
-  -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations -o "$work/teste"
+cc tests/menu_vidro_borda.c -Isrc -I"$work" -I/usr/include \
+  -I/usr/include/SDL2 -Wno-deprecated-declarations -o "$work/teste"
 "$work/teste"

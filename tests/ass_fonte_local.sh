@@ -13,7 +13,7 @@ work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-ass-font.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 flags=(-std=c11 -D_DEFAULT_SOURCE -DNV_ASS_LIBASS -Isrc -g -Wall -Wextra)
 platform=(-lm -pthread)
-if [ "$(uname -s)" = Darwin ]; then platform+=(-framework OpenGL); else platform+=(-lGLESv2); fi
+if [ "$(uname -s)" = Darwin ]; then platform+=(-lGLESv2 -lEGL -lm -lpthread -ldl); else platform+=(-lGLESv2); fi
 if [ "${SANITIZE:-0}" = 1 ]; then
   flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer)
   if [ "$(uname -s)" = Linux ]; then flags+=(-fno-pie -no-pie); fi

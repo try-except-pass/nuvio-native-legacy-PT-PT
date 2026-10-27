@@ -14,6 +14,6 @@ if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit
 # ponteiro_quadro returns before the sleep timer - so "parado 5 s, dorme" failed
 # here for a reason that had nothing to do with the pointer.
 cc tests/ponteiro.c src/ponteiro.c -Isrc -o "$bin" -Wall -Wextra -lm -DNV_LINUX_DESKTOP \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined ${flags[@]+"${flags[@]}"}
 "$bin"

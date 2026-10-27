@@ -18,8 +18,8 @@ for variante in normal highcache; do
   flags=""
   [ "$variante" = highcache ] && flags="-DNV_TEX_MB_FIXO=300"
   cc "${sources[@]}" tests/ajustes_memoria_migra.c -Isrc -o "${TMPDIR:-/tmp}/nuvio-ajustes-memoria-$variante" \
-    -O1 -g $flags -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-    -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+    -O1 -g $flags -I/usr/include -I/usr/include/SDL2 \
+    -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
     -Wno-deprecated-declarations -Wno-macro-redefined
   echo "[$variante]"
   "${TMPDIR:-/tmp}/nuvio-ajustes-memoria-$variante" "$dispositivo" || falhou=1

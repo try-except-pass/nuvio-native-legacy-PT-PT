@@ -1,0 +1,16 @@
+capmkv: URL assinada de ~1500 bytes
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+[mkv] capitulos (android/tpk): 5
+  pediu o cabecalho (nao voltou calado pelo tamanho)             ok
+  capitulos publicados no modulo de intro                        ok
+  creditos = Ending                                              ok
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+  mesma URL longa de novo: cache, nenhum pedido                  ok
+  e os creditos voltam do cache                                  ok
+[mkv] capitulos pelo SeekHead (pos 5368709120): 5
+[mkv] 5 capitulos; creditos nomeados em 1260s, ultimo em 1260s
+[mkv] capitulos (android/tpk): 5
+  mesmo prefixo, outra assinatura: pede de novo (chave inteira)  ok
+  e publica os capitulos dela                                    ok
+capmkv_url_longa: ok

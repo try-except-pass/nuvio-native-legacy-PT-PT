@@ -1,0 +1,19 @@
+tests/agenda_geometry.c: In function ‘agendaArrasto’:
+tests/agenda_geometry.c:17:34: error: ‘toqueAgAtiva’ undeclared (first use in this function)
+   17 |   ctxAberto = 0; scrollY = 0.0f; toqueAgAtiva = NULL; toquerol_limpar(&toqueAgenda);
+      |                                  ^~~~~~~~~~~~
+tests/agenda_geometry.c:17:34: note: each undeclared identifier is reported only once for each function it appears in
+tests/agenda_geometry.c:17:55: warning: implicit declaration of function ‘toquerol_limpar’ [-Wimplicit-function-declaration]
+   17 |   ctxAberto = 0; scrollY = 0.0f; toqueAgAtiva = NULL; toquerol_limpar(&toqueAgenda);
+      |                                                       ^~~~~~~~~~~~~~~
+tests/agenda_geometry.c:17:72: error: ‘toqueAgenda’ undeclared (first use in this function)
+   17 |   ctxAberto = 0; scrollY = 0.0f; toqueAgAtiva = NULL; toquerol_limpar(&toqueAgenda);
+      |                                                                        ^~~~~~~~~~~
+tests/agenda_geometry.c:18:3: warning: implicit declaration of function ‘toquerol_vincular’ [-Wimplicit-function-declaration]
+   18 |   toquerol_vincular(&toqueAgenda, (GfxRect){0, 0, 1920, 1080}, 1.0f, 0.0f, 400.0f, 1, &scrollY);
+      |   ^~~~~~~~~~~~~~~~~
+tests/agenda_geometry.c:19:17: warning: implicit declaration of function ‘toqueAgendaRolar’ [-Wimplicit-function-declaration]
+   19 |   int captura = toqueAgendaRolar(&e);
+      |                 ^~~~~~~~~~~~~~~~
+At top level:
+cc1: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics

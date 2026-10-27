@@ -18,8 +18,8 @@ TMPDIR="${TMPDIR%/}"
 # pelo caminho que o app usa (i18n), varrendo as chaves nos 29 idiomas.
 set -eu
 cd "$(dirname "$0")/.."
-cc tests/idioma.c src/idioma.c -Isrc -I/opt/homebrew/include \
-   -I/opt/homebrew/include/SDL2 -o ${TMPDIR:-/tmp}/nuvio-idioma-tests \
+cc tests/idioma.c src/idioma.c -Isrc -I/usr/include \
+   -I/usr/include/SDL2 -o ${TMPDIR:-/tmp}/nuvio-idioma-tests \
    -Wno-macro-redefined -Wno-deprecated-declarations
 ${TMPDIR:-/tmp}/nuvio-idioma-tests
 python3 tools/idiomas.py

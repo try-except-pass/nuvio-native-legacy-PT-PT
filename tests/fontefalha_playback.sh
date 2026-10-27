@@ -6,8 +6,8 @@ trap 'rm -rf "$dir"' EXIT
 flags=(-std=gnu11 -O1 -g -Isrc -pthread -Wall -Wextra -Wno-unused-function
        -ffunction-sections -fdata-sections -DNV_LINUX_DESKTOP)
 if [ "$(uname -s)" = Darwin ]; then
-  flags+=(-I/opt/homebrew/include -I/opt/homebrew/include/SDL2)
-  linker=(-Wl,-dead_strip)
+  flags+=(-I/usr/include -I/usr/include/SDL2)
+  linker=(-ffunction-sections -fdata-sections -Wl,--gc-sections)
 else
   linker=(-Wl,--gc-sections)
   if pkg-config --exists sdl2; then

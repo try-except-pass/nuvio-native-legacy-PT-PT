@@ -1,0 +1,72 @@
+In file included from tests/arte_recomendacao.c:46:
+/tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc: In function ‘deMeta’:
+/tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc:137:48: warning: ‘%s’ directive output may be truncated writing up to 2047 bytes into a region of size 512 [-Wformat-truncation=]
+  137 |     snprintf(d->backdrop, sizeof d->backdrop, "%s", d->poster);
+      |                                                ^~
+In file included from /usr/include/stdio.h:980,
+                 from src/addonurl.h:42,
+                 from src/catalogo.h:11,
+                 from tests/arte_recomendacao.c:4:
+In function ‘snprintf’,
+    inlined from ‘deMeta’ at /tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc:137:5:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 2048 bytes into a destination of size 512
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+/tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc: In function ‘deMeta’:
+/tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc:161:42: warning: ‘%s’ directive output may be truncated writing up to 15 bytes into a region of size 8 [-Wformat-truncation=]
+  161 |       snprintf(d->tipo, sizeof d->tipo, "%s", proprio);
+      |                                          ^~   ~~~~~~~
+In function ‘snprintf’,
+    inlined from ‘deMeta’ at /tmp/nvtestes.r1BgR1/arte_recomendacao.2GTd3i/nuvio-arte-recomendacao.5b21Cd/arte_recomendacao.inc:161:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin_snprintf’ output between 1 and 16 bytes into a destination of size 8
+   54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   55 |                                    __glibc_objsize (__s), __fmt,
+      |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   56 |                                    __va_arg_pack ());
+      |                                    ~~~~~~~~~~~~~~~~~
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  recommendation poster alias is temporary portrait artwork
+ok  synopsis-ready seed receives its real metadata backdrop
+ok  recommendation seed and late metadata upgrade the visible detail art
+ok  upgraded landscape uses backdrop layout
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  poster classification works before the first drawing call
+ok  poster alias remains stable while metadata is pending
+ok  pending poster uses contained layout instead of stretched cover
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  genuine opening backdrop stays frozen after later enrichment
+ok  real landscape is never classified as a temporary poster
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  explicit custom artwork wins over the recommendation seed
+ok  custom landscape classification follows the selected URL
+ok  late metadata cannot replace user-chosen artwork
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  empty backdrop retains the existing IMDb fallback policy
+ok  fallback landscape is not classified from an unrelated poster field
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  art-only completion preserves existing synopsis, logo, metadata, identity and poster
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  metadata cannot replace an existing genuine backdrop
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  enabled addon artwork preference protects its existing image
+ok  disabled addon artwork preference permits missing-art completion
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  another poster-only metadata response does not replace the seed
+ok  missing metadata leaves the existing title unchanged
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  text-ready title with no backdrop receives the missing landscape
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  first metadata response can supply text while artwork remains a poster seed
+ok  a later metadata provider completes artwork after synopsis was already filled
+ok  late artwork preserves metadata filled by the first provider
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  existing addon logo remains protected during shallow completion
+[desc] sob demanda tt9999901 com semente, indice 0
+ok  replaced poster metadata cannot reclassify the frozen old portrait as a landscape
+ok  artwork preview still overrides frozen art as a backdrop
+arte_recomendacao: 27 checks passed

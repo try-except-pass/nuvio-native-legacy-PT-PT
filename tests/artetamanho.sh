@@ -20,12 +20,12 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 # Cada tamanho do TMDB com a largura real dele (a "original" em 1600).
-sips -z 439 780 tests/amostra.jpg --out ${TMPDIR:-/tmp}/nuvio-texvariante-780.jpg >/dev/null
-sips -z 720 1280 tests/amostra.jpg --out ${TMPDIR:-/tmp}/nuvio-texvariante-1280.jpg >/dev/null
-sips -z 900 1600 tests/amostra.jpg --out ${TMPDIR:-/tmp}/nuvio-texvariante-1600.jpg >/dev/null
+ffmpeg -nostdin -loglevel error -y -i tests/amostra.jpg -vf scale=780:439 ${TMPDIR:-/tmp}/nuvio-texvariante-780.jpg >/dev/null
+ffmpeg -nostdin -loglevel error -y -i tests/amostra.jpg -vf scale=1280:720 ${TMPDIR:-/tmp}/nuvio-texvariante-1280.jpg >/dev/null
+ffmpeg -nostdin -loglevel error -y -i tests/amostra.jpg -vf scale=1600:900 ${TMPDIR:-/tmp}/nuvio-texvariante-1600.jpg >/dev/null
 cc ${flags[@]+"${flags[@]}"} "${sources[@]}" tests/texvariante.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-texvariante \
-  -O1 -g -Wall -Wextra -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -Wall -Wextra -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-texvariante ${TMPDIR:-/tmp}/nuvio-texvariante-780.jpg \
   ${TMPDIR:-/tmp}/nuvio-texvariante-1280.jpg ${TMPDIR:-/tmp}/nuvio-texvariante-1600.jpg

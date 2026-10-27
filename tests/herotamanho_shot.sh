@@ -2,8 +2,8 @@
 # Capture all hero sizes with glass off, using the existing local-art harness.
 set -eu
 cd "$(dirname "$0")/.."
-output=/Volumes/ExternalSSD/tmp/rev/herotamanho-png
-fixtures=/Volumes/ExternalSSD/tmp/rev/imersiva/v2/assets/fixtures
+output=${TMPDIR:-/tmp}/rev/herotamanho-png
+fixtures=${TMPDIR:-/tmp}/rev/imersiva/v2/assets/fixtures
 mkdir -p "$output"
 shot_data=$(mktemp -d "${TMPDIR:-/tmp}/herotamanho-shot.XXXXXX")
 trap 'rm -rf "$shot_data"' EXIT
@@ -18,8 +18,8 @@ cc "${sources[@]}" tests/herologo_shot.c -Isrc -DNV_TOUCH_UI -DNV_SHOT_HOOKS \
   -DNV_SUPABASE_URL='""' -DNV_SUPABASE_ANON_KEY='""' -DNV_TV_LOGIN_BASE='""' \
   -DNV_TRAKT_CLIENT_ID='""' -DNV_TRAKT_CLIENT_SECRET='""' \
   -DNV_SIMKL_CLIENT_ID='""' -DNV_SIMKL_APP='""' -DNV_TMDB_API_KEY='""' \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 for layout in 0 1 2; do
   for size in 0 1 2; do

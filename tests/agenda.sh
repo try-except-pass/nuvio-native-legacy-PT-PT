@@ -24,7 +24,7 @@ done
 # src/agenda.c e INCLUIDO pelo teste: `lerCorpoTv` e estatico e e o parse de
 # verdade, o mesmo que extras.c executa com o corpo vindo da rede.
 cc "${sources[@]}" tests/agenda.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-agenda \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-agenda "$@"

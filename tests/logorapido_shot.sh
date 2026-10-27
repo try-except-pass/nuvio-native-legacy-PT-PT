@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 mkdir -p "$1"
 OBJ=${OBJ:-${TMPDIR:-/tmp}/nuvio-logorapido-obj}
 mkdir -p "$OBJ"
-flags=(-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wno-deprecated-declarations)
+flags=(-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -Wno-deprecated-declarations)
 objs=()
 pids=()
 for s in src/*.c src/dts/*.c; do
@@ -22,5 +22,5 @@ for s in src/*.c src/dts/*.c; do
 done
 for p in ${pids[@]+"${pids[@]}"}; do wait "$p"; done
 cc "${flags[@]}" tests/logorapido_shot.c "${objs[@]}" -o "$OBJ/shot" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 "$OBJ/shot" "$@"

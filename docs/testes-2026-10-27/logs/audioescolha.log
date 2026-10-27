@@ -1,0 +1,50 @@
+ok   preferred English: the AC-3 one, not the DTS one
+ok   preferred Swedish exists only in TrueHD: TrueHD (it converts)
+ok   Swedish TrueHD the target cannot play: the second language, English AC-3
+ok   neither preferred language in the file: the original (Japanese)
+ok   nothing matches: -1, the file's choice stays
+ok   no preference at all: -1
+ok   a sentinel never matches a track
+ok   picked English DTS by hand earlier: English DTS again (label with the arrow still matches)
+ok   another source, eng AC-3 picked: en AC-3 here
+ok   picked French earlier, no French here: the preferences decide (Japanese)
+ok   unlabelled track picked by hand: same label again
+ok   same bingeGroup: the exact track picked by hand (the second Japanese)
+ok   another bingeGroup: track numbers mean nothing, the first Japanese
+ok   no bingeGroup known: the first Japanese
+ok   same bingeGroup but track 3 is now English: never the wrong language, the Japanese one
+ok   exact track the target cannot play: the playable Japanese
+ok   remembered without bingeGroup, source without one: no exact track, the first Japanese
+ok   DTS/TrueHD detector
+[audio] escolha a mao lembrada neste titulo: en (English)
+ok   remembered on this title
+ok   same title again (source switch, reopen, next episode): still remembered
+[audio] outro titulo: a faixa escolhida a mao no anterior nao vale aqui
+ok   another title: forgotten
+ok   second audio language from the account
+ok   first one chosen on this TV: the account's second does not apply
+ok   second chosen on this TV
+ok   account sentinel ORIGINAL: no second language
+ok   only a Portuguese track on an English title: dub
+ok   has the English track: plays
+ok   an untagged track: cannot tell, plays
+ok   unknown original language: plays
+ok   no-speech title: plays
+ok   Portuguese original, Brazilian-tagged track: same original
+ok   Japanese original, only pt+en: dub
+[audio] fonte sem audio original (en): pulando (1 de 6)
+[audio] fonte sem audio original (en): pulando (2 de 6)
+[audio] fonte sem audio original (en): pulando (3 de 6)
+[audio] fonte sem audio original (en): pulando (4 de 6)
+[audio] fonte sem audio original (en): pulando (5 de 6)
+[audio] fonte sem audio original (en): pulando (6 de 6)
+[audio] 6 fontes seguidas sem audio original: esta toca assim mesmo
+[audio] 6 fontes seguidas sem audio original: esta toca assim mesmo
+ok   skips at most AUDIOESC_PULOS_MAX dubbed sources in a row
+ok   an original source plays and resets the count
+[audio] fonte sem audio original (en): pulando (1 de 6)
+ok   skipping works again after a good source
+[audio] escolha a mao lembrada neste titulo: por (Portugues)
+ok   a track chosen by hand on this title: never skipped
+[audio] outro titulo: a faixa escolhida a mao no anterior nao vale aqui
+audioescolha: ok

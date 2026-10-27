@@ -1,0 +1,45 @@
+reserva CJK: 1 fonte(s), 1a deploy/app/fonts/DroidSansFallback-Subset.ttf
+reserva CJK-sc: 1 fonte(s), 1a deploy/app/fonts/DroidSansFallback-Subset.ttf
+reserva CJK-tc: 1 fonte(s), 1a deploy/app/fonts/DroidSansFallback-Subset.ttf
+reserva arabe: 2 fonte(s), 1a deploy/app/fonts/NotoSansArabic-Regular-Subset.ttf
+reserva tailandes: 1 fonte(s), 1a deploy/app/fonts/NotoSansThai-Regular.ttf
+reserva resto: 0 fonte(s)
+[t] 1491918 fontes: inicio
+fonte: Inter (200 estilos, 3 arquivos)
+[t] 1491931 fontes: prontas
+[tex] orcamento de texturas: 192 MB (perfiltv.c (RAM); MemTotal=7944 MB)
+[tex] padrao do aparelho: 192 MB, 4 fios de rede, heroi 1920 px (RAM 7944 MB)
+[ajustes] aparencia -> Da arte + Cor da logo + Frost, sem vidro (migracao unica da 2.0)
+[ajustes] profundidade -> reflexo do foco ligado, 100% (migracao unica da 2.0.5)
+[ui] tamanho automatico: 0" -> 100%
+[ajustes] opcao 53 ("Brilho da borda") aparece 0 vez(es) em TELA
+[ajustes] opcao 55 ("Cobertura da borda") aparece 0 vez(es) em TELA
+[ajustes] opcao 56 ("Profundidade nos pôsteres") aparece 0 vez(es) em TELA
+[ajustes] opcao 57 ("Profundidade no "Continuar"") aparece 0 vez(es) em TELA
+[ajustes] opcao 58 ("Profundidade nos episódios") aparece 0 vez(es) em TELA
+[ajustes] opcao 59 ("Profundidade no elenco") aparece 0 vez(es) em TELA
+[ajustes] opcao 60 ("Profundidade nos trailers") aparece 0 vez(es) em TELA
+[ajustes] opcao 235 ("Títulos da vitrine") aparece 0 vez(es) em TELA
+[ajustes] opcao 397 ("Limpar cache") aparece 0 vez(es) em TELA
+[ajustes] opcao 399 ("Dolby Vision P7 para P8.1 (experimental)") aparece 0 vez(es) em TELA
+[selos] perfil 1: 0 pacote(s), ativo: Do Nuvio
+[extras] mdblist ausente
+[selos] embutidos: padrao 96, colorido 31 filtros
+catalogo: 40 ids
+catalogo: 167 episodios
+catalogo: 40 titulos, 14 com elenco (item0: 3 atores, dir='')
+home: 40 backdrops, 40 posters, 3 fileiras
+[perf] cat_definir_tudo: 0 itens, fora da trava 0.0 ms, DENTRO da trava 0.0 ms, progresso do disco 0.0 ms (fora da trava), total 0.0 ms
+[tex] mip=gpu GL_RENDERER=llvmpipe (LLVM 20.1.2, 256 bits) GL_VERSION=OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4
+[home] 1 fileiras na tela (limite 7, 0 fileira(s) no catalogo; fora da tela: off on TV 0, off on account 0, queued 0, out 0, over limit 0)
+[hero] pre-busca vizinho anterior hash=ef78303aaf20f221
+[hero] pre-busca vizinho proximo hash=d86fe3cd9087e087
+[hero] pre-busca nao saiu: alvo=-1 desejado=-1 autoDesligado=0 segurando=0 tocando=0 focoHero=1 ocio=0 lista=10
+[jpeg] decode escalado: sem libjpeg, fica o IMG_Load
+[cor] extracao: 133 us (1280x720, com cor)
+[home] 1 fileiras na tela (limite 7, 0 fileira(s) no catalogo; fora da tela: off on TV 0, off on account 0, queued 0, out 0, over limit 0)
+[tex-trace] upload-stages hash=ef78303aaf20f221 pixels_ms=2 mip_ms=0 warm_ms=25
+[tex-trace] upload-total hash=ef78303aaf20f221 total_ms=76 gl_ms=27 bytes=3686400 mip=0 queue=56
+[tex-trace] upload-stages hash=d86fe3cd9087e087 pixels_ms=19 mip_ms=0 warm_ms=0
+[tex-trace] upload-total hash=d86fe3cd9087e087 total_ms=22 gl_ms=19 bytes=5760000 mip=0 queue=114
+ok: 300 quadros da Home com o catalogo vazio

@@ -16,8 +16,8 @@ b = s.index('\nvoid player_voltar_a_esperar(', a)
 Path(sys.argv[1]).write_text(s[a:b])
 PY
 cc ${flags[@]+"${flags[@]}"} tests/legpre.c src/legenda.c src/assrender.c -I"$work" \
-  -Isrc -Itests -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -std=gnu11 -g -O1 -pthread -lm -ffunction-sections -fdata-sections -Wl,-dead_strip \
+  -Isrc -Itests -I/usr/include -I/usr/include/SDL2 \
+  -std=gnu11 -g -O1 -pthread -lm -ffunction-sections -fdata-sections -ffunction-sections -fdata-sections -Wl,--gc-sections \
   -Wall -Wextra -Wno-unused-function -Wno-macro-redefined -Wno-missing-field-initializers \
   -o "$work/t"
 "$work/t"

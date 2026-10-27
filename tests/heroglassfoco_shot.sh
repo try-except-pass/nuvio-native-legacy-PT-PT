@@ -2,7 +2,7 @@
 # Focused Moderna hero, actual baseline/current sources, glass setter, local art.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-out="${1:-/Volumes/ExternalSSD/tmp/rev/heroglassfoco-png/v2}"
+out="${1:-${TMPDIR:-/tmp}/rev/heroglassfoco-png/v2}"
 mkdir -p "$out"
 work=$(mktemp -d "${TMPDIR:-/tmp}/nuvio-homelayouts-shot.XXXXXX")
 trap 'rm -rf "$work"' EXIT
@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 work = Path(sys.argv[1])
-flags = ['-O1', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2',
+flags = ['-O1', '-I/usr/include', '-I/usr/include/SDL2',
          '-Wno-deprecated-declarations', '-Wno-macro-redefined']
 for name, root in [('before', work), ('after', Path.cwd())]:
     objects = work / name
@@ -37,8 +37,8 @@ for name, root in [('before', work), ('after', Path.cwd())]:
     with ThreadPoolExecutor(max_workers=8) as pool:
         compiled = list(pool.map(compile, sources))
     subprocess.run(['cc', *compiled, '-o', str(work / (name + '-shot')),
-                    '-L/opt/homebrew/lib', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf',
-                    '-lz', '-framework', 'OpenGL'], check=True)
+                    '-L/usr/lib/x86_64-linux-gnu', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf',
+                    '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl'], check=True)
 PY
 for version in before after; do
   for theme in 2 16; do

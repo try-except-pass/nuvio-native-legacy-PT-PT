@@ -1,0 +1,21 @@
+[atividade] reacao tt123 T0E0 0% 0s
+revogar: posts=0 (esperado 0), fila=0
+revogar: PASS
+[atividade] reacao tt123 T0E0 0% 0s
+perfil: posts=0 (esperado 0), fila=1
+perfil: PASS
+[atividade] reacao tt123 T0E0 0% 0s
+conta: posts=0 (esperado 0), fila=1
+conta: PASS
+[atividade] reacao tt123 T0E0 0% 0s
+recarregar: posts=0 (esperado 0), fila=1
+recarregar: PASS
+[atividade] reacao tt123 T0E0 0% 0s
+[atividade] reacao tt123 T0E0 0% 0s
+revogar-repor: posts=0 (esperado 0), fila=1
+revogar-repor: PASS
+[atividade] reacao tt123 T0E0 0% 0s
+POST permitido=1 X-Nuvio-Perfil: 1 corpo={"ev":"reacao","imdb":"tt123","midia":"movie","titulo":"perfil 1","poster":"","temporada":0,"episodio":0,"pct":0,"seg":0,"reacao":1,"rec":0}
+[atividade] envio HTTP 200
+normal: posts=1 (esperado 1), fila=0
+normal: PASS

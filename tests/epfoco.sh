@@ -5,7 +5,7 @@
 #   bash tests/epfoco.sh        rc=0 passes; < 50 s with a warm object cache
 set -eu
 cd "$(dirname "$0")/.."
-OUT=/Volumes/ExternalSSD/tmp/epfoco
+OUT=${TMPDIR:-/tmp}/epfoco
 export TMPDIR="$OUT/tmp" OBJ="$OUT/obj"
 mkdir -p "$TMPDIR" "$OBJ"
 export NUVIO_SHOT_VIDRO=1 NUVIO_SHOT_VIDRO_FOSCO=1 NUVIO_SHOT_LAYOUT=0 NUVIO_SHOT_FUNDO=2

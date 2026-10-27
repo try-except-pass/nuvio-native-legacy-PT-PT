@@ -25,8 +25,8 @@ done
 # -DNV_DADOS_TRAVA_TESTE: a trava de arquivos do Tizen, que no Mac e no-op.
 # Trava dupla no mesmo fio aborta (issue #113: congelava a Samsung).
 cc "${sources[@]}" tests/diagnostico_fluxo.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-diagnostico-fluxo \
-  -DNV_DADOS_TRAVA_TESTE -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -DNV_DADOS_TRAVA_TESTE -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-diagnostico-fluxo | grep '^ok'
 

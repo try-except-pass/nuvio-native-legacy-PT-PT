@@ -23,14 +23,14 @@ cc ${flags[@]+"${flags[@]}"} src/cwordem.c src/cwretido.c tests/cwordem.c -Isrc 
 "$out/nuvio-cwordem-tests"
 cc ${flags[@]+"${flags[@]}"} src/catalogo.c src/progresso.c src/cwordem.c src/cwretido.c tests/cwordem_desc.c \
   src/cotacat.c src/js.c src/metaprov.c src/colecoes.c src/redeurl.c src/catordem.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -o "$out/nuvio-cwordem-desc-tests" -O1 -g \
   -Wall -Wno-deprecated-declarations -Wno-macro-redefined -Wno-unused-function
 "$out/nuvio-cwordem-desc-tests"
 cc ${flags[@]+"${flags[@]}"} src/catalogo.c src/progresso.c src/focus.c src/ajustes.c src/ajlog.c src/posterprov.c src/redeurl.c src/colecoes.c \
   src/js.c src/metaprov.c src/catordem.c src/fileiras.c src/artehero.c src/cwordem.c src/cwretido.c src/fonteregra.c src/regexjs.c src/curadoria.c tests/cwordem_home.c tests/amigosfil_stub.c \
   -Isrc -DCURADORIA_TESTE -o "$out/nuvio-cwordem-home-tests" -O1 -g -ffunction-sections -fdata-sections \
-  -Wl,-dead_strip -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
+  -ffunction-sections -fdata-sections -Wl,--gc-sections -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -Wno-deprecated-declarations -Wno-macro-redefined
 "$out/nuvio-cwordem-home-tests"
 echo "cwordem: tudo ok"

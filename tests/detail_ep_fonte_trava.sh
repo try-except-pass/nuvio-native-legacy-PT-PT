@@ -10,7 +10,7 @@ set -eu
 cd "$(dirname "$0")/.."
 # Catch reads of the episode outputs before the request getter initializes them.
 cc -fsyntax-only -O1 -Werror=uninitialized -Isrc \
-  -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -I/usr/include -I/usr/include/SDL2 \
   -Wno-deprecated-declarations -Wno-macro-redefined src/app.c
 sources=()
 for source in src/*.c src/dts/*.c; do
@@ -18,7 +18,7 @@ for source in src/*.c src/dts/*.c; do
   sources+=("$source")
 done
 cc "${sources[@]}" tests/detail_ep_fonte_trava.c -Isrc -o ${TMPDIR:-/tmp}/nuvio-detail-eptrava-tests \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined
 ${TMPDIR:-/tmp}/nuvio-detail-eptrava-tests

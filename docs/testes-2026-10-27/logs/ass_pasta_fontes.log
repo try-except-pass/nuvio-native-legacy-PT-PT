@@ -1,0 +1,6 @@
+tests/ass_pasta_fontes.c: In function ‘main’:
+tests/ass_pasta_fontes.c:40:15: warning: unused variable ‘tmp’ [-Wunused-variable]
+   40 |   const char *tmp = getenv("TMPDIR");
+      |               ^~~
+  1 fonte(s), 2 ignorado(s), ultima=InterDisplay-Regular.ttf
+ass_pasta_fontes: tudo ok

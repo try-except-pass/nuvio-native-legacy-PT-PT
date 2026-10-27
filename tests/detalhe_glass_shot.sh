@@ -22,7 +22,7 @@ mkdir -p "$OBJ" "$1"
 NUVIO_DADOS=$(mktemp -d ${TMPDIR:-/tmp}/nuvio-detglass-dados.XXXXXX)
 export NUVIO_DADOS
 trap 'rm -rf "$NUVIO_DADOS"' EXIT
-FL="-O1 -g -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined"
+FL="-O1 -g -Isrc -I/usr/include -I/usr/include/SDL2 -Wall -Wextra -Wno-deprecated-declarations -Wno-macro-redefined"
 if [ -n "${NUVIO_C9_CACHE:-}" ]; then FL="$FL -DNV_SHOT_HOOKS"; fi
 objs=()
 pids=()
@@ -64,5 +64,5 @@ if [ -n "${NUVIO_DETAIL_SOURCE:-}" ]; then
   shot_extra+=("-DNV_DETAIL_SOURCE=\"$NUVIO_DETAIL_SOURCE\"")
 fi
 cc $FL "${shot_extra[@]}" tests/detalhe_glass_shot.c "${objs[@]}" -o "$OBJ/shot" \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl
 "$OBJ/shot" "$@"

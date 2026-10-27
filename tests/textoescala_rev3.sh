@@ -6,7 +6,7 @@ python3 - <<'PY'
 import concurrent.futures, pathlib, subprocess, tempfile, time, os, signal, shutil
 start = time.monotonic()
 work = pathlib.Path(tempfile.mkdtemp(prefix='nv-rev3-'))
-flags = ['-O0', '-w', '-Isrc', '-I/opt/homebrew/include', '-I/opt/homebrew/include/SDL2']
+flags = ['-O0', '-w', '-Isrc', '-I/usr/include', '-I/usr/include/SDL2']
 sources = [p for p in pathlib.Path('src').glob('*.c') if p.name not in ('main.c','ajustes.c','busca.c')]
 sources += list(pathlib.Path('src/dts').glob('*.c'))
 sources += [pathlib.Path('tests/textoescala_rev3_settings.c'), pathlib.Path('tests/textoescala_layout_search.c'), pathlib.Path('tests/textoescala_rev3.c')]
@@ -25,7 +25,7 @@ def compile(p):
     return str(obj)
 with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
     objects = list(pool.map(compile, sources))
-run(['cc', *objects, '-L/opt/homebrew/lib', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-framework', 'OpenGL', '-o', str(work/'test')])
+run(['cc', *objects, '-L/usr/lib/x86_64-linux-gnu', '-lSDL2', '-lSDL2_image', '-lSDL2_ttf', '-lz', '-lGLESv2', '-lEGL', '-lm', '-lpthread', '-ldl', '-o', str(work/'test')])
 rc = subprocess.run([str(work/'test'), str(work)], timeout=max(1, 47-(time.monotonic()-start))).returncode
 print(f'runtime rc={rc}; elapsed={time.monotonic()-start:.1f}s')
 if rc == 0:

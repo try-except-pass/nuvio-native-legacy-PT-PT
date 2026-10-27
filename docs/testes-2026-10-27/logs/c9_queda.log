@@ -1,0 +1,13 @@
+tests/c9_queda.c: In function ‘main’:
+tests/c9_queda.c:68:10: error: variable ‘machine’ has initializer but incomplete type
+   68 |   struct __darwin_mcontext64 machine = {0};
+      |          ^~~~~~~~~~~~~~~~~~~
+tests/c9_queda.c:68:41: error: excess elements in struct initializer [-Werror]
+   68 |   struct __darwin_mcontext64 machine = {0};
+      |                                         ^
+tests/c9_queda.c:68:41: note: (near initialization for ‘machine’)
+tests/c9_queda.c:68:30: error: storage size of ‘machine’ isn’t known
+   68 |   struct __darwin_mcontext64 machine = {0};
+      |                              ^~~~~~~
+tests/c9_queda.c:68:30: error: unused variable ‘machine’ [-Werror=unused-variable]
+cc1: all warnings being treated as errors

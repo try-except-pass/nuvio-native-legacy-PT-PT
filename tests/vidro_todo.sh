@@ -52,8 +52,8 @@ for source in "$raiz"/src/*.c "$raiz"/src/dts/*.c; do
   [ "$source" != "$raiz/src/main.c" ] && sources+=("$source")
 done
 if cc "${sources[@]}" "$t/vidro_todo.c" -I"$raiz/src" -o "$work/test" \
-  -O1 -g -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
-  -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lz -framework OpenGL \
+  -O1 -g -I/usr/include -I/usr/include/SDL2 \
+  -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image -lSDL2_ttf -lz -lGLESv2 -lEGL -lm -lpthread -ldl \
   -Wno-deprecated-declarations -Wno-macro-redefined >"$work/cc.log" 2>&1; then
   mkdir -p "$work/dados"
   (cd "$raiz" && NUVIO_DADOS="$work/dados" NUVIO_TESTE_DIR="$work/dados" "$work/test") || fail=1

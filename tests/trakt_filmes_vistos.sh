@@ -7,7 +7,7 @@ trap 'rm -rf "$dir"' EXIT
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 cc ${flags[@]+"${flags[@]}"} -DNV_DUBLE_SESSAO tests/trakt_filmes_vistos.c src/js.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 \
+  -Isrc -I/usr/include -I/usr/include/SDL2 \
   -o "$dir/teste" -O1 -g -Wall -Wextra -ffunction-sections -fdata-sections \
-  -Wl,-dead_strip -lpthread
+  -ffunction-sections -fdata-sections -Wl,--gc-sections -lpthread
 "$dir/teste"

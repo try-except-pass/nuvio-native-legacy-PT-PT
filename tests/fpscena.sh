@@ -7,7 +7,7 @@ trap 'rm -rf "$tmp"' EXIT
 flags=()
 if [ "${SANITIZE:-0}" = 1 ]; then flags+=(-fsanitize=address,undefined -fno-omit-frame-pointer); fi
 cc ${flags[@]+"${flags[@]}"} -Wall -Wextra -Werror -O2 tests/fpscena.c src/fpscena.c \
-  -Isrc -I/opt/homebrew/include -I/opt/homebrew/include/SDL2 -lm -o "$tmp/t"
+  -Isrc -I/usr/include -I/usr/include/SDL2 -lm -o "$tmp/t"
 "$tmp/t"
 "$tmp/t" --log 16.667 > "$tmp/before.log"
 "$tmp/t" --log 16.667 > "$tmp/after.log"
