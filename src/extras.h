@@ -171,6 +171,8 @@ const char *extras_idioma_original(void);
 // O idioma original de QUALQUER titulo (nao so o da ficha): ver extras.c. "" = ainda nao se sabe;
 // a primeira chamada poe a consulta na fila e uma seguinte ja devolve a resposta.
 const char *extras_idioma_original_de(const char *imdb, int serie);
+// Bloqueia (fio proprio) ate a busca do idioma terminar, `prazoMs` ou `seguir(u)` == 0; depois, o mesmo que _de.
+const char *extras_idioma_original_esperar(const char *imdb, int serie, int prazoMs, int (*seguir)(void *), void *u);
 // 1 = a ficha carregada (ou pedida) e do titulo `imdb` (sufixo de episodio ignorado).
 int extras_e_do_titulo(const char *imdb);
 

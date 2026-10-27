@@ -303,16 +303,29 @@ static void pilManual(Uint32 agora) {
 #define LEG_FALHAS_MAX 4
 static uint64_t legFalhas[LEG_FALHAS_MAX];
 static int nLegFalhas;
+static uint64_t legQuebrada;   // a primeira que chegou com o texto quebrado: volta se nenhuma outra servir
 static int autoTroca(const char *idioma, const uint64_t *tent, int n, int voltar, char *nome, unsigned tamNome);
-static int legendaSeguinte(void) {
+static int legendaSeguinte(int quebrada) {
   char nome[96];
-  if (!pilHash || !pilIdioma[0] || nLegFalhas >= LEG_FALHAS_MAX) return 0;
-  legFalhas[nLegFalhas++] = pilHash;
-  if (!autoTroca(pilIdioma, legFalhas, nLegFalhas, 0, nome, sizeof nome)) return 0;
-  printf("[legenda] nao baixou; tentando outra em '%s' (%d de %d): %s\n", pilIdioma, nLegFalhas,
-         LEG_FALHAS_MAX, nome);
-  fflush(stdout);
-  return 1;
+  int r;
+  if (!pilHash || !pilIdioma[0]) return 0;
+  if (quebrada && !legQuebrada) legQuebrada = pilHash;
+  if (nLegFalhas < LEG_FALHAS_MAX) {
+    legFalhas[nLegFalhas++] = pilHash;
+    if (autoTroca(pilIdioma, legFalhas, nLegFalhas, 0, nome, sizeof nome)) {
+      printf("[legenda] nao baixou; tentando outra em '%s' (%d de %d): %s\n", pilIdioma, nLegFalhas,
+             LEG_FALHAS_MAX, nome);
+      fflush(stdout);
+      return 1;
+    }
+  }
+  // Acabaram as do idioma: a quebrada vence outro idioma e nenhuma (dono, 2026-10-27). Uma volta so.
+  if (!legQuebrada) return 0;
+  legsync_aceitar_quebrada(legQuebrada);
+  r = autoTroca(NULL, &legQuebrada, 1, 1, nome, sizeof nome);
+  legQuebrada = 0;
+  if (r) { printf("[legenda] nenhuma outra em '%s' serviu; fica a de texto quebrado: %s\n", pilIdioma, nome); fflush(stdout); }
+  return r;
 }
 static void pilAtualizar(Uint32 agora) {
   int r;
@@ -328,7 +341,7 @@ static void pilAtualizar(Uint32 agora) {
     if (r & LEGSYNC_PIL_ESCONDEU) pilEsperaHash = pilHash;
     if (r & LEGSYNC_PIL_FINAL_TARDE) { pilHash = pilEsperaHash; pil.rastreia = 0; }
     if (r & LEGSYNC_PIL_LEMBRAR && pilHash) pilLembrar();
-    if (r & LEGSYNC_PIL_BAIXAR) { if (!legendaSeguinte()) { pilFalhaBaixar = 1; pilFalhou(pilIdioma, agora); } return; }
+    if (r & LEGSYNC_PIL_BAIXAR) { if (!legendaSeguinte(v.falhaDownload == 2)) { pilFalhaBaixar = 1; pilFalhou(pilIdioma, agora); } return; }
     if (r & LEGSYNC_PIL_ZERAR) pilZerar();
     return;
   }
@@ -444,7 +457,7 @@ static void reiniciarFaixas(int preservarPrebusca) {
   legOverlayTV = legOverlayColhidos = 0;
   if (!preservarPrebusca) mkvass_parar();
   legenda_desligar(); legenda_pre_reiniciar();
-  legAuto = 1; legAutoDesde = 0; legTentativas = 0; legRetentaEm = 0; nLegFalhas = 0; pilZerar(); pil.espera = 0;
+  legAuto = 1; legAutoDesde = 0; legTentativas = 0; legRetentaEm = 0; nLegFalhas = 0; legQuebrada = 0; legsync_aceitar_quebrada(0); pilZerar(); pil.espera = 0;
   legendasui_reiniciar();   // F04: the second subtitle belongs to the session too
   // #202: speed is per playback: a new title starts at 1x.
   velFoco = 0; velPedidaUi = VEL_NORMAL; video_velocidade(VEL_NORMAL);

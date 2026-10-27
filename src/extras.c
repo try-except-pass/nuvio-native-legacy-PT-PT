@@ -2355,13 +2355,18 @@ const char *extras_idioma_original(void) { return fichaIdiomaOrig; }
 // aparelho) e, enquanto ela nao responde, a ficha do TMDB se for deste titulo. Por fio: o texto e da chamada.
 const char *extras_idioma_original_de(const char *imdb, int serie) {
   static __thread char r[8];
-  idiomaorig_de(imdb, serie, desc_chave_tmdb_reserva(), r);
-  if (!r[0] && extras_e_do_titulo(imdb)) {
+  // SEM = nenhuma fonte achou ("en"): se a ficha aberta tem o idioma, vale o dela.
+  if ((idiomaorig_de(imdb, serie, desc_chave_tmdb_reserva(), r) == IDIOMA_SEM || !r[0]) && extras_e_do_titulo(imdb)) {
     pthread_mutex_lock(&trava);
-    snprintf(r, sizeof r, "%s", fichaIdiomaOrig);
+    if (fichaIdiomaOrig[0]) snprintf(r, sizeof r, "%s", fichaIdiomaOrig);
     pthread_mutex_unlock(&trava);
   }
   return r;
+}
+const char *extras_idioma_original_esperar(const char *imdb, int serie, int prazoMs, int (*seguir)(void *), void *u) {
+  char r[8];
+  idiomaorig_esperar(imdb, serie, desc_chave_tmdb_reserva(), r, prazoMs, seguir, u);
+  return extras_idioma_original_de(imdb, serie);
 }
 // A ficha carregada (ou a caminho) e deste titulo? Compara o id do titulo, sem o sufixo de episodio.
 int extras_e_do_titulo(const char *imdb) {

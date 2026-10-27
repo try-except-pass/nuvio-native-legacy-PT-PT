@@ -357,6 +357,28 @@ int main(int argc, char **argv) {
     puts("PASS: so imagem sem tempo, sem audio, motivo curto na linha de sync e no modo manual");
     legsync_destruir(); return 0;
   }
+  if (getenv("LEGENDA_QUEBRADA")) {
+    // Texto quebrado na origem (U+FFFD): conta como falha (faixas.c tenta outra); marcada como a ultima do
+    // idioma, entra mesmo assim (dono, 2026-10-27: PT-PT quebrada > PT-BR > nenhuma).
+    const char *url = "ext://0/quebrada.srt";
+    char c[700]; FILE *f;
+    snprintf(c, sizeof c, "%s/quebrada.srt", DIR); f = fopen(c, "wb"); assert(f);
+    for (int i = 1; i <= 120; i++)
+      fprintf(f, "%d\n00:%02d:%02d,000 --> 00:%02d:%02d,500\nN\xef\xbf\xbdo quer uma sandu\xef\xbf\xbd" "che %d?\n\n",
+              i, i / 60, i % 60, i / 60, i % 60, i);
+    fclose(f);
+    legsync_teste_auto(0);
+    legsync_iniciar(MKV);
+    legsync_primaria_externa(url, "pt", "Teste");
+    for (int i = 0; i < 2000 && legsync_visao(0).falhaDownload != 2; i++) { passo(MKV, 0); usleep(1000); }
+    assert(legsync_visao(0).falhaDownload == 2);
+    legsync_aceitar_quebrada(legsync_hash_url(url));
+    legsync_primaria_externa(url, "pt", "Teste");
+    v = esperarFase(MKV, LEGSYNC_PRONTA);
+    assert(v.falhaDownload == 0);
+    puts("PASS: legenda quebrada recusada; a ultima do idioma entra quebrada");
+    legsync_destruir(); return 0;
+  }
   if (getenv("TCL_CASO")) { regressaoTcl(atoi(getenv("TCL_CASO"))); return 0; }
   legsync_teste_auto(0);   // as secoes 1..11 testam as ACOES manuais; o automatico e a secao 12
 

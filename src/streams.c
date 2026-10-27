@@ -2631,6 +2631,7 @@ int stream_falha_aplicar(int indice, unsigned geracao, int servico, const char *
                                    nv_perfil_sessao_ler());
 }
 
+static int sessaoSegue(void *u) { return nv_perfil_sessao_atual(*(uint64_t *)u); }
 int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   int fila[VER_MAX], nf, q, tocadas = 0, escolhida, total, pref, livres = 0, kk;
   int motivos[MOT_N] = {0};
@@ -2643,10 +2644,13 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   fontefalha_filtro(&c.filtro);
   Uint32 tVerif = 0;
   tentativas = fonteauto_tentativas(modo, tentativas);
-  // "Original" com o idioma ainda a caminho (titulo nunca visto, Play logo de cara): espera ate 1,5 s pela
-  // resposta do TMDB (~0,15-1,5 s, tests/idiomaorig_cache) em vez de escolher sem idioma. Este fio pode esperar.
-  if (ling_audio_e_original())
-    for (int k = 0; k < 15 && !idiomaAudioPedido()[0]; k++) SDL_Delay(100);
+  // "Original": A FONTE SO E ESCOLHIDA DEPOIS DA BUSCA DO IDIOMA (dono, 2026-10-27). Ainda nao feita ou a
+  // correr, espera ela acabar; sem resposta, ingles. 10 s e so o teto para algo quebrado. Este fio pode esperar.
+  if (ling_audio_e_original() && alvoLista[0]) {
+    char alvo[64];
+    snprintf(alvo, sizeof alvo, "%s", alvoLista);
+    extras_idioma_original_esperar(alvo, strchr(alvo, ':') != NULL, 10000, sessaoSegue, &sessao);
+  }
   pthread_mutex_lock(&verTrava);
   if (!nv_perfil_sessao_atual(sessao)) { pthread_mutex_unlock(&verTrava); return -1; }
   total = n;

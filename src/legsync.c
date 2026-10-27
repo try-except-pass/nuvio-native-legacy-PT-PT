@@ -35,7 +35,8 @@ static struct {
   int primTipo;                   // 0 nenhuma, 1 externa, 2 embutida/nativa
   uint64_t primToken;
   unsigned primGer;
-  int falhaDownload;
+  int falhaDownload;              // 1 nao baixou, 2 baixou com o texto quebrado
+  uint64_t aceitaQuebrada;        // url desta pode entrar mesmo quebrada (a ultima PT-PT, faixas.c)
   int primFase;                   // 0 baixando, 1 pronta e completa, 2 falhou/incompleta
   LegendaDocumento *primDoc;
   char primIdioma[24];
@@ -209,7 +210,7 @@ typedef struct {
 // TEXTO QUEBRADO NA ORIGEM: o arquivo ja chega com "�" (U+FFFD) no lugar dos acentos ("N�o quer levar uma
 // sandu�che?"). Amostra de 125 legendas PT do OpenSubtitles (2026-10-27): 1 assim (Batman Forever, 881 de
 // 1257 linhas), 0 falsos alarmes com este corte; a mesma fila tinha outra PT boa. Conta como download que
-// falhou: faixas.c troca pela seguinte do mesmo idioma.
+// falhou: faixas.c troca pela seguinte do mesmo idioma — e, sem outra, volta a esta (legsync_aceitar_quebrada).
 static int textoQuebrado(const char *c) {
   size_t n = strlen(c), rep = 0;
   for (const char *q = c; (q = strstr(q, "\xef\xbf\xbd")) != NULL; q += 3) rep++;
@@ -221,13 +222,15 @@ static int textoQuebrado(const char *c) {
 static void aoBaixar(const char *corpo, unsigned g, int vigente, void *u) {
   Meta *m = u; LegendaDocumento *doc = NULL, *velho = NULL;
   int quebrado = corpo && textoQuebrado(corpo);
-  if (quebrado) printf("[legenda] texto quebrado na origem (U+FFFD): tentando outra\n");
-  if (corpo && vigente && !quebrado) doc = legenda_documento_criar(corpo, &m->info);
+  if (corpo && vigente) doc = legenda_documento_criar(corpo, &m->info);
   pthread_mutex_lock(&M);
   if (L.criado && m->token == L.primToken) {
     velho = L.primDoc; L.primDoc = NULL;
-    L.falhaDownload = !corpo || quebrado; // recusa do parser de análise não é falha da rede
-    if (doc && (legenda_documento_info(doc)->flags & LEGENDA_DOC_COMPLETO)) {
+    // A ultima PT-PT que sobrou entra quebrada: melhor que PT-BR ou nenhuma (dono, 2026-10-27).
+    if (quebrado && L.primUrlHash && L.primUrlHash == L.aceitaQuebrada) quebrado = 0;
+    else if (quebrado) printf("[legenda] texto quebrado na origem (U+FFFD): tentando outra\n");
+    L.falhaDownload = !corpo ? 1 : quebrado ? 2 : 0; // recusa do parser de análise não é falha da rede
+    if (doc && !quebrado && (legenda_documento_info(doc)->flags & LEGENDA_DOC_COMPLETO)) {
       L.primDoc = legenda_documento_reter(doc); L.primGer = g; L.primFase = 1;
       legenda_documento_dados(doc, &L.primN);
       if (!L.autoTrocou) L.autoOrigN = L.primN;
@@ -285,6 +288,10 @@ void legsync_primaria_externa(const char *url, const char *idioma, const char *o
   legenda_documento_liberar(velho);
   if (m) legenda_carregar_com(url, aoBaixar, m);
   else legenda_carregar(url);
+}
+
+void legsync_aceitar_quebrada(uint64_t urlHash) {
+  pthread_mutex_lock(&M); L.aceitaQuebrada = urlHash; pthread_mutex_unlock(&M);
 }
 
 void legsync_primaria_outra(int embutida) {

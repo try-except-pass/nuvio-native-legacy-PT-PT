@@ -34,3 +34,4 @@ LEGREF_SESSION=1 "$D/t" "$FX"
 if [ -z "${TCL_CASO:-}" ] && [ -z "${AUTOSYNC_PGS:-}" ]; then
   for caso in 1 2 3; do TCL_CASO=$caso "$D/t" "$FX"; done
 fi
+LEGENDA_QUEBRADA=1 "$D/t" "$FX"

@@ -71,7 +71,7 @@ typedef struct {
   // R4 (automatico): 0 sem plano, 1 trabalhando, 2 sincronizou, 3 nao deu.
   int autoFase;
   int autoDesligado;          // ajuste local: sem plano nem pílula automáticos
-  int falhaDownload;          // callback terminou sem corpo; não é um timeout da UI
+  int falhaDownload;          // 1 callback terminou sem corpo, 2 texto quebrado; não é um timeout da UI
   int autoTrocou;             // 1 = a escolhida nao sincronizou e outra legenda entrou no lugar
   char autoNome[64];          // nome da legenda que entrou (autoTrocou)
   // Sync pedido a mao (Rapida/Completa/Audio/Outra): mesmo ciclo da pilula do
@@ -118,6 +118,8 @@ typedef int (*LegSyncTrocador)(const char *idioma, const uint64_t *tentadas, int
                                char *nome, unsigned tamNome);
 void legsync_definir_trocador(LegSyncTrocador t);
 uint64_t legsync_hash_url(const char *url);   // identidade opaca usada em `tentadas`
+// A legenda desta url entra mesmo com o texto quebrado (U+FFFD): a ultima do idioma que sobrou.
+void legsync_aceitar_quebrada(uint64_t urlHash);
 
 int  legsync_acao(int acao);            // 1 = aceita no estado atual
 unsigned legsync_manual_seq(void);      // muda a cada sync pedido a mao (barato: por quadro)

@@ -191,8 +191,10 @@ void idiomaorig_consultar(const char *imdb, int serie, const char *chaveTmdb, Id
 #define IO_SLOTS 8192   // potencia de 2; cheia, os titulos novos so ficam sem cache (consulta de novo)
 #define IO_URG 32
 #define IO_FUNDO 2048
-#define IO_FIOS 2
-typedef struct { char id[24]; char lang[8]; unsigned char estado; } IoSlot;   // estado: 0 vazio, 1 na fila, 2 provisorio, 3 final
+#define IO_FIOS 3
+// estado: IDIOMA_NUNCA, _FILA, _CORRENDO (lang = a do TMDB, provisoria, ou ""), _ACHADO, _SEM (todas falharam: "en").
+// urg: 1 na fila urgente, 2 a cadeia urgente ja corre (nao entra de novo a cada quadro).
+typedef struct { char id[24]; char lang[8]; unsigned char estado, urg; } IoSlot;
 typedef struct { char id[24]; int serie; } IoPedido;
 static IoSlot ioTab[IO_SLOTS];
 static pthread_mutex_t ioTrava = PTHREAD_MUTEX_INITIALIZER;
@@ -271,10 +273,11 @@ static void tmdbOriginal(long tmdb, int serie, const char *chave, IdiomaOrig *r)
 static void ioGuardar(const char *id, const char *lang, int final) {
   IoSlot *s;
   pthread_mutex_lock(&ioTrava);
-  if ((s = ioSlot(id)) != NULL && s->estado < 3) {
-    snprintf(s->lang, sizeof s->lang, "%s", lang);
-    // Sem resposta nenhuma (rede caida) nao vira final: a proxima vez consulta de novo.
-    s->estado = final ? (lang[0] ? 3 : 0) : 2;
+  if ((s = ioSlot(id)) != NULL && s->estado < IDIOMA_ACHADO) {
+    // Todas as fontes falharam: tentou-se, e fica o ingles (dono, 2026-10-27). So na memoria: o proximo
+    // arranque tenta de novo (pode ter sido a rede).
+    snprintf(s->lang, sizeof s->lang, "%s", final && !lang[0] ? "en" : lang);
+    s->estado = final ? (lang[0] ? IDIOMA_ACHADO : IDIOMA_SEM) : IDIOMA_CORRENDO;
     if (final && lang[0] && ioArquivo[0]) {
       FILE *f = fopen(ioArquivo, "a");
       if (f) { fprintf(f, "%s\t%s\n", id, lang); fclose(f); }
@@ -289,38 +292,62 @@ static void ioGuardar(const char *id, const char *lang, int final) {
 typedef struct { IoPedido p; IdiomaOrig r; } IoWd;
 static IoWd ioWd[IO_FUNDO];
 static int ioWdIni, ioWdN;
-static pthread_cond_t ioWdSinal = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t ioWdSinal = PTHREAD_COND_INITIALIZER, ioUrgSinal = PTHREAD_COND_INITIALIZER;
 
+// Etapa 1: o original_language do TMDB (provisorio).
+static void ioEtapaTmdb(const IoPedido *p, IdiomaOrig *r) {
+  char chave[80];
+  long tmdb = !strncmp(p->id, "tmdb:", 5) ? atol(p->id + 5) : 0;
+  pthread_mutex_lock(&ioTrava); snprintf(chave, sizeof chave, "%s", ioChaveTmdb); pthread_mutex_unlock(&ioTrava);
+  memset(r, 0, sizeof *r);
+  if (!chave[0]) return;
+  if (tmdb) tmdbOriginal(tmdb, p->serie, chave, r);
+  else tmdbFind(p->id, p->serie, chave, r);
+  if (r->lang[IO_TMDB_FIND][0]) ioGuardar(p->id, r->lang[IO_TMDB_FIND], 0);
+}
+// Etapa 2: idioma falado, Wikidata (+1 tentativa), Cinemeta, decisao, resposta final.
+static void ioEtapaFinal(const IoPedido *p, IdiomaOrig *r) {
+  char chave[80];
+  long tmdb = !strncmp(p->id, "tmdb:", 5) ? atol(p->id + 5) : 0;
+  pthread_mutex_lock(&ioTrava); snprintf(chave, sizeof chave, "%s", ioChaveTmdb); pthread_mutex_unlock(&ioTrava);
+  if (chave[0]) tmdbDetalhes(p->serie, chave, r);   // so a decisao precisa do idioma falado
+  if (tmdb) wikidataTmdb(tmdb, p->serie, r);
+  else wikidata(p->id, r);
+  // Os 2 erros que sobraram nas amostras eram o Wikidata estourando o prazo: uma segunda tentativa.
+  if (!r->wdTodas[0] && r->ms[IO_WIKIDATA] >= IO_PRAZO_S * 1000 - 100) {
+    if (tmdb) wikidataTmdb(tmdb, p->serie, r); else wikidata(p->id, r);
+  }
+  if (!tmdb && !r->lang[IO_TMDB_FIND][0] && !r->lang[IO_WIKIDATA][0]) cinemeta(p->id, p->serie, r);
+  idiomaorig_decidir(r);
+  printf("[idioma-orig] %s: %s (tmdb=%s %dms, wikidata=%s %dms)\n", p->id, r->final[0] ? r->final : "nenhuma; fica en",
+         r->lang[IO_TMDB_FIND][0] ? r->lang[IO_TMDB_FIND] : "-", r->ms[IO_TMDB_FIND],
+         r->wdTodas[0] ? r->wdTodas : "-", r->ms[IO_WIKIDATA]);
+  fflush(stdout);
+  ioGuardar(p->id, r->final, 1);
+}
+
+// TRES FIOS. O do fundo (TMDB) e o do Wikidata do fundo andam a lista do catalogo; o URGENTE (o que a pessoa
+// olha, o Play) faz a cadeia inteira sozinho, sem esperar atras do fundo: o Play espera a resposta FINAL.
 static void *ioFioTmdb(void *u) {
   (void)u;
   for (;;) {
     IoPedido p;
-    char chave[80];
     IdiomaOrig r;
     IoSlot *s;
-    long tmdb;
     pthread_mutex_lock(&ioTrava);
-    while (!ioUrgN && !ioFundoN) pthread_cond_wait(&ioSinal, &ioTrava);
-    if (ioUrgN) p = ioUrg[--ioUrgN];   // o mais recente primeiro: e o que a pessoa olha agora
-    else { p = ioFundo[ioFundoIni]; ioFundoIni = (ioFundoIni + 1) % IO_FUNDO; ioFundoN--; }
+    while (!ioFundoN) pthread_cond_wait(&ioSinal, &ioTrava);
+    p = ioFundo[ioFundoIni]; ioFundoIni = (ioFundoIni + 1) % IO_FUNDO; ioFundoN--;
     s = ioSlot(p.id);
-    if (s && s->estado >= 2) { pthread_mutex_unlock(&ioTrava); continue; }   // repetido nas duas filas
-    snprintf(chave, sizeof chave, "%s", ioChaveTmdb);
+    if (s && (s->estado != IDIOMA_FILA || s->urg)) { pthread_mutex_unlock(&ioTrava); continue; }   // o urgente faz
+    if (s) s->estado = IDIOMA_CORRENDO;
     pthread_mutex_unlock(&ioTrava);
-
-    memset(&r, 0, sizeof r);
-    tmdb = !strncmp(p.id, "tmdb:", 5) ? atol(p.id + 5) : 0;
-    if (chave[0]) {
-      if (tmdb) tmdbOriginal(tmdb, p.serie, chave, &r);
-      else tmdbFind(p.id, p.serie, chave, &r);
-      if (r.lang[IO_TMDB_FIND][0]) ioGuardar(p.id, r.lang[IO_TMDB_FIND], 0);
-    }
+    ioEtapaTmdb(&p, &r);
     pthread_mutex_lock(&ioTrava);
     if (ioWdN < IO_FUNDO) {
       int q = (ioWdIni + ioWdN++) % IO_FUNDO;
       ioWd[q].p = p; ioWd[q].r = r;
       pthread_cond_signal(&ioWdSinal);
-    } else if ((s = ioSlot(p.id)) != NULL && s->estado < 2) s->estado = 0;   // sem vaga: consulta de novo depois
+    } else if ((s = ioSlot(p.id)) != NULL && !s->urg) s->estado = IDIOMA_NUNCA;   // sem vaga: de novo depois
     pthread_mutex_unlock(&ioTrava);
   }
   return NULL;
@@ -330,28 +357,43 @@ static void *ioFioWd(void *u) {
   (void)u;
   for (;;) {
     IoWd w;
-    long tmdb;
-    char chave[80];
+    IoSlot *s;
     pthread_mutex_lock(&ioTrava);
     while (!ioWdN) pthread_cond_wait(&ioWdSinal, &ioTrava);
     w = ioWd[ioWdIni]; ioWdIni = (ioWdIni + 1) % IO_FUNDO; ioWdN--;
+    s = ioSlot(w.p.id);
+    if (s && (s->urg || s->estado >= IDIOMA_ACHADO)) { pthread_mutex_unlock(&ioTrava); continue; }
     pthread_mutex_unlock(&ioTrava);
-    tmdb = !strncmp(w.p.id, "tmdb:", 5) ? atol(w.p.id + 5) : 0;
-    pthread_mutex_lock(&ioTrava); snprintf(chave, sizeof chave, "%s", ioChaveTmdb); pthread_mutex_unlock(&ioTrava);
-    if (chave[0]) tmdbDetalhes(w.p.serie, chave, &w.r);   // so a decisao precisa do idioma falado
-    if (tmdb) wikidataTmdb(tmdb, w.p.serie, &w.r);
-    else wikidata(w.p.id, &w.r);
-    // Os 2 erros que sobraram nas amostras eram o Wikidata estourando o prazo: uma segunda tentativa.
-    if (!w.r.wdTodas[0] && w.r.ms[IO_WIKIDATA] >= IO_PRAZO_S * 1000 - 100) {
-      if (tmdb) wikidataTmdb(tmdb, w.p.serie, &w.r); else wikidata(w.p.id, &w.r);
-    }
-    if (!tmdb && !w.r.lang[IO_TMDB_FIND][0] && !w.r.lang[IO_WIKIDATA][0]) cinemeta(w.p.id, w.p.serie, &w.r);
-    idiomaorig_decidir(&w.r);
-    printf("[idioma-orig] %s: %s (tmdb=%s %dms, wikidata=%s %dms)\n", w.p.id, w.r.final[0] ? w.r.final : "?",
-           w.r.lang[IO_TMDB_FIND][0] ? w.r.lang[IO_TMDB_FIND] : "-", w.r.ms[IO_TMDB_FIND],
-           w.r.wdTodas[0] ? w.r.wdTodas : "-", w.r.ms[IO_WIKIDATA]);
-    ioGuardar(w.p.id, w.r.final, 1);
+    ioEtapaFinal(&w.p, &w.r);
   }
+  return NULL;
+}
+
+static void *ioFioUrg(void *u) {
+  (void)u;
+  for (;;) {
+    IoPedido p;
+    IdiomaOrig r;
+    IoSlot *s;
+    pthread_mutex_lock(&ioTrava);
+    while (!ioUrgN) pthread_cond_wait(&ioUrgSinal, &ioTrava);
+    p = ioUrg[--ioUrgN];   // o mais recente primeiro: e o que a pessoa olha agora
+    s = ioSlot(p.id);
+    if (s && (s->estado >= IDIOMA_ACHADO || s->urg == 2)) { pthread_mutex_unlock(&ioTrava); continue; }
+    if (s) { s->estado = IDIOMA_CORRENDO; s->urg = 2; }
+    pthread_mutex_unlock(&ioTrava);
+    ioEtapaTmdb(&p, &r);
+    ioEtapaFinal(&p, &r);
+  }
+  return NULL;
+}
+// O titulo do Play, num fio so dele: nao espera o urgente terminar outro (um Wikidata preso leva ate 12 s).
+static void *ioFioUm(void *u) {
+  IoPedido *p = u;
+  IdiomaOrig r;
+  ioEtapaTmdb(p, &r);
+  ioEtapaFinal(p, &r);
+  free(p);
   return NULL;
 }
 
@@ -365,7 +407,7 @@ void idiomaorig_iniciar(const char *arquivo) {
     while (fgets(l, sizeof l, f))
       if (sscanf(l, "%31[^\t]\t%7s", id, lang) == 2 && (imdbValido(id) || !strncmp(id, "tmdb:", 5))) {
         IoSlot *s = ioSlot(id);
-        if (s) { snprintf(s->lang, sizeof s->lang, "%s", lang); s->estado = 3; n++; }
+        if (s) { snprintf(s->lang, sizeof s->lang, "%s", lang); s->estado = IDIOMA_ACHADO; n++; }
       }
     fclose(f);
   }
@@ -376,15 +418,18 @@ void idiomaorig_iniciar(const char *arquivo) {
 // Com a trava: poe na fila se ainda nao se sabe; urgente tambem passa na frente de quem ja esta no fundo.
 static void ioPedir(const char *id, int serie, int urgente) {
   IoSlot *s = ioSlot(id);
-  if (!s || s->estado >= 2 || (s->estado == 1 && !urgente)) return;
+  // Urgente entra ate com o fundo ja correndo (o Wikidata do fundo pode estar atras de centenas).
+  if (!s || s->estado >= IDIOMA_ACHADO || (urgente ? s->urg : s->estado != IDIOMA_NUNCA)) return;
   if (urgente) {
     if (ioUrgN == IO_URG) {   // sai o mais velho; volta a ser pedido da proxima vez que for olhado
       IoSlot *v = ioSlot(ioUrg[0].id);
-      if (v && v->estado == 1) v->estado = 0;
+      if (v) { v->urg = 0; if (v->estado == IDIOMA_FILA) v->estado = IDIOMA_NUNCA; }
       memmove(ioUrg, ioUrg + 1, sizeof ioUrg[0] * --ioUrgN);
     }
     snprintf(ioUrg[ioUrgN].id, sizeof ioUrg[0].id, "%s", id);
     ioUrg[ioUrgN++].serie = serie;
+    s->urg = 1;
+    pthread_cond_signal(&ioUrgSinal);
   } else {
     int q;
     if (ioFundoN == IO_FUNDO) return;   // cheia: entra quando for olhado (urgente) ou no proximo lote
@@ -392,13 +437,14 @@ static void ioPedir(const char *id, int serie, int urgente) {
     snprintf(ioFundo[q].id, sizeof ioFundo[0].id, "%s", id);
     ioFundo[q].serie = serie;
   }
-  s->estado = 1;
-  while (ioFios < IO_FIOS) {   // um fio do TMDB e um do Wikidata
+  if (s->estado == IDIOMA_NUNCA) s->estado = IDIOMA_FILA;
+  while (ioFios < IO_FIOS) {
+    static void *(*const FIOS[IO_FIOS])(void *) = { ioFioTmdb, ioFioWd, ioFioUrg };
     pthread_t t;
-    if (pthread_create(&t, NULL, ioFios ? ioFioWd : ioFioTmdb, NULL)) break;
+    if (pthread_create(&t, NULL, FIOS[ioFios], NULL)) break;
     pthread_detach(t); ioFios++;
   }
-  pthread_cond_signal(&ioSinal);
+  if (!urgente) pthread_cond_signal(&ioSinal);
 }
 
 void idiomaorig_pedir(const char *imdb, long tmdb, int serie, const char *chaveTmdb) {
@@ -413,15 +459,53 @@ void idiomaorig_pedir(const char *imdb, long tmdb, int serie, const char *chaveT
 int idiomaorig_de(const char *imdb, int serie, const char *chaveTmdb, char out[8]) {
   char id[24];
   IoSlot *s;
-  int final = 0;
+  int estado = IDIOMA_SEM;
   out[0] = 0;
-  if (!ioChave(imdb, 0, id)) return 0;
+  if (!ioChave(imdb, 0, id)) { snprintf(out, 8, "en"); return estado; }   // sem id nao ha o que consultar
   pthread_mutex_lock(&ioTrava);
   if (chaveTmdb && chaveTmdb[0]) snprintf(ioChaveTmdb, sizeof ioChaveTmdb, "%s", chaveTmdb);
   if ((s = ioSlot(id)) != NULL) {
-    if (s->estado >= 2) { snprintf(out, 8, "%s", s->lang); final = s->estado == 3; }
-    else ioPedir(id, serie, 1);
-  }
+    ioPedir(id, serie, 1);
+    snprintf(out, 8, "%s", s->lang);
+    estado = s->estado;
+  } else snprintf(out, 8, "en");   // tabela cheia (8192 titulos numa sessao): shortcut, nao consulta
   pthread_mutex_unlock(&ioTrava);
-  return final;
+  return estado;
+}
+
+int idiomaorig_esperar(const char *imdb, int serie, const char *chaveTmdb, char out[8], int prazoMs,
+                       int (*seguir)(void *), void *u) {
+  Uint32 t0 = SDL_GetTicks();
+  int estado;
+  char id[24];
+  if (ioChave(imdb, 0, id)) {
+    IoSlot *s;
+    IoPedido *p = NULL;
+    pthread_mutex_lock(&ioTrava);
+    if (chaveTmdb && chaveTmdb[0]) snprintf(ioChaveTmdb, sizeof ioChaveTmdb, "%s", chaveTmdb);
+    if ((s = ioSlot(id)) != NULL && s->estado < IDIOMA_ACHADO && s->urg != 2 && (p = malloc(sizeof *p)) != NULL) {
+      pthread_t t;
+      snprintf(p->id, sizeof p->id, "%s", id); p->serie = serie;
+      if (pthread_create(&t, NULL, ioFioUm, p)) { free(p); p = NULL; }
+      else { pthread_detach(t); s->estado = IDIOMA_CORRENDO; s->urg = 2; }
+    }
+    pthread_mutex_unlock(&ioTrava);
+  }
+  while ((estado = idiomaorig_de(imdb, serie, chaveTmdb, out)) < IDIOMA_ACHADO &&
+         (int)(SDL_GetTicks() - t0) < prazoMs && (!seguir || seguir(u)))
+    SDL_Delay(50);
+  if (estado < IDIOMA_ACHADO) {
+    // Algo travou: decide com a do TMDB se ja veio, senao ingles — para todos (o player le o mesmo). A cadeia
+    // segue e a resposta final corrige depois (player_atualizar troca o audio).
+    if (!out[0]) snprintf(out, 8, "en");
+    if (ioChave(imdb, 0, id)) {
+      IoSlot *s;
+      pthread_mutex_lock(&ioTrava);
+      if ((s = ioSlot(id)) != NULL && !s->lang[0]) snprintf(s->lang, sizeof s->lang, "en");
+      pthread_mutex_unlock(&ioTrava);
+    }
+    printf("[idioma-orig] %s: sem resposta final em %d ms; vale '%s'\n", imdb, (int)(SDL_GetTicks() - t0), out);
+    fflush(stdout);
+  }
+  return estado;
 }

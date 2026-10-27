@@ -34,10 +34,16 @@ const char *idiomaorig_do_pais(const char *pais);
 // NO APARELHO. Le as respostas gravadas (uma linha "tt123<TAB>ko" por titulo) e passa a gravar as novas
 // em `arquivo` ("" ou NULL = so na memoria). Chamar uma vez no arranque.
 void idiomaorig_iniciar(const char *arquivo);
-// Nao bloqueia: copia em `out` o idioma original de `imdb` ("" = ainda nao se sabe) e, da primeira vez,
-// poe o titulo na fila de um fio proprio. Antes da resposta final (Wikidata pode levar segundos) devolve
-// a do TMDB, que sozinha acerta 99,2-99,7% (tests/idiomaorig_amostra). Devolve 1 se a resposta e final.
+// Onde esta a busca de um titulo. Todo titulo tem um (dono, 2026-10-27): so depois de ACHADO ou SEM a fonte
+// e escolhida.
+enum { IDIOMA_NUNCA = 0, IDIOMA_FILA, IDIOMA_CORRENDO, IDIOMA_ACHADO, IDIOMA_SEM };
+// Nao bloqueia: copia em `out` o idioma que se sabe agora ("" = nada ainda; CORRENDO pode trazer a do TMDB,
+// provisoria; SEM traz "en") e, se ainda nao foi feito, poe o titulo na fila URGENTE. Devolve o estado.
 int idiomaorig_de(const char *imdb, int serie, const char *chaveTmdb, char out[8]);
+// Bloqueia (fio proprio) ate ACHADO/SEM, `prazoMs` ou `seguir(u)` == 0. Sem resposta final, `out` fica com a
+// provisoria do TMDB ou "en". Devolve o estado.
+int idiomaorig_esperar(const char *imdb, int serie, const char *chaveTmdb, char out[8], int prazoMs,
+                       int (*seguir)(void *), void *u);
 // Para TODO titulo que entra no catalogo (sem bloquear, fila de fundo; o que ja se sabe nao vai). `imdb` pode
 // ser "tt..." ou "tmdb:N"; sem IMDb usa `tmdb` (> 0) se houver.
 void idiomaorig_pedir(const char *imdb, long tmdb, int serie, const char *chaveTmdb);
