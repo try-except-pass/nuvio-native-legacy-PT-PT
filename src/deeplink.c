@@ -169,16 +169,3 @@ int deeplink_pegar(DeepLink *out) {
   return ok;
 }
 
-#ifdef NV_ANDROID
-#include <jni.h>
-JNIEXPORT void JNICALL
-Java_space_nuvio_nativelegacy_NuvioActivity_nativeDeepLink(JNIEnv *env, jobject act, jstring url) {
-  const char *s;
-  (void)act;
-  if (!url) return;
-  s = (*env)->GetStringUTFChars(env, url, NULL);
-  if (!s) return;
-  deeplink_postar(s);
-  (*env)->ReleaseStringUTFChars(env, url, s);
-}
-#endif

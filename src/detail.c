@@ -99,11 +99,7 @@ static int moverFileira(int dy);
 static void heroReiniciar(void);
 
 static int detalheRetrato(void) {
-#ifdef NV_TOUCH_UI
-  return telefoneui_ativo() && NV_TELA_W < NV_TELA_H;
-#else
   return 0;
-#endif
 }
 static float larguraTextoHero(void) {
   return detalheRetrato() ? fminf(NV_DETW2_TEXTO_W, NV_TELA_W - 192.0f) : NV_DETW2_TEXTO_W;
@@ -358,30 +354,6 @@ static int corpoOculto(int serie) {
 // cauda exponencial, a MESMA curva que a home mede. A de 1a ordem que estava
 // aqui partia na velocidade maxima e o primeiro quadro ja saltava 12%.
 static float velSec[N_SECOES], velY = 0.0f;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueDetalhe, toqueSec[N_SECOES], toqueColecao, toquePessoa;
-static int toqueSecAtiva = -1;
-static float toquePessoaOffset;
-static void toqueDetalheLimpar(void) {
-  toquerol_limpar(&toqueDetalhe); toquerol_limpar(&toqueColecao); toquerol_limpar(&toquePessoa);
-  for (int r = 0; r < N_SECOES; r++) toquerol_limpar(&toqueSec[r]);
-  toqueSecAtiva = -1;
-}
-static void toqueDetalheSincronizarModo(void) {
-  static int mobileAntes;
-  int mobile = telefoneui_ativo();
-  if (!mobile) {
-    toqueDetalheLimpar();
-    toquePessoaOffset = 0;
-    if (mobileAntes && pessoaAberta) {
-      int linha = pessoaFoco / PES_POR_LINHA;
-      if (pessoaLinha > linha) pessoaLinha = linha;
-      else if (pessoaLinha + 1 < linha) pessoaLinha = linha - 1;
-    }
-  }
-  mobileAntes = mobile;
-}
-#endif
 // Miniatura de episodio e cartaz relacionado chegando: esvanecem sobre o
 // esqueleto em vez de trocar num quadro (revela.h). Um registro por coluna.
 #define DET_REV_EP 64
@@ -1546,13 +1518,6 @@ static void abrirInterno(const HomeItem *it) {
   detmais_zerar();
   heroReiniciar();
   t = 0.0f; pg = 0.0f; scrollY = 0.0f; velY = 0.0f; abaInfo = 0; pessoaAberta = 0;
-#ifdef NV_TOUCH_UI
-  memset(&toqueDetalhe, 0, sizeof toqueDetalhe);
-  memset(toqueSec, 0, sizeof toqueSec);
-  memset(&toqueColecao, 0, sizeof toqueColecao);
-  memset(&toquePessoa, 0, sizeof toquePessoa);
-  toqueSecAtiva = -1; toquePessoaOffset = 0;
-#endif
   relFoco = 0; colListaAberta = 0; colListaFoco = 0;
   colListaScroll = colListaVel = 0.0f; pedAbrir = -1; ratTemp = 0; ratSinc = 0;
   trailerDesde = 0; trailerTentado = 0; trailerFade = 0.0f;
@@ -1716,9 +1681,6 @@ void detail_mostrar_pessoa(long tmdb, const char *nome, const char *foto) {
   pessoaAberta = 1;
   pessoaFoco = 0;
   pessoaLinha = 0;
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toquePessoa); toquePessoaOffset = 0;
-#endif
 }
 
 static int pessoaResolver(void *arg) {
@@ -2775,18 +2737,10 @@ static void detail_evento_(const SDL_Event *e) {
     else sinopse_evento(e);
     return;
   }
-#ifdef NV_TOUCH_UI
-  toqueDetalheSincronizarModo();
-#endif
   if (corpoSobArte()) {
     if (trocaarte_aberto()) trocaarte_evento(e);
     return;
   }
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) {
-    toqueDetalheLimpar();
-  }
-#endif
   if (saindo) return;
   // O CARTAO "O QUE ACHOU?" aberto pela pagina e modal: a tecla e dele.
   if (reacao_aberta() && reacao_evento(e, 1)) return;
@@ -3552,46 +3506,6 @@ static void revalidarIdx(void) {
 // ficam no heroi (mockup "detalhe-retomar"): a pagina fica no topo, com a arte.
 static int focoNoTopo(void) { return 0; }
 
-#ifdef NV_TOUCH_UI
-static void trailerDetalheTela(void) {
-  if (trailer_aberto() && (trailer_cheia() || trailer_dono() != TRAILER_DONO_HOME))
-    trailer_rect((GfxRect){0, 0, NV_TELA_W, NV_TELA_H});
-}
-static int toqueDetalheRolar(const PonteiroRolagem *e) {
-  int r = 0;
-  if (!telefoneui_ativo() || !aberto || saindo || pessoaAberta || colListaAberta || trailer_cheia() || corpoSobArte()) return 0;
-  if (e->eixoY) r = toquerol_evento(&toqueDetalhe, e);
-  else {
-    if (e->fase == PONT_ROL_INICIO) {
-      toqueSecAtiva = -1;
-      for (int i = 0; i < N_SECOES; i++) if (toquerol_evento(&toqueSec[i], e)) { toqueSecAtiva = i; r = 1; break; }
-    } else if (toqueSecAtiva >= 0) r = toquerol_evento(&toqueSec[toqueSecAtiva], e);
-  }
-  if (r) {
-    toqueDetalhe.livre = 1; velY = 0;
-    if (toqueSecAtiva >= 0) velSec[toqueSecAtiva] = 0;
-    if (e->eixoY) { nivel = 1; carCheia = 1; }
-    ctxhold_cancelar(&holdLista); okDesceEm = 0;
-  }
-  return r;
-}
-static int toqueColecaoRolar(const PonteiroRolagem *e) {
-  int r;
-  if (!telefoneui_ativo() || !colListaAberta) return 0;
-  r = toquerol_evento(&toqueColecao, e);
-  if (r) { colListaVel = 0; ctxhold_cancelar(&holdLista); okDesceEm = 0; }
-  return r;
-}
-static int toquePessoaRolar(const PonteiroRolagem *e) {
-  int r;
-  if (!telefoneui_ativo() || !pessoaAberta) return 0;
-  r = toquerol_evento(&toquePessoa, e);
-  if (r) { ctxhold_cancelar(&holdLista); okDesceEm = 0; }
-  return r;
-}
-static void toqueColecaoFocar(int i, int b) { (void)b; colListaFoco = i; }
-static void toquePessoaFocar(int i, int b) { (void)b; pessoaFoco = i; }
-#endif
 
 static float blocoAnt[3] = { -1.0f, -1.0f, -1.0f };   // Notas / Numeros / Progresso no quadro anterior
 
@@ -3599,9 +3513,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
   if (musicaui_aberta()) { musicaui_atualizar(agora); return; }
   if (aberto) revalidarIdx();
   pessoaBuscaAtualizar();
-#ifdef NV_TOUCH_UI
-  toqueDetalheSincronizarModo();
-#endif
   // `agora` ficou sem uso quando o repouso da troca de temporada saiu (ver a
   // nota mais abaixo). Fica na assinatura porque ela e a mesma de todas as
   // telas e app.c chama todas do mesmo jeito.
@@ -3630,12 +3541,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
     ilha_avisar("det-elenco-sem-pagina", ILHA_INFO, NULL,
                 i18n("Esta pessoa não tem página ainda"), 4000u, 0);
   }
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) trailerDetalheTela();
-  if (detalheRetrato() && carro) {
-    carCheia = 1; cartao = carTxt = cartaoVel = carTxtVel = 0;
-  }
-#endif
   // SAINDO: interrompe os dois fios antes mesmo de a mola terminar. Chamar todo
   // quadro nao custa nada (e um flag sob mutex) e evita precisar de uma borda:
   // `saindo` tambem e ligado por caminhos que nao passam pelo Voltar, como o
@@ -3650,10 +3555,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
     if (maxY < 0.0f) maxY = 0.0f;
     if (alvo > maxY) alvo = maxY;
     if (alvo < 0.0f) alvo = 0.0f;
-#ifdef NV_TOUCH_UI
-    if (toquerol_livre(&toqueColecao)) { colListaScroll = toquerol_clamp(colListaScroll, 0, maxY); colListaVel = 0; }
-    else
-#endif
     colListaScroll = anim_mola2(&colListaVel, colListaScroll, alvo, dt, NV_MOLA2_SCROLL);
   }
   trocaarte_atualizar(dt);
@@ -3903,9 +3804,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
   // cinco telas por quadro e cai para 40 FPS (medido na TCL, 05/10). A ida
   // continua com o tempo do web.
   { float alvoPg = nivel >= 1 && !focoNoTopo() ? 1.0f : 0.0f;
-#ifdef NV_TOUCH_UI
-    if (toquerol_livre(&toqueDetalhe)) alvoPg = scrollY > 1.0f ? 1.0f : 0.0f;
-#endif
     pgAlvo = alvoPg;
     pg = anim_mola(pg, alvoPg, dt, alvoPg < pg ? NV_MOLA_PAGINA * 2.0f : NV_MOLA_PAGINA); }
   if (carro) {
@@ -4021,18 +3919,12 @@ static void detail_atualizar_(float dt, Uint32 agora) {
         else if (x < alvo + 24.0f)             alvo = x - 24.0f;
       }
       if (alvo < 0.0f) alvo = 0.0f;
-#ifdef NV_TOUCH_UI
-      if (!toquerol_livre(&toqueSec[r]))
-#endif
       scrollSec[r] = anim_mola2(&velSec[r], scrollSec[r], alvo, dt, NV_MOLA2_SCROLL);
     }
     // A fileira de episodios rola ATRAS da aba de temporada mesmo sem o foco:
     // e o que da ao seletor a resposta visual que ele perdeu ao deixar de
     // arrastar o foco junto.
     if (r != SEC_EPISODIOS && secaoN(SEC_EPISODIOS) > 0 &&
-#ifdef NV_TOUCH_UI
-        !toquerol_livre(&toqueSec[SEC_EPISODIOS]) &&
-#endif
         epAncora < foco.nColunas[SEC_EPISODIOS]) {
       float ax = xItem(SEC_EPISODIOS, epAncora) - ANC(NV_DETP_X);
       if (ax < 0.0f) ax = 0.0f;
@@ -4065,9 +3957,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
           else if (ordem[o] == foco.fileira) { depois = visto; break; }
         }
         if (depois
-#ifdef NV_TOUCH_UI
-            && !toquerol_livre(&toqueDetalhe)
-#endif
            ) scrollY += bloco - blocoAnt[kb];
       }
       blocoAnt[kb] = bloco;
@@ -4099,10 +3988,6 @@ static void detail_atualizar_(float dt, Uint32 agora) {
     if (alvoY > maxY) alvoY = maxY;
     if (alvoY < 0.0f) alvoY = 0.0f;
   }
-#ifdef NV_TOUCH_UI
-  if (toquerol_livre(&toqueDetalhe)) { scrollY = toquerol_clamp(scrollY, 0, fmaxf(0, docFim - NV_TELA_H)); velY = 0; }
-  else
-#endif
   scrollY = anim_mola2(&velY, scrollY, alvoY, dt, NV_MOLA2_SCROLL);
 }
 
@@ -6631,9 +6516,6 @@ static void abrirListaColecao(void) {
   int atual = parteAtualColecao();
   if (extras_n_colecao() < 1) return;
   colListaAberta = 1;
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueColecao);
-#endif
   colListaFoco = atual >= 0 ? atual : 0;
   { float passo = COLL_LIN_H + COLL_LIN_GAP;
     float alvo = (float)colListaFoco * passo - (NV_TELA_H * 0.35f - colecaoTopo());
@@ -6710,23 +6592,12 @@ static void desenhaListaColecao(float a) {
   }
 
   // --- partes -----------------------------------------------------------
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) { float area = areaLista.h;
-    toquerol_vincular(&toqueColecao, areaLista, gfx_escala(),
-                     0, n * passo - area, 1, &colListaScroll);
-    ponteiro_rolagem(toqueColecaoRolar);
-    gfx_recorte(lx, areaLista.y, lw, area); }
-#endif
   for (i = 0; i < n; i++) {
     float ly = colecaoTopo() + (float)i * passo - colListaScroll;
     GfxRect lin = { lx, ly, lw, COLL_LIN_H };
     int foc = (i == colListaFoco);
     float tx = lx + 13.0f + COLL_PO_W + 32.0f, tw = lx + lw - 32.0f - tx, ty;
     if (ly + COLL_LIN_H < 0.0f || ly > NV_TELA_H) continue;
-#ifdef NV_TOUCH_UI
-    ponteiro_alvo_faixa(lx, ly, lw, COLL_LIN_H, colecaoTopo(), NV_TELA_H - 60,
-                       toqueColecaoFocar, NULL, i, 0);
-#endif
     if (foc) {
       plrui_linha_foco(lin, 20.0f, a);   // a mesma linha em foco dos Ajustes/Agenda
     } else {
@@ -6783,9 +6654,6 @@ static void desenhaListaColecao(float a) {
                       foc ? 205 : 170, foc ? 210 : 175, foc ? 220 : 185,
                       tx, ty, tw, 31.0f, a, 3);
   }
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) gfx_sem_recorte();
-#endif
 }
 
 // Aba "Comentarios": /comments/likes do Trakt, os mais curtidos primeiro. Uma
@@ -7357,15 +7225,6 @@ static void desenhaSecao(int r, float a, Uint32 agora) {
   }
   y -= scrollY;
 
-#ifdef NV_TOUCH_UI
-  if (!(EH_AUD(r) || r == SEC_FRASES || r == SEC_NOTAS || r == SEC_NOTAS_EP || r == SEC_PROGTEMP)) {
-    float rowY = r == SEC_ELENCO && ajustes_vidro() ? elencoCartao(0, y).y : y;
-    float fim = 0.0f, topo = fmaxf(0.0f, rowY), base = fminf(NV_TELA_H, y + alturaSecao(r));
-    for (int i = 0; i < n; i++) fim = fmaxf(fim, xItem(r, i) + larguraItem(r, i));
-    toquerol_vincular(&toqueSec[r], (GfxRect){ANC(NV_DETP_X), topo, NV_TELA_W - ANC(NV_DETP_X) * 2, fmaxf(0, base - topo)},
-                     gfx_escala(), 0, fim - (NV_TELA_W - ANC(NV_DETP_X)), 0, &scrollSec[r]);
-  }
-#endif
 
   // TITULO DA SECAO ("Temporadas", "Elenco"), como a referencia. O port nao
   // tinha cabecalho nenhum e as fileiras apareciam soltas, sem dizer o que
@@ -7621,26 +7480,10 @@ static void desenhaPessoa(float a) {
                    ? pessoa_credito_titulo(pessoaFoco) : "Filmografia";
     TxtLinha lt = txt_linha_corta(TXT_TITULO2, ft, 245, 248, 255, 255, NV_TELA_W - x0 - 96.0f);
     txt_desenhar_alpha(lt, x0, 48.0f, a);
-#ifdef NV_TOUCH_UI
-    float topo = 96.0f + ltH + 28.0f, area = NV_TELA_H - 24.0f - topo;
-    if (telefoneui_ativo()) {
-      if (!toquerol_livre(&toquePessoa)) toquePessoaOffset = pessoaLinha * (PES_CARD_H + 92.0f);
-      toquerol_vincular(&toquePessoa, (GfxRect){x0, topo, NV_TELA_W - x0, area}, gfx_escala(),
-                       0, ((n + pessoaColunas() - 1) / pessoaColunas()) * (PES_CARD_H + 92.0f) - area, 1, &toquePessoaOffset);
-      ponteiro_rolagem(toquePessoaRolar);
-      gfx_recorte(x0, topo, NV_TELA_W - x0, area);
-    }
-#endif
     for (i = 0; i < n; i++) {
       int col = i % pessoaColunas(), lin = i / pessoaColunas();
       float x = x0 + col * (PES_CARD_W + PES_CARD_GAP);
       float y = 96.0f + ltH + 28.0f + (lin - pessoaLinha) * (PES_CARD_H + 92.0f);
-#ifdef NV_TOUCH_UI
-      if (telefoneui_ativo()) {
-        y = topo + lin * (PES_CARD_H + 92.0f) - toquePessoaOffset;
-        if (y + PES_CARD_H + 92.0f < topo || y > topo + area) continue;
-      } else
-#endif
       if (lin < pessoaLinha) continue;
       GfxRect r = { x, y, PES_CARD_W, PES_CARD_H };
       // dono (2026-10-26): o cartaz do addon do catalogo quando o titulo esta nele; senao o de sempre.
@@ -7651,16 +7494,7 @@ static void desenhaPessoa(float a) {
         : posterprov_card(pessoa_credito_imdb(i), pessoa_credito_tmdb(i),
                           pessoa_credito_tipo(i), pessoa_credito_poster(i));
       GLuint t = po[0] ? tex_obter_larg(po, PES_CARD_W) : 0;
-#ifdef NV_TOUCH_UI
-      if (telefoneui_ativo())
-        ponteiro_alvo_faixa(r.x, r.y, r.w, PES_CARD_H + 92.0f, topo, topo + area, toquePessoaFocar, NULL, i, 0);
-      else {
-#endif
         if (y + PES_CARD_H > NV_TELA_H - 24.0f) break;
-#ifdef NV_TOUCH_UI
-        ponteiro_alvo(r.x, r.y, r.w, PES_CARD_H + 92.0f, toquePessoaFocar, NULL, i, 0);
-      }
-#endif
       if (i == pessoaFoco) { pesFocoRect = r; snprintf(pesFocoArte, sizeof pesFocoArte, "%s", po); }
       // Foco da Home (focoprof.h): anel so com o ajuste ligado, senao cresce.
       { float fp = i == pessoaFoco ? 1.0f : 0.0f;
@@ -7675,9 +7509,6 @@ static void desenhaPessoa(float a) {
         gfx_cor(r, raioCartaz(PES_CARD_W, PES_CARD_H), 0.13f, 0.13f, 0.13f, a);
       }
     }
-#ifdef NV_TOUCH_UI
-    if (telefoneui_ativo()) gfx_sem_recorte();
-#endif
   }
 }
 
@@ -7919,9 +7750,6 @@ static void maisDesenhar(void) {
 
 static void detail_desenhar_(Uint32 agora) {
   if (musicaui_aberta()) { musicaui_desenhar(agora); return; }
-#ifdef NV_TOUCH_UI
-  toqueDetalheSincronizarModo();
-#endif
   if (!aberto) return;
   amigostitulo_atualizar();   // barato: so remonta quando o feed social mudou
   // COR VIVA: a pagina do titulo manda na cor, acima da home que pode estar
@@ -7945,12 +7773,6 @@ static void detail_desenhar_(Uint32 agora) {
       trailer_osd_desenhar(ct ? ct->titulo : "", 1.0f); }
     return;
   }
-#ifdef NV_TOUCH_UI
-  for (int r = 0; r < N_SECOES; r++) toqueSec[r].regiao.w = 0;
-  toquerol_vincular(&toqueDetalhe, (GfxRect){0, 0, NV_TELA_W, NV_TELA_H}, gfx_escala(),
-                   0, docFim - NV_TELA_H, 1, &scrollY);
-  if (t > .99f && !saindo) ponteiro_rolagem(toqueDetalheRolar);
-#endif
   // TITULO <-> EPISODIOS NO FROST (#205, C9/TCL lentas nos dois sentidos): a
   // arte apaga e o veu sobe por baixo do vidro que rola, e cada quadro
   // recapturava e redesfocava o fundo. Um quarto de pg por captura, e uma so

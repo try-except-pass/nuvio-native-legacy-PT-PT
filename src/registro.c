@@ -109,13 +109,10 @@ const char *registro_arquivo(void) {
     const char *env = getenv("NUVIO_LOG");
     resolvido = 1;
     if (env && env[0]) snprintf(caminho, sizeof caminho, "%s", env);
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
     // No Mac o log vai para o TERMINAL e continua assim. Para exercitar o
     // painel na previa:  NUVIO_LOG=/tmp/nuvio.log bash tools/mac.sh
     else caminho[0] = 0;
-#elif defined(NV_ANDROID)
-    else snprintf(caminho, sizeof caminho, "%s/nuvio.log",
-                  getenv("NUVIO_DADOS") ? getenv("NUVIO_DADOS") : ".");
 #else
 #ifdef NV_DTS_DEBUG
     else snprintf(caminho, sizeof caminho, "/tmp/" NV_APP_ID ".log");
@@ -339,15 +336,7 @@ static int focoEtapa;       // Sistema com rastro de etapas: a etapa em foco
 static int vis[REG_MAX * 2];
 static unsigned char visCtx[REG_MAX * 2];
 static int nVis;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueRegistro, toqueEtapas, toqueAreas;
-static float toqueRegistroOffset, toqueEtapasOffset, toqueAreasOffset;
-static ToqueRolagem *toqueRegAtiva;
-#endif
 static void filtrar(void) {
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueRegistro); toquerol_limpar(&toqueEtapas);
-#endif
   int i;
   nVis = 0;
   for (i = 0; i < nLin; i++) {
@@ -379,38 +368,9 @@ static void pausar(int focoEm) {
   detalhe = 1;
 }
 static void seguir(void) {
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueRegistro);
-#endif
   pausado = 0; foco = -1; detalhe = 0; novas = 0;
   recarregar();
 }
-#ifdef NV_TOUCH_UI
-static int toqueRegistroRolar(const PonteiroRolagem *e) {
-  if (e->fase == PONT_ROL_INICIO) {
-    toqueRegAtiva = NULL;
-    if (telefoneui_ativo() && toquerol_evento(&toqueAreas, e)) { toqueRegAtiva = &toqueAreas; return 1; }
-    if (toquerol_evento(&toqueEtapas, e)) toqueRegAtiva = &toqueEtapas;
-    else if (toquerol_evento(&toqueRegistro, e)) toqueRegAtiva = &toqueRegistro;
-    if (toqueRegAtiva) { pausado = 1; marcaPausa = marcaLida; return 1; }
-    return 0;
-  }
-  return toqueRegAtiva ? toquerol_evento(toqueRegAtiva, e) : 0;
-}
-static void toqueRegLinha(int i, int b) {
-  (void)b;
-  if (i < 0 || i >= nVis) return;
-  pausar(i); detalhe = 0; segEd = focoEnviar = 0;
-}
-static void toqueRegArea(int i, int b) {
-  (void)b;
-  if (i < 0 || i >= RG_N) return;
-  area = i; segEd = 1; focoEnviar = 0; seguir();
-}
-static void toqueRegSeguir(int a, int b) { (void)a; (void)b; seguir(); }
-static void toqueRegEnviar(int a, int b) { (void)a; (void)b; segEd = 0; focoEnviar = 1; }
-static void toqueRegEtapa(int a, int b) { (void)b; focoEtapa = a; segEd = focoEnviar = 0; }
-#endif
 
 // Chamado por quadro com o painel aberto: rele ao vivo, ou conta as novas.
 static void passoAoVivo(void) {
@@ -445,9 +405,6 @@ static void passoAoVivo(void) {
 int registro_aberto(void) { return aberto; }
 
 static void abrir(void) {
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueAreas); toqueAreasOffset = 0;
-#endif
   aberto = 1;
   area = RG_TUDO; segEd = 0; pausado = 0; foco = -1; detalhe = 0; focoEnviar = 0;
   novas = 0; focoEtapa = 0;
@@ -520,16 +477,6 @@ int registro_envio_aberto(void);
 int registro_envio_evento(const SDL_Event *e);
 
 int registro_evento(const SDL_Event *e) {
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) {
-    if (toquerol_livre(&toqueRegistro) && nVis > 0) {
-      foco = (int)(toqueRegistroOffset / 32.0f);
-      if (foco >= nVis) foco = nVis - 1;
-      segEd = 0;
-    }
-    toquerol_limpar(&toqueRegistro); toquerol_limpar(&toqueEtapas); toquerol_limpar(&toqueAreas);
-  }
-#endif
   int ehTecla = (e->type == SDL_KEYDOWN || e->type == SDL_KEYUP || e->type == SDL_TEXTINPUT);
 
   if (e->type == SDL_KEYUP &&
@@ -647,9 +594,6 @@ void registro_desenhar(void) {
   ESCALA_FIM();
 }
 static void registro_desenharCorpo_(void) {
-#ifdef NV_TOUCH_UI
-  toqueRegistro.offset = toqueEtapas.offset = toqueAreas.offset = NULL;
-#endif
   if (!aberto && !aviso && !legal) return;
   // RECORTE DESLIGADO ANTES DE DESENHAR: se uma tela esquecer o recorte ligado,
   // o unico sintoma seria o painel de DIAGNOSTICO nao aparecer.

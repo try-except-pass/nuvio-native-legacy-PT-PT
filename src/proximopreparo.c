@@ -65,9 +65,6 @@ static int contextoAtual(const ProximoJob *j) {
          j->configuracao == stream_preparo_config_atual();
 }
 static void cancelarToken(ProximoJob *j) {
-#ifdef NV_ANDROID
-  if (j && j->token) player_precarregar_cancelar(j->token);
-#endif
   if (j) j->token = 0;
 }
 static void liberarProximo(int invalidarIntento) {
@@ -170,16 +167,7 @@ int proximopreparo_agendar(int catalogo, int t, int e, const char *atual,
 }
 
 static void prepararVideo(ProximoJob *j) {
-#ifdef NV_ANDROID
-  if (!j->bufferTentou && j->resultado == 1 && j->indice >= 0 && j->escolhida.url[0]) {
-    j->bufferTentou = 1;
-    unsigned token = player_precarregar_novo_token();
-    if (token && player_precarregar_proxima_fonte(j->catalogo, j->temporada, j->episodio,
-                                                 &j->escolhida, token)) j->token = token;
-  }
-#else
   (void)j;
-#endif
 }
 static int fonteVale(const ProximoJob *j, Uint32 agora, int bufferPronto) {
   Uint32 idade = agora - j->resolvidaEm;
@@ -228,19 +216,6 @@ void proximopreparo_passo(const char *atual) {
       proximopreparo_cancelar(); return;
     }
     if (j->continuar && continuarEscolha(j)) return;
-#ifdef NV_ANDROID
-    if (j->token) {
-      int nativo = player_precarregar_estado(j->token);
-      if (nativo < 0) {
-        // Falha REAL de rede/parser: a candidata ja custou uma vaga. Continuar
-        // devolve a MESMA politica ao resolvedor, sem repetir esta URL nem
-        // recomecar o primeiro provedor. Cancelamento (0) nao entra aqui.
-        if (continuarEscolha(j)) return;
-      } else if (!nativo) {
-        cancelarToken(j);
-      }
-    }
-#endif
     prepararVideo(j);
   }
 }
@@ -263,23 +238,7 @@ int proximopreparo_renovar(const char *atual, const char *alvo) {
   if (!j || atomic_load_explicit(&j->estado, memory_order_acquire) != PP_RESOLVIDO ||
       j->renovou || j->resultado != 1 || j->indice < 0) return 0;
   Uint32 agora = SDL_GetTicks();
-#ifdef NV_ANDROID
-  int nativo = j->token ? player_precarregar_estado(j->token) : 0;
-  if (nativo < 0) { continuarEscolha(j); return 0; }
-  // READY e carregamento em curso conservam o mesmo token. Uma busca que
-  // terminou tarde ou um salto aos creditos nao desfaz bytes ja preparados.
-  if (nativo > 0 && fonteVale(j, agora, 1)) return 0;
-  if (!nativo && fonteVale(j, agora, 0)) {
-    // O backend cancelou ou nao estava disponivel, mas a URL ja conferida
-    // ainda serve. Uma tentativa nativa basta; nao repetir HTTP do resolvedor.
-    j->renovou = 1;
-    cancelarToken(j); j->bufferTentou = 0;
-    prepararVideo(j);
-    return 1;
-  }
-#else
   if (fonteVale(j, agora, 0)) return 0;
-#endif
   j->renovou = 1;
   cancelarToken(j);
   j->bufferTentou = 0;
@@ -312,9 +271,6 @@ int proximopreparo_consumir(const char *alvo, ProximoPreparoResultado *saida) {
   }
   Uint32 agora = SDL_GetTicks();
   int bufferPronto = 0;
-#ifdef NV_ANDROID
-  bufferPronto = j->token && player_precarregar_estado(j->token) == 2;
-#endif
   // Um buffer real tem idade limitada propria. Fora dele, a URL assinada do
   // addon conserva sua idade original; native hash resolvido tem idade nova.
   int vale = fonteVale(j, agora, bufferPronto);
@@ -342,9 +298,6 @@ int proximopreparo_consumir(const char *alvo, ProximoPreparoResultado *saida) {
 }
 void proximopreparo_liberar_resultado(ProximoPreparoResultado *r) {
   if (!r) return;
-#ifdef NV_ANDROID
-  if (r->token) player_precarregar_cancelar(r->token);
-#endif
   free(r->fontes);
   fontefalha_sessao_liberar(r->politica);
   memset(r, 0, sizeof *r); r->indiceFonte = -1;

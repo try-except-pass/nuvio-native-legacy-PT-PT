@@ -72,12 +72,7 @@
 // novo e o antigo (aposentar, catalogo.c): ~75 MB de pico. A rodada de pedidos
 // e fatiada em CAT_RODADA_MAX (24) fileiras, entao os baldes dos fios somam no
 // maximo 24 x 375 KB = ~9 MB, qualquer que seja o limite.
-#ifdef NV_ANDROID
-#define FIL_LIMITE_MAX    200
-#define FIL_LIMITE_ILIMITADO FIL_LIMITE_MAX
-#else
 #define FIL_LIMITE_MAX    FIL_LIMITE_MAX_TV
-#endif
 #define FIL_LIMITE_PADRAO  7
 // Ate aqui e o que sempre foi permitido sem aviso.
 #define FIL_LIMITE_SEGURO 16

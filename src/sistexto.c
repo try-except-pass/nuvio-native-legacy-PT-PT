@@ -13,9 +13,6 @@
 #include "entrada_texto.h"
 #include "arteurl.h"
 #include "ajustes.h"
-#ifdef NV_ANDROID
-#include "android.h"
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,32 +54,16 @@ int st_teclado_modo(void) {
 }
 int st_teclado_do_app(void) { return !st_abre_sozinho() && st_teclado_modo() == 1; }
 int st_ime_disponivel(void) {
-#ifdef NV_ANDROID
-  return 1;
-#else
   return !st_teclado_do_app() && (teste() || (texto_sistema_disponivel() & TS_TECLADO) != 0);
-#endif
 }
 int st_voz_disponivel(void) {
-#ifdef NV_ANDROID
-  return 1;
-#else
   return teste() || (texto_sistema_disponivel() & TS_VOZ) != 0;
-#endif
 }
 int st_abre_sozinho(void) {
-#ifdef NV_ANDROID
-  return 1;
-#else
   return teste();
-#endif
 }
 static int pelaPlataforma(void) {
-#ifdef NV_ANDROID
-  return 0;
-#else
   return !teste();
-#endif
 }
 
 int st_estado(void) { return estado; }
@@ -107,14 +88,9 @@ int st_ime_abrir(int d, const char *inicial, int max) {
   dono = d; nivel = 0.0f;
   if (!quedaTeclado) aviso = "";      // caiu da voz: o aviso de por que fica
   quedaTeclado = 0;
-#ifdef NV_ANDROID
-  // O tipo vai nos bits altos do max: a assinatura JNI fica a mesma.
-  ok = android_st_teclado(inicial ? inicial : "", (max & 0xFFFF) | (tipo << 16));
-#else
   (void)max; (void)tipo;
   if (pelaPlataforma()) { texto_sistema_abrir(inicial ? inicial : "", 0); ok = texto_sistema_aberto(); }
   else ok = 1;
-#endif
   estado = ok ? ST_DIGITANDO : ST_PARADO;
   if (!ok) aviso = "O teclado do sistema não abriu.";
   printf("[texto] teclado do sistema: %s (dono %d)\n", ok ? "aberto" : "falhou", d);
@@ -134,14 +110,9 @@ int st_voz_iniciar(int d) {
   descartar();
   micTeclado = 0;
   dono = d; aviso = ""; nivel = 0.0f;
-#ifdef NV_ANDROID
-  ok = android_st_ditar(desc_tmdb_idioma());
-#else
   if (pelaPlataforma()) { texto_sistema_abrir("", 1); ok = texto_sistema_aberto(); }
   else ok = 1;
-#endif
   estado = ok ? ST_OUVINDO : ST_PARADO;
-#ifndef NV_ANDROID
   // Samsung (.tpk e .wgt): o botao abriu o teclado da Samsung, que ainda NAO
   // esta ouvindo. Nada de "Ouvindo…": o campo diz onde esta o microfone.
   if (ok && pelaPlataforma() && texto_sistema_voz_pelo_teclado()) {
@@ -149,7 +120,6 @@ int st_voz_iniciar(int d) {
     aviso = AVISO_MIC_CONTROLE;
     micTeclado = 1;
   }
-#endif
   if (!ok) aviso = "O ditado não respondeu. Tente de novo ou digite.";
   printf("[voice] %s (owner=%d, language=%s)\n", ok ? "requested" : "startup failed", d, desc_tmdb_idioma());
   fflush(stdout);
@@ -158,11 +128,7 @@ int st_voz_iniciar(int d) {
 
 void st_fechar(int d) {
   if (d != dono || estado == ST_PARADO) { if (d == dono) dono = ST_DONO_NENHUM; return; }
-#ifdef NV_ANDROID
-  android_st_fechar();
-#else
   if (pelaPlataforma()) texto_sistema_fechar();
-#endif
   estado = ST_PARADO;
   dono = ST_DONO_NENHUM;
   nivel = 0.0f;
@@ -177,9 +143,6 @@ void st_teste_evento(const char *ev) {
 }
 
 static int proximo(char *dst, size_t n) {
-#ifdef NV_ANDROID
-  if (android_st_evento(dst, n)) return 1;
-#endif
   if (!filaN) return 0;
   snprintf(dst, n, "%s", fila[filaIni]);
   filaIni = (filaIni + 1) % ST_FILA;

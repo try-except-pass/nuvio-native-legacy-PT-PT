@@ -207,7 +207,7 @@ static void terminar(int confirmou, const char *porque) {
 }
 
 int texto_sistema_disponivel(void) {
-#if   defined(NV_ANDROID) || defined(NV_TEXTO_SDL_TESTE)
+#if   defined(NV_TEXTO_SDL_TESTE)
   return imeQuebrado() ? 0 : TS_TECLADO;
 #elif defined(__linux__)
   return !imeQuebrado() && SDL_HasScreenKeyboardSupport() ? TS_TECLADO : 0;

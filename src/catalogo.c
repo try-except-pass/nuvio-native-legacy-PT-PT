@@ -18,7 +18,6 @@ __attribute__((weak)) int arte_reserva_registrar(const char *url, const char *im
 // sobre caminhoCache mais abaixo.
 #include "dados.h"
 #include "idiomaorig.h"
-#include "androidcache.h"
 #include "sessao.h"
 #include "perfis.h"
 #include "perfisessao.h"
@@ -926,9 +925,6 @@ static void caminhoCachePerfil(char *dst, size_t tam, const char *usuario, int p
 // src/dados.h) — nesse caso volta-se ao comportamento de sempre.
 static void caminhoCache(const char *dirArte, char *dst, size_t tam) {
   const char *d = dados_dir();
-#ifdef NV_ANDROID
-  d = nv_android_cache_dir();
-#endif
   if (!d || !*d) d = (dirArte && *dirArte) ? dirArte
                                            : (dirCache[0] ? dirCache : ".");
   if (d != dirCache) snprintf(dirCache, sizeof dirCache, "%s", d);

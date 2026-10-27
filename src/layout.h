@@ -10,15 +10,8 @@
 
 #define NV_TELA_BASE_W   1920.0f
 #define NV_TELA_BASE_H   1080.0f
-#ifdef NV_TOUCH_UI
-extern float nv_layout_w;
-extern float nv_layout_h;
-#define NV_TELA_W        nv_layout_w
-#define NV_TELA_H        nv_layout_h
-#else
 #define NV_TELA_W        NV_TELA_BASE_W
 #define NV_TELA_H        NV_TELA_BASE_H
-#endif
 
 // TV starts with the original 1920x1080 canvas. Mobile preserves the physical
 // aspect ratio, with a virtual short edge of 1080. Changing mode reuses the

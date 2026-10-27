@@ -34,45 +34,25 @@ static const Item TELA[] = {
       OPC(AJ_FONTE_ORDEM), OPC(AJ_FONTE_ORDEM_USO), OPC(AJ_FONTE_OUTROS),
       OPC(AJ_FONTE_AUTO), OPC(AJ_FONTE_TOCAR_CONFERINDO), OPC(AJ_FONTE_AQUECER),
       OPC(AJ_FONTE_CONFERIR_VARIAS), OPC(AJ_FONTE_PREPARAR),
-#ifdef NV_ANDROID
-      OPC(AJ_FONTE_PRECARREGAR),   // so o Android tem o preload do player
-#endif
       OPC(AJ_TAM_MIN), OPC(AJ_FONTE_TEXTO), OPC(AJ_FONTE_ORDEM_ADDON), OPC(AJ_SELOS_CORES),
       OPC(AJ_SELOS_PACOTE), OPC(AJ_SELOS_PACOTE_ADD), OPC(AJ_SELOS_PACOTE_REM),
     ROT("Som e vídeo desta TV"),
       OPC(AJ_DTS_AC3),
-#ifdef NV_ANDROID
-      OPC(AJ_TUNNELING),
-#endif
-#if !defined(NV_ANDROID)
       OPC(AJ_DV_MKV),
 #ifdef NV_DV7_CONVERSION
       OPC(AJ_DV7),
 #endif
-#endif
       OPC(AJ_CACHE_SEEK), OPC(AJ_MANTER_VIDEO), OPC(AJ_RETOMADA_MORNA), OPC(AJ_MANTER_PRAZO), OPC(AJ_SEEKR_AJUSTE),
       OPC(AJ_BUFFER),   // webOS: DTS/Dolby Vision conversion read-ahead
-#ifdef NV_ANDROID
-      OPC(AJ_PLAYER_EXTERNO),
-      OPC(AJ_PLAYER_ANIME),
-#endif
     // .wgt: sem socket TCP/UDP no navegador, sem motor; P2P escondido (a8e7685d).
     // #205: Android tambem lista o pendrive (NuvioActivity.volumesExternos).
     ROT("P2P"), OPC(AJ_P2P_LIGADO), OPC(AJ_P2P_URL), OPC(AJ_P2P_TESTAR),
-#if !defined(NV_ANDROID) || defined(NV_P2P_MOTOR)
     OPC(AJ_P2P_LIMITE), OPC(AJ_P2P_DESTINO),
-#endif
 
   SEC("Idiomas e legendas", "Idioma da interface, áudio, legenda e metadados", "aj_languages"),
     ROT("Idiomas"),
       OPC(AJ_IDIOMA), OPC(AJ_AUD_LINGUA), OPC(AJ_AUD_LINGUA2), OPC(AJ_LEG_LINGUA), OPC(AJ_LEG_FORCADA),
       OPC(AJ_LEG_MOSTRAR), OPC(AJ_LEG_SYNC_AUTO),
-#ifdef NV_ANDROID
-      // Sincronia pelo audio (F06): so o player do Android entrega o PCM. Na LG e
-      // na Samsung a linha so diria "indisponivel nesta plataforma" (decisao do
-      // dono, 04/10).
-      OPC(AJ_LEG_SYNC_AUDIO),
-#endif
     ROT("Legenda principal"),
       OPC(AJ_LEG1_TAMANHO), OPC(AJ_LEG1_FONTE), OPC(AJ_LEG1_COR), OPC(AJ_LEG1_OPACIDADE),
       OPC(AJ_LEG1_FUNDO), OPC(AJ_LEG1_POSICAO), OPC(AJ_LEG1_BORDA), OPC(AJ_LEG1_COR_BORDA),
@@ -162,9 +142,6 @@ static const Item TELA[] = {
       OPC(AJ_GAL_LANDSCAPE), OPC(AJ_GAL_ITENS_FILEIRA), OPC(AJ_GAL_ESPACO_FILEIRAS), OPC(AJ_GAL_ESPACO_TITULOS), OPC(AJ_GAL_FIL_TITULOS), OPC(AJ_GAL_NOTAS_HOME), OPC(AJ_GAL_SELO_VISTO), OPC(AJ_GAL_ABAS_ESTILO), OPC(AJ_GAL_OCULTAR_FILMES_VISTOS), OPC(AJ_GAL_AMIGOS_ESTILO), OPC(AJ_GAL_COLECAO_EXIBICAO), OPC(AJ_GAL_BORDA_FOCO), OPC(AJ_GAL_SOMBRA_FOCO), OPC(AJ_GAL_HOME_LAYOUT),
 
   SEC("Aparência", "Cor, transparência, fonte, animações e relógio", "aj_palette"),
-#ifdef NV_TOUCH_UI
-    OPC(AJ_INTERFACE_MODO),
-#endif
 #ifdef NV_TECLADO_SIS
     OPC(AJ_TECLADO_ANDROID),
 #endif
@@ -242,9 +219,6 @@ static const Item TELA[] = {
   SEC("Esta TV", "Resolução, imagens, efeitos e diagnóstico", "aj_monitor-cog"),
 OPC(AJ_RESOLUCAO), OPC(AJ_GPU_EFEITOS), OPC(AJ_AMPLIAR_UI), OPC(AJ_AMPLIACAO_ALGO), OPC(AJ_AMPLIACAO_NITIDEZ), OPC(AJ_HDR_INTERFACE), OPC(AJ_QUALIDADE_IMG),
     OPC(AJ_NAV_RAPIDA), OPC(AJ_MEDIDOR), OPC(AJ_DIAGNOSTICO), OPC(AJ_VELOCIDADE), OPC(AJ_ESPACO),
-#ifdef NV_ANDROID
-    OPC(AJ_LIMPAR_CACHE),
-#endif
     MAIS(),
     ROT("Memória"), OPC(AJ_TEX_MB),
 
@@ -257,9 +231,6 @@ OPC(AJ_RESOLUCAO), OPC(AJ_GPU_EFEITOS), OPC(AJ_AMPLIAR_UI), OPC(AJ_AMPLIACAO_ALG
     ROTS("App", ""), OPC(AJ_VERSAO_I), OPC(AJ_ATUALIZAR),
     ROTS("Registro", "para quem faz o app"),
       OPC(AJ_VER_REGISTRO), OPC(AJ_ENVIAR_LOG), OPC(AJ_ENVIO_AUTO), OPC(AJ_LOG_REDE),
-#ifdef NV_ANDROID
-      OPC(AJ_BAIXAR_REGISTRO),
-#endif
 };
 #define AJ_N_TELA (int)(sizeof TELA / sizeof *TELA)
 #define AJ_MAX_SECOES 16

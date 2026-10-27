@@ -28,7 +28,7 @@ static struct {
 static int suporta(void) {
 #if defined(NV_MUSICA_SHOT)
   return 1;
-#elif defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#elif defined(NV_LINUX_DESKTOP)
   return 0;
 #else
   return video_iniciar_auto();

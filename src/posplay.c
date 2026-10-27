@@ -66,13 +66,6 @@
 #define PP_LD_SIN     28.0f
 
 static int    visivel, serie, idx = -1, foco;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toquePP;
-static float scrollPP;
-static int toquePPRolar(const PonteiroRolagem *e) {
-  return visivel && !serie && telefoneui_ativo() ? toquerol_evento(&toquePP, e) : 0;
-}
-#endif
 // O titulo de `idx` (#190). O catalogo e refeito com o player aberto e a mesma
 // posicao passa a ser de outro titulo: sem o id, o cartao A seguir mostrava o
 // episodio de outra serie. Ver fixarTitulo.
@@ -166,9 +159,6 @@ void posplay_fechar(void) {
   pedT = pedE = 0; pedTitulo = -1;
   pedAutomatico = automaticoEntregue = recuou = aguardaBusca = 0;
   dispensado = 0;   // titulo novo: a dispensa do anterior nao vale mais
-#ifdef NV_TOUCH_UI
-  scrollPP = 0; memset(&toquePP, 0, sizeof toquePP);
-#endif
 }
 
 static void cancelarAutomatico(void) {
@@ -539,9 +529,6 @@ void posplay_atualizar(float dt, Uint32 agora, double posSeg, double durSeg,
 int posplay_evento(const SDL_Event *e) {
   int k;
   if (!visivel || e->type != SDL_KEYDOWN) return 0;
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) toquerol_limpar(&toquePP);
-#endif
   k = e->key.keysym.sym;
   if (k == SDLK_AC_BACK || k == SDLK_ESCAPE || k == SDLK_BACKSPACE ||
       e->key.keysym.scancode == NV_SCANCODE_BACK) {
@@ -654,9 +641,6 @@ static void ponteiroCartaz(int i, int b) {
   if (n > PP_MAX) n = PP_MAX;
   if (!visivel || serie || i < 0 || i >= n || foco == i) return;
   foco = i;
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toquePP);
-#endif
 }
 int posplay_teste_foco(void) { return foco; }
 
@@ -816,20 +800,6 @@ static void posplay_desenharCorpo_(Uint32 agora, float baseY) {
         if (!telefoneui_ativo()) plrui_dicas_video(k, r, 3, ilha.x + ilha.w - 34.0f, yc, 1, a); } }
     y += 30.0f + 22.0f + extra;
     cx = ilha.x + 34.0f;
-#ifdef NV_TOUCH_UI
-    if (telefoneui_ativo()) {
-      float vista = ilha.w - 54.0f, max = fmaxf(0, n * 212.0f - 22.0f - vista);
-      toquerol_vincular(&toquePP, (GfxRect){cx, y - 20, vista, 313}, gfx_escala(), 0, max, 0, &scrollPP);
-      if (!toquerol_livre(&toquePP)) {
-        float esq = foco * 212.0f, dir = esq + 190;
-        if (esq < scrollPP) scrollPP = esq;
-        if (dir > scrollPP + vista) scrollPP = dir - vista;
-        scrollPP = toquerol_clamp(scrollPP, 0, max);
-      }
-      if (visivel && a > .99f) ponteiro_rolagem(toquePPRolar);
-      cx -= scrollPP;
-    }
-#endif
     gfx_recorte(ilha.x, ilha.y - 40.0f, ilha.w, ilha.h + 40.0f);
     for (i = 0; i < n; i++) {
       const char *po = posterprov_card(extras_relacionado_imdb(i), 0, "movie",

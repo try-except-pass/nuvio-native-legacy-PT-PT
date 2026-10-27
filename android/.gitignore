@@ -1,7 +1,0 @@
-.gradle/
-local.properties
-app/.cxx/
-app/.cxx-lite/
-app/build/
-app/build-lite/
-build/

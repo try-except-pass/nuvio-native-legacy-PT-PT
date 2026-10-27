@@ -341,9 +341,6 @@ static Uint32 ondaEm;
 static int ondaArmada;
 static float scrollY = 0.0f;
 static Uint32 okDesde;
-#ifdef NV_TOUCH_UI
-static int toqueLivre;
-#endif
 // Velocidade da mola de 2a ordem da rolagem (anim_mola2): partida macia e
 // cauda exponencial, a MESMA curva que a home mede. A de 1a ordem que estava
 // aqui partia na velocidade maxima e o primeiro quadro ja saltava 12%.
@@ -436,9 +433,6 @@ static float bibX(void) {
 // the columns and the header badge all agree on it.
 static float bibDireita(void) {
   float txtDx = NV_LAYOUT_REAL_W / gfx_escala_txt() - NV_LAYOUT_REAL_W;
-#ifdef NV_TOUCH_UI
-  if (NV_LAYOUT_REAL_W < NV_LAYOUT_REAL_H) return NV_LAYOUT_REAL_W / gfx_escala_txt() - NV_BIB_X;
-#endif
   return NV_BIB_DIR + txtDx;
 }
 static float bibW(void) {
@@ -454,11 +448,7 @@ static float bibW(void) {
 // DEPOIS do topo ampliado (gradeYBase). So biblioteca_desenhar liga a escala.
 #define BIB_TOPO_ESCALA_MIN 1.2f
 static int bibRetrato(void) {
-#ifdef NV_TOUCH_UI
-  return NV_TELA_W < NV_TELA_H;
-#else
   return 0;
-#endif
 }
 static float bibHS(void) { return escala_min(BIB_TOPO_ESCALA_MIN); }
 // Escala do topo em unidades da camada de texto (grade e topo ficam lado a lado).
@@ -485,12 +475,6 @@ static int colunasCartaz(void) {
   return n < 1 ? 1 : n > BIB_COLUNAS_MAX ? BIB_COLUNAS_MAX : n;
 }
 static int colunasLista(void) {
-#ifdef NV_TOUCH_UI
-  if (NV_TELA_W < NV_TELA_H) {
-    int n = (int)((bibW() + BIB_LC_PASSO - BIB_LC_W) / BIB_LC_PASSO);
-    return n < 1 ? 1 : n > BIB_LC_COLS ? BIB_LC_COLS : n;
-  }
-#endif
   return BIB_LC_COLS;
 }
 static float larguraCartaoLista(void) {
@@ -528,38 +512,6 @@ static float gradeY(void) {
 }
 static int nLinhas(void) { return (nCelulas + colunas() - 1) / colunas(); }
 
-#ifdef NV_TOUCH_UI
-static float toqueBibliotecaMax(void) {
-  int linhas = nLinhas();
-  if (estado() != EST_ITENS && linhas > BIB_MAX_LINHAS) linhas = BIB_MAX_LINHAS;
-  return linhas > 0 ? fmaxf(0.0f, gradeY() + (linhas - 1) * passoLinha() + alturaLinha() - BIB_GRADE_BASE) : 0.0f;
-}
-static int toqueBibliotecaRolar(const PonteiroRolagem *e) {
-  if (!layout_modo_mobile()) { toqueLivre = 0; return 0; }
-  if (e->fase == PONT_ROL_INICIO) {
-    if (!e->eixoY || e->x < bibX() || e->x >= bibX() + bibW() || e->y < gradeY() || e->y >= BIB_GRADE_BASE || nCelulas < 1 || teclado_aberto()) return 0;
-    toqueLivre = 1; velY = 0.0f; okDesde = 0;
-    return 1;
-  }
-  if (e->fase == PONT_ROL_MOVER || e->fase == PONT_ROL_INERCIA) {
-    float antes = scrollY;
-    scrollY = anim_clamp(scrollY - e->delta, 0.0f, toqueBibliotecaMax());
-    if (estado() == EST_ITENS && scrollY >= toqueBibliotecaMax() - 2.0f * passoLinha()) lst_itens_mais();
-    return fabsf(scrollY - antes) > 0.001f;
-  }
-  return 1;
-}
-static void toqueBibliotecaRetomarFoco(void) {
-  if (layout_modo_mobile() && toqueLivre && nCelulas > 0) {
-    int r = (int)((scrollY + (BIB_GRADE_BASE - gradeY()) * 0.35f) / passoLinha());
-    int i = r * colunas() + foco.coluna;
-    if (i >= nCelulas) i = nCelulas - 1;
-    if (i < 0) i = 0;
-    foco.fileira = gradeIni() + i / colunas(); foco.coluna = i % colunas();
-  }
-  toqueLivre = 0;
-}
-#endif
 
 static int ehSerie(const CatItem *ci) {
   return ci && (!strcmp(ci->tipo, "series") || ci->nTemporadas > 0
@@ -612,9 +564,6 @@ static void remapear(int preservar) {
     return;
   }
   scrollY = 0.0f; velY = 0.0f;
-#ifdef NV_TOUCH_UI
-  toqueLivre = 0;
-#endif
   memset(animFoco, 0, sizeof animFoco); memset(revArte, 0, sizeof revArte);
   ondaArmada = 1; ondaEm = 0;
 }
@@ -1119,9 +1068,6 @@ static void biblioteca_evento_(const SDL_Event *e) {
   // as teclas. Deixar a grade responder por baixo foi o defeito que a busca de
   // codigo de amigo ja teve.
   if (teclado_aberto()) { teclado_evento(e); return; }
-#ifdef NV_TOUCH_UI
-  if (e->type == SDL_KEYDOWN) toqueBibliotecaRetomarFoco();
-#endif
   { SDL_Keycode kk = e->key.keysym.sym;
     int ehOk = kk == SDLK_RETURN || kk == SDLK_KP_ENTER || kk == SDLK_SPACE;
     // SOLTAR O OK: se ele foi armado numa celula e o menu nao abriu, foi toque.
@@ -1237,9 +1183,6 @@ static void biblioteca_evento_(const SDL_Event *e) {
 
 static void biblioteca_atualizar_(float dt, Uint32 agora) {
   int linhas, r, c, ini = gradeIni();
-#ifdef NV_TOUCH_UI
-  if (!layout_modo_mobile()) toqueLivre = 0;
-#endif
   (void)agora;
   lerPref();
   atualizarFonte();
@@ -1302,10 +1245,6 @@ static void biblioteca_atualizar_(float dt, Uint32 agora) {
     alvo = 0.0f;
   }
   if (alvo < 0.0f) alvo = 0.0f;
-#ifdef NV_TOUCH_UI
-  if (toqueLivre) scrollY = anim_clamp(scrollY, 0.0f, toqueBibliotecaMax());
-  else
-#endif
     scrollY = anim_mola2(&velY, scrollY, alvo, dt, NV_MOLA2_SCROLL);
 }
 
@@ -1525,25 +1464,16 @@ static float larguraSeletor(void) {
 // biblioteca_evento; o OK do clique chega depois, pelo caminho de sempre (aba
 // escolhe, seletor cicla, celula abre ou, segurado, abre o menu do cartaz).
 static void ponteiroModo(int a, int b) {
-#ifdef NV_TOUCH_UI
-  toqueLivre = 0;
-#endif
   (void)b;
   if (estado() == EST_ITENS || a < 0 || a >= BIB_N_MODOS) return;
   foco.fileira = BIB_FIL_MODO; foco.coluna = a;
 }
 static void ponteiroPicker(int p, int b) {
-#ifdef NV_TOUCH_UI
-  toqueLivre = 0;
-#endif
   (void)b;
   if (estado() == EST_ITENS || p < 0 || p > 2) return;
   pickSel = p; foco.fileira = BIB_FIL_PICK; foco.coluna = p;
 }
 static void ponteiroAcao(int a, int b) {
-#ifdef NV_TOUCH_UI
-  toqueLivre = 0;
-#endif
   (void)b;
   if (estado() != EST_ITENS || a < 0 || a > 2) return;
   acaoSel = a; foco.fileira = 0; foco.coluna = a;
@@ -1552,9 +1482,6 @@ static void ponteiroCelula(int i, int b) {
   int nc = colunas();
   (void)b;
   if (i < 0 || i >= nCelulas || nc < 1) return;
-#ifdef NV_TOUCH_UI
-  toqueLivre = 0;
-#endif
   foco.fileira = gradeIni() + i / nc; foco.coluna = i % nc;
 }
 
@@ -2406,9 +2333,6 @@ static void barraHold(GfxRect r, float a) {
 static void biblioteca_desenhar_(Uint32 agora) {
   int linhas, r, c, nc = colunas();
   float passoC, passoL, gy, gcy;
-#ifdef NV_TOUCH_UI
-  if (!teclado_aberto()) ponteiro_rolagem(toqueBibliotecaRolar);
-#endif
   // Mesmo ajuste, mesma disciplina da home: o rebordo claro do GFX_CARD e
   // ligado aqui e DEVOLVIDO no fim, porque a variavel e global e as outras
   // telas desenham card tambem.

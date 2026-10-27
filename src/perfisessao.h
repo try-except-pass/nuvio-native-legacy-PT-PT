@@ -4,11 +4,7 @@
 #ifndef NV_PERFISESSAO_H
 #define NV_PERFISESSAO_H
 #include <stdint.h>
-#if defined(__APPLE__) && (defined(__GNUC__) || defined(__clang__))
-// Mach-O distinguishes an optional undefined import from a weak definition.
-// A complete app supplies the strong producer; isolated fixtures may omit it.
-#define NV_PERFIL_OPCIONAL __attribute__((weak_import))
-#elif defined(__GNUC__) || defined(__clang__)
+#if   defined(__GNUC__) || defined(__clang__)
 #define NV_PERFIL_OPCIONAL __attribute__((weak))
 #else
 #define NV_PERFIL_OPCIONAL

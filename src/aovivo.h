@@ -106,12 +106,6 @@ void aovivo_numero_desenhar(const char *digitos, const char *nome, const char *f
 void aovivo_erro_foco(int foco);
 void aovivo_erro_desenhar(const char *nome, const char *logo, const char *titulo,
                           const char *dica, float a);
-#ifdef NV_TOUCH_UI
-typedef void (*AoVivoToqueFn)(int acao, int erro, int quadro);
-// The player owns channel/state validation and the existing action dispatch.
-void aovivo_toque_definir(AoVivoToqueFn fn, int quadro);
-void aovivo_toque_reiniciar(void);
-#endif
 
 #endif
 

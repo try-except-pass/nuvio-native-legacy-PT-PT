@@ -68,9 +68,6 @@ static int escalaAvisada;
 
 static void abrir(void) {
   static const char *nomes[] = {
-#ifdef NV_ANDROID
-    "libwebp.so",   // embarcada no APK (jniLibs)
-#endif
     "libwebp.so.7", "libwebp.so", "libwebp.7.dylib", "/opt/homebrew/lib/libwebp.7.dylib", NULL };
   void *h = NULL; int i;
   for (i = 0; nomes[i] && !h; i++) h = dlopen(nomes[i], RTLD_NOW);

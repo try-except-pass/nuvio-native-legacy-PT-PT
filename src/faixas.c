@@ -50,14 +50,6 @@ static int velFoco, velPedidaUi = VEL_NORMAL;
 // nao. Guardar quantas linhas foram roladas e o suficiente porque a altura da
 // linha e fixa.
 static int rolagem[3];
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueAudio;
-static float toqueAudioOffset;
-static int toqueAudioRolar(const PonteiroRolagem *e) {
-  if (!aberta || faixas_estilo_topo()) return 0;
-  return toquerol_evento(&toqueAudio, e);
-}
-#endif
 // Quantas linhas cabem no painel. Calculada no desenho (depende da altura
 // escolhida ali) e lida pelo tratamento de tecla, que roda antes.
 static int visiveis = 8;
@@ -153,11 +145,7 @@ static int ehAss(const VideoFaixa *f) {
 
 // #421: texto embutido usa o mesmo overlay das externas. Android ja recebe
 // os cues do Media3; la so ASS continua pelo colhedor.
-#ifdef NV_ANDROID
-#define FX_TEXTO_OVERLAY 0
-#else
 #define FX_TEXTO_OVERLAY 1
-#endif
 // PGS: o app decodifica e desenha (imgsub) no .tpk e na LG; as outras seguem.
 static int ehPgs(const VideoFaixa *f) {
 #if defined(NV_WEBOS)
@@ -456,9 +444,6 @@ static void reiniciarFaixas(int preservarPrebusca) {
   velFoco = 0; velPedidaUi = VEL_NORMAL; video_velocidade(VEL_NORMAL);
 }
 void faixas_reiniciar(void) { reiniciarFaixas(0); }
-#ifdef NV_ANDROID
-void faixas_reiniciar_preparada(void) { reiniciarFaixas(1); }
-#endif
 
 // Indice da legenda que a folha deve marcar como ATIVA.
 static int legendaAtiva(void) {
@@ -539,9 +524,6 @@ void faixas_abrir_em(int col) {
       if (foco[c] >= n) foco[c] = n > 0 ? n - 1 : 0;
       if (foco[c] < 0)  foco[c] = 0;
     rolagem[c] = 0;
-#ifdef NV_TOUCH_UI
-    toquerol_limpar(&toqueAudio); toqueAudioOffset = 0;
-#endif
     } }
   // No track list yet (the audio list arrives after the first frames): the
   // volume row is the only thing to focus.
@@ -1250,12 +1232,6 @@ static int estiloTecla(SDL_Keycode k, int rep) {
 }
 
 void faixas_evento(const SDL_Event *e) {
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo() && toquerol_navegacao(e)) {
-    rolagem[0] = (int)(toqueAudioOffset / 92.0f);
-    toquerol_limpar(&toqueAudio);
-  }
-#endif
   SDL_Keycode k;
   if (!aberta) return;
   // F04: the subtitle LIST is the selector of legendasui.c (simple view and
@@ -1522,12 +1498,6 @@ static int ilVisN(int extra) {
 // O canvas Mobile normaliza a borda curta em 1080: 144 unidades sao
 // 48 dp num telefone de 360 dp, antes da escala escolhida para a interface.
 static float estiloToqueMin(void) {
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) {
-    float s = gfx_escala_ui();
-    return s > 0 ? 144.0f / s : 0;
-  }
-#endif
   return 0;
 }
 static float estiloCelulaH(void) {
@@ -1808,31 +1778,6 @@ static void corpoLista(GfxRect c, float a) {
     else { linhaVolume(x0, y, w, a); y += IL_LN_H + VOL_VAO; }
   }
   visiveis = IL_VIS_COL(col);
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) {
-    if (!toquerol_livre(&toqueAudio)) {
-      ajustarRolagem();
-      toqueAudioOffset = rolagem[col] * (IL_LN_H + IL_LN_VAO);
-    }
-    { float passo = IL_LN_H + IL_LN_VAO;
-    float area = fminf(n, visiveis) * passo - (n > 0 ? IL_LN_VAO : 0);
-    GfxRect ilha;
-    toquerol_vincular(&toqueAudio, (GfxRect){x0, y, w, area}, gfx_escala(),
-                     0, n * passo - IL_LN_VAO - area, 1, &toqueAudioOffset);
-    if (aberta && a > 0.99f) ponteiro_rolagem(toqueAudioRolar);
-    gfx_recorte(x0, y, w, area);
-    for (i = 0; i < n; i++) {
-      float ry = y + i * passo - toqueAudioOffset;
-      if (ry + IL_LN_H < y || ry > y + area) continue;
-      if (!modo && a > 0.99f) ponteiro_alvo_faixa(x0, ry, w, IL_LN_H, y, y + area, ponteiroFaixa, NULL, i, 0);
-      linhaLista(col, i, x0, ry, w, a);
-    }
-    if (plrilha_rect(&ilha)) gfx_recorte(ilha.x, ilha.y, ilha.w, ilha.h);
-    else gfx_recorte(c.x, c.y, c.w, c.h);
-    r = 0; fim = n < visiveis ? n : visiveis;
-    }
-  } else
-#endif
   {
     ajustarRolagem();
     r = rolagem[col]; fim = r + visiveis; if (fim > n) fim = n;
@@ -1888,48 +1833,9 @@ static void ponteiroSlider(int a, int b) {
 }
 static void ponteiroAba(int estilo, int b) { (void)b; faixas_aba_estilo(estilo); }
 
-#ifdef NV_TOUCH_UI
-static void celulaEstiloTelefone(int i, GfxRect r, float a, int ativa) {
-  int sel = coluna == FX_COL_ESTILO && i == foco[FX_COL_ESTILO];
-  int pres = estiloPreservadoAss(i);
-  float x = r.x + 20, w = r.w - 40;
-  if (sel) plrui_linha_foco(r, 22, a);
-  if (ativa) ponteiro_alvo(r.x, r.y, r.w, r.h, ponteiroEstilo, NULL, i, 0);
-  if (i == EST_RESTAURAR) {
-    int compacto = r.w < 154;
-    float tx = compacto ? r.x + 10 : r.x + 54, tw = compacto ? r.w - 20 : r.w - 74;
-    float h = txt_bloco_corta(TXT_G20B, EST_ROT[i], 243, 242, 239, 0, 0, tw, 24, 0, compacto ? 2 : 3);
-    gfx_icone((GfxRect){compacto ? r.x + (r.w - 22) * .5f : r.x + 20,
-                       compacto ? r.y + 8 : r.y + (r.h - 22) * .5f, 22, 22},
-              "pl_rotate-ccw", 1, 1, 1, (sel ? 1 : .75f) * a);
-    txt_bloco_corta(TXT_G20B, EST_ROT[i], 243, 242, 239, tx,
-                    compacto ? r.y + 36 : r.y + (r.h - h) * .5f, tw, 24, a, compacto ? 2 : 3);
-    return;
-  }
-  char v[48];
-  int cor = (i == EST_COR || i == EST_COR_BORDA) && !pres, c = pres ? 120 : sel ? 255 : 217;
-  valorEstilo(i, v, sizeof v);
-  float lh = txt_bloco_corta(TXT_G16B, EST_ROT[i], 243, 242, 239, 0, 0, w, 20, 0, 2);
-  TxtLinha lv = txt_linha_corta(TXT_ILHA_SECAO, v, c, c, c - 2, 255, w - (cor ? 30 : 0));
-  float vh = lv.h, total = lh + 6 + vh, y = r.y + (r.h - total) * .5f;
-  txt_bloco_corta(TXT_G16B, EST_ROT[i], 243, 242, 239, x, y, w, 20, a * .5f, 2);
-  float yv = y + lh + 6;
-  if (cor) {
-    int cr,cg,cb;
-    if (i == EST_COR_BORDA) { unsigned rgb = video_legenda_borda_rgb(player_leg_estilo()->corBorda); cr = (rgb >> 16) & 255; cg = (rgb >> 8) & 255; cb = rgb & 255; }
-    else corLegenda(player_leg_estilo()->cor, &cr,&cg,&cb);
-    gfx_cor((GfxRect){x,yv+(vh-20)*.5f,20,20},.5f,cr/255.0f,cg/255.0f,cb/255.0f,a);
-    x += 30;
-  }
-  txt_desenhar_alpha(lv, x, yv, a);
-}
-#endif
 
 // Uma celula do ESTILO: rotulo em cima, valor embaixo; "Restaurar padrao" e acao.
 static void celulaEstilo(int i, GfxRect r, float a, int ativa) {
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) { celulaEstiloTelefone(i, r, a, ativa); return; }
-#endif
   int sel = coluna == FX_COL_ESTILO && i == foco[FX_COL_ESTILO];
   int pres = estiloPreservadoAss(i);
   if (sel) plrui_linha_foco(r, 22.0f, a);

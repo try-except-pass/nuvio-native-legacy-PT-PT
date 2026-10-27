@@ -1,6 +1,3 @@
-#ifdef NV_ANDROID
-#include <unistd.h>   // access (fontes de /system/fonts)
-#endif
 #include "text.h"
 #include "legfontes.h"
 #include "sdlcompat.h"
@@ -1027,11 +1024,7 @@ static TTF_Font *fonteLegendaDe(TxtEstilo estilo, const char *s,
     int i = estilo - TXT_LEG_50;
     if (!fontesLegendaLG[i] && !tentouLegendaLG[i]) {
       tentouLegendaLG[i] = 1;
-#ifdef NV_ANDROID
-      fontesLegendaLG[i] = TTF_OpenFont("/system/fonts/Roboto-Regular.ttf",
-#else
       fontesLegendaLG[i] = TTF_OpenFont("/usr/share/fonts/LG_Display-Regular.ttf",
-#endif
           (int)(corpoAtual(estilo) * ESC_T + 0.5f));
       if (!fontesLegendaLG[i] && !avisoFallback[TXT_FAMILIA_LG]) {
         printf("fonte de legenda LG Display indisponivel; usando fallback\n");
@@ -1342,23 +1335,11 @@ int txt_iniciar(const char *dirRecursos, float escala) {
   snprintf(caminhoMono[0], 512, "%sfonts/JetBrainsMonoNL-Regular.ttf", base);
   snprintf(caminhoMono[1], 512, "%sfonts/JetBrainsMonoNL-SemiBold.ttf", base);
   snprintf(caminhoMono[2], 512, "%sfonts/Montserrat-ExtraLight-Relogio.ttf", base);
-#ifdef NV_ANDROID
-  // Android: nao ha LG_Display nem /usr/share/fonts. A "LG" vira Roboto do
-  // sistema e a "Droid" a DroidSans (so nas versoes antigas) ou Roboto.
-  snprintf(caminhoPeso[TXT_FAMILIA_LG][0], 512, "%s", "/system/fonts/Roboto-Light.ttf");
-  snprintf(caminhoPeso[TXT_FAMILIA_LG][1], 512, "%s", "/system/fonts/Roboto-Regular.ttf");
-  snprintf(caminhoPeso[TXT_FAMILIA_LG][2], 512, "%s", "/system/fonts/Roboto-Regular.ttf");
-  for (int p = 0; p < 3; p++)
-    snprintf(caminhoPeso[TXT_FAMILIA_DROID][p], 512, "%s",
-             access("/system/fonts/DroidSans.ttf", R_OK) == 0 ? "/system/fonts/DroidSans.ttf"
-                                                              : "/system/fonts/Roboto-Regular.ttf");
-#else
   snprintf(caminhoPeso[TXT_FAMILIA_LG][0], 512, "%s", "/usr/share/fonts/LG_Display-Light.ttf");
   snprintf(caminhoPeso[TXT_FAMILIA_LG][1], 512, "%s", "/usr/share/fonts/LG_Display-Regular.ttf");
   snprintf(caminhoPeso[TXT_FAMILIA_LG][2], 512, "%s", "/usr/share/fonts/LG_Display-Regular.ttf");
   for (int p = 0; p < 3; p++)
     snprintf(caminhoPeso[TXT_FAMILIA_DROID][p], 512, "%s", "/usr/share/fonts/DroidSans.ttf");
-#endif
 
   // Fallback fonts, in preference order per script. Arabic and Thai prefer
   // bundled UI sans faces; CJK prefers TV system fonts before its subset.

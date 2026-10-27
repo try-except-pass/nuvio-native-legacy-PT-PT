@@ -52,20 +52,6 @@ static int temTitulo, temPerfil, temAjustes;
 // por quadro e cat_indice_por_imdb varre o catalogo).
 static unsigned cacheRev = ~0u, cacheCat = ~0u;
 static int cacheCol = -2, cacheDentro = -2, cacheIdx = -1;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toque;
-static PonteiroFn toqueFocar;
-void amigosfil_ponteiro(PonteiroFn focar) { toqueFocar = focar; }
-int amigosfil_rolagem(const PonteiroRolagem *e) {
-  int r = toquerol_evento(&toque, e);
-  if (r && e->fase == PONT_ROL_INICIO) vScroll = 0.0f;
-  return r;
-}
-void amigosfil_focar(int coluna, int cartao) {
-  toquerol_limpar(&toque);
-  colAnt = coluna; dentro = cartao;
-}
-#endif
 
 static int afNum(void);
 int amigosfil_dentro(void) { return dentro; }
@@ -110,40 +96,8 @@ static float rostoX(int i, float x0, float alt) {
   return x;
 }
 static float amigosfilDireita(void) {
-#ifdef NV_TOUCH_UI
-  if (NV_TELA_H > NV_TELA_W) {
-    float margem = ajustes_rail_largura_fixa() > 0.0f ? fmaxf(48.0f, ajustes_conteudo_x()) : 48.0f;
-    return NV_TELA_W - margem;
-  }
-#endif
   return NV_TELA_W - NV_HOME_SAFE_RIGHT;
 }
-#ifdef NV_TOUCH_UI
-static void amigosfilToqueVincular(float x0, float y, float alt, float corte, int n) {
-  float direita = amigosfilDireita();
-  float maxX = fmaxf(0.0f, rostoX(n > 0 ? n - 1 : 0, x0, alt) + scroll + AF_D + (n > 0 ? empurra(n - 1, alt) : 0.0f) + 30.0f - direita);
-  float topo = fmaxf(y, corte), base = fminf(y + alt, NV_TELA_H);
-  toquerol_vincular(&toque, (GfxRect){x0, topo, fmaxf(0.0f, direita - x0), fmaxf(0.0f, base - topo)},
-                   gfx_escala(), 0.0f, n > 0 ? maxX : 0.0f, 0, &scroll);
-}
-void amigosfil_retomar_foco(int *coluna) {
-  if (toquerol_livre(&toque) && coluna) {
-    float ponto = toque.regiao.x + toque.regiao.w * 0.35f, melhor = 1e9f;
-    int n = amigosfil_n_colunas();
-    for (int i = 0; i < n; i++) {
-      float d = fabsf(rostoX(i, ultX0, ultAlt) + AF_D * 0.5f - ponto);
-      if (d < melhor) { melhor = d; *coluna = i; }
-    }
-    dentro = -1;
-  }
-  toquerol_limpar(&toque);
-}
-static void alvoToque(GfxRect r, float corte, int coluna, int cartao) {
-  float x = fmaxf(r.x, ultX0), dir = fminf(r.x + r.w, toque.regiao.x + toque.regiao.w);
-  if (toqueFocar && dir > x)
-    ponteiro_alvo_faixa(x, r.y, dir - x, r.h, corte, NV_TELA_H, toqueFocar, NULL, coluna, cartao);
-}
-#endif
 
 #include "amigosfil_estilos.inc"
 
@@ -172,10 +126,6 @@ int amigosfil_tecla(SDL_Keycode k, int *coluna) {
   const SvAmigo *a;
   if (ajustes_amigos_estilo() != 5) return 0;
   if (!coluna || n < 1) return 0;          // convite: a home cuida (borda/menu)
-#ifdef NV_TOUCH_UI
-  if (k == SDLK_UP || k == SDLK_DOWN || k == SDLK_LEFT || k == SDLK_RIGHT)
-    amigosfil_retomar_foco(coluna);
-#endif
   a = socialvis_amigo(*coluna);
   if (k == SDLK_RIGHT) {
     if (!a) return 0;
@@ -298,9 +248,6 @@ void amigosfil_atualizar(float dt, int focada, int *colunaP) {
   }
   if (ultX0 >= 0.0f) {
     float alvo = n > 0 && focada ? alvoScroll(coluna, ultX0, ultAlt) : (n > 0 ? scroll : 0.0f);
-#ifdef NV_TOUCH_UI
-    if (!toquerol_livre(&toque))
-#endif
       scroll = anim_mola2_reduzida(&vScroll, scroll, alvo, dt, NV_MOLA2_SCROLL, red);
   }
   // A NOVIDADE FOI VISTA quando o painel ficou aberto um instante — e nao no
@@ -378,13 +325,7 @@ void amigosfil_desenhar(float x0, float y, float alt, float corte, int focada,
   // (a rail fixa muda x0).
   if (ultX0 < 0.0f && focada) scroll = alvoScroll(coluna, x0, alt);
   ultX0 = x0; ultAlt = alt;
-#ifdef NV_TOUCH_UI
-  amigosfilToqueVincular(x0, y, alt, corte, n);
-#endif
   if (n < 1) {
-#ifdef NV_TOUCH_UI
-    alvoToque((GfxRect){ x0, y, toque.regiao.w, alt }, corte, 0, -1);
-#endif
     desenhaConvite(x0, y, alt, focada, agora); return;
   }
 
@@ -413,11 +354,6 @@ void amigosfil_desenhar(float x0, float y, float alt, float corte, int focada,
           GfxRect c = { px + AF_PAD + (float)k * (larguraCartao(alt) + AF_GAP_CART),
                         py + AF_PAD, larguraCartao(alt), alturaCartao(alt) };
           float fc = (focada && i == coluna) ? fCartao[k] : 0.0f;
-#ifdef NV_TOUCH_UI
-          { GfxRect alvo = c;
-            if (alvo.x + alvo.w > pr.x + pr.w) alvo.w = pr.x + pr.w - alvo.x;
-            if (ca > 0.5f) alvoToque(alvo, corte, i, k); }
-#endif
           svd_cartao(c, &a->tit[k], fc, ca, agora);
         }
         gfx_recorte(0.0f, corte, NV_TELA_W, NV_TELA_H - corte);
@@ -425,9 +361,6 @@ void amigosfil_desenhar(float x0, float y, float alt, float corte, int focada,
     }
     if (rx + AF_D < -40.0f) continue;
     svd_rosto(face, a, fr, 1.0f, agora);
-#ifdef NV_TOUCH_UI
-    alvoToque((GfxRect){ face.x, face.y, face.w, face.h + 64.0f }, corte, i, -1);
-#endif
     { const char *nome = a->nome;
       TxtLinha rep = txt_linha_corta(TXT_CAPTION, nome, 214, 212, 222, 255, AF_P - 16.0f);
       TxtLinha foc = txt_linha_corta(TXT_CAPTION, nome, 255, 255, 255, 255, AF_P - 16.0f);

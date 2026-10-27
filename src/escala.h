@@ -19,13 +19,8 @@
 #include "layout.h"
 #include "gfx.h"
 
-#ifdef NV_TOUCH_UI
-#define NV_LAYOUT_REAL_W nv_layout_w
-#define NV_LAYOUT_REAL_H nv_layout_h
-#else
 #define NV_LAYOUT_REAL_W NV_TELA_BASE_W
 #define NV_LAYOUT_REAL_H NV_TELA_BASE_H
-#endif
 #define NV_VTELA_W (NV_LAYOUT_REAL_W / gfx_escala_ui())
 #define NV_VTELA_H (NV_LAYOUT_REAL_H / gfx_escala_ui())
 

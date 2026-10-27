@@ -232,9 +232,7 @@ static void aplicarEstilo(void);
 // Mesmo limite de Stream.url: o pipeline recebe a URL original, e cortar a
 // copia faria somente a sonda MKV/ASS falhar (inclusive apos tentar de novo).
 static char  urlAtual[4096];
-#if !defined(NV_ANDROID)   // .tpk e Android: video_url_atual vem do video_*.c do alvo
 const char *video_url_atual(void) { return urlAtual; }
-#endif
 // Recuperacao de pipeline destruido: pedida pelo fio de resposta do luna e
 // executada no fio principal (video_bombear), porque recarregar de dentro do
 // tratador de evento reentra no mesmo caminho que acabou de falhar.
@@ -293,7 +291,7 @@ static int       fioMkvVivo;
 // abertura e fazer o load correto ser ignorado.
 static unsigned  sessao;
 
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
 // No Mac nao existe barramento nem plano de video. Os cotos deixam o resto do
 // app compilar e rodar igual, so sem imagem em movimento. As capturas podem
 // simular um video (video_simular, video.h); zerado e o coto mudo.
@@ -417,7 +415,7 @@ void video_velocidade_recusada(void) { velMac = VEL_NORMAL; }
 // Capturas: o passthrough simulado (cacheboost_ganho_relato) esmaece a linha.
 int  video_velocidade_bloqueada(void) { return cacheboost_ganho_estado() == CB_GANHO_PASSTHROUGH; }
 // .tpk da Samsung: o player e o do host .NET, em video_tpk.c.
-#elif !defined(NV_ANDROID)   // ramo luna (webOS): Android usa video_android.c
+#else
 #include <dlfcn.h>
 
 typedef struct LSHandle LSHandle;
@@ -3978,6 +3976,9 @@ int video_legenda_nativa(char *d, int t) {
 
 // A ordem de audio (audioescolha.h) sobre as faixas atuais. Chamada ao chegar o sourceInfo e de novo
 // quando o idioma original do titulo chega depois (dono, 2026-10-26: o audio nem sempre era o original).
+#ifdef NV_LINUX_DESKTOP
+void video_reaplicar_audio(void) {}   // sem faixas reais no PC
+#else
 void video_reaplicar_audio(void) {
   AudioCand c[NV_FAIXA_MAX];
   int i, o, k;
@@ -3997,3 +3998,4 @@ void video_reaplicar_audio(void) {
     if (audioAoCarregar < 0) video_escolher_audio(k);
   }
 }
+#endif

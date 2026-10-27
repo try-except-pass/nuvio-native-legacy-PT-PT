@@ -955,9 +955,6 @@ static void ajcIdiFaixas(int A) {
   int OP[5] = { AJ_AUD_LINGUA, AJ_LEG_LINGUA, AJ_LEG_LINGUA2, AJ_LEG_SYNC_AUTO, AJ_LEG_SYNC_AUDIO };
   static const char *const IC[5] = { "aj_audio-lines", "aj_captions", "aj_captions", "aj_activity", "aj_activity" };
   int i, n = 4;
-#ifdef NV_ANDROID
-  n = 5;
-#endif
   if (ajc.op == AJ_LEG_SYNC_AUDIO) n = 5;
   if (ajc.op == AJ_AUD_LINGUA2) OP[0] = AJ_AUD_LINGUA2;   // a linha em foco no lugar da principal
   CIMG(ajArte(AJA_FUNDO, A), 0, 0, 640, 360, 22, 1);

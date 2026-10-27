@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "moviebuffer.h"
 #include <string.h>
-#if !defined(NV_DTS_FFMPEG) || defined(NV_ANDROID)
+#if !defined(NV_DTS_FFMPEG)
 int moviebuffer_url(const char *s,const char *h,int m,char *o,size_t n) { (void)s;(void)h;(void)m;(void)o;(void)n;return 0; }
 void moviebuffer_stop(void) {}
 int moviebuffer_info(DtsBufferInfo *i) { if(i) memset(i,0,sizeof *i);return 0; }

@@ -68,13 +68,6 @@ static float animFoco[CENTRAL_MAX + 1], animLig[CENTRAL_MAX + 1];
 static void centralPassoFoco(float dt);
 static float rolaEd;            // rolagem da lista de edicao (px)
 static float rolaBotoes, quadroDt;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueCentral;
-static int toqueCentralRolar(const PonteiroRolagem *e) {
-  if (!aberta || escolhendoCor) return 0;
-  return toquerol_evento(&toqueCentral, e);
-}
-#endif
 static CentralLista lista;
 static int perfilLido = -1;
 // A previa do cartao de novidades (central_previa_*): sem video tocando,
@@ -175,9 +168,6 @@ void central_abrir(void) {
   memset(animFoco, 0, sizeof animFoco);   // o foco acende com a abertura da ilha
   memset(animLig, 0, sizeof animLig);
   rolaBotoes = 0;
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueCentral);
-#endif
   aviso[0] = 0;
   printf("[central] aberta (%d atalhos)\n", botoes(NULL, NULL));
   fflush(stdout);
@@ -204,9 +194,6 @@ static void ativarBotao(int i) {
   if (i == n) {
     int it[64], m = ofertas(it), j;
     editando = 1; focoEd = 0; rolaEd = 0;
-#ifdef NV_TOUCH_UI
-    toquerol_limpar(&toqueCentral);
-#endif
     for (j = 0; j < m; j++) if (centrallista_tem(&lista, it[j])) { focoEd = j; break; }
     return;
   }
@@ -251,9 +238,6 @@ static void corAplicar(int i) {
 }
 
 void central_evento(const SDL_Event *e) {
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) toquerol_limpar(&toqueCentral);
-#endif
   SDL_Keycode k;
   if (!aberta || e->type != SDL_KEYDOWN) return;
   k = e->key.keysym.sym;
@@ -624,12 +608,6 @@ static void desenhaBotoes(float x, float y, float w, float h, float a) {
   float scroll = 0;
   if (foco > n) foco = n;
   if (!previa) {
-#ifdef NV_TOUCH_UI
-    float maxR = fmaxf(0, (float)linhasBotoes() * (CC_BOTAO_H + CC_GAP) - CC_GAP - h);
-    toquerol_vincular(&toqueCentral, (GfxRect){x, y, w, h}, gfx_escala(), 0, maxR, 1, &rolaBotoes);
-    if (aberta && a > 0.5f) ponteiro_rolagem(toqueCentralRolar);
-    if (!toqueCentral.livre)
-#endif
     rolaBotoes = rolagemBotoes(h);
     scroll = rolaBotoes;
   }
@@ -689,11 +667,6 @@ static void desenhaEdicao(float x, float y, float w, float h, float a) {
   float maxR = (float)m * passo - CC_LINHA_GAP - h;
   if (alvo > maxR) alvo = maxR;
   if (alvo < 0) alvo = 0;
-#ifdef NV_TOUCH_UI
-  toquerol_vincular(&toqueCentral, (GfxRect){x, y, w, h}, gfx_escala(), 0, maxR, 1, &rolaEd);
-  if (aberta && a > 0.5f) ponteiro_rolagem(toqueCentralRolar);
-  if (!toquerol_livre(&toqueCentral))
-#endif
   rolaEd = alvo;
   gfx_recorte(x - 8.0f, y, w + 16.0f, h);
   for (j = 0; j < m; j++) {
@@ -714,11 +687,6 @@ static void desenhaEdicao(float x, float y, float w, float h, float a) {
       gfx_icone(ic, "aj_circle-check", ar, ag, ab, a);
     } else gfx_icone(ic, "aj_plus", 0.953f, 0.949f, 0.937f, 0.45f * a);
     if (aberta && a > 0.5f && ponteiro_ativo()) {
-#ifdef NV_TOUCH_UI
-      if (layout_modo_mobile())
-      ponteiro_alvo_faixa(r.x, r.y, r.w, r.h, y, y + h, ptFoco, ptOk, j, 1);
-      else
-#endif
       ponteiro_alvo(r.x, r.y, r.w, r.h, ptFoco, ptOk, j, 1);
     }
   }

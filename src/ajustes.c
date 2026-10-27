@@ -19,7 +19,6 @@
 #include "ajustes_ux.h"
 #include "trailerfonte.h"   // NV_TRAILER_CONTINUA_DETALHE, nas ajudas do trailer
 #include "dados.h"
-#include "androidcache.h"
 #include "extplayer.h"
 #include "resolucao.h"
 #include "gpunivel.h"
@@ -113,9 +112,6 @@
 #include "abertura.h"
 #include "apoio.h"
 #include "telefoneui.h"
-#ifdef NV_ANDROID
-#include "android.h"
-#endif
 
 // Settings has its own canvas and scale, independent of the global UI zoom.
 // Layout, text measurement, drawing and pointer targets share this factor.
@@ -124,19 +120,11 @@
 #define NV_VTELA_W (NV_LAYOUT_REAL_W / ajustes_tamanho_ajustes())
 #define NV_VTELA_H (NV_LAYOUT_REAL_H / ajustes_tamanho_ajustes())
 static int ajRetrato(void) {
-#ifdef NV_TOUCH_UI
-  return layout_modo_mobile() && NV_LAYOUT_REAL_H > NV_LAYOUT_REAL_W;
-#else
   return 0;
-#endif
 }
 #define AJ_ESCALA_INI() float ajEscalaAnt_ = gfx_escala(); gfx_escala_sair(ajustes_tamanho_ajustes())
 static int ajTelaCheia(void) {
-#ifdef NV_TOUCH_UI
-  return layout_modo_mobile();
-#else
   return 0;
-#endif
 }
 // Mobile "Lista": o cabecalho desce abaixo do selo e do relogio, como nas outras telas.
 static float ajPaginaTopo(void) { return ajTelaCheia() && !ajustes_layout_lista() ? 0.0f : 112.0f / ajustes_tamanho_ajustes(); }
@@ -641,9 +629,6 @@ typedef enum {
   // do app oficial; a mesma lista e a regra da legenda secundaria (audioescolha.h:
   // a ordem do audio automatico). No fim: posicionais.
   AJ_AUD_LINGUA2,
-#ifdef NV_ANDROID
-  AJ_BAIXAR_REGISTRO, // acao local; no fim para preservar os IDs existentes
-#endif
   // Shared exclusions live in fontefalha.txt; appended device-local views.
   AJ_FILTROS_FONTES, AJ_FILTRO_TAM_MAX, AJ_FILTRO_GRUPOS,
   // Player-backed primary style views: no second copy in ajustes.txt.
@@ -910,18 +895,14 @@ static const char *V_P2P_DESTINO[] = { "Interno", "Pendrive USB" };
 // many tests that compile ajustes.c alone need no extra source.
 // DTS -> AC3/AAC conversion: the webOS player (src/dts).
 static int dtsConversaoExiste(void) {
-#if   defined(__APPLE__) || defined(NV_LINUX_DESKTOP) || defined(NV_ANDROID)
+#if   defined(NV_LINUX_DESKTOP)
   return 0;
 #else
   return 1;
 #endif
 }
 static int cacheSeekExiste(void) {
-#ifdef NV_ANDROID
-  return 1;
-#else
   return 0;
-#endif
 }
 // Indice gravado em fundoLocal (ajustes_fundo).
 static const char *V_FUNDO[] = { "Arte", "Arte borrada", "Frost" };
@@ -1084,11 +1065,7 @@ static const char *V_CW_ORDEM[]  = { "Padrão", "Estilo streaming", "Separar fut
 static const char *V_ITENS_FIL[] = { "12", "18", "24" };
 static const char *V_GPU_EF[]    = { "Automático", "Completos", "Leves", "Mínimos" };
 static const char *V_MIC_BUSCA[] = { "Automático", "Ligado", "Desligado" };
-#ifdef NV_ANDROID
-static const char *V_TECLADO_AND[] = { "Automático", "Do app", "Do Android" };
-#else
 static const char *V_TECLADO_AND[] = { "Automático", "Do app", "Do sistema" };   // LG / Samsung
-#endif
 // "Validade do ultimo link": as opcoes do oficial (1 h a 7 dias). O indice e o
 // gravado em linkPrazoLocal; ajustes_link_prazo_s() devolve os segundos.
 static const char *V_LINK_PRAZO[] = { "1 h", "2 h", "3 h", "6 h", "12 h", "24 h", "48 h", "72 h", "7 dias" };
@@ -1798,9 +1775,6 @@ static const Opcao OPCOES[AJ_N] = {
   ESC("Estilo da fileira de amigos", V_AMIGOS_ESTILO, 6),
   ESC("Preferir o idioma do áudio",    V_LIGA, 2),   // local: fonteIdiomaAudioLocal (fontenota.h)
   ESC("Segundo idioma do áudio",         V_LINGUA, 2),
-#ifdef NV_ANDROID
-  ACAO("Baixar registro"),
-#endif
 
   ACAO("Filtros das fontes"),
   NUM("Tamanho máximo da fonte", 0, 1000, 1, " GB"),
@@ -2198,9 +2172,6 @@ static const char *CHAVE[] = {
   "friendsRowStyleLocal",
   "fonteIdiomaAudioLocal",
   "audioSecundarioIdioma",
-#ifdef NV_ANDROID
-  "-baixarRegistro",
-#endif
 
   "-filtrosFontes", "-filtroTamanhoMax", "-filtroGrupos",
   "-legenda1Tamanho", "-legenda1Fonte", "-legenda1Cor", "-legenda1Opacidade",
@@ -2592,10 +2563,6 @@ static const char *ajFonteNome(int op, int v) {
   int base = ajFonteBase(op), n = legfontes_n();
   if (v >= 0 && v < base) return i18n(OPCOES[op].valores[v]);
   if (v >= base && v < base + n) return legfontes_nome(v - base);
-#ifdef NV_ANDROID
-  if (v == base + n) return i18n("Importar fonte TTF/OTF");
-  v--;
-#endif
   return v == base + n ? i18n("Excluir fonte importada") : "";
 }
 static int ajLegendaValor(int op) {
@@ -2766,59 +2733,6 @@ static float scrollY = 0.0f;
 // cauda exponencial, a MESMA curva que a home mede. A de 1a ordem que estava
 // aqui partia na velocidade maxima e o primeiro quadro ja saltava 12%.
 static float velY = 0.0f;
-#ifdef NV_TOUCH_UI
-enum { AJT_MENU, AJT_INDICE, AJT_LISTA, AJT_EDITOR, AJT_DIFS, AJT_SUB, AJT_FONTES, AJT_FILEIRAS, AJT_N };
-typedef struct { GfxRect r; float *offset, maximo, escala; int id; } AjToqueRegiao;
-static AjToqueRegiao ajToqueRegioes[AJT_N];
-static int ajToqueN, ajToqueAtivo = -1, ajToqueLivre[AJT_N], ajToqueChave[AJT_N];
-static float ajToqueOffset[AJT_N];
-static int ajPontInline;
-static int ajSubToqueChave;
-static void ajToqueLimpar(void) {
-  memset(ajToqueLivre, 0, sizeof ajToqueLivre); ajToqueAtivo = -1;
-}
-static void ajToqueCamada(void) { ajToqueN = 0; }
-static int ajToqueRolar(const PonteiroRolagem *e) {
-  if (!layout_modo_mobile()) return 0;
-  if (e->fase == PONT_ROL_INICIO) {
-    if (!e->eixoY) return 0;
-    for (int i = ajToqueN - 1; i >= 0; i--) {
-      AjToqueRegiao *r = &ajToqueRegioes[i];
-      if (e->x >= r->r.x && e->x < r->r.x + r->r.w && e->y >= r->r.y && e->y < r->r.y + r->r.h) {
-        ajToqueAtivo = r->id; ajToqueLivre[r->id] = 1; return 1;
-      }
-    }
-    return 0;
-  }
-  if (e->fase == PONT_ROL_MOVER || e->fase == PONT_ROL_INERCIA) {
-    for (int i = ajToqueN - 1; i >= 0; i--) if (ajToqueRegioes[i].id == ajToqueAtivo) {
-      AjToqueRegiao *r = &ajToqueRegioes[i];
-      float antes = *r->offset;
-      *r->offset = anim_clamp(antes - e->delta / r->escala, 0.0f, r->maximo);
-      return fabsf(*r->offset - antes) > 0.001f;
-    }
-    return 0;
-  }
-  if (e->fase == PONT_ROL_FIM || e->fase == PONT_ROL_CANCELAR) ajToqueAtivo = -1;
-  return 1;
-}
-// Guarda a escala durante o desenho: no fio de eventos a escala ja voltou a 1.
-static float ajToqueRegistrar(int id, GfxRect r, float *offset, float maximo, float alvo, int chave) {
-  if (!ajTelaCheia()) return alvo;
-  float s = gfx_escala();
-  if (ajToqueChave[id] != chave) {
-    ajToqueLivre[id] = 0; ajToqueChave[id] = chave;
-    if (ajToqueAtivo == id) ajToqueAtivo = -1;
-  }
-  if (!ajToqueLivre[id]) *offset = alvo;
-  maximo = fmaxf(0.0f, maximo); *offset = anim_clamp(*offset, 0.0f, maximo);
-  if (ajToqueN < AJT_N && s > 0.0f && r.w > 0.0f && r.h > 0.0f) {
-    ajToqueRegioes[ajToqueN++] = (AjToqueRegiao){ {r.x * s, r.y * s, r.w * s, r.h * s}, offset, maximo, s, id };
-    ponteiro_rolagem(ajToqueRolar);
-  }
-  return *offset;
-}
-#endif
 static float paginaA = 1.0f;   // entrada da pagina da categoria (0..1)
 static int sair = 0;
 static int pediuRelogio;
@@ -2901,23 +2815,9 @@ int ajustes_animacoes_reduzidas(void) {
   return ajustes_animacoes_reduzidas_usuario() || (valor[AJ_ANIM] == 2 && gpun_efeito_ativo(3));
 }
 int ajustes_interface_mobile(void) {
-#ifdef NV_TOUCH_UI
-  int automaticoMobile = 0;
-#ifdef NV_ANDROID
-  automaticoMobile = android_interface_mobile_auto();
-#endif
-  return layout_modo_resolver(valor[AJ_INTERFACE_MODO], automaticoMobile);
-#else
   return 0;
-#endif
 }
 static void interfaceAplicar(void) {
-#ifdef NV_TOUCH_UI
-  layout_modo_definir(ajustes_interface_mobile());
-#ifdef NV_ANDROID
-  android_interface_modo(layout_modo_mobile());
-#endif
-#endif
 }
 // Lido UMA vez, na criacao da janela, antes de qualquer desenho: trocar isto
 // com o app aberto nao redimensiona a superficie. Ver main.c.
@@ -2974,11 +2874,7 @@ int ajustes_proporcao_padrao(void) { int v = valor[AJ_PROPORCAO_PADRAO]; return 
 // Experimental HDR menus left the menu: off everywhere, even if saved as on.
 int ajustes_hdr_interface(void) { return 0; }
 int ajustes_tunneling(void) {
-#ifdef NV_ANDROID
-  return valor[AJ_TUNNELING] == 1;
-#else
   return 0;
-#endif
 }
 int ajustes_hdr_ui(void)            { return valor[AJ_HDR_UI] != 1; }   // 1 = Desligado
 int ajustes_brilho_player(void)    { int v = valor[AJ_BRILHO_PLAYER]; return v < 0 || v > 3 ? 1 : v; }
@@ -3017,11 +2913,7 @@ unsigned ajustes_link_prazo_s(void) {
   return (unsigned)LINK_PRAZO_H[v] * 3600u;
 }
 int ajustes_fonte_precarregar(void) {
-#ifdef NV_ANDROID
-  return lig(AJ_FONTE_PRECARREGAR);
-#else
   return 0;
-#endif
 }
 int ajustes_cw_proximo(void) { return lig(AJ_CW_PROXIMO); }
 int ajustes_busca_nuvio(void) { int v = valor[AJ_BUSCA_NUVIO]; return v < 0 || v > 2 ? 0 : v; }
@@ -3257,12 +3149,8 @@ static int ajOpcaoDisponivel(int op) {
   if(op==AJ_IPTV_ORDEM)return iptv_contas(NULL,0)>0;
   if (op == AJ_FALHA_ADDON_LIMITE) return faAddonEditar[0] != 0;
   if (op == AJ_HDR_INTERFACE) return 0;
-#ifndef NV_ANDROID
   if (op == AJ_FONTE_PRECARREGAR || op == AJ_TUNNELING) return 0;
-#endif
-#ifndef NV_TOUCH_UI
   if (op == AJ_INTERFACE_MODO) return 0;
-#endif
   return op != AJ_LAYOUT_AJUSTES || ajLayoutSelecionavel();
 }
 int ajustes_layout_lista(void) { return !ajLayoutSelecionavel() || valor[AJ_LAYOUT_AJUSTES] == 1; }
@@ -3272,11 +3160,7 @@ int ajustes_legenda_sync_auto(void) { return lig(AJ_LEG_SYNC_AUTO); }
 int ajustes_teclado_android(void) { int v = valor[AJ_TECLADO_ANDROID]; return v < 0 || v > 2 ? 0 : v; }   // 0 auto, 1 do app, 2 do Android
 int ajustes_mic_busca(void) { return valor[AJ_MIC_BUSCA]; }   // 0 auto, 1 ligado, 2 desligado
 int ajustes_trailer_zoom_tpk(void) { return lig(AJ_TRAILER_ZOOM_TPK); }   // 1 = Ligado
-#ifdef NV_ANDROID
-int ajustes_legenda_sync_audio(void) { return lig(AJ_LEG_SYNC_AUDIO); }
-#else
 int ajustes_legenda_sync_audio(void) { return 0; }   // escondida fora do Android
-#endif
 int ajustes_legenda_forcada_auto(void) { return lig(AJ_LEG_FORCADA); }   // #287, padrao Ligado
 // #338: -1 = lembrar o ultimo tamanho; 0..2 = Completo, Compacto, Minimo.
 int ajustes_estat_tamanho(void) {
@@ -3299,20 +3183,13 @@ void ajustes_definir_estat_lado(int esquerda) {
 // linha 2 anime); o numero em ajustes.txt e so o espelho dele (ppReconciliar).
 static char ppPkg[2][96];
 static int ppN(void) {
-#ifdef NV_ANDROID
-  return extplayer_n_apps();
-#else
   return 0;
-#endif
 }
 static int ppBase(int op) { return op == AJ_PLAYER_ANIME ? 1 : 0; }
 static const char *ppNome(int op, int v) {
   int b = v - ppBase(op);
   if (op == AJ_PLAYER_ANIME && v == 0) return "Igual ao Player";
   if (b >= 0 && b < 3) return V_PLAYER_EXTERNO[b];
-#ifdef NV_ANDROID
-  if (b >= 3 && b - 3 < ppN()) return extplayer_app_nome(b - 3);
-#endif
   return "";
 }
 static void ppGravar(void) {
@@ -3324,9 +3201,6 @@ static void ppCarregar(void) {
   char *t = dados_ler("player-externo.txt"), *q;
   int i;
   ppPkg[0][0] = ppPkg[1][0] = 0;
-#ifdef NV_ANDROID
-  extplayer_atualizar_apps();
-#endif
   for (i = 0, q = t; q && i < 2; i++) {
     size_t n = strcspn(q, "\r\n");
     if (n < sizeof ppPkg[i]) { memcpy(ppPkg[i], q, n); ppPkg[i][n] = 0; }
@@ -3341,11 +3215,7 @@ static void ppReconciliar(void) {
   for (k = 0; k < 2; k++) {
     int op = k ? AJ_PLAYER_ANIME : AJ_PLAYER_EXTERNO, b = ppBase(op), achou = -1;
     for (i = 0; ppPkg[k][0] && i < ppN(); i++)
-#ifdef NV_ANDROID
-      if (!strcmp(extplayer_app_pkg(i), ppPkg[k])) achou = i;
-#else
       ;
-#endif
     if (achou >= 0) valor[op] = b + 3 + achou;
     else {
       if (ppPkg[k][0]) {
@@ -3358,13 +3228,7 @@ static void ppReconciliar(void) {
   if (mudou) ppGravar();
 }
 int ajustes_player_externo(int anime) {
-#ifdef NV_ANDROID
-  int op = anime ? AJ_PLAYER_ANIME : AJ_PLAYER_EXTERNO, v = valor[op];
-  if (anime) { if (v <= 0) return -1; v--; }
-  return v >= 0 ? (v > 3 ? 3 : v) : 0;
-#else
   return anime ? -1 : 0;
-#endif
 }
 const char *ajustes_player_pacote(int anime) { return ppPkg[anime ? 1 : 0]; }
 int ajustes_buffer_preset(void) {
@@ -6776,12 +6640,8 @@ static int foraDestaPlataforma(int op) {
   if (op >= AJ_FALHA_RD_LIMITE && op <= AJ_FALHA_AD_LIMITE) return 1;
   // Only the shared parent appears in the category; these editors are its children.
   if (op == AJ_FILTRO_TAM_MAX || op == AJ_FILTRO_GRUPOS) return 1;
-#ifndef NV_TOUCH_UI
   if (op == AJ_INTERFACE_MODO) return 1;
-#endif
-#ifndef NV_ANDROID
   if (op == AJ_PLAYER_EXTERNO || op == AJ_PLAYER_ANIME) return 1;   // #501: so ha outro player no Android
-#endif
   if (op == AJ_RELOGIO_POS) return 1;   // saiu da tela em 7d69643a: a ilha e sempre no canto direito
   // 2.0.3: o Descobrir do web nao existe na TV; "Avancadas" e a pilula do alto
   // do indice; os oito AJ_MDB_* seguem as "Notas no titulo" (notaLigarPar).
@@ -6798,16 +6658,7 @@ static int foraDestaPlataforma(int op) {
 #ifndef NV_TECLADO_SIS
   if (op == AJ_TECLADO_ANDROID) return 1;
 #endif
-#if defined(NV_ANDROID)
-  if (op == AJ_DV_MKV) return 1;
-  if (op == AJ_DV7) return 1;
-#endif
-#ifndef NV_ANDROID
   if (op == AJ_FONTE_PRECARREGAR || op == AJ_LEG_SYNC_AUDIO || op == AJ_TUNNELING) return 1;
-#endif
-#if defined(NV_ANDROID) && !defined(NV_P2P_MOTOR)
-  if (op == AJ_P2P_LIMITE || op == AJ_P2P_DESTINO) return 1;
-#endif
   return 0;
 }
 int ajustes_teclado_na_tela(void) {
@@ -6867,9 +6718,6 @@ static void ajMovReiniciar(void);
 int ajustes_iniciar(void) {
   ajEpgMemoriaAplicar();
   pediuRelogio = 0;
-#ifdef NV_ANDROID
-  extplayer_atualizar_apps();   // app instalado com o Nuvio aberto
-#endif
   ppReconciliar();
   pfEntrada();
   ajMovReiniciar();
@@ -6900,9 +6748,6 @@ int ajustes_iniciar(void) {
   // reset unico em ajustes_dir() (marca trailer-1310.txt).
   ajIptvLimparForm(); iptvTipoPagina=0; memset(&iptvAlvo,0,sizeof iptvAlvo);
   scrollY = 0.0f; velY = 0.0f; sair = 0; sairArmado = 0;
-#ifdef NV_TOUCH_UI
-  ajToqueLimpar(); ajToqueCamada(); memset(ajToqueOffset, 0, sizeof ajToqueOffset);
-#endif
   // Reabre na categoria em que estava, com o foco no indice (ver focoIndice).
   if (secAtual < 0 || secAtual >= nSecoes) secAtual = 0;
   focoIndice = 1; uxChipAv = 0; uxTopo = -1;
@@ -7288,11 +7133,7 @@ static const char *textoLeitura(int op) {
     }
   }
   if (op == AJ_VER_REGISTRO)
-#ifdef NV_ANDROID
-    return i18n("ou botão Info");
-#else
     return i18n("ou botão vermelho");
-#endif
   if (op == AJ_ATUALIZAR && !atualizacao_nova()[0]) {
     // "Procurar atualização": a resposta da ultima consulta (a automatica
     // tambem conta — ela e tao verdadeira quanto a pedida).
@@ -7414,7 +7255,7 @@ static const char *textoLeitura(int op) {
     static uint64_t measuredBytes;
     Uint32 now = SDL_GetTicks();
     if (!measuredAt || now - measuredAt >= 1000) {
-      measuredBytes = nv_android_cache_size_all(); measuredAt = now;
+      measuredBytes = 0; measuredAt = now;   // so o Android media o proprio cache
     }
     snprintf(buf, sizeof buf, "%.1f MB", measuredBytes / 1048576.0);
     idioma_decimal_texto(buf, ajustes_idioma());
@@ -7878,13 +7719,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_SELOS_PACOTE_REM: return "Tira desta TV o pacote escolhido. Pacote que veio da conta só se remove na conta, no Nuvio web.";
     case AJ_COL_ARTE_CONTA: return "As pastas de coleção que o app já traz com arte própria passam a usar a capa, o fundo e o logo que estão na sua conta (editor de coleções do site). O que a conta não tiver continua com a arte do app.";
     case AJ_HERO_TRANSICAO: return "Deslizar: quando o destaque troca de título, a arte e o texto saem para o lado e o próximo entra colado, como num carrossel. Esmaecer: a arte apaga e a nova aparece no lugar. Com Animações reduzidas a troca é sempre sem movimento.";
-#ifdef NV_ANDROID
-    // FILEIRAS ILIMITADAS (dono, 2.0.4). Sem a folha de memoria: no Android ela
-    // virou esta dica. O diario do modo seguro continua vigiando igual.
-    case AJ_FIL_LIMITE: return "Quantas fileiras a Home monta: de 3 a 40, ou Ilimitado. Cada fileira é um pedido pela rede, então com muitas a Home leva mais tempo para ficar completa.";
-#else
     case AJ_FIL_LIMITE: return "Quantas fileiras a Home monta, de 3 a 40. Menos fileiras também significam menos catálogos pedidos pela rede, e não fileiras invisíveis. Mais fileiras usam mais memória e rede: em TV com 1 GB de memória a Home pode ficar lenta ou fechar. Se o app fechar depois de você aumentar, ele volta sozinho ao valor anterior.";
-#endif
     case AJ_ITENS_FILEIRA: return "Quantos títulos cada fileira da Home mostra antes do Ver tudo. Mais itens usam mais memória: em TV com 1 GB de memória a Home pode ficar mais lenta ou fechar. Se o app fechar depois de você aumentar, ele volta sozinho ao valor anterior. Aumentar vale na próxima vez que o app abrir.";
     case AJ_FIL_ORDEM: return "Abre a lista de fileiras para reordenar, ligar, desligar e escolher o card de cada uma. É lá que dá para ver de onde cada fileira vem.";
     case AJ_RAIL: return "A barra de navegação da esquerda fica sempre aberta, ou recolhida até você ir até ela.";
@@ -7892,11 +7727,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_MENU_TOPO: return "Na lateral: o menu fica na esquerda, como sempre. No topo: o menu vira uma barra no alto da tela e o conteúdo usa a largura toda. Para cima no primeiro item da tela chega à barra e Para baixo volta. Vale para este perfil.";
     case AJ_RAIL_MODERNA: return "Troca a barra lateral pela versão nova, com ícones maiores. Ela ignora a escolha entre recolhida e fixa.";
     case AJ_RAIL_BLUR: return "Desfoca a arte atrás da barra lateral moderna em vez de usar um fundo sólido.";
-#ifndef NV_ANDROID
     case AJ_TECLADO_ANDROID: return "Automático: a grade do Nuvio; o teclado da TV abre pelo botão Teclado da TV ou com OK no campo. Do app: só a grade do Nuvio, o teclado da TV nunca abre sozinho. Do sistema: o teclado da TV abre direto em todo campo; Voltar mostra a grade. Vale só nesta TV.";
-#else
-    case AJ_TECLADO_ANDROID: return "Automático: o teclado do Android abre sozinho em e-mail, senha e busca. Do app: a grade do Nuvio; o teclado do Android só pelo botão Teclado da TV. Do Android: abre direto em todo campo; Voltar mostra a grade. Vale só neste aparelho.";
-#endif
     case AJ_MIC_BUSCA: return "Mostra nas buscas um microfone ao lado de Digitar pelo celular: ele abre o teclado da Samsung para você falar pelo microfone do controle. Automático esconde o botão se a TV disser que não tem microfone; Ligado mostra sempre; Desligado esconde.";
     case AJ_HERO: return "O bloco grande no topo da Home, com a arte e o nome de um título em destaque.";
     case AJ_HERO_CATALOGOS: return "De onde vêm os títulos do destaque: os primeiros do catálogo, um sorteio, ou uma fileira da Home. OK troca.";
@@ -8135,9 +7966,6 @@ static const char *ajudaOpcaoBase(int op) {
         ? "Abre o cartão da versão nova, com o que mudou e o botão de instalar."
         : "Procura agora uma versão nova do Nuvio. Se houver, abre o cartão com o que mudou e o botão de instalar. O app também confere sozinho a cada 6 horas.";
     case AJ_VER_REGISTRO: return "Abre o registro do app por cima desta tela, ao vivo: o mesmo painel do botão vermelho do controle, para quem não tem esse botão.";
-#ifdef NV_ANDROID
-    case AJ_BAIXAR_REGISTRO: return "Salva o registro desta sessão em um arquivo de texto, sem senhas nem chaves.";
-#endif
     case AJ_MEDIDOR: return "Mostra quadros por segundo, o pior quadro e a memória dentro da ilha do relógio, atualizados a cada 3 s. Mínimo fica na linha da hora, Menor ganha uma segunda linha e Grande abre o painel completo. Quando a ilha mostra um aviso, o medidor se recolhe e volta depois.";
     case AJ_AVISO_LEGAL: return "Aviso legal";
     case AJ_GUIA: return "O que o Nuvio faz, em 12 capítulos. Cada recurso diz onde fica e tem um atalho para ele.";
@@ -8248,11 +8076,7 @@ static const char *efeitoOpcao(int op) {
     }
   }
   if (op == AJ_ICONE_APP)
-#ifdef NV_ANDROID
-    return "Também troca o ícone e o banner na tela inicial da TV quando você sai do app. O launcher pode levar alguns segundos para atualizar e pode mudar o app de lugar na lista.";
-#else
     return "O ícone na lista de apps da TV é o do pacote instalado e não muda: a troca vale dentro do app.";
-#endif
   switch (op) {
     case AJ_FIL_LIMITE:
       return "Vale só nesta TV. Cada fileira a mais é um pedido a mais pela rede quando a Home monta.";
@@ -8360,11 +8184,7 @@ static const char *beneficioProprio(int op) {
     case AJ_DTS_AC3: return "Para TVs que não tocam DTS: o som é convertido na hora.";
     case AJ_CACHE_SEEK: return "Guarda o que já baixou para voltar no filme sem esperar.";
     case AJ_MIC_BUSCA: return "Busque falando, pelo microfone do controle.";
-#ifdef NV_ANDROID
-    case AJ_TECLADO_ANDROID: return "Escolha entre o teclado do app e o do Android.";
-#else
     case AJ_TECLADO_ANDROID: return "Escolha entre o teclado do app e o do sistema.";
-#endif
     default: return NULL;
   }
 }
@@ -9607,12 +9427,7 @@ static int ajFonteAplicar(int op, int novo) {
     if (ok && op == AJ_FONTE_UI) ajFonteInterfaceAplicar();
     return ok;
   }
-#ifdef NV_ANDROID
-  if (novo == base + n) return legfontes_pedir_importacao(slot);
-  int excluir = base + n + 1;
-#else
   int excluir = base + n;
-#endif
   if (novo == excluir && anterior >= 0) {
     int ok = legfontes_remover(anterior);
     if (ok) ajFonteInterfaceAplicar();
@@ -9697,11 +9512,6 @@ static int definirValorDireto(int op, int novo) {
     interfaceAplicar();
     scrollY = velY = 0.0f;
     uxTopo = -1; uxCabLayout = 0;
-#ifdef NV_TOUCH_UI
-    ajToqueLimpar(); ajToqueCamada();
-    memset(ajToqueOffset, 0, sizeof ajToqueOffset);
-    ponteiro_cancelar_toque();
-#endif
   }
   if (op == AJ_ICONE_APP) iconeapp_aplicar_plataforma();
   if (op == AJ_CW_FONTE || op == AJ_SALVOS_DEST || op == AJ_SOCIAL) desc_repetir();
@@ -9724,9 +9534,6 @@ static int definirValorDireto(int op, int novo) {
   if (op == AJ_PLAYER_EXTERNO || op == AJ_PLAYER_ANIME) {
     int b = novo - ppBase(op) - 3, k = op == AJ_PLAYER_ANIME;
     ppPkg[k][0] = 0;
-#ifdef NV_ANDROID
-    if (b >= 0 && b < ppN()) snprintf(ppPkg[k], sizeof ppPkg[k], "%s", extplayer_app_pkg(b));
-#endif
     ppGravar();
   }
   // Modelo de regex (#202): escolher um troca o padrao; "Personalizado" so
@@ -9767,9 +9574,6 @@ static const char *uxBloco(int op);
 static void eventoTela(const SDL_Event *e);
 void ajustes_evento(const SDL_Event *e) {
   pediuRelogio = 0;
-#ifdef NV_TOUCH_UI
-  if (e->type == SDL_KEYDOWN) ajToqueLimpar();
-#endif
   AJ_ESCALA_INI();
   if (guiaAberto) { guiaEvento(e); AJ_ESCALA_FIM(); return; }
   if (apoioAberto) { apoioEvento(e); AJ_ESCALA_FIM(); return; }
@@ -9869,22 +9673,11 @@ static void eventoTela(const SDL_Event *e) {
     // O painel de envio (registro.h) dispara o envio e mostra o codigo ou o
     // motivo da falha; antes so o texto da linha mudava.
     if (focoOp == AJ_LIMPAR_CACHE) {
-#ifdef NV_ANDROID
-      p2pmotor_parar();
-      android_limpar_cache();
-#endif
       return;
     }
     if (focoOp == AJ_ENVIAR_LOG) { registro_envio_abrir(); return; }
     if (focoOp == AJ_AVISO_LEGAL) { registro_legal_abrir(); return; }
     if (focoOp == AJ_VER_REGISTRO) { registro_abrir(); return; }
-#ifdef NV_ANDROID
-    if (focoOp == AJ_BAIXAR_REGISTRO) {
-      android_baixar_registro(registro_arquivo(), i18n("Registro salvo."),
-                             i18n("Não foi possível salvar o registro. Tente outro local."));
-      return;
-    }
-#endif
     if (focoOp == AJ_GUIA) { guiaAbrir(0); return; }
     if (focoOp == AJ_DICASCONTROLE) { pediuDicasControle = 1; return; }
     if (focoOp == AJ_NOVIDADES20) { pediuNovidades20 = 1; return; }
@@ -10235,9 +10028,6 @@ void ajustes_atualizar(float dt, Uint32 agora) {
     if (secAgora != secVista) {
       if (secVista >= 0) paginaA = 0.0f;
       secVista = secAgora; scrollY = 0.0f; velY = 0.0f; alvo = 0.0f;
-#ifdef NV_TOUCH_UI
-      ajToqueLivre[AJT_LISTA] = 0;
-#endif
     } }
   paginaA = ajustes_animacoes_reduzidas() ? 1.0f : anim_rampa(paginaA, 1.0f, dt, 220.0f);
   // GLASS UI: a linha em foco fica no MEIO da janela (a lista some nos 80 px
@@ -10251,10 +10041,6 @@ void ajustes_atualizar(float dt, Uint32 agora) {
     if (topo - alvo < 0.0f) alvo = topo; }
   if (alvo < 0.0f) alvo = 0.0f;
   // (O "cabecalho inteiro ou nenhum" saiu: o cabecalho agora e fixo na folha.)
-#ifdef NV_TOUCH_UI
-  if (ajTelaCheia() && ajToqueLivre[AJT_LISTA]) velY = 0.0f;
-  else
-#endif
     scrollY = anim_mola2_reduzida(&velY, scrollY, alvo, dt, NV_MOLA2_SCROLL,
                                   ajustes_animacoes_reduzidas());
   aj2Atualizar(dt);
@@ -10288,9 +10074,6 @@ static void aplicarIdioma(int op) {
 static int nValores(int op) {
   if (ajFonte(op)) {
     int n = ajFonteBase(op) + legfontes_n();
-#ifdef NV_ANDROID
-    n++;
-#endif
     return n + (legfontes_selecionada(ajFonteSlot(op)) >= 0);
   }
   if(op==AJ_GUIA_CATEGORIAS)return uxNCategorias>0?uxNCategorias:1;
@@ -10859,9 +10642,6 @@ static AjPreview familiaPreviaOpcao(int op) {
       return AJPV_RASTREIO;
     case AJ_VERSAO_I: case AJ_ATUALIZAR: case AJ_ENVIAR_LOG: case AJ_GUIA: case AJ_NOVIDADES20: case AJ_DICASCONTROLE: case AJ_APOIAR:
     case AJ_ENVIO_AUTO: case AJ_VER_REGISTRO: case AJ_LOG_REDE: case AJ_WEB_AJUSTES:
-#ifdef NV_ANDROID
-    case AJ_BAIXAR_REGISTRO:
-#endif
       return AJPV_ABOUT;
     case AJ_TMDB_LIGADO: case AJ_TMDB_IDIOMA: case AJ_TMDB_ARTE:
     case AJ_TMDB_BASICO: case AJ_TMDB_FICHA: case AJ_TMDB_DATAS:
@@ -10916,9 +10696,6 @@ static int ajQuadroPlugins;  // captura: a de plugins (foco + 1)
 static void ajDesenharTudo(Uint32 agora);
 // Own Settings scale: the virtual canvas and the active drawing factor agree.
 void ajustes_desenhar(Uint32 agora) {
-#ifdef NV_TOUCH_UI
-  ajToqueCamada();
-#endif
   AJ_ESCALA_INI();
   ajDesenharTudo(agora);
   AJ_ESCALA_FIM();
@@ -10943,9 +10720,6 @@ static void ajDesenharTudo(Uint32 agora) {
   // Ponteiro (#99): a folha de fileiras tem o teclado; sem alvo proprio, o
   // clique e o OK (ponteiro.h, CAMADAS) — a rail de tras nao pode engoli-lo.
   if (filAberta) { ponteiro_camada();
-#ifdef NV_TOUCH_UI
-    ajToqueCamada();
-#endif
     ESCALA_REAL_INI(); desenhaFileiras(); ESCALA_REAL_FIM(); }
   if (riscoFolha) desenhaRiscoFolha();
   if (pfTela) pfDesenhar();

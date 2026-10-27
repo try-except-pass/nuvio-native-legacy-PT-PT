@@ -12,9 +12,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#ifdef __ANDROID__
-#include "android.h"
-#endif
 
 #define TMDB "https://api.themoviedb.org/3"
 // Uma semana: o pais muda quando a TV muda de casa, nao a cada arranque.
@@ -408,18 +405,14 @@ static const char *idNaLoja(const char *servico) {
   ondever_chave(servico, ch, sizeof ch);
   for (size_t k = 0; k < sizeof LOJA / sizeof LOJA[0]; k++)
     if (!strcmp(ch, LOJA[k].chave)) {
-#if defined(__ANDROID__)
-      return LOJA[k].android;
-#else
       return LOJA[k].lg;
-#endif
     }
   return "";
 }
 
 
 
-#if !defined(__APPLE__) && !defined(NV_LINUX_DESKTOP) && !defined(__ANDROID__)
+#if !defined(NV_LINUX_DESKTOP)
 #define ONDE_WEBOS 1
 #include "video.h"
 // webOS: pelo barramento LS2 do player (video_luna), e nao por luna-send — o
@@ -480,67 +473,9 @@ static void respostaLaunch(const char *payload, void *u) {
 }
 #endif
 
-#ifdef __ANDROID__
-// One detached query at a time. Repeated sheet openings coalesce while the
-// PackageManager is busy; readers retain the complete previous snapshot.
-static int appsAndroidBuscando, appsAndroidPronto;
-static void *fioAppsAndroid(void *unused) {
-  struct timespec inicio, fim;
-  clock_gettime(CLOCK_MONOTONIC, &inicio);
-  AppInstalado novo[APPS_MAX];
-  char *lista = android_listar_apps(), *linha = lista;
-  int count = 0;
-  (void)unused;
-  while (linha && *linha && count < APPS_MAX) {
-    char *nl = strchr(linha, '\n'), *tab;
-    if (nl) *nl = 0;
-    tab = strchr(linha, '\t');
-    if (tab) {
-      int valido = 1;
-      *tab++ = 0;
-      for (const char *p = linha; *p; p++)
-        if (!isalnum((unsigned char)*p) && *p != '.' && *p != '_' && *p != '-') valido = 0;
-      if (valido && linha[0] && tab[0]) {
-        snprintf(novo[count].id, sizeof novo[count].id, "%s", linha);
-        snprintf(novo[count].nome, sizeof novo[count].nome, "%s", tab);
-        count++;
-      }
-    }
-    linha = nl ? nl + 1 : NULL;
-  }
-  pthread_mutex_lock(&appsTrava);
-  if (lista) {
-    memcpy(apps, novo, (size_t)count * sizeof *apps);
-    nApps = count; appsAndroidPronto = 1;
-  }
-  appsAndroidBuscando = 0;
-  pthread_mutex_unlock(&appsTrava);
-  clock_gettime(CLOCK_MONOTONIC, &fim);
-  long ms = (fim.tv_sec - inicio.tv_sec) * 1000 + (fim.tv_nsec - inicio.tv_nsec) / 1000000;
-  printf("[ondever] installed apps query %s count=%d elapsed_ms=%ld\n", lista ? "completed" : "failed", count, ms);
-  fflush(stdout);
-  free(lista);
-  return NULL;
-}
-#endif
 
 void ondever_apps_atualizar(void) {
-#if   defined(__ANDROID__)
-  pthread_t fio;
-  pthread_mutex_lock(&appsTrava);
-  if (!appsAndroidBuscando) {
-    appsAndroidBuscando = 1;
-    if (!pthread_create(&fio, NULL, fioAppsAndroid, NULL)) {
-      pthread_detach(fio);
-      printf("[ondever] installed apps query dispatched\n");
-    } else {
-      appsAndroidBuscando = 0;
-      printf("[ondever] installed apps query dispatch failed\n");
-    }
-    fflush(stdout);
-  }
-  pthread_mutex_unlock(&appsTrava);
-#elif defined(ONDE_WEBOS)
+#if   defined(ONDE_WEBOS)
   video_luna("luna://com.webos.applicationManager/listApps", "{}", respostaApps, NULL);
 #endif
 }
@@ -551,13 +486,7 @@ int ondever_estado(const char *nome) {
   // Channel subscriptions belong to the host service, not the standalone
   // app. Keep availability information without an inaccurate launch/store action.
   if(strstr(key,"amazonchannel") || strstr(key,"appletvchannel")) return ONDE_INFO;
-#if defined(__ANDROID__)
-  pthread_mutex_lock(&appsTrava);
-  int pronto = appsAndroidPronto;
-  pthread_mutex_unlock(&appsTrava);
-  if (!pronto) return ONDE_INFO;
-#endif
-#if (defined(__APPLE__) || defined(NV_LINUX_DESKTOP)) && !defined(__ANDROID__)
+#if defined(NV_LINUX_DESKTOP)
   (void)id; (void)nome;
   return ONDE_INFO;         // desktop preview has no TV application launcher
 #else
@@ -581,19 +510,8 @@ int ondever_abrir(const char *nome) {
          e == ONDE_ABRIR ? id : loja);
   fflush(stdout);
   if (e == ONDE_INFO) return ONDE_INFO;
-#if defined(__ANDROID__)
-  pthread_mutex_lock(&appsTrava);
-  int pronto = appsAndroidPronto;
-  pthread_mutex_unlock(&appsTrava);
-  if (!pronto) return ONDE_INFO;
-#endif
-#if (defined(__APPLE__) || defined(NV_LINUX_DESKTOP)) && !defined(__ANDROID__)
+#if defined(NV_LINUX_DESKTOP)
   return ONDE_INFO;
-#elif defined(__ANDROID__)
-  if (e == ONDE_INFO) return ONDE_INFO;
-  if (e == ONDE_ABRIR) {
-    if(!android_abrir_app(id)) return ONDE_INFO;
-  } else if(!android_abrir_loja(e == ONDE_LOJA ? loja : "", nome)) return ONDE_INFO;
 #elif defined(ONDE_WEBOS)
   if (e == ONDE_ABRIR) {
     char carga[200];

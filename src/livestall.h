@@ -108,14 +108,12 @@ static inline int nv_ls_passo_buf_prazo(NvLiveStall *s, unsigned agora, double p
       if (recuperou) { s->pos = pos; s->movEm = agora; s->movDesde = 0; }
     } else return (int)(agora - s->quando) < 0 ? NV_LS_ESPERA : NV_LS_REABRIR;
   }
-#ifndef NV_ANDROID
   // Media3 can still be playing or loading the next HLS segment with a low
   // reserve. Reporting its buffer must not enable this proactive reopen rule.
   // Android retains the actual freeze, buffering, EOF and error recovery paths.
   if (pronto && s->andou && s->fim > 0.5 && pos <= s->fim &&
       s->fim - pos <= NV_LS_RESERVA_S && (unsigned)(agora - s->fimEm) >= NV_LS_SEMDADO_MS)
     seco = 1;
-#endif
   // A sliding live window (or a seek) changes the position's origin. Rebase
   // the comparison, but only subsequent FORWARD motion can refresh movEm.
   // A backward clock alone must not hide a genuinely frozen stream.

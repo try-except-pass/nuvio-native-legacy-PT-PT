@@ -4,9 +4,6 @@
 // aqui roda no fio de desenho, e os estaticos sao so dele.
 #include "gpunivel.h"
 #include "ajustes.h"
-#ifdef NV_ANDROID
-#include "android.h"
-#endif
 #include "gfx.h"
 #include "dados.h"
 #include "perfiltv.h"
@@ -92,7 +89,7 @@ static void gravar(void) {
   if (!dados_gravar(GPUN_ARQ, buf)) printf("[gpu-nivel] nao gravou %s\n", GPUN_ARQ);
 }
 
-#if defined(NV_ANDROID) || defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
+#if defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
 static void ler(void) {
   char *t = dados_ler(GPUN_ARQ);
   unsigned long c = 0;
@@ -137,11 +134,9 @@ int gpun_upscale_suportado(void) {
   if (!SDL_GL_GetCurrentContext()) return 0;
   const char *gpu = (const char *)glGetString(GL_RENDERER);
   if (!gpu || strstr(gpu, "Mali-4")) return 0;
-#if !defined(__APPLE__) || defined(NV_GLES_NO_MAC)
   GLint range[2], precision = 0;
   glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER, GL_HIGH_FLOAT, range, &precision);
   if (!precision) return 0;
-#endif
   return 1;
 }
 
@@ -200,46 +195,15 @@ void gpun_iniciar(int w, int h) {
   intW = intH = intFalhou = intLigado = alvo1080 = forca720 = ampliarApp = 0;
   telaW = w > 0 ? w : 1920;
   telaH = h > 0 ? h : 1080;
-#ifdef NV_ANDROID
-  // #266: marca onde a Shield trava dentro de "rede_preparar" (as consultas GL
-  // logo apos o primeiro SwapWindow sao a outra suspeita).
-  android_etapa("gpun_iniciar: glGetString");
-  printf("[gl] consultando o driver\n"); fflush(stdout);
-#endif
   snprintf(renderer, sizeof renderer, "%s", glTxt(GL_RENDERER));
   snprintf(versaoGl, sizeof versaoGl, "%s", glTxt(GL_VERSION));
   upscaleSgsr = gpun_upscale_suportado();
   ext = glTxt(GL_EXTENSIONS);
-#ifdef NV_ANDROID
-  android_etapa("gpun_iniciar: GL_DEPTH_BITS");
-#endif
   glGetIntegerv(GL_DEPTH_BITS, &db);
   glGetIntegerv(GL_STENCIL_BITS, &sb);
-#if   defined(NV_ANDROID)
-  // Same facts as the .tpk log, for the Android field logs: which GPU, which
-  // buffers the window got (a depth/stencil the app never asked for is
-  // bandwidth written back every frame unless discarded below).
-  printf("[gl] GL_RENDERER=%s | %s\n", renderer, versaoGl);
-  printf("[gl] janela: profundidade=%d stencil=%d\n", (int)db, (int)sb);
-  // SEM DESCARTE NO ANDROID (#318). A 2.0.1 carregou o glDiscardFramebufferEXT
-  // e, com ele, gpun_descartar_cor passou a valer nos FBOs do desfoque, que
-  // rodam justo quando a tela nova traz arte nova. No Xiaomi MiTV-AFKR0
-  // (Mali-G31) a tela piscava e congelava depois do OK; a teste-318.1, sem
-  // ele (e sem o gputempo), consertou. O ganho nunca foi medido no Android: os
-  // alvos do desfoque sao pequenos e so rodam na troca de arte, e a
-  // profundidade da janela o EGL ja nao preserva depois do swap (os drivers
-  // Mali/Adreno nem a gravam de volta). Pouco a poupar, risco provado. Fica so
-  // a linha do log, para o relato de campo.
-  (void)ext;
-  profStencil = 0;
-  printf("[gl] descarte de alvo: nenhum (Android, #318)\n");
-#else
   (void)ext; (void)db; (void)sb;
-#ifdef __APPLE__
-  snprintf(modelo, sizeof modelo, "mac");
-#elif defined(NV_LINUX_DESKTOP)
+#if   defined(NV_LINUX_DESKTOP)
   snprintf(modelo, sizeof modelo, "linux-desktop");
-#endif
 #endif
   ptv_definir_gpu_fraca(ptv_gpu_fraca(renderer));
   chave = djb2(tizen, djb2(modelo, djb2(versaoGl, djb2(renderer, 5381))));
@@ -248,7 +212,7 @@ void gpun_iniciar(int w, int h) {
   // to the 1080p one. 1080p keeps the old key (no re-measure after updating).
   if (telaW > (int)NV_TELA_W) chave = djb2("4k", chave);
 
-#if   defined(NV_ANDROID) || defined(NV_WEBOS)
+#if   defined(NV_WEBOS)
   // ANDROID tambem mede: TV box e Google TV vao de Mali-G52 a GPUs bem mais
   // fortes. Na TCL Smart TV Pro o vidro + cor viva dava 29 fps sustentado.
   // LG TAMBEM (2.0.1): log de uma LG webOS 5+ com Mali-G52 r23 na 2.0.0, 668
@@ -262,7 +226,7 @@ void gpun_iniciar(int w, int h) {
   // Mesmo GPU fraca precisa da referencia no 0 antes de reduzir efeitos.
 #else
   { const char *e = getenv("NUVIO_GPU_NIVEL");
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
     if (e && *e) { nivel = atoi(e); origem = "NUVIO_GPU_NIVEL"; }
 #else
     (void)e;
@@ -297,7 +261,7 @@ void gpun_preferencia(int p) {
   }
   reiniciarMedida();
   adaptativo = 1; origem = "adaptativo"; nivel = 0;
-#if defined(NV_ANDROID) || defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
+#if defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
   ler();
 #endif
   aplicar(nivel, "ajuste: automatico");
@@ -312,7 +276,7 @@ void gpun_alvo_1080(void) {
   // 1080p, from what this GPU saved for 1080p (the old key), unless the person
   // fixed "Efeitos visuais".
   chave = djb2(tizen, djb2(modelo, djb2(versaoGl, djb2(renderer, 5381))));
-#if defined(NV_ANDROID) || defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
+#if defined(NV_WEBOS) || defined(NV_GPUN_TESTE)
   if (!prefFixa) {
     reiniciarMedida();
     adaptativo = 1; origem = "adaptativo"; nivel = 0;
@@ -352,21 +316,7 @@ void gpun_descartar_cor(int padrao) {
 }
 
 void gpun_redimensionar(int w, int h) {
-#ifdef NV_TOUCH_UI
-  if (w <= 0 || h <= 0) return;
-  // Switching TV/Mobile can change the logical canvas without resizing the
-  // drawable. A fixed logical target must be rebuilt in that case too.
-  if (w == telaW && h == telaH &&
-      (!alvo1080 || (intW == (int)NV_TELA_W && intH == (int)NV_TELA_H))) return;
-  if (intLigado) glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  alvoApagar(&intFbo, &intTex);
-  alvoApagar(&rcasFbo, &rcasTex);
-  rcasFalhou = 0;
-  intW = intH = intFalhou = intLigado = 0;
-  telaW = w; telaH = h;
-#else
   (void)w; (void)h;
-#endif
 }
 
 static int upscaleNitido(void) {

@@ -34,27 +34,6 @@ int  video_registro_negado(void);
 // o transporte sai do prefixo da URL, e mandar o campo faz o load aceitar,
 // devolver mediaId e nunca buscar o arquivo — falha silenciosa.
 int  video_tocar(const char *url);
-#ifdef NV_ANDROID
-// Posicao absoluta em segundos, zero = inicio/default. O Kotlin configura o
-// MediaItem antes de prepare; o ack e da geracao desta abertura. Estado:
-// 0 aguardando, 1 aceito, -1 abertura normal (seek tardio como fallback).
-int  video_tocar_posicao(const char *url, double segundos);
-// Como a de cima, mais o percentual (0..100) para quando nao ha segundos
-// exatos (retomada da conta: Trakt/Simkl so dao percentual). O Kotlin aplica
-// sobre a duracao do container ANTES do primeiro quadro; mesmo ack/estado.
-int  video_tocar_retomada(const char *url, double segundos, double pct);
-int  video_retomada_inicial_estado(void);
-// Fonte preparada na pagina do titulo: player pausado, sem imagem, audio ou
-// eventos da sessao de reproducao. Token identifica o dono; zero cancela todos.
-int  video_precarregar(const char *url, const char *cabecalhos, double segundos,
-                      double pct, int buffer, int cacheMb, unsigned token, const char *idiomaAudio, int kbps);
-int  video_precarregar_proximo(const char *url, const char *cabecalhos, double segundos,
-                              double pct, int buffer, int cacheMb, unsigned token, const char *idiomaAudio, int kbps);
-// 0 ausente, 1 preparando, 2 pronto, -1 falhou. Nao muda video_pronto().
-int  video_precarregar_estado(unsigned token);
-void video_precarregar_cancelar(unsigned token);
-void video_precarregar_adotar(unsigned token);
-#endif
 
 // Chamar UMA VEZ POR QUADRO. Hoje serve ao prazo do recuo de Dolby Vision
 // (ver o comentario em video.c): sem esta batida, um arquivo que a TV recusa
@@ -125,15 +104,6 @@ double video_buffer_fim(void); // ate onde o buffer cobre (s); 0 se desconhecido
 // congelada e video_falhou() em 0 para sempre. Quem vigia fonte de canal
 // (app.c) precisa deste numero para saber que a fonte morreu sem dizer.
 unsigned video_bufferando_ms(void);
-#ifdef NV_ANDROID
-// Atomic live-window sample for the watchdog; signed position, same-origin buffer edge.
-// Returns zero without modifying outputs when this open has no live sample.
-int video_live_progresso(double *pos, double *fim);
-// Same-player live-window repair, scoped to this open and bounded to 60 seconds.
-int video_recuperando_live(void);
-// HLS target duration for this live session; zero for VOD/unknown.
-unsigned video_live_segmento_ms(void);
-#endif
 // Afirmacao de Dolby Vision da FONTE escolhida (o addon descreve o arquivo).
 // Chamar ANTES de video_tocar/definir_fonte: e o que decide o hdrType que o
 // ACB descreve ao tv.display.
@@ -186,12 +156,6 @@ int    video_tocando(void);
 // video_pausar. Alvos sem confirmacao confiavel devolvem 0.
 int    video_pausa_confirmada(void);
 int    video_pronto(void);   // 1 depois do loadCompleted
-#ifdef NV_ANDROID
-int    video_janela_pronta(void);   // latest native window request completed layout
-int    video_superficie_estavel(void);   // 1 depois da ultima recriacao da Surface (HDR/DV)
-int    video_quadro_visto(void);   // 1 depois do primeiro quadro desenhado (antes do "pronto")
-int    video_rede_lenta(void);   // !=0: download below the declared bitrate or repeated rebuffers (redefit.h)
-#endif
 int    video_ativo(void);    // 1 assim que ha mediaId — e o que abre o furo
 int    video_falhou(void);   // 1 depois de um errorText real na fonte atual
 // O ULTIMO ERRO REAL do pipeline na fonte atual, como o pipeline o disse
@@ -199,10 +163,6 @@ int    video_falhou(void);   // 1 depois de um errorText real na fonte atual
 // o cartao de erro do canal dizer o que o servidor respondeu em vez do
 // generico (#158). Vale ate o proximo video_tocar/video_parar.
 const char *video_erro_texto(void);
-#ifdef NV_ANDROID
-// Codigo do erro atual apenas se o renderer e de VIDEO; 0 para audio/desconhecido.
-int video_erro_decoder_codigo(void);
-#endif
 // 1 depois que o decoder se anunciou (videoInfo do uMS) na fonte atual. Existe
 // para o watchdog de canal separar "abre devagar" de "chega dado e o decoder
 // nunca comeca" — o sintoma do #158, com bufferRange subindo e nenhum
@@ -304,7 +264,7 @@ static inline void video_stats_vazio(VideoStats *s) {
   s->host[0] = 0;
 }
 void video_estatisticas(VideoStats *s);
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
 void video_simular_estatisticas(const VideoStats *s);   // capturas; NULL zera
 #endif
 
@@ -506,7 +466,7 @@ void video_encerrar(void);
 // que estiver aqui — faixas, tamanho, HDR, Atmos, buffer — para as telas do
 // player serem desenhadas com dados de um video "de verdade". Zerado (o padrao)
 // e o mesmo coto mudo de sempre. Nos alvos de TV a funcao nao existe.
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
 typedef struct {
   int nAudio, nLeg, audioAtual, legAtual;
   VideoFaixa audio[8], leg[8];
@@ -529,7 +489,5 @@ void video_simular(const VideoSimulacao *s);
 #endif
 
 // One-reply webOS LS2 request; callback runs on the GLib thread.
-#if !defined(NV_ANDROID)
 int video_luna(const char *uri, const char *payload, void (*callback)(const char *, void *), void *context);
-#endif
 #endif

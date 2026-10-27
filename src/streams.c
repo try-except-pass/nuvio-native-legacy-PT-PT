@@ -279,11 +279,7 @@ StreamfitClasse stream_fit_folha_estado(int indice, StreamfitResultado *saida) {
 // Platforms whose network epoch can become known (redemarca fed by the
 // Android ConnectivityManager monitor). Tests may force it.
 #ifndef STREAMFIT_REDE_EXISTE
-#ifdef NV_ANDROID
-#define STREAMFIT_REDE_EXISTE 1
-#else
 #define STREAMFIT_REDE_EXISTE 0
-#endif
 #endif
 static int fitPesada(int i) { return i >= 0 && i < fitN && fitClasses && fitClasses[i] == SF_PESADA; }
 static void fitMbps(char *dst, size_t n, double kbps) {
@@ -515,17 +511,6 @@ static float anim = 0.0f, rolagem = 0.0f;
 // cauda exponencial, a MESMA curva que a home mede. A de 1a ordem que estava
 // aqui partia na velocidade maxima e o primeiro quadro ja saltava 12%.
 static float velRol = 0.0f;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueFontes, toqueFontesAbas;
-static float toqueFontesAbasOffset;
-static int toqueFontesRolar(const PonteiroRolagem *e) {
-  int r;
-  if (!aberta) return 0;
-  r = toquerol_evento(e->eixoY ? &toqueFontes : &toqueFontesAbas, e);
-  if (r && e->eixoY) velRol = 0.0f;
-  return r;
-}
-#endif
 // Linha do realce, em unidades de ITEM (2.4 = entre o terceiro e o quarto). O
 // realce escorrega entre as linhas em vez de saltar: com o salto seco a folha
 // parecia trocar de conteudo a cada tecla, e num D-pad e a continuidade do
@@ -1016,7 +1001,7 @@ static int perfil5(const Stream *s) {
 }
 
 #ifndef NV_STREAMS_LG
-#if !defined(NV_ANDROID) && !defined(NV_LINUX_DESKTOP)
+#if !defined(NV_LINUX_DESKTOP)
 #define NV_STREAMS_LG 1
 #else
 #define NV_STREAMS_LG 0
@@ -1037,10 +1022,8 @@ static int nivelHdr(const Stream *s) {
   else if (flag >= 0) nivel = 1;
   if (s->dolbyVision) {
     int toca = ajustes_dolby_vision() && telaDv != 0;
-#ifndef NV_ANDROID
     // LG: DV em MKV so com o ajuste "Dolby Vision em MKV" ligado.
     toca = toca && (stream_e_mp4(s) || ajustes_dv_mkv());
-#endif
     // Profile 5 has no HDR10 base; prefer HDR10 in the same band. Keeping it
     // below HDR10 also prevents the MP4-first rule from promoting it.
     if (perfil5(s)) { if (nivel < 1) nivel = 1; }
@@ -4466,9 +4449,6 @@ void stream_folha_abrir(void) {
   // anterior. A folha fica vazia ate chegarem fontes do alvo pedido (#513).
   if (alvoPedido[0] && n > 0 && !stream_lista_do_alvo(alvoPedido))
     stream_invalidar("source sheet target changed");
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueFontes); toquerol_limpar(&toqueFontesAbas); toqueFontesAbasOffset = 0;
-#endif
   int excl, aut, alvo;
   fitAbrir();
   aberta=1; escolha=-1; grupo=1; filtro=0; filtroVisto=-2; pillW=-1.0f; trocaDesde=0; soMp4=0; soCache=0; soDub=0; recarregar=0;
@@ -4595,9 +4575,6 @@ int  stream_detalhe_tecla_abre(const SDL_Event *e) {
   SDL_Keycode k=e->key.keysym.sym;
   return k==SDLK_i || k==SDLK_F5 || (int)e->key.keysym.scancode==NV_SCANCODE_YELLOW
       || (int)e->key.keysym.scancode==NV_SCANCODE_CH_DOWN
-#ifdef NV_ANDROID
-      || k==SDLK_F9   // o Info do controle Android chega como F9 (NuvioActivity)
-#endif
       ;
 }
 // Devolve 1 se a modal consumiu o evento (sempre, enquanto aberta).
@@ -4880,9 +4857,6 @@ void stream_folha_evento(const SDL_Event *e) {
       default: break;
     }
   }
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) { toquerol_limpar(&toqueFontes); toquerol_limpar(&toqueFontesAbas); }
-#endif
   if(!aberta || e->type!=SDL_KEYDOWN) return;
   SDL_Keycode k=e->key.keysym.sym;
   if (recarregarFonteConfirmacao && k != recarregarFonteConfirmacao)
@@ -5046,18 +5020,11 @@ void stream_folha_atualizar(float dt, Uint32 agora) {
   if (focoFixo >= 0) {
     int r = grupo == 1 ? linhaDe(focoFixo) : -1;
     if (r >= 0) {
-#ifdef NV_TOUCH_UI
-      if (!toquerol_livre(&toqueFontes))
-#endif
       rolagem += linhaTopo(r) - focoFixoY;
       foco = r; focoVisto = r;
     }
     focoFixo = -1;
   }
-#ifdef NV_TOUCH_UI
-  if (toquerol_livre(&toqueFontes)) { rolagem = toquerol_clamp(rolagem, 0, fmaxf(0, alturaTotal - areaLista() + 40)); velRol = 0; }
-  else
-#endif
   rolagem=anim_mola2(&velRol,rolagem,alvoRolagem(),dt,NV_MOLA2_SCROLL);
 }
 int stream_folha_escolheu(int *out) {
@@ -5079,9 +5046,6 @@ static void ponteiroFolhaBotao(int i, int b) { (void)b; grupo = -1; foco = i; }
 static void ponteiroFolhaDica(int i, int b) { (void)i; (void)b; grupo = 2; }
 static void ponteiroFolhaLinha(int row, int b) { (void)b; grupo = 1; foco = row; }
 static void ponteiroFolhaFiltro(int i, int b) {
-#ifdef NV_TOUCH_UI
-  toquerol_limpar(&toqueFontes);
-#endif
   (void)b;
   if (i < -1 || i >= nProvedores) return;
   filtro = i; foco = 0; rolagem = 0; grupo = 1;
@@ -5689,11 +5653,6 @@ static void corpoFolha(float x, float w, float anim, Uint32 agora, int ilha) {
   if (folhaRelogio) ilhaR = (GfxRect){x, NV_ILHA_Y, w, folhaBase + 16.0f - NV_ILHA_Y};
   else if (ilha) plrilha_rect(&ilhaR);
   int ptr = aberta && anim > .5f && ponteiro_ativo();
-#ifdef NV_TOUCH_UI
-  toquerol_vincular(&toqueFontes, (GfxRect){x, FOLHA_TOPO, w, areaLista()},
-                   gfx_escala(), 0, alturaTotal - areaLista() + 40, 1, &rolagem);
-  if (ptr) ponteiro_rolagem(toqueFontesRolar);
-#endif
   if (ptr && ilha) {
     ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, ponteiroFolhaFora, 0, 0);
     ponteiro_alvo(ilhaR.x, ilhaR.y, ilhaR.w, ilhaR.h, NULL, NULL, 0, 0);
@@ -5785,24 +5744,10 @@ static void corpoFolha(float x, float w, float anim, Uint32 agora, int ilha) {
     soma=2*pin; int fim=ini;
     while(fim<nProvedores && soma+iw[fim+1]+6.0f<=maxW){ soma+=iw[fim+1]+6.0f; fim++; }
     if(fim==ini) fim=ini+1;
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile())
-    { float total = 2 * pin, antes = 0;
-      for (int i = -1; i < nProvedores; i++) { total += iw[i + 1] + 6; if (i < ini) antes += iw[i + 1] + 6; }
-      if (!toquerol_livre(&toqueFontesAbas)) toqueFontesAbasOffset = antes;
-      toquerol_vincular(&toqueFontesAbas, (GfxRect){lx - 2, segY, maxW, FOLHA_ABAS_H}, gfx_escala(),
-                       0, total - 6 - maxW, 0, &toqueFontesAbasOffset);
-      ini = -1; fim = nProvedores; soma = fminf(total, maxW + 6);
-      gfx_recorte(lx - 2, segY, maxW, FOLHA_ABAS_H);
-    }
-#endif
     sx=lx-2.0f;
     if (ajustes_vidro()) gfx_vidro_folha((GfxRect){sx,segY,soma-6.0f,FOLHA_ABAS_H},.5f,anim);
     else gfx_cor((GfxRect){sx,segY,soma-6.0f,FOLHA_ABAS_H},.5f,.113f,.118f,.137f,anim);
     sx+=pin;
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile()) sx -= toqueFontesAbasOffset;
-#endif
     { float tx0=sx, tw=0;
       for(int i=ini;i<fim;i++){ if(i==filtro) tw=iw[i+1]; else if(!tw) tx0+=iw[i+1]+6.0f; }
       tx0-=lx;
@@ -5819,12 +5764,6 @@ static void corpoFolha(float x, float w, float anim, Uint32 agora, int ilha) {
       int qidx=i+1;
       GfxRect r={sx,segY+pin,iw[qidx],FOLHA_ABA_H}; int sel=i==filtro;
       if (ptr) {
-#ifdef NV_TOUCH_UI
-        if (layout_modo_mobile()) {
-        float l = fmaxf(r.x, lx - 2), d = fminf(r.x + r.w, lx - 2 + maxW);
-        if (d > l) ponteiro_alvo(l, r.y, d - l, r.h, NULL, ponteiroFolhaFiltro, i, 0);
-        } else
-#endif
         ponteiro_alvo(r.x, r.y, r.w, r.h, NULL, ponteiroFolhaFiltro, i, 0);
       }
       txt_desenhar_alpha(nome[qidx],r.x+22,r.y+(FOLHA_ABA_H-nome[qidx].h)*.5f,anim);

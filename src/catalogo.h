@@ -26,11 +26,7 @@
 // "Continuar assistindo" e as listas. O vetor continua crescendo SOB DEMANDA
 // (garantirEspaco dobra a partir de 64), entao o numero maior nao custa nada a
 // quem tem 7 fileiras; so deixa de cortar quem tem 150.
-#ifdef NV_ANDROID
-#define CAT_MAX 8000
-#else
 #define CAT_MAX 2000
-#endif
 #define CAT_TEMP_MAX 64
 // Elenco guardado por titulo. O Cinemeta traz 3-5 nomes no `cast` do meta e era
 // isso que a tela mostrava (issue #94); quem completa a fileira e o TMDB, que
@@ -435,11 +431,7 @@ void cat_definir(const CatItem *lista, int n);
 // o dos itens: 100 fileiras x 24 x 15,6 KB = ~37 MB de catalogo (ver fileiras.h).
 // webOS, Tizen, .wgt e .tpk seguem com 40 — o _Static_assert de descoberta.c
 // vale nos dois lados.
-#ifdef NV_ANDROID
-#define CAT_FIL_MAX 224
-#else
 #define CAT_FIL_MAX 40
-#endif
 
 typedef struct {
   char chave[192];   // homeCatalogKey: <addonId>_<tipo>_<catalogoId>

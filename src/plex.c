@@ -1958,9 +1958,7 @@ int plex_fontes_colher(const char *alvo, Stream **lista, int *n) {
 
 // Optional profile-epoch linkage keeps isolated Plex fixtures usable while
 // complete apps reject every old opening, including A -> B -> A.
-#if defined(__APPLE__) && (defined(__GNUC__) || defined(__clang__))
-#define PX_PERFIL_OPCIONAL __attribute__((weak_import))
-#elif defined(__GNUC__) || defined(__clang__)
+#if   defined(__GNUC__) || defined(__clang__)
 #define PX_PERFIL_OPCIONAL __attribute__((weak))
 #else
 #define PX_PERFIL_OPCIONAL

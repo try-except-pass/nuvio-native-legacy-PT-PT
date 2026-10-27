@@ -3,81 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if   defined(NV_ANDROID)
-// BitmapFactory inSampleSize works without the optional libjpeg shared library.
-#include <jni.h>
-#include <android/bitmap.h>
-#include <stdlib.h>
-
-SDL_Surface *jpeg_rapido_carregar_mem(const unsigned char *dados, size_t n, int largMax,
-                                      int *ow, int *oh) {
-  if (ow) *ow = 0;
-  if (oh) *oh = 0;
-  if (!dados || n < 16 || n > 8u * 1024 * 1024 || largMax < 1) return NULL;
-  JNIEnv *env = SDL_AndroidGetJNIEnv();
-  jobject act = SDL_AndroidGetActivity();
-  if (!env || !act) return NULL;
-  SDL_Surface *s = NULL;
-  jclass cls = (*env)->GetObjectClass(env, act);
-  jmethodID method = (*env)->GetMethodID(env, cls, "decodeArtwork", "([BI[I)Landroid/graphics/Bitmap;");
-  jbyteArray bytes = (*env)->NewByteArray(env, (jsize)n);
-  jobject bitmap = NULL;
-  jintArray original = (*env)->NewIntArray(env, 2);
-  if (method && bytes && original) {
-    (*env)->SetByteArrayRegion(env, bytes, 0, (jsize)n, (const jbyte *)dados);
-    bitmap = (*env)->CallObjectMethod(env, act, method, bytes, largMax, original);
-  }
-  if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionClear(env); bitmap = NULL; }
-  /* Bounds remain available when the codec rejects pixels or runs out of
-   * memory, so fallback decoders can enforce the same allocation ceiling. */
-  if (original && !(*env)->ExceptionCheck(env)) {
-    jint dims[2];
-    (*env)->GetIntArrayRegion(env, original, 0, 2, dims);
-    if (ow) *ow = dims[0];
-    if (oh) *oh = dims[1];
-  }
-  AndroidBitmapInfo info;
-  void *pixels = NULL;
-  if (bitmap && AndroidBitmap_getInfo(env, bitmap, &info) == 0 &&
-      info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 &&
-      AndroidBitmap_lockPixels(env, bitmap, &pixels) == 0) {
-    s = nv_superficie(0, info.width, info.height, 32, SDL_PIXELFORMAT_ABGR8888);
-    if (s) for (unsigned y = 0; y < info.height; y++)
-      memcpy((char *)s->pixels + (size_t)y * s->pitch,
-             (char *)pixels + (size_t)y * info.stride, (size_t)info.width * 4);
-    AndroidBitmap_unlockPixels(env, bitmap);
-  }
-  if (bitmap) {
-    jclass bc = (*env)->GetObjectClass(env, bitmap);
-    jmethodID recycle = (*env)->GetMethodID(env, bc, "recycle", "()V");
-    if (recycle) (*env)->CallVoidMethod(env, bitmap, recycle);
-    (*env)->DeleteLocalRef(env, bc);
-    (*env)->DeleteLocalRef(env, bitmap);
-  }
-  if (original) (*env)->DeleteLocalRef(env, original);
-  if (bytes) (*env)->DeleteLocalRef(env, bytes);
-  (*env)->DeleteLocalRef(env, cls);
-  (*env)->DeleteLocalRef(env, act);
-  return s;
-}
-
-SDL_Surface *jpeg_rapido_carregar(const char *path, int largMax, int *ow, int *oh) {
-  if (ow) *ow = 0;
-  if (oh) *oh = 0;
-  FILE *f = path ? fopen(path, "rb") : NULL;
-  if (!f) return NULL;
-  fseek(f, 0, SEEK_END);
-  long n = ftell(f);
-  rewind(f);
-  if (n < 16 || n > 8L * 1024 * 1024) { fclose(f); return NULL; }
-  unsigned char *bytes = malloc((size_t)n);
-  SDL_Surface *s = NULL;
-  if (bytes && fread(bytes, 1, (size_t)n, f) == (size_t)n)
-    s = jpeg_rapido_carregar_mem(bytes, (size_t)n, largMax, ow, oh);
-  free(bytes); fclose(f);
-  return s;
-}
-#else
 
 #include <dlfcn.h>
 #include <setjmp.h>
@@ -88,11 +13,7 @@ SDL_Surface *jpeg_rapido_carregar(const char *path, int largMax, int *ow, int *o
 // API 8 e o cabecalho e o do proprio brew. Trocar um pelo outro da
 // "Wrong JPEG library version" na jpeg_CreateDecompress — que este modulo
 // pega e responde com NULL, sem derrubar nada.
-#ifdef __APPLE__
-#include <jpeglib.h>
-#else
 #include "vendor/jpeg62/jpeglib.h"
-#endif
 
 typedef struct jpeg_error_mgr *(*FnStdError)(struct jpeg_error_mgr *);
 typedef void (*FnCreate)(j_decompress_ptr, int, size_t);
@@ -118,13 +39,7 @@ static int abrir(void) {
   pthread_mutex_lock(&trava);
   if (!lib.tentado) {
     static const char *NOMES[] = {
-#ifdef __APPLE__
-      "/opt/homebrew/lib/libjpeg.8.dylib", "libjpeg.8.dylib", "libjpeg.dylib",
-#elif defined(NV_ANDROID)
-      "libjpeg.so",   // embarcada no APK (jniLibs); sem ela cai no IMG_Load
-#else
       "libjpeg.so.62", "/usr/lib/libjpeg.so.62",
-#endif
       NULL };
     int i;
     lib.tentado = 1;
@@ -253,4 +168,3 @@ SDL_Surface *jpeg_rapido_carregar_mem(const unsigned char *dados, size_t n, int 
   if (!f) return NULL;
   return carregarDeFILE(f, largMax, larguraOriginal, alturaOriginal);
 }
-#endif

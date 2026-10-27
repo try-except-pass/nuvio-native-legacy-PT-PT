@@ -17,11 +17,7 @@ static int simulado = -1;
 
 int cacheboost_suportado(void) {
   if (simulado >= 0) return simulado;
-#ifdef NV_ANDROID
-  return 1;
-#else
   return 0;
-#endif
 }
 void cacheboost_simular_suporte(int s) { simulado = s < 0 ? -1 : s ? 1 : 0; }
 
@@ -152,7 +148,6 @@ int cacheboost_buffer_mb(int opcao, long livreMb) {
   return mb;
 }
 
-#ifndef NV_ANDROID
 void cacheboost_backend_ganho(int pct) { (void)pct; }
 void cacheboost_backend_cache(int mb) { (void)mb; }
 void cacheboost_backend_titulo(const char *id) { (void)id; }
@@ -160,4 +155,3 @@ void cacheboost_backend_descartar(void) { }
 static volatile int bufferMb;
 void cacheboost_backend_buffer(int mb) { bufferMb = mb; }
 int cacheboost_backend_buffer_mb(void) { return bufferMb; }
-#endif

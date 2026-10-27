@@ -132,25 +132,6 @@ static const char *iconeDe(const AoVivoOsd *o, int b) {
 #define AV_BTN_Y   (NV_TELA_H - 130.0f)   // 950 em 1080; tela virtual (escala.h)
 #define AV_BTN_D    68.0f
 
-#ifdef NV_TOUCH_UI
-static AoVivoToqueFn toqueAcao;
-static int toqueQuadro;
-static float toqueRol;
-static ToqueRolagem toqueLista;
-static int toqueFoco = -2;
-void aovivo_toque_reiniciar(void) {
-  toqueRol = 0; toquerol_limpar(&toqueLista); toqueFoco = -2;
-}
-void aovivo_toque_definir(AoVivoToqueFn fn, int quadro) {
-  toqueAcao = fn; toqueQuadro = quadro;
-}
-static void toqueBotao(int acao, int quadro) { if (toqueAcao) toqueAcao(acao, 0, quadro); }
-static void toqueErro(int acao, int quadro) { if (toqueAcao) toqueAcao(acao, 1, quadro); }
-static int toqueRolar(const PonteiroRolagem *e) {
-  if (!toqueAcao) return 0;
-  return toquerol_evento(&toqueLista, e);
-}
-#endif
 
 // O FOCO DA FILEIRA E DO CARTAO DE ERRO EM MOLA (o dono: "tudo meio
 // duro"). O disco vira a pilula com o nome crescendo, em ~120 ms na mola
@@ -225,28 +206,6 @@ static float larguraBotaoAv(const AoVivoOsd *o, int b, float foco) {
 static void fileiraBotoes(const AoVivoOsd *o, float y, float a) {
   float x = AV_X;
   int i, tinta = plrui_tinta();
-#ifdef NV_TOUCH_UI
-  int phone = telefoneui_ativo(), pont = phone && toqueAcao && a > .99f;
-  GfxRect faixa = {AV_X, y, NV_TELA_W - 2 * AV_X, AV_BTN_D};
-  if (phone) {
-    if (toqueFoco != o->foco) { toquerol_limpar(&toqueLista); toqueFoco = o->foco; }
-    float total = 0, fx = 0, fw = 0;
-    for (i = 0; i < o->nBotoes; i++) {
-      float w = larguraBotaoAv(o, o->botoes[i], osdFoco[o->botoes[i]]);
-      if (i == o->foco) { fx = total; fw = w; }
-      total += w + (i + 1 < o->nBotoes ? 12 : 0);
-    }
-    float max = fmaxf(0, total - faixa.w);
-    if (!toquerol_livre(&toqueLista)) {
-      if (fx < toqueRol) toqueRol = fx;
-      if (fx + fw > toqueRol + faixa.w) toqueRol = fx + fw - faixa.w;
-    }
-    toqueRol = toquerol_clamp(toqueRol, 0, max);
-    toquerol_vincular(&toqueLista, faixa, gfx_escala(), 0, max, 0, &toqueRol);
-    if (pont) ponteiro_rolagem(toqueRolar);
-    gfx_recorte(faixa.x, faixa.y, faixa.w, faixa.h); x -= toqueRol;
-  }
-#endif
   for (i = 0; i < o->nBotoes; i++) {
     int b = o->botoes[i];
     // FOCO EM MOLA: 0..1 interpola largura, disco/pilula, icone e rotulo.
@@ -257,12 +216,7 @@ static void fileiraBotoes(const AoVivoOsd *o, float y, float a) {
     const char *ic = iconeDe(o, b), *rot = rotuloDe(o, b);
     float w = larguraBotaoAv(o, b, f), k;
     GfxRect r = { x, y, w, AV_BTN_D };
-#ifdef NV_TOUCH_UI
-    if (!phone && x + w > NV_TELA_W - AV_X) break;
-    if (phone && (x + w <= faixa.x || x >= faixa.x + faixa.w)) { x += w + 12; continue; }
-#else
     if (x + w > NV_TELA_W - AV_X) break;
-#endif
     if (f > 0.005f) plrui_pilula_foco(r, a * f);
     if (f < 0.995f) plrui_disco_osd(r, a * (1.0f - f));
     k = (emFoco ? tinta : 230) / 255.0f;
@@ -274,17 +228,8 @@ static void fileiraBotoes(const AoVivoOsd *o, float y, float a) {
     }
     if (f < 0.995f && ic && !comNome(o, b))
       gfx_icone((GfxRect){ x + 19.0f, y + 19.0f, 30.0f, 30.0f }, ic, k, k, k, a * (1.0f - f));
-#ifdef NV_TOUCH_UI
-    if (pont) {
-      float ax = fmaxf(x, faixa.x), ar = fminf(x + w, faixa.x + faixa.w);
-      if (ar > ax) ponteiro_alvo(ax, y, ar - ax, AV_BTN_D, NULL, toqueBotao, b, toqueQuadro);
-    }
-#endif
     x += w + 12.0f;
   }
-#ifdef NV_TOUCH_UI
-  if (phone) gfx_sem_recorte();
-#endif
 }
 
 // A marca do canal numa caixa clara de raio 16 (110 x 64 no OSD).
@@ -581,41 +526,6 @@ static void aovivo_erro_desenharCorpo_(const char *nome, const char *logo, const
   hTit = txt_bloco_corta(TXT_ILHA_PERGUNTA, tit, 0, 0, 0, -1.0f, 0.0f, tw, lead, 0.0f, 2);
   hDica = txt_bloco_corta(TXT_ILHA_TEXTO, dc, 0, 0, 0, -1.0f, 0.0f, tw, 30.0f, 0.0f, 2);
   h = pad + 38.0f + 8.0f + hTit + 14.0f + hDica + 34.0f + 60.0f + 22.0f + 30.0f + pad;
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) {
-    const float bh = 88, gap = 12, bw = (tw - 2 * gap) / 3;
-    const int ac[3] = {AV_B_RECARREGAR, AV_B_FONTE, AV_B_GUIA};
-    int pont = toqueAcao && a > .99f;
-    h = pad + 38 + 8 + hTit + 14 + hDica + 28 + bh + pad;
-    y = fmaxf(24, (NV_TELA_H - h) * .5f);
-    gfx_cor((GfxRect){0, 0, NV_TELA_W, NV_TELA_H}, 0, .031f, .035f, .043f, a);
-    plrui_material((GfxRect){x, y, w, h}, 36, 1, a);
-    if (pont) {
-      ponteiro_camada();
-      ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, NULL, 0, 0);
-    }
-    yy = y + pad;
-    caixaLogo(logo, nome, (GfxRect){x + pad, yy, 66, 38}, a);
-    TxtLinha nm = txt_linha_corta(TXT_G18R, nome && nome[0] ? nome : "Canal", 243, 242, 239, 150, tw - 80);
-    txt_desenhar_alpha(nm, x + pad + 80, yy + (38 - nm.h) * .5f, a);
-    yy += 46;
-    txt_bloco_corta(TXT_ILHA_PERGUNTA, tit, 243, 242, 239, x + pad, yy, tw, lead, a, 2);
-    yy += hTit + 14;
-    txt_bloco_corta(TXT_ILHA_TEXTO, dc, 243, 242, 239, x + pad, yy, tw, 30, a * .62f, 2);
-    yy += hDica + 28;
-    for (i = 0; i < 3; i++) {
-      GfxRect r = {x + pad + i * (bw + gap), yy, bw, bh};
-      float f = erroFocoA[i];
-      int cor = f > 0.5f ? plrui_tinta() : 230;
-      if (f > 0.005f) plrui_pilula_foco(r, a * f);
-      if (f < 0.995f) plrui_disco_osd(r, a * (1.0f - f));
-      float th = txt_bloco_corta(TXT_G21B, rot[i], cor, cor, cor, -1, 0, bw - 24, 24, 0, 3);
-      txt_bloco_corta(TXT_G21B, rot[i], cor, cor, cor, r.x + 12, yy + (bh - th) * .5f, bw - 24, 24, a, 3);
-      if (pont) ponteiro_alvo(r.x, r.y, r.w, r.h, NULL, toqueErro, ac[i], toqueQuadro);
-    }
-    return;
-  }
-#endif
   gfx_cor((GfxRect){ 0, 0, NV_TELA_W, NV_TELA_H }, 0, 0.031f, 0.035f, 0.043f, a);
   plrui_material((GfxRect){ x, y, w, h }, 36.0f, 1, a);
   yy = y + pad;

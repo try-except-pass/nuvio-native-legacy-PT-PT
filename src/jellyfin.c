@@ -48,13 +48,7 @@ const char *jellyfin_metodo_nome(int m) {
 }
 
 JfBackend jellyfin_backend(void) {
-#if   defined(NV_ANDROID)
-  return JF_BACKEND_ANDROID;
-#elif defined(__APPLE__)
-  return JF_BACKEND_HOST;
-#else
   return JF_BACKEND_WEBOS;
-#endif
 }
 const char *jellyfin_backend_nome(JfBackend b) {
   switch (b) {

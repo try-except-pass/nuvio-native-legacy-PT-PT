@@ -19,9 +19,4 @@ uint64_t streamfitpassiva_permitida(void);
 int streamfitpassiva_receber(uint64_t rede, uint64_t geracao, const char *origem,
                              const int *kbps, int n, uint64_t fimMs);
 
-#ifdef NV_ANDROID
-// Native session of the Android backend (video_android.c), the generation the
-// Kotlin player receives with each open.
-unsigned video_android_sessao(void);
-#endif
 #endif

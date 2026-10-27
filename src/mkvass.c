@@ -605,11 +605,7 @@ static MkvassPreparo *estadoDoFio(const Fio *f) {
 }
 
 // #269: ver mkvass_aceitar_texto. Lido pelo fio no cabecalho.
-#ifdef NV_ANDROID
-static volatile int aceitaTexto; // Media3 ja entrega texto ao overlay.
-#else
 static volatile int aceitaTexto = 1;
-#endif
 void mkvass_aceitar_texto(int sim) { aceitaTexto = sim ? 1 : 0; }
 // Legenda de imagem (PGS) decodificada aqui e desenhada pelo app: so o .tpk liga.
 static volatile int aceitaImagem;

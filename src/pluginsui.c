@@ -69,14 +69,6 @@ static void abrirRepo(void) {
   }
 }
 
-#ifdef NV_TOUCH_UI
-void pluginsui_detalhes(int i, int b) {
-  (void)b;
-  if (sair || teclado_aberto() || nivel != 0 || i < 2 || i >= linhas()) return;
-  foco = i;
-  abrirRepo();
-}
-#endif
 
 void pluginsui_evento(const SDL_Event *e) {
   int n;

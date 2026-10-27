@@ -7,10 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef NV_ANDROID
-#include <SDL2/SDL.h>
-#include <jni.h>
-#endif
 
 // A ORDEM E A DA GALERIA e o INDICE gravado em ajustes.txt (iconeAppLocal):
 // so acrescentar no fim. Bate com V_ICONE_APP (ajustes.c), com LISTA em
@@ -98,39 +94,10 @@ int iconeapp_arte_mudou(int i, const char *gravado) {
   return !gravado || strcmp(gravado, iconeapp_arte_atual(i)) != 0;
 }
 
-#ifdef NV_ANDROID
-// NuvioActivity.trocarIcone(id): agenda a troca do <activity-alias> do launcher
-// para quando o app sair da frente (ver a nota la: trocar na hora fecha a
-// tarefa, medido no emulador). 0 = ja estava, 2 = agendada, -1 = falhou.
-static void androidTrocar(const char *id) {
-  JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
-  jobject act = (jobject)SDL_AndroidGetActivity();
-  jclass cls;
-  jmethodID m;
-  jstring js;
-  int r = -1;
-  if (!env || !act) return;
-  cls = (*env)->GetObjectClass(env, act);
-  m = cls ? (*env)->GetMethodID(env, cls, "trocarIcone", "(Ljava/lang/String;)I") : NULL;
-  js = (*env)->NewStringUTF(env, id);
-  if (m && js) r = (int)(*env)->CallIntMethod(env, act, m, js);
-  if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionClear(env); r = -1; }
-  if (js) (*env)->DeleteLocalRef(env, js);
-  if (cls) (*env)->DeleteLocalRef(env, cls);
-  (*env)->DeleteLocalRef(env, act);
-  if (r != 0)
-    printf("[app-icon] launcher: %s -> %s\n", id, r == 2 ? "scheduled for app exit" : "failed");
-  fflush(stdout);
-}
-#endif
 
 void iconeapp_aplicar_plataforma(void) {
   int i = iconeapp_atual();
   const char *id = iconeapp_id(i);
-#ifdef NV_ANDROID
-  androidTrocar(id);
-#else
   (void)id;
-#endif
   if (dados_dir() && dados_dir()[0]) dados_gravar("iconeapp-arte.txt", iconeapp_arte_atual(i));
 }

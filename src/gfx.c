@@ -144,9 +144,6 @@ static double fillGpuArea(GfxRect r, const float sub[4]) {
 float gfx_px_por_unidade(void) { return (float)telaRealW / NV_TELA_W; }
 void gfx_tamanho_alvo(int w, int h) {
   telaW = w; telaH = h; telaRealW = w; telaRealH = h;
-#ifdef NV_TOUCH_UI
-  uTelaW = NV_TELA_W; uTelaH = NV_TELA_H;
-#endif
 }
 void gfx_tamanho_tela(int *w, int *h) { *w = telaRealW; *h = telaRealH; }
 // Tamanho da interface (gfx.h). escAtiva multiplica o retangulo de layout
@@ -3164,18 +3161,8 @@ void gfx_fundo_din_desenhar(const float topo[3], float queda) {
     // Dinamica) e consertou com a teste-318.1 do mesmo jeito; o que foi
     // desligado de vez foram o descarte (gpunivel.c) e o gputempo.
     if (dinAdiadoOk < 0) {
-#ifdef NV_ANDROID
-      GLint fboAnt = fboLigado(), bitsA = 0;
-      if (fboAnt) glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glGetIntegerv(GL_ALPHA_BITS, &bitsA);
-      if (fboAnt) glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)fboAnt);
-      dinAdiadoOk = bitsA >= 8;
-      printf("[fundo-din] adiado para o fim do quadro: %s (alfa da janela %d bits)\n",
-             dinAdiadoOk ? "sim" : "nao", (int)bitsA);
-#else
       dinAdiadoOk = 0;
       printf("[fundo-din] adiado para o fim do quadro: nao\n");
-#endif
     }
     dinAdiado = dinAdiadoOk && gfx_n_rect == 0 && !gfx_modos_desligados;
     if (dinAdiado) {
@@ -4688,9 +4675,6 @@ void gfx_snap_desenhar(void) {
 }
 
 void gfx_snap_encerrar(void) {
-#ifdef NV_TOUCH_UI
-  snapGeracao++;
-#endif
   if (snapFbo) glDeleteFramebuffers(1, &snapFbo);
   if (snapTex) glDeleteTextures(1, &snapTex);
   snapFbo = snapTex = 0;

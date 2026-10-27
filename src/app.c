@@ -887,66 +887,6 @@ static int saiuPorEsquerda, saiuPorCima;   // a ultima tecla foi ESQUERDA ou CIM
 static int sidebar_permitida(void) {
   return tela == TELA_GUIA || !player_mini_ativo();   // o guia mostra a barra mesmo com a previa tocando
 }
-#ifdef NV_TOUCH_UI
-static int sidebarToquePode(void) {
-  return layout_modo_mobile() && sidebar_permitida() && !menu_aberto() && !player_aberto() &&
-         !central_aberta() && !ilha_modal_aberto() && !celb_aberto() &&
-         !ctx_aberto() && !spainel_aberto() && app_central_pode();
-}
-static void sidebarToqueAbrirTela(Tela origem) {
-  if (!sidebarToquePode() || tela != origem || detail_aberto() || vertudo_aberta()) return;
-  saiuPorEsquerda = saiuPorCima = 0;
-  menu_abrir();
-}
-#define SIDEBAR_TOQUE_TELA(nome, origem) static void nome(void) { sidebarToqueAbrirTela(origem); }
-SIDEBAR_TOQUE_TELA(sidebarToqueHome, TELA_HOME)
-SIDEBAR_TOQUE_TELA(sidebarToqueExplorar, TELA_EXPLORAR)
-SIDEBAR_TOQUE_TELA(sidebarToqueBusca, TELA_BUSCA)
-SIDEBAR_TOQUE_TELA(sidebarToqueBiblioteca, TELA_BIBLIOTECA)
-SIDEBAR_TOQUE_TELA(sidebarToquePerfil, TELA_PERFIL)
-SIDEBAR_TOQUE_TELA(sidebarToqueAjustes, TELA_AJUSTES)
-SIDEBAR_TOQUE_TELA(sidebarToqueDiagnostico, TELA_DIAGNOSTICO)
-SIDEBAR_TOQUE_TELA(sidebarToqueSocial, TELA_SOCIAL)
-SIDEBAR_TOQUE_TELA(sidebarToqueAddons, TELA_ADDONS)
-SIDEBAR_TOQUE_TELA(sidebarToqueAgenda, TELA_AGENDA)
-SIDEBAR_TOQUE_TELA(sidebarToqueLiveTVDiag, TELA_LIVETV_DIAG)
-SIDEBAR_TOQUE_TELA(sidebarToquePlugins, TELA_PLUGINS)
-#undef SIDEBAR_TOQUE_TELA
-static void sidebarToqueDetalhe(void) {
-  if (!sidebarToquePode() || !detail_aberto()) return;
-  saiuPorEsquerda = saiuPorCima = 0;
-  menu_abrir_sobre(1);
-}
-static void sidebarToqueLista(void) {
-  if (!sidebarToquePode() || !vertudo_aberta() || detail_aberto()) return;
-  saiuPorEsquerda = saiuPorCima = 0;
-  menu_abrir_sobre(0);
-}
-static void sidebarToqueRegistrar(int contexto) {
-  PonteiroBordaFn fn = NULL;
-  if (!sidebarToquePode()) return;
-  if (contexto == 1 && detail_aberto()) fn = sidebarToqueDetalhe;
-  else if (contexto == 2 && vertudo_aberta() && !detail_aberto()) fn = sidebarToqueLista;
-  else if (contexto == 0 && !detail_aberto() && !vertudo_aberta()) {
-    switch (tela) {
-      case TELA_HOME: fn = sidebarToqueHome; break;
-      case TELA_EXPLORAR: fn = sidebarToqueExplorar; break;
-      case TELA_BUSCA: fn = sidebarToqueBusca; break;
-      case TELA_BIBLIOTECA: fn = sidebarToqueBiblioteca; break;
-      case TELA_PERFIL: fn = sidebarToquePerfil; break;
-      case TELA_AJUSTES: fn = sidebarToqueAjustes; break;
-      case TELA_DIAGNOSTICO: fn = sidebarToqueDiagnostico; break;
-      case TELA_SOCIAL: fn = sidebarToqueSocial; break;
-      case TELA_ADDONS: fn = sidebarToqueAddons; break;
-      case TELA_AGENDA: fn = sidebarToqueAgenda; break;
-      case TELA_LIVETV_DIAG: fn = sidebarToqueLiveTVDiag; break;
-      case TELA_PLUGINS: fn = sidebarToquePlugins; break;
-      default: break;
-    }
-  }
-  if (fn) ponteiro_borda_esquerda(120.0f, fn);
-}
-#endif
 // perfis_ativo() no instante em que a tela de escolha abriu. So serve para uma
 // pergunta: a pessoa TROCOU de perfil, ou confirmou o mesmo? Agora que a tela
 // aparece a cada arranque, confirmar o mesmo perfil e o caso comum — e recarga
@@ -1135,11 +1075,6 @@ static void fitDuracaoMidia(void) {
 // player's real source may feed StreamFit. Trailer, channel, warning clip,
 // paused-in-mini or idle pipeline: generation 0, every window is stale.
 static void fitPassivaPermitir(void) {
-#ifdef NV_ANDROID
-  int ok = player_aberto() && !player_id_canal()[0] && player_com_video() &&
-           !vazao_url_aviso(video_url_atual());
-  streamfitpassiva_permitir(ok ? video_android_sessao() : 0);
-#endif
 }
 
 static void origemFontes(const CatItem *c) {
@@ -1367,12 +1302,6 @@ static void vigiarFonteGuardada(void) {
     g.pronto = video_pronto();
     g.duracao = video_duracao();
     g.carregando = player_carregando();
-#ifdef NV_ANDROID
-    g.quadro = video_quadro_visto();
-#endif
-#ifdef NV_ANDROID
-  g.quadro = video_quadro_visto();
-#endif
     g.conferencia = fontevolta_conferencia();
     g.desdeMs = desde = SDL_GetTicks() - voltaDesde;
     d = fontevolta_decidir(&g, &motivo);
@@ -2135,11 +2064,7 @@ static void processarTorrentJob(void) {
 // inteira atravessa o worker e o cache: abrir nao reinicia vagas nem pares
 // tentados. O buffer nativo e opcional e pertence ao token deste alvo.
 static void preparoLimparCache(int cancelar) {
-#ifdef NV_ANDROID
-  if (cancelar && preparo.token) player_precarregar_cancelar(preparo.token);
-#else
   (void)cancelar;
-#endif
   fontefalha_sessao_liberar(preparo.falha);
   memset(&preparo, 0, sizeof preparo);
 }
@@ -2154,22 +2079,9 @@ static void preparoInvalidar(void) {
   memset(&preparoUltimo, 0, sizeof preparoUltimo);
 }
 static int preparoBufferPronto(void) {
-#ifdef NV_ANDROID
-  return preparo.token && player_precarregar_estado(preparo.token) == 2;
-#else
   return 0;
-#endif
 }
 static void preparoObservarBuffer(void) {
-#ifdef NV_ANDROID
-  if (preparo.tem && preparo.token && player_precarregar_estado(preparo.token) < 0) {
-    player_precarregar_cancelar(preparo.token); preparo.token = 0;
-    if (preparo.lista != stream_lista_geracao() || !preparoContextoAtual(&preparo.contexto)) return;
-    preparo.falhou = 1;
-    if (preparo.falha) fontefalha_marcar_aberta(preparo.falha);
-    else stream_automatico_excluir(preparo.idx);
-  }
-#endif
 }
 static int preparoVale(const char *alvo, int lembrada) {
   preparoObservarBuffer();
@@ -2190,28 +2102,6 @@ static int preparoVale(const char *alvo, int lembrada) {
 // A sonda pode terminar com um trailer no video. Guarda a mesma fonte e
 // tenta SO o buffer quando esse video sair, sem refazer escolha ou orcamento.
 static void preparoBufferTentar(void) {
-#ifdef NV_ANDROID
-  char alvo[64];
-  if (!preparo.tem || preparo.idx < 0 || preparo.token || preparo.bufferTentou ||
-      !ajustes_fonte_precarregar() || ajustes_fonte_manual() || player_aberto() ||
-      player_mini_ativo() || player_retido() || video_ativo() || !detail_aberto() ||
-      detail_indice() != preparo.catalogo) return;
-  idDoAlvo(cat_item(detail_indice()), alvo, sizeof alvo);
-  if (!preparoVale(alvo, preparo.lembrada) ||
-      !nv_perfil_sessao_travar(preparo.contexto.sessaoPerfil)) return;
-  preparo.bufferTentou = 1;
-  unsigned token = player_precarregar_novo_token();
-  int criado = player_precarregar_fonte(preparo.catalogo, preparo.temporada,
-                                       preparo.episodio, preparo.idx, token);
-  nv_perfil_sessao_destravar();
-  // A criacao so enfileira legenda/JNI, sem HTTP ou espera de worker. Se o
-  // ator mudar ao sair, cancelar o token depois de liberar a trava do perfil.
-  if (!nv_perfil_sessao_atual(preparo.contexto.sessaoPerfil)) {
-    if (criado) player_precarregar_cancelar(token);
-    return;
-  }
-  if (criado) preparo.token = token;
-#endif
 }
 static int preparoEmCurso(const char *alvo, int lembrada) {
   FonteJob *j = &fonteJob;
@@ -2287,12 +2177,6 @@ static int preparoUsar(const char *alvoPlay, int lembrada, int *idx) {
     fonteFalhaLista = preparo.lista; fonteFalhaManual = -1;
     fonteFalhaPos = -1.0; fonteFalhaEsperando = fonteFalhaN = 0;
   }
-#ifdef NV_ANDROID
-  if (preparo.token) {
-    if (player_precarregar_estado(preparo.token) > 0) player_precarregar_adotar(preparo.token);
-    else player_precarregar_cancelar(preparo.token);
-  }
-#endif
   preparo.token = 0;
   preparoLimparCache(0);
   atomic_fetch_add_explicit(&preparoGeracao, 1, memory_order_acq_rel);
@@ -2413,12 +2297,6 @@ static void abrirProximoEpisodio(int t, int e, int apontar) {
     player_episodio_pedido_liberar();
     return;
   }
-#ifdef NV_ANDROID
-  unsigned tokenAdotado = pronta ? preparada.token : 0;
-  if (pronta && preparada.token) {
-    player_precarregar_adotar(preparada.token); preparada.token = 0;
-  }
-#endif
   nv_perfil_sessao_destravar();
   // Consumir/adotar vem antes do encerramento: posplay_fechar e video_parar
   // so podem cancelar os trabalhos que ainda pertencem ao episodio antigo.
@@ -2426,9 +2304,6 @@ static void abrirProximoEpisodio(int t, int e, int apontar) {
   player_encerrar();
   limparFonteVOD();
   if (!nv_perfil_sessao_atual(sessaoPerfil)) {
-#ifdef NV_ANDROID
-    if (tokenAdotado) player_precarregar_cancelar(tokenAdotado);
-#endif
     proximopreparo_liberar_resultado(&preparada); proximopreparo_cancelar();
     return;
   }
@@ -2437,9 +2312,6 @@ static void abrirProximoEpisodio(int t, int e, int apontar) {
   // Abrir/fechar nao seguram a trava de identidade. Conferir outra vez antes
   // de publicar a lista e seu orcamento como uma unica transferencia curta.
   if (!nv_perfil_sessao_travar(sessaoPerfil)) {
-#ifdef NV_ANDROID
-    if (tokenAdotado) player_precarregar_cancelar(tokenAdotado);
-#endif
     proximopreparo_liberar_resultado(&preparada); proximopreparo_cancelar();
     player_encerrar();
     return;
@@ -2463,9 +2335,6 @@ static void abrirProximoEpisodio(int t, int e, int apontar) {
       stream_definir_lista(NULL, 0);
       aguardandoFonte = 0; fonteEscolhida = -1;
       nv_perfil_sessao_destravar();
-#ifdef NV_ANDROID
-      if (tokenAdotado) player_precarregar_cancelar(tokenAdotado);
-#endif
       proximopreparo_liberar_resultado(&preparada);
       player_erro_fonte();
       return;
@@ -2583,9 +2452,6 @@ static void vigiarAntecipada(void) {
     case FA_ACAO_DESFAZER_VEREDITO: desfazerAntecipada("a conferencia reprovou"); break;
     case FA_ACAO_DESFAZER_PLAYER:
       printf("[fonte] erro do player antes do veredito: %s\n", video_erro_texto());
-#ifdef NV_ANDROID
-      stream_automatico_erro_decoder(antAberta, video_erro_decoder_codigo(), 0);
-#endif
       fa_player_falhou(antAberta);
       marcarFonteMorta(antAberta);
       stream_automatico_excluir_irmas(antAberta);
@@ -3067,9 +2933,6 @@ static void vigiarAberturaManual(void) {
   g.falhou = video_falhou() || player_fonte_falhou();
   g.pronto = video_pronto() && video_pos() > 0.25;
   g.carregando = player_carregando();
-#ifdef NV_ANDROID
-  g.quadro = video_quadro_visto();
-#endif
   g.desdeMs = desde;
   // Erro do player no preparo (Media3 2004 etc., video_android.c): sem isto a
   // tela ficava em "Abrindo fonte" ate o prazo, ou para sempre.
@@ -3113,13 +2976,6 @@ static int aberturaVencida(Uint32 desde) {
   g.dadoChegando = video_pronto() || video_buffer_fim() > 0.5;
   { const Stream *s = stream_item(at);
     g.pesado = s && (s->badges & (badges_bit("r-4k") | badges_bit("v-dv"))); }
-#ifdef NV_ANDROID
-  g.quadro = video_quadro_visto();
-#endif
-#if defined(NV_ANDROID)
-  // Trilhas do player ja provam resposta antes do primeiro quadro (DV na TCL).
-  g.dadoChegando |= video_n_audio() > 0 || video_n_legenda() > 0;
-#endif
   if (!inicio_abre_vencida(&g)) return 0;
   printf("[fonte] sem sinal de abertura em %u ms (prazo %u ms%s)\n", (unsigned)desde,
          inicio_abre_prazo_ms(&g), semPerda ? ", proxima nao e pior" : "");
@@ -3298,10 +3154,6 @@ static void renovarVodInterrompido(void) {
   if (fonteDepoisDe < 0 || !alvo[0] ||
       partes_sessao_lista() || parteFase != PF_NADA) return;
   vodRenovou = 1; vodRenovarPos = fonteFalhaPos;
-#ifdef NV_ANDROID
-  // Android retains the exact failure point through failed reopens.
-  if (video_pos() > 0.0) vodRenovarPos = video_pos();
-#endif
   unsigned geracao = novaGeracaoFonte();
   vodRenovandoDesde = SDL_GetTicks() | 1u;
   aguardandoFonte = 2; fontePedidoGeracao = geracao; fonteEscolhida = -2;
@@ -3375,26 +3227,8 @@ static void tentarProximaFonteVOD(void) {
   // film to another source and lost the position.
   else if (aberturaVencida(desde)) motivo = 2;
   else if (!fonteFalha && video_bufferando_ms() > VOD_FONTE_BUFFER_MS) {
-#ifdef NV_ANDROID
-    // Segura a troca so enquanto o fim do buffer ANDA (bufavanco.h), por fonte.
-    // Para VOD no Android, a borda vem de VideoStats.bufferSeg.
-    { static BufAvanco av; VideoStats vs;
-      video_estatisticas(&vs);
-      if (bufavanco_segura(&av, fonteVODDesde, video_bufferando_ms(), SDL_GetTicks(),
-                           bufavanco_borda(video_pos(), vs.bufferSeg))) return;
-    }
-#endif
     motivo = 3;
   }
-#ifdef NV_ANDROID
-  // Playback StreamFit: this source cannot keep up while playing (slow
-  // download vs declared bitrate, or rebuffers). Same path as the stall, but
-  // only with a next candidate: a slow film keeps playing, never an error.
-  else if (video_rede_lenta() &&
-           (fonteFalha ? stream_falha_tem_proxima(fonteFalha, fonteFalhaLista)
-                       : fonteVODTentativas < VOD_FONTE_MAX_TENTATIVAS &&
-                         stream_proxima_vod(stream_atual()) >= 0)) motivo = 4;
-#endif
   if (!motivo) return;
   // #415 (LG G4, webOS 9): erro 600 com 4K tocando, 92 MB livres, e o app
   // reabria a fonte no mesmo instante — o webOS o fechou por memoria. Antes de
@@ -3409,10 +3243,6 @@ static void tentarProximaFonteVOD(void) {
 
   atual = stream_atual();
   if (fonteFalha) {
-#ifdef NV_ANDROID
-    if (atual >= 0 && motivo == 1)
-      stream_automatico_erro_decoder(atual, video_erro_decoder_codigo(), 0);
-#endif
     // O backend pode zerar a posicao ao desistir de reconectar. A amostra do
     // ultimo quadro valido fica na sessao, antes de parar o pipeline.
     guardarPosicaoFonteFalha();
@@ -3428,9 +3258,6 @@ static void tentarProximaFonteVOD(void) {
   // A post-open player failure is not a dead URL. Retry this candidate once
   // without consuming another selection slot, then keep sibling links eligible.
   int abriu = video_fonte_tocou() || fonteVODRetentou;
-#ifdef NV_ANDROID
-  abriu |= video_quadro_visto();
-#endif
   if (atual >= 0 && motivo == 1 && abriu && !fonteVODRetentou) {
     const Stream *s = stream_item(atual);
     if (s && s->url[0]) {
@@ -3450,9 +3277,6 @@ static void tentarProximaFonteVOD(void) {
     else marcarFonteMorta(atual);
   }
   if (atual >= 0 && motivo == 1 && !abriu) {
-#ifdef NV_ANDROID
-    stream_automatico_erro_decoder(atual, video_erro_decoder_codigo(), 0);
-#endif
     int k = stream_automatico_excluir_irmas(atual);
     if (k) printf("[fonte] automatico VOD pulou %d link(s) irmao(s) de %d\n", k, atual);
   }
@@ -3999,10 +3823,8 @@ static int azulPodeAbrirSalvos(const SDL_Event *e) {
   // So no teclado de verdade (Mac/desktop). No Android a AZUL, o CH+ e o
   // MENU/BOOKMARK CHEGAM como "s" (NuvioActivity/main.c) e o SDL pode deixar o
   // text input ligado: a regra recusava o atalho e o CH+ parou de abrir a ilha.
-#ifndef NV_ANDROID
   if (e->key.keysym.sym == SDLK_s && e->key.keysym.scancode != NV_SCANCODE_BLUE &&
       SDL_IsTextInputActive()) return 0;
-#endif
   switch (tela) {
     case TELA_HOME: case TELA_EXPLORAR: case TELA_BUSCA: case TELA_BIBLIOTECA:
     case TELA_PERFIL: case TELA_SOCIAL: case TELA_ADDONS: case TELA_PLUGINS:
@@ -4062,11 +3884,7 @@ static struct {
 } relogioFoco;
 
 static int relogioFocoMobile(void) {
-#ifdef NV_TOUCH_UI
-  return layout_modo_mobile();
-#else
   return 0;
-#endif
 }
 static int relogioFocoPermitido(void) {
   if (!ajustes_relogio_ligado() || !relogioCabe() ||
@@ -4268,13 +4086,6 @@ void app_evento(const SDL_Event *e) {
   // login, a tecla vermelha nao chegaria ali e o painel seria inutil onde ele
   // mais importa. Enquanto aberto ele engole todo o teclado, incluindo o KEYUP
   // do toque que o abriu ou fechou (ver a nota da armadilha em registro.c).
-#ifdef NV_ANDROID
-  // O Info do controle Android chega como F9 (o painel de registro). Com a
-  // folha de fontes aberta ele e dos DETALHES DA FONTE (#355); o registro
-  // continua na tecla vermelha / Ajustes, e aberto ele ainda fecha o painel.
-  if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F9 && stream_folha_aberta() &&
-      !registro_aberto()) { stream_folha_evento(e); return; }
-#endif
   if (registro_evento(e)) return;
   // O painel de envio do registro (Ajustes > Enviar registro, ou o "Enviar
   // agora" do painel): modal, come o teclado enquanto aberto.
@@ -5832,11 +5643,6 @@ void app_atualizar(float dt, Uint32 agora) {
         cat_id_stream(detail_indice(), cwTocarT, cwTocarE, alvoPreparo, sizeof alvoPreparo);
       idBaseDoTitulo(basePreparo, sizeof basePreparo);
       int lembradaPreparo = basePreparo[0] ? fontepref_escolher(basePreparo) : -1;
-#ifdef NV_ANDROID
-      if (doInicio && preparo.token) {
-        player_precarregar_cancelar(preparo.token); preparo.token = 0;
-      }
-#endif
       int usouPreparo = !ajustes_fonte_manual() &&
                        preparoUsar(alvoPreparo, lembradaPreparo, &idxPreparado);
       // Armado antes da abertura: o proximo quadro nao cancela o worker
@@ -6196,9 +6002,6 @@ void app_atualizar(float dt, Uint32 agora) {
   // preta. O caso que motivou o conserto (18/09) tinha loadCompleted.
   recuperarErroFonte();
   if (canalFonteIdx >= 0 && (player_aberto() || player_mini_ativo()) &&
-#ifdef NV_ANDROID
-      !video_recuperando_live() &&
-#endif
       !player_quer_sair() && player_id_canal()[0]) {
     // TRAVOU DEPOIS DE ABRIR conta como morta, e sem isto nao contava.
     //
@@ -6242,13 +6045,6 @@ void app_atualizar(float dt, Uint32 agora) {
         video_buffer_fim() > 0.5 && !video_decoder_anunciou();
     unsigned bufferMs = video_bufferando_ms();
     unsigned travaMs = CANAL_TRAVA_MS, paradoMs = NV_LS_PARADO_MS;
-#ifdef NV_ANDROID
-    if (bufferMs) {
-      paradoMs = nv_ls_buffer_prazo(video_live_segmento_ms());
-      // Give the same-source watchdog its normal four-second lead over failover.
-      if (paradoMs > NV_LS_PARADO_MS) travaMs = paradoMs + 4000u;
-    }
-#endif
     int morta = player_fonte_falhou() || video_falhou() ||
         (player_carregando() && desde > prazo && video_buffer_fim() <= 0.5) ||
         (player_carregando() && desde > teto) ||
@@ -6271,9 +6067,6 @@ void app_atualizar(float dt, Uint32 agora) {
         snprintf(lsId, sizeof lsId, "%s", player_id_canal());
       }
       double livePos = video_pronto() ? video_pos() : 0.0, liveFim = video_buffer_fim();
-#ifdef NV_ANDROID
-      if (video_pronto()) video_live_progresso(&livePos, &liveFim);
-#endif
       int estavaPendente = liveStall.pendente;
       ls = nv_ls_passo_buf_prazo(&liveStall, SDL_GetTicks(), livePos,
                            video_pronto(), player_pausa_pessoa(), video_terminou(),
@@ -6740,28 +6533,11 @@ void app_atualizar(float dt, Uint32 agora) {
         trocarTela(TELA_HOME);
         menu_definir_destino(MENU_INICIO);
         ilha_minimizar(fundoVoo[0] ? fundoVoo : NULL);
-#ifdef NV_ANDROID
-        // A sessao ficou pausada atras da home: o voo comeca DISSOLVENDO a
-        // partir do proprio video parado (ilha_minimizar_dissolver).
-        ilha_minimizar_dissolver(player_retido());
-#endif
       } }
     }
   }
 
   cwRetidoSincronizar();
-#ifdef NV_TOUCH_UI
-  { static float guiaW, guiaH;
-    if (guiaW != NV_TELA_W || guiaH != NV_TELA_H) {
-      guiaW = NV_TELA_W; guiaH = NV_TELA_H;
-      if (player_mini_no_guia_ativo()) {
-        float x, y, w, h;
-        guia_preview_rect(&x, &y, &w, &h);
-        player_mini_no_guia(x, y, w, h);
-      }
-    }
-  }
-#endif
   player_atualizar(dt, agora);
   // A barra por cima da pagina: o trailer do fundo fica mudo enquanto ela
   // esta aberta (detail_sob_menu). O pedido de barra da pagina e lido em
@@ -6898,19 +6674,9 @@ void app_atualizar(float dt, Uint32 agora) {
 // descarta, antes de se desenhar, os alvos de quem ficou por baixo — o
 // ponteiro so pode focar o que as setas focariam. A pergunta e a mesma que o
 // roteador de app_evento faz ("esta aberta?"), so que na ordem do desenho.
-#ifdef NV_TOUCH_UI
-#define CAMADA_SE(aberta) do { if (aberta) { \
-  ponteiro_camada(); \
-  if (layout_modo_mobile()) ponteiro_alvo(0, 0, NV_TELA_W, NV_TELA_H, NULL, NULL, 0, 0); \
-} } while (0)
-#else
 #define CAMADA_SE(aberta) do { if (aberta) ponteiro_camada(); } while (0)
-#endif
 static void desenharCtxDoPainel(Uint32 agora) {
   CAMADA_SE(ctx_aberto()
-#ifdef NV_TOUCH_UI
-            && !(telefoneui_ativo() && ctx_inline_painel_ativo())
-#endif
   );
   ctx_desenhar(agora);
 }
@@ -6923,9 +6689,6 @@ static void desenharAtrasDoPainel(void *ctx) {
   // "Ver tudo" cobre a tela de tras por completo (fundo opaco), entao a home
   // nao precisa ser desenhada por baixo — a mesma conta do detail_cobre_tela.
   if (!detail_cobre_tela() && !vertudo_aberta()) {
-#ifdef NV_TOUCH_UI
-    sidebarToqueRegistrar(0);
-#endif
     switch (tela) {
       case TELA_EXPLORAR:   explorar_desenhar(agora);   break;
       case TELA_GUIA:       guia_desenhar(agora);       break;
@@ -6943,9 +6706,6 @@ static void desenharAtrasDoPainel(void *ctx) {
     }
   }
   CAMADA_SE(vertudo_aberta());
-#ifdef NV_TOUCH_UI
-  if (!detail_cobre_tela()) sidebarToqueRegistrar(2);
-#endif
   if (!detail_cobre_tela()) vertudo_desenhar(agora);
   // Com o painel de Salvos na tela o menu do cartaz e desenhado DEPOIS dele
   // (desenharTelas): e o painel que o abre, e por baixo ele ficaria sob o veu.
@@ -6954,9 +6714,6 @@ static void desenharAtrasDoPainel(void *ctx) {
     ctx_desenhar(agora);
   }
   CAMADA_SE(detail_aberto());
-#ifdef NV_TOUCH_UI
-  sidebarToqueRegistrar(1);
-#endif
   detail_desenhar(agora);
   // Aberto de dentro da pagina do titulo, o menu vai POR CIMA dela.
   if (!spainel_visivel() && detail_aberto() && ctx_aberto()) {
@@ -7027,9 +6784,6 @@ static void desenharTelas(Uint32 agora) {
 
   // Estado vazio de verdade, em vez de uma tela preta que parece travamento.
   if (!homePronta && tela == TELA_HOME && !player_aberto() && !detail_aberto()) {
-#ifdef NV_TOUCH_UI
-    sidebarToqueRegistrar(0);
-#endif
     GfxRect fundo = { 0, 0, NV_TELA_W, NV_TELA_H };
     TxtLinha t, sb;
     gfx_cor(fundo, 0.0f, NV_COR_FUNDO_R, NV_COR_FUNDO_G, NV_COR_FUNDO_B, 1.0f);
@@ -7097,9 +6851,6 @@ static void desenharTelas(Uint32 agora) {
   // dela (streams.c) e por isso nao a esconde mais.
   if (player_aberto()) {
     estatvivo_desenhar(agora);
-#ifdef NV_TOUCH_UI
-    if (telefoneui_ativo()) { CAMADA_SE(central_aberta()); }
-#endif
     central_desenhar(agora); plrilha_desenhar(agora);
     if (episodios_aberto() && sinopse_aberta()) sinopse_desenhar();
   }
@@ -7166,25 +6917,6 @@ static int relogioCabe(void) {
   return 1;
 }
 
-#ifdef NV_TOUCH_UI
-static int playerToquePermitido(void) {
-  if (!app_central_pode() || menu_aberto() || spainel_aberto() ||
-      central_aberta() || ilha_modal_aberto() || celb_aberto() || ctx_aberto() ||
-      recenviar_aberto() || pessoas_aberto() || stream_folha_aberta() ||
-      faixas_aberta() || episodios_aberto() || guia_overlay_aberta() || avisos_aberto() ||
-      relogioCamadaAberta()) return 0;
-  if (tela == TELA_DIAGNOSTICO && diagnostico_apresentacao_aberta()) return 0;
-  if (tela == TELA_AJUSTES && !ajustes_relogio_cabe()) return 0;
-  if (tela == TELA_AGENDA && agendaui_menu_aberto()) return 0;
-  return 1;
-}
-static int miniToquePermitido(void) {
-  if (player_aberto() || !playerToquePermitido()) return 0;
-  if (telefoneui_ativo() && tela == TELA_AJUSTES && ajustes_edicao_ativa()) return 0;
-  // In the Guide its own preview and modal controls own the video rectangle.
-  return tela != TELA_GUIA;
-}
-#endif
 
 void app_desenhar(Uint32 agora) {
   relogioFocoValidar();
@@ -7256,14 +6988,6 @@ void app_desenhar(Uint32 agora) {
   // ainda chegava aparecer. Nada de congelar com video no ar (o PiP pinta o
   // furo) nem com o painel de Salvos, que usa o mesmo FBO.
   { static int pronto, refeitas, regCongelado;
-#ifdef NV_TOUCH_UI
-    static float fundoW, fundoH;
-    static unsigned fundoGeracao;
-    if (fundoW != NV_TELA_W || fundoH != NV_TELA_H || fundoGeracao != gfx_snap_geracao()) {
-      pronto = refeitas = regCongelado = 0;
-      fundoW = NV_TELA_W; fundoH = NV_TELA_H;
-    }
-#endif
     static unsigned revPronta;
     static Uint32 desde;
     static const Uint32 REFAZ[] = { 400, 1500, 4000 };
@@ -7307,17 +7031,10 @@ void app_desenhar(Uint32 agora) {
       if (regCongelado) gfx_snap_desenhar();
     } else desenharTelas(agora);
     if (!registro_aberto()) regCongelado = 0;
-#ifdef NV_TOUCH_UI
-    fundoGeracao = gfx_snap_geracao();
-#endif
   }
   // O explicador fica ACIMA de qualquer tela (menos do painel de log, que e
   // ferramenta de diagnostico): ele e a primeira coisa que a pessoa ve depois
   // desta atualizacao, e nada pode aparecer por cima dele.
-#ifdef NV_TOUCH_UI
-  player_mini_toque_guarda(miniToquePermitido);
-  player_toque_modal_guarda(playerToquePermitido);
-#endif
   player_mini_desenhar(agora);
   CAMADA_SE(sintro_aberto());
   if (!registro_aberto()) sintro_desenhar(agora);
@@ -7426,9 +7143,6 @@ void app_desenhar(Uint32 agora) {
     // O CARTAO DA ATUALIZACAO e a pilula crescida (atualizacao.c): enquanto
     // ele esta na tela, ela fica por baixo, medindo, sem se desenhar.
     ilha_coberta(spainel_da_ilha() || atualizacao_cobre_ilha());
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile()) CAMADA_SE(central_aberta() || ilha_modal_aberto());
-#endif
     ilha_desenhar(agora);
   }
   // O cartao do lembrete fica acima do player e da tela: e um aviso com hora.
@@ -7445,15 +7159,9 @@ void app_desenhar(Uint32 agora) {
   CAMADA_SE(pipintro_aberto());
   if (!registro_aberto()) pipintro_desenhar(agora);
   if (!registro_aberto()) {
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile()) CAMADA_SE(spot_aberto());
-#endif
     spot_desenhar(agora, spotVeuPronto);
   }
   if (!registro_aberto()) {
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile()) CAMADA_SE(celb_aberto());
-#endif
     celb_desenhar();
   }
   CAMADA_SE(diagnostico_intro_aberto());
@@ -7466,9 +7174,6 @@ void app_desenhar(Uint32 agora) {
   if (registro_aberto() && sessao_logada()) {
     ilha_relogio_visivel(ajustes_relogio_ligado());
     ilha_posicionar(1);
-#ifdef NV_TOUCH_UI
-    if (layout_modo_mobile()) CAMADA_SE(central_aberta() || ilha_modal_aberto());
-#endif
     ilha_desenhar(agora);
   }
   // AS DICAS DO CONTROLE por ultimo, por cima de tudo: a dica abre o

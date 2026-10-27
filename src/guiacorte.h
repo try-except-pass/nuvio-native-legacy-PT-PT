@@ -15,13 +15,8 @@
 // o Linux so aloca a pagina que e tocada: custa ~2,4 KB x canais lidos x 3,
 // e no teto 3000 x 2,4 KB x 3 = ~21,6 MB, em aparelhos de 2 GB ou mais. O
 // cache em disco do guia tem o mesmo tamanho (~7 MB no teto).
-#ifdef NV_ANDROID
-#define GUIACORTE_MAX_CANAL 3000
-#define GUIACORTE_MAX_CAT    128
-#else
 #define GUIACORTE_MAX_CANAL  900
 #define GUIACORTE_MAX_CAT     48
-#endif
 
 typedef struct {
   int porCanais;   // perdidos porque o teto de canais encheu

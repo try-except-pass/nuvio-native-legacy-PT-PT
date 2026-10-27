@@ -1,7 +1,4 @@
 #include "rede.h"
-#ifdef NV_ANDROID
-#include "android.h"
-#endif
 #include "negcache.h"
 #include "addonurl.h"
 #include "negcache.inc"
@@ -893,37 +890,6 @@ static void prepararOpenSSL(void) {
   fflush(stdout);
 }
 
-#ifdef NV_ANDROID
-#include <fcntl.h>
-#include <poll.h>
-#include <unistd.h>
-#include <sys/utsname.h>
-// #266/#332: o curl_global_init da libcurl do APK semeia o PSA e o CTR-DRBG do
-// mbedTLS. Ate a 266.1 a semente vinha de /dev/random (o mbedTLS so usa
-// getrandom com glibc), que BLOQUEIA em kernel < 5.6 com pouca entropia
-// estimada. A deps.sh agora aponta para /dev/urandom; esta linha diz, no log, o
-// kernel e se /dev/random estava travado naquela hora — prova ou derruba a tese.
-static void entropiaLog(void) {
-  struct utsname u;
-  char ea[32] = "?";
-  const char *rnd = "?";
-  FILE *f = fopen("/proc/sys/kernel/random/entropy_avail", "r");
-  int fd;
-  if (f) { if (!fgets(ea, sizeof ea, f)) snprintf(ea, sizeof ea, "?"); fclose(f); }
-  ea[strcspn(ea, "\r\n")] = 0;
-  fd = open("/dev/random", O_RDONLY | O_NONBLOCK | O_CLOEXEC);
-  if (fd >= 0) {
-    struct pollfd p = { fd, POLLIN, 0 };
-    int r = poll(&p, 1, 0);
-    rnd = r > 0 && (p.revents & POLLIN) ? "legivel" : r == 0 ? "BLOQUEARIA" : "erro";
-    close(fd);
-  } else rnd = "sem-acesso";
-  if (uname(&u) != 0) snprintf(u.release, sizeof u.release, "?");
-  printf("[rede] kernel=%s entropy_avail=%s /dev/random=%s\n",
-         u.release, ea, rnd);
-  fflush(stdout);
-}
-#endif
 
 static int abrirReal(void) {
   void *h;
@@ -941,19 +907,6 @@ static int abrirReal(void) {
   r = __atomic_load_n(&pronto, __ATOMIC_ACQUIRE);
   if (r == 1 || r == -1) { pthread_mutex_unlock(&abrirTrava); return r > 0; }
   __atomic_store_n(&pronto, -2, __ATOMIC_RELEASE);
-#ifdef NV_ANDROID
-  // Android: o sistema nao oferece libcurl a apps; ela vai no APK (jniLibs) com
-  // o nome "libcurl.so", e o dlopen por nome acha na pasta nativa do app.
-  printf("[rede] dlopen libcurl.so\n"); fflush(stdout);
-  { unsigned long t0 = redeAgoraMs();
-    const char *e;
-    h = dlopen("libcurl.so", RTLD_NOW);
-    e = h ? "" : dlerror();
-    printf("[rede] dlopen libcurl.so %s em %lu ms%s%s\n", h ? "ok" : "FALHOU", redeAgoraMs() - t0,
-           h ? "" : ": ", e ? e : "?");
-    fflush(stdout); }
-  if (!h)
-#endif
   h = dlopen("libcurl.so.5", RTLD_NOW);
   if (!h) h = dlopen("libcurl.so.4", RTLD_NOW);
   if (!h) h = dlopen("libcurl.4.dylib", RTLD_NOW);   // Mac
@@ -991,18 +944,7 @@ static int abrirReal(void) {
     pthread_mutex_unlock(&abrirTrava);
     return 0;
   }
-#ifdef NV_ANDROID
-  // #266: a Shield (Tegra) para em "rede_preparar" sem imprimir mais nada; a
-  // libcurl 8 + mbedTLS 3.6 inicia o PSA/entropia aqui dentro. Marca cada lado.
-  entropiaLog();
-  printf("[rede] curl_global_init\n"); fflush(stdout);
-  { unsigned long t0 = redeAgoraMs();
-    int gi = curl_global ? curl_global(3 /* CURL_GLOBAL_DEFAULT */) : -1;
-    printf("[rede] curl_global_init ok (r=%d) em %lu ms\n", gi, redeAgoraMs() - t0);
-    fflush(stdout); }
-#else
   if (curl_global) curl_global(3 /* CURL_GLOBAL_DEFAULT */);
-#endif
   // Prefixo ABI de curl_version_info_data ate CURLVERSION_SECOND (7.11.1).
   // Sem curl.h, como as opcoes acima: a biblioteca carregada vem do aparelho.
   {
@@ -1033,171 +975,14 @@ static int abrirReal(void) {
   }
   // DEPOIS do global_init e ANTES de soltar a trava: a partir daqui qualquer fio
   // pode entrar em curl_easy_perform, e e la que o OpenSSL comeca a ser usado.
-#ifndef NV_ANDROID   // libcurl do APK nao usa libcrypto 1.0 (e dlopen de libcrypto.so seria do sistema)
   prepararOpenSSL();
-#endif
   __atomic_store_n(&pronto, 1, __ATOMIC_RELEASE);
   pthread_mutex_unlock(&abrirTrava);
   return 1;
 }
 
-#ifdef NV_ANDROID
-// #266: na Shield (Tegra, Android 11) o app nunca terminava de abrir, parado em
-// rede_preparar. Suspeita nao provada: dlopen da libcurl / curl_global_init
-// (mbedTLS 3.6 PSA/entropia) bloqueando. No Android isso roda num fio proprio;
-// a interface segue abrindo e quem precisa de rede espera pela bandeira, com
-// limite. Se a init nunca voltar, o log diz.
-static int fioIniciado;
-static void *fioCurl(void *a) {
-  struct timespec t0, t1;
-  (void)a;
-  clock_gettime(CLOCK_MONOTONIC, &t0);
-  abrirReal();
-  clock_gettime(CLOCK_MONOTONIC, &t1);
-  printf("[rede] libcurl pronta em %ld ms (pronto=%d)\n",
-         (long)((t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000),
-         __atomic_load_n(&pronto, __ATOMIC_ACQUIRE));
-  fflush(stdout);
-  return NULL;
-}
-static void iniciarFioCurl(void) {
-  pthread_t t;
-  if (__atomic_exchange_n(&fioIniciado, 1, __ATOMIC_ACQ_REL)) return;
-  if (pthread_create(&t, NULL, fioCurl, NULL) != 0) { fioCurl(NULL); return; }
-  pthread_detach(t);
-}
-// Espera a libcurl ate `ms`. Depois que UMA espera estourou, ninguem mais
-// espera: sem isso cada imagem e cada chamada pagaria os 20 s de novo enquanto
-// a init segue presa (a 266.1 fazia isso, e a tela de login ficava parada).
-static int esgotou;
-static int abrirAte(unsigned long ms) {
-  int r = __atomic_load_n(&pronto, __ATOMIC_ACQUIRE);
-  unsigned long t0;
-  if (r == 1 || r == -1) return r > 0;
-  iniciarFioCurl();
-  if (__atomic_load_n(&esgotou, __ATOMIC_ACQUIRE)) ms = 0;
-  t0 = redeAgoraMs();
-  for (;;) {
-    struct timespec d = { 0, 10 * 1000 * 1000 };
-    r = __atomic_load_n(&pronto, __ATOMIC_ACQUIRE);
-    if (r == 1 || r == -1) return r > 0;
-    if (redeAgoraMs() - t0 >= ms) {
-      if (ms && !__atomic_exchange_n(&esgotou, 1, __ATOMIC_ACQ_REL)) {
-        printf("[rede] libcurl nao ficou pronta em %lu ms (pronto=%d); pedidos simples vao pelo Android\n", ms, r);
-        fflush(stdout);
-      }
-      return 0;
-    }
-    nanosleep(&d, NULL);
-  }
-}
-static int abrir(void) { return abrirAte(20000); }
-
-// RESERVA PELO ANDROID (#266/#332). Pedido simples (GET/POST de texto, com
-// cabecalhos) que a libcurl nao pode atender — nao ficou pronta, ou caiu no
-// transporte — vai por NuvioActivity.httpPedir (HttpURLConnection). A conta, o
-// login e o Supabase passam por aqui (nuvem.c: rede_*_st), e assim o login
-// nunca depende so da nossa libcurl. The session latch requires transport
-// failures recovered by Android on three distinct hostnames.
-static int curlRuim;
-static char *viaAndroid(const char *verbo, const char *url, int segundos,
-                        const char *const *cab, const char *corpo, int *status,
-                        long *tam, int *retryAfter, const char *porque) {
-  char *cabs, *r, erro[200], h[96];
-  size_t n = 1;
-  int k, st = 0, temCt = 0;
-  long bytes = 0;
-  unsigned long t0 = redeAgoraMs();
-  static int logados;
-  redeBytesLocal = 0;
-  if (status) *status = 0;
-  for (k = 0; cab && cab[k]; k++) {
-    n += strlen(cab[k]) + 1;
-    if (!strncasecmp(cab[k], "Content-Type:", 13)) temCt = 1;
-  }
-  if (corpo && !temCt) n += 32;
-  cabs = (char *)malloc(n);
-  if (!cabs) return NULL;
-  cabs[0] = 0;
-  for (k = 0; cab && cab[k]; k++) { strcat(cabs, cab[k]); strcat(cabs, "\n"); }
-  // Mesmo padrao do postarNativo: JSON, salvo quem mandou o proprio.
-  if (corpo && !temCt) strcat(cabs, "Content-Type: application/json\n");
-  char *alias = __atomic_load_n(&tmdbAlternativo, __ATOMIC_ACQUIRE) ? tmdbUrl(url) : NULL;
-  r = android_http(verbo, alias ? alias : url, cabs, corpo, (segundos > 0 ? segundos : 20) * 1000,
-                   &st, retryAfter, &bytes, erro, sizeof erro);
-  if (!r && !st && !alias && !redeCancelouLocal && (alias = tmdbUrl(url))) {
-    r = android_http(verbo, alias, cabs, corpo, (segundos > 0 ? segundos : 20) * 1000,
-                     &st, retryAfter, &bytes, erro, sizeof erro);
-    if (r) tmdbLigou();
-  }
-  free(alias); free(cabs);
-  hostDaUrl(url, h, sizeof h);
-  if (__atomic_add_fetch(&logados, 1, __ATOMIC_RELAXED) <= 12 || !r) {
-    printf("[rede] via Android (%s) %s %s: http=%d em %lu ms%s%s\n", porque, verbo,
-           h[0] ? h : "?", st, redeAgoraMs() - t0, r ? "" : " FALHOU: ", r ? "" : erro);
-    fflush(stdout);
-  }
-  if (!r) { snprintf(redeErroTxt, sizeof redeErroTxt, "android: %.180s", erro); return NULL; }
-  redeErroTxt[0] = 0;
-  // Os wrappers medidos leem este contador mesmo sem pedir `tam`.
-  redeBytesLocal = bytes;
-  if (st == 401 && aviso401) aviso401(url);
-  if (status) *status = st;
-  else if (st < 200 || st > 299) { free(r); return NULL; }  // como rede_baixar sem status
-  if (tam) *tam = bytes;
-  // #205: a contagem tambem vai no estado do fio. Quem baixa ARTE le
-  // redeBytesLocal (rede_baixar_bin_medido_controle), nao o `tam`, e este e o
-  // unico caminho de download que nao passa pelo recebedor da libcurl — sem
-  // isto, todo corpo entregue aqui chegava ao tex_cache como "corpo curto
-  // (0 B)" e a fileira inteira ficava sem arte, refetch a cada item (TCL).
-  redeBytesLocal = bytes;
-  return r;
-}
-// 1 = este pedido simples vai direto pelo Android (sem tocar na libcurl).
-static int androidPrimeiro(void) {
-  if (__atomic_load_n(&curlRuim, __ATOMIC_ACQUIRE)) return 1;
-  // 8 s, e nao 20: a tela de login nao fica parada esperando a libcurl.
-  return !abrirAte(8000);
-}
-// Falha de TRANSPORTE da libcurl num pedido simples: tenta o Android uma vez.
-static char *androidDepois(const char *verbo, const char *url, int segundos,
-                           const char *const *cab, const char *corpo, int *status, int *retryAfter) {
-  static pthread_mutex_t trava = PTHREAD_MUTEX_INITIALIZER;
-  static char hosts[3][256];
-  static unsigned nHosts;
-  char *r, origem[320], *host, *fim;
-  int codigo = redeCurlLocal;
-  unsigned i;
-  if (redeCancelouLocal || (redeCancelLocal && *redeCancelLocal)) return NULL;
-  r = viaAndroid(verbo, url, segundos, cab, corpo, status, NULL, retryAfter, "curl falhou");
-  // Only transport errors count; malformed URLs, unsupported protocols,
-  // allocation failures and deliberate aborts say nothing about curl health.
-  if (!r || !(codigo == 5 || codigo == 6 || codigo == 7 || codigo == 28 ||
-              codigo == 35 || codigo == 52 || codigo == 55 || codigo == 56)) return r;
-  hostDaUrl(url, origem, sizeof origem);
-  host = strstr(origem, "://");
-  if (!host) return r;
-  host += 3;
-  fim = *host == '[' ? strchr(host, ']') : strchr(host, ':');
-  if (fim) { if (*fim == ']') fim++; *fim = 0; }
-  if (!*host || strlen(host) >= sizeof hosts[0]) return r;
-  pthread_mutex_lock(&trava);
-  for (i = 0; i < nHosts; i++) if (!strcasecmp(hosts[i], host)) break;
-  if (i == nHosts && nHosts < 3) {
-    snprintf(hosts[nHosts++], sizeof hosts[0], "%s", host);
-    if (nHosts == 3 && !__atomic_exchange_n(&curlRuim, 1, __ATOMIC_ACQ_REL)) {
-      printf("[rede] libcurl failed on three distinct hosts recovered by Android; simple requests use Android this session\n");
-      fflush(stdout);
-    }
-  }
-  pthread_mutex_unlock(&trava);
-  return r;
-}
-void rede_preparar(void) { iniciarFioCurl(); }
-#else
 static int abrir(void) { return abrirReal(); }
 void rede_preparar(void) { abrir(); }
-#endif
 
 /* Request novo isolado do handle/controles por fio dos wrappers. */
 // Trusted Mozilla bundle configured once at startup. Android's libcurl has
@@ -1263,26 +1048,7 @@ char *rede_baixar_com(const char *url, int segundos, const char *const *cab) {
 
 char *rede_baixar_st(const char *url, int segundos, const char *const *cab,
                      int *status) {
-#ifdef NV_ANDROID
-  char *r;
-  int st = 0;
-  if (!url || !*url) { if (status) *status = 0; return NULL; }
-  if (androidPrimeiro()) {   // st local: com status NULL o 4xx tambem volta com corpo, como no curl
-    r = viaAndroid("GET", url, segundos, cab, NULL, &st, NULL, NULL, "libcurl fora");
-    if (status) *status = st;
-    return r;
-  }
-  redeCurlLocal = 0;
-  r = rede_baixar_interno2(url, segundos, NULL, cab, &st, NULL, 0);
-  if (status) *status = st;
-  if (!r && st == 0) {
-    r = androidDepois("GET", url, segundos, cab, NULL, &st, NULL);
-    if (status) *status = st;
-  }
-  return r;
-#else
   return rede_baixar_interno2(url, segundos, NULL, cab, status, NULL, 0);
-#endif
 }
 char *rede_baixar_st_retry(const char *url, int segundos, const char *const *cab,
                            int *status, int *retryAfter) {
@@ -1345,12 +1111,7 @@ static char *rede_baixar_interno3(const char *url, int segundos, long *tam,
   // Endereco de API de metadados que ja respondeu "nao existe" (ou host em
   // recuo por timeout): nao pede de novo — ver negcache.h.
   if (!status && negcache_barra(url, (long)time(NULL))) return NULL;
-#ifdef NV_ANDROID
-  // libcurl nunca ficou pronta: GET simples (catalogo, imagem) pelo Android.
-  if (!abrir()) return viaAndroid("GET", url, segundos, cab, NULL, status, tam, retry, "libcurl fora");
-#else
   if (!abrir()) return NULL;
-#endif
   inicio = redeAgoraMs();
   prazoMs = (unsigned long)(segundos > 0 ? segundos : 30) * 1000UL;
   for (tentativa = 0; ; tentativa++) {
@@ -1823,27 +1584,7 @@ char *rede_postar_st(const char *url, int segundos, const char *const *cab,
 // se ela nao respondeu). `verbo` NULL = POST.
 static char *enviarNativo(const char *verbo, const char *url, int segundos, const char *const *cab,
                           const char *corpo, int *status, int *retryAfter) {
-#ifdef NV_ANDROID
-  const char *v = verbo ? verbo : "POST";
-  char *r;
-  int st = 0;
-  if (retryAfter) *retryAfter = 0;
-  if (!url || !*url) { if (status) *status = 0; return NULL; }
-  if (androidPrimeiro()) {   // st local: com status NULL o 4xx tambem volta com corpo, como no curl
-    r = viaAndroid(v, url, segundos, cab, corpo ? corpo : "", &st, NULL, retryAfter, "libcurl fora");
-    if (status) *status = st;
-    return r;
-  }
-  r = postarNativo(url, segundos, cab, corpo, &st, 0, retryAfter, verbo);
-  if (status) *status = st;
-  if (!r && st == 0) {
-    r = androidDepois(v, url, segundos, cab, corpo ? corpo : "", &st, retryAfter);
-    if (status) *status = st;
-  }
-  return r;
-#else
   return postarNativo(url, segundos, cab, corpo, status, 0, retryAfter, verbo);
-#endif
 }
 
 char *rede_postar_st_retry(const char *url, int segundos, const char *const *cab,
@@ -1925,69 +1666,10 @@ static int contadorVigia(void *u, long long dt, long long dn, long long ut, long
   return 0;
 }
 
-#ifdef NV_ANDROID
-static int medirUma(const char *url, const char *const *cab, int segundos,
-                    long inicio, long long maxBytes, volatile int *cancelado,
-                    int *kbps, int nMax, RedeVazao *res,
-                    char *final, unsigned tamFinal);
-// ANDROID: o player baixa arquivo progressivo em VAZ_ANDROID_CONEXOES conexoes
-// ao mesmo tempo (ParaleloDataSource.kt), porque o Android limita a janela TCP
-// de cada uma (~20 Mbps a 250 ms do debrid na TCL Smart TV Pro, 30/09/2026).
-// A medida tem de ser do MESMO jeito, senao diz "ate 9 GB" para quem toca 40 GB
-// sem parar: as conexoes leem trechos distantes do mesmo arquivo e os baldes
-// por segundo somam. Resultado, status e URL final sao os da primeira.
-#define VAZ_ANDROID_CONEXOES 4
-#define VAZ_ANDROID_SALTO (256L * 1024L * 1024L)
-typedef struct {
-  const char *url; const char *const *cab; int segundos; long inicio;
-  long long maxBytes; volatile int *cancelado;
-  int kbps[VAZ_SEG_BALDES]; int n; RedeVazao res;
-} VazExtra;
-static void *vazExtraFio(void *a) {
-  VazExtra *x = (VazExtra *)a;
-  x->n = medirUma(x->url, x->cab, x->segundos, x->inicio, x->maxBytes, x->cancelado,
-                  x->kbps, VAZ_SEG_BALDES, &x->res, NULL, 0);
-  return NULL;
-}
 int rede_medir_vazao(const char *url, const char *const *cab, int segundos,
                      long inicio, long long maxBytes, volatile int *cancelado,
                      int *kbps, int nMax, RedeVazao *res,
                      char *final, unsigned tamFinal) {
-  VazExtra ex[VAZ_ANDROID_CONEXOES - 1];
-  pthread_t fio[VAZ_ANDROID_CONEXOES - 1];
-  int vivo[VAZ_ANDROID_CONEXOES - 1];
-  int k, i, n;
-  for (k = 0; k < VAZ_ANDROID_CONEXOES - 1; k++) {
-    memset(&ex[k], 0, sizeof ex[k]);
-    ex[k].url = url; ex[k].cab = cab; ex[k].segundos = segundos;
-    ex[k].inicio = inicio + (long)(k + 1) * VAZ_ANDROID_SALTO;
-    ex[k].maxBytes = maxBytes; ex[k].cancelado = cancelado;
-    vivo[k] = pthread_create(&fio[k], NULL, vazExtraFio, &ex[k]) == 0;
-  }
-  n = medirUma(url, cab, segundos, inicio, maxBytes, cancelado, kbps, nMax, res, final, tamFinal);
-  for (k = 0; k < VAZ_ANDROID_CONEXOES - 1; k++) {
-    if (!vivo[k]) continue;
-    pthread_join(fio[k], NULL);
-    // Arquivo menor que o salto (416) ou trecho que falhou: so nao soma.
-    if (ex[k].n <= 0 || !kbps) continue;
-    for (i = 0; i < ex[k].n && i < nMax; i++) {
-      kbps[i] += ex[k].kbps[i];
-      if (i >= n) n = i + 1;
-    }
-    if (res) res->bytes += ex[k].res.bytes;
-  }
-  return n;
-}
-static int medirUma(const char *url, const char *const *cab, int segundos,
-                    long inicio, long long maxBytes, volatile int *cancelado,
-                    int *kbps, int nMax, RedeVazao *res,
-                    char *final, unsigned tamFinal) {
-#else
-int rede_medir_vazao(const char *url, const char *const *cab, int segundos,
-                     long inicio, long long maxBytes, volatile int *cancelado,
-                     int *kbps, int nMax, RedeVazao *res,
-                     char *final, unsigned tamFinal) {
-#endif
   static const Contador vazio;
   Contador ct = vazio;
   char faixa[40];

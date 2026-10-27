@@ -38,7 +38,5 @@ void retomamorna_foco(const char *url) {
   if (pthread_create(&t, NULL, preparar, p) == 0) pthread_detach(t);
   else { rede_job_soltar(p->job); free(p); retomamorna_cancelar(); }
 }
-#ifndef NV_ANDROID
 void cacheboost_backend_morno(int ligado) { (void)ligado; }
 int cacheboost_backend_quadro(int guardar) { (void)guardar; return 0; }
-#endif

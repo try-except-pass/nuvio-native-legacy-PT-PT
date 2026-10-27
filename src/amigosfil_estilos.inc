@@ -309,9 +309,6 @@ static void afDesenhar(float x0, float y, float corte, int focada, int coluna, U
     }
     if (r.x + r.w < x0 || r.x > dir) continue;
     afCartao(i, r, focada && i == coluna, agora);
-#ifdef NV_TOUCH_UI
-    alvoToque(r, corte, i, -1);
-#endif
   }
   gfx_recorte(0, corte, NV_TELA_W, NV_TELA_H - corte);
   if (ajustes_amigos_estilo() == 3) {

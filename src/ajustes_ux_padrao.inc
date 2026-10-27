@@ -294,9 +294,6 @@
   0, /* friends row: Feed (9A) */
   1, /* audio language in the automatic choice: off (V_LIGA 1), behaviour unchanged */
   0, /* second audio language: Da conta */
-#ifdef NV_ANDROID
-  0, /* Baixar registro: acao local, sem preferencia gravada */
-#endif
   0, 0, 0, /* shared exclusions parent, max-size view, release-group editor */
   120, 0, 0, 0, 0, 3, 1, 0, 1, 0, 0, /* primary style views; player.txt is authoritative */
   0, 0, 0, 0, 0, 0, 0, /* secondary appearance inherits primary, manual delay0 */

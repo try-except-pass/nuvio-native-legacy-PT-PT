@@ -7,9 +7,6 @@
 // preferencias do player, mas quem o define e o modulo de video.
 #include "video.h"
 #include "catalogo.h"
-#ifdef NV_ANDROID
-#include "streams.h"
-#endif
 #include "aovivo.h"
 #include <SDL2/SDL.h>
 
@@ -37,17 +34,6 @@ int  player_aviso_duracao_ativo(void);
 // da duracao real; metadados/reservas nao servem para converter percentual.
 double player_regra_retomada_inicial(double posSalva, double durSalva,
                                      int percentual, int concluido);
-#ifdef NV_ANDROID
-// Prepara a mesma retomada do Play sem abrir sessao nem gravar progresso.
-int player_precarregar_fonte(int indiceCatalogo, int temporada, int episodio,
-                            int indiceFonte, unsigned token);
-unsigned player_precarregar_novo_token(void);
-int player_precarregar_proxima_fonte(int indiceCatalogo, int temporada, int episodio,
-                                    const Stream *fonte, unsigned token);
-int player_precarregar_estado(unsigned token);
-void player_precarregar_cancelar(unsigned token);
-void player_precarregar_adotar(unsigned token);
-#endif
 void player_episodio_atual(int *temporada, int *episodio);
 void player_aprender_creditos(void);
 int player_indice(void);
@@ -241,12 +227,6 @@ void player_manter_mini(void);
 void player_restaurar(void);
 void player_fechar_mini(void);
 void player_mini_desenhar(Uint32 agora);
-#ifdef NV_TOUCH_UI
-// The app supplies its current modal eligibility; saved touch callbacks check
-// it again before restoring or closing the PiP. Drawing keeps page targets.
-void player_mini_toque_guarda(int (*pode)(void));
-void player_toque_modal_guarda(int (*pode)(void));
-#endif
 // MINI NO GUIA: o "mini" cujo destino e o preview do guia (sem moldura: o
 // guia fura e desenha em volta). `player_mini_no_guia` define a caixa e liga
 // o modo — antes de player_manter_mini()+abrir, a sessao nova ja nasce no

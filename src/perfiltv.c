@@ -105,11 +105,7 @@ int ptv_gpu_fraca(const char *r) {
 }
 
 PtvPlataforma ptv_plataforma(void) {
-#if   defined(NV_ANDROID)
-  return PTV_ANDROID;
-#else
   return PTV_LG;
-#endif
 }
 
 // Android previously used PTV_LG. Preserve its budgets and mode behavior

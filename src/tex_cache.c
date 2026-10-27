@@ -925,17 +925,11 @@ static long limiteBytes(void) {
 // app; com <= 96 MB de textura a soma cabe. A home redecodifica ao voltar —
 // o cache de disco continua la.
 int tex_pressao_play_pct(void) {
-#ifdef NV_ANDROID
-  if (!orcMemTotal) return 50;
-  if (orcMemTotal < 3000) return 40;
-  return 75;
-#else
   // webOS/.tpk: o piso NAO e incondicional — a regra e "caps menores so com
   // memoria baixa". A faixa vem do relatorio de 3 s (pressaoPlayMin, em
   // tex_memoria_livre): TV com folga (C9 com GBs livres) fica com o cache
   // inteiro durante a reproducao; a G4 apertada cai no piso medido no #415.
   return pressaoPlayMin;
-#endif
 }
 void tex_pressao_reproducao(int ligada) {
   pressaoPlayLigada = ligada;
@@ -968,14 +962,6 @@ void tex_pressao_memoria(int nivel) {
   printf("[tex] pressao de memoria (trim %d): teto a %d%% por %u s\n", nivel, pct, NV_TEX_PRESSAO_MS / 1000u);
   fflush(stdout);
 }
-#ifdef NV_ANDROID
-#include <jni.h>
-JNIEXPORT void JNICALL
-Java_space_nuvio_nativelegacy_NuvioActivity_nativeTrimMemoria(JNIEnv *env, jobject act, jint nivel) {
-  (void)env; (void)act;
-  tex_pressao_memoria((int)nivel);
-}
-#endif
 
 // SOB PRESSAO: a memoria de CPU que podar() nao alcanca. A superficie ja
 // decodificada (`sup`) e os bytes baixados (`bruto`) ficam fora de
@@ -1168,7 +1154,7 @@ static float escalaBuf = 1.0f;
 // not multiply them by 4 (128 MB became 512 and the TCL hit the LMK at 720 MB).
 // Only the desktop preview (Mac retina) scales, so it mirrors the TV scene.
 static float escalaOrc(void) {
-#if defined(NV_ANDROID) || defined(NV_WEBOS)
+#if defined(NV_WEBOS)
   return 1.0f;
 #else
   return escalaBuf > 0.1f ? escalaBuf : 1.0f;
@@ -2237,11 +2223,7 @@ static int mipCpuAtivo(void) {
     if (e && !strcmp(e, "cpu")) mipCpu = 1;
     else if (e && !strcmp(e, "gpu")) mipCpu = 0;
     else {
-#ifdef NV_ANDROID
-      mipCpu = 1;
-#else
       mipCpu = 0;
-#endif
       // Utgard (.tpk, #286, UA40N5300): o glGenerateMipmap custava ~64 ms por
       // poster no fio principal (gl_ms 55-73 de 0 a 900 KB, contra 20 ms de um
       // heroi de 3,6 MB sem mip), um quadro inteiro de GPU por upload. A
@@ -2341,12 +2323,8 @@ static SDL_Surface *gifFotoArquivo(const char *caminho, int limite, int *ow, int
  * sources within the codec's pixel ceiling; unknown bounds fail closed.
  * Both paths run under threadDecode's existing 48 MiB reservation. */
 static int fallbackCabe(int w, int h) {
-#ifdef NV_ANDROID
-  return w > 0 && h > 0 && (uint64_t)w * (uint64_t)h <= 2u * 1024 * 1024;
-#else
   (void)w; (void)h;
   return 1;
-#endif
 }
 
 static SDL_Surface *decodeArteMem(const unsigned char *b, size_t n, int limite,
@@ -2919,10 +2897,6 @@ static int orcamentoMB(void) {
       int v = atoi(env);
       if (v >= 16 && v <= 1024) { mb = v; porque = "NUVIO_TEX_MB"; orcFixo = 2; }
     } }
-#ifdef NV_ANDROID
-  { int cap = ptv_tex_teto_mb(PTV_ANDROID, mem);
-    if (mb > cap) mb = cap; }
-#endif
   printf("[tex] orcamento de texturas: %d MB (%s; MemTotal=%ld MB)\n", mb, porque, mem);
   fflush(stdout);
   orcMB = mb; orcMemTotal = mem; orcAuto = mb;

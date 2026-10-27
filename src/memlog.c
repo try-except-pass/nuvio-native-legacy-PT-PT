@@ -56,16 +56,7 @@ int memlog_pouca_memoria(void) {
 
 // Mesma regra do NvPlayer.poucaRamAparelho: ate 3 GiB de RAM total. So Android.
 int memlog_android_fraco(void) {
-#if defined(__ANDROID__)
-  static int fraco = -1;
-  if (fraco < 0) {
-    long kb = lerKB("/proc/meminfo", "MemTotal:");
-    fraco = kb > 0 && kb <= 3L * 1024 * 1024;
-  }
-  return fraco;
-#else
   return 0;
-#endif
 }
 
 long memlog_livre_mb(void) {

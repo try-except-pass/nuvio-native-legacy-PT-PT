@@ -19,12 +19,3 @@ void redemarca_observar(uint64_t seq, int conhecida) {
   }
   pthread_mutex_unlock(&trava);
 }
-#ifdef NV_ANDROID
-#include <jni.h>
-JNIEXPORT void JNICALL
-Java_space_nuvio_nativelegacy_NuvioActivity_nativeRedeAlterou(JNIEnv *env,
-    jobject act, jlong seq, jboolean conhecida) {
-  (void)env; (void)act;
-  if (seq > 0) redemarca_observar((uint64_t)seq, conhecida == JNI_TRUE);
-}
-#endif

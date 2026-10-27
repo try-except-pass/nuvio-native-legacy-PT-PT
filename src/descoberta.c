@@ -2773,11 +2773,7 @@ static int lerManifesto(int iAddon, const char *base, Decl *saida, int max,
 // Android, com fileiras ilimitadas (2.0.4), 200 fileiras seriam 75 MB so de
 // baldes. Fatiando em 24 a rodada custa no maximo ~9 MB e a home continua sendo
 // publicada fileira a fileira; a ordem nao muda porque o cursor e o mesmo.
-#ifdef NV_ANDROID
-#define CAT_RODADA_MAX 24
-#else
 #define CAT_RODADA_MAX CAT_FIL_MAX   // nas TVs o teto ja cabe numa rodada: nada muda
-#endif
 static int catRodadaTamanho(int alvo) {
   return alvo > CAT_RODADA_MAX ? CAT_RODADA_MAX : alvo;
 }

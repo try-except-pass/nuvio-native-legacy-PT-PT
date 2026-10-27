@@ -2295,20 +2295,8 @@ void extras_trailer_abrir(int i) {
   if (!yt[0]) return;
   char url[128];
   snprintf(url, sizeof url, "https://www.youtube.com/watch?v=%s", yt);
-#if   defined(NV_ANDROID)
-  // SAMSUNG (e Android, por ora; TODO Intent ACTION_VIEW): NAO abre mais nada (#136). No wgt o window.open trocava a
-  // propria pagina do app pelo youtube.com/watch — o video tocava, mas o
-  // Voltar nao tinha mais o Nuvio para onde voltar. O trailer da Samsung
-  // toca dentro do app (detail.c, SEC_TRAILERS); chegar aqui e defeito de
-  // quem chamou, e fica no registro.
-  printf("[trailer] extras_trailer_abrir na Samsung ignorado (%s)\n", url);
-  fflush(stdout);
-#elif defined(NV_LINUX_DESKTOP)
+#if   defined(NV_LINUX_DESKTOP)
   SDL_OpenURL(url);
-#elif defined(__APPLE__)
-  char cmd[160];
-  snprintf(cmd, sizeof cmd, "open '%s'", url);
-  system(cmd);
 #else
   // webOS: luna-send lanca o navegador com a URL. O app roda como root e
   // /usr/bin/luna-send e acessivel dentro do jail.

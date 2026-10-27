@@ -4,7 +4,6 @@
 #endif
 #include "app_id.h"
 #include "dados.h"
-#include "androidcache.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,11 +14,7 @@
 #include <pthread.h>
 #include <ifaddrs.h>
 #include <sys/socket.h>
-#ifdef __APPLE__
-#include <net/if_dl.h>
-#else
 #include <netpacket/packet.h>
-#endif
 
 static void espacoGravado(const char *nome);
 
@@ -166,9 +161,6 @@ void dados_sincronizar(void) {
 char *dados_caminho(char *dst, unsigned tam, const char *nome) {
   if (!dir[0] || !nome || !*nome) return NULL;
   const char *base = dir;
-#ifdef NV_ANDROID
-  if (nv_android_cache_name(nome)) base = nv_android_cache_dir();
-#endif
   if (!base[0]) return NULL;
   snprintf(dst, tam, "%s/%s", base, nome);
   return dst;
@@ -234,9 +226,6 @@ char *dados_ler(const char *nome) {
   NV_FS_TRAVAR();
   f = fopen(caminho, "rb");
   if (!f) { NV_FS_LIBERAR(); return NULL; }
-#ifdef NV_ANDROID
-  if (nv_android_cache_name(nome)) nv_android_cache_touch(caminho);
-#endif
   fseek(f, 0, SEEK_END);
   n = ftell(f);
   fseek(f, 0, SEEK_SET);
@@ -291,17 +280,10 @@ const char *dados_aparelho_id(void) {
       for (struct ifaddrs *p = list; p; p = p->ifa_next) {
         if (!p->ifa_addr || !p->ifa_name || !strncmp(p->ifa_name, "lo", 2)) continue;
         const unsigned char *mac = NULL;
-#ifdef __APPLE__
-        if (p->ifa_addr->sa_family == AF_LINK) {
-          struct sockaddr_dl *a = (struct sockaddr_dl *)p->ifa_addr;
-          if (a->sdl_alen == 6) mac = (const unsigned char *)LLADDR(a);
-        }
-#else
         if (p->ifa_addr->sa_family == AF_PACKET) {
           struct sockaddr_ll *a = (struct sockaddr_ll *)p->ifa_addr;
           if (a->sll_halen == 6) mac = a->sll_addr;
         }
-#endif
         if (!mac || !(mac[0] | mac[1] | mac[2] | mac[3] | mac[4] | mac[5])) continue;
         if (!best[0] || strcmp(p->ifa_name, best) < 0) {
           snprintf(best, sizeof best, "%s", p->ifa_name);
@@ -346,28 +328,10 @@ const char *dados_cliente_id(void) {
 }
 
 int dados_despedida_ler(void) {
-#if   defined(NV_ANDROID)
-  // ANDROID: mesmo papel do localStorage do Tizen, em arquivo. Quem escreve
-  // "oculto" e o NuvioActivity no onStop (Home, outro app, TV desligada: o
-  // Android mata o processo depois, sem saida limpa) e apaga no onStart. Sem
-  // isto toda volta pelo Home contava como queda e o modo seguro desfazia os
-  // ajustes em prova (TCL Smart TV Pro, 30/09/2026).
-  // .tpk (Samsung nativo): quem escreve "oculto" e tpkdesp.c, pelas linhas do
-  // host (janela escondida, pause, terminate) e por Exit/PowerOff.
-  char *v = dados_ler("despedida.txt");
-  int r = 0;
-  if (v) { r = !strncmp(v, "fim", 3) ? 1 : !strncmp(v, "oculto", 6) ? 2 : 0; free(v); }
-  dados_apagar("despedida.txt");
-  return r;
-#else
   return 0;
-#endif
 }
 
 void dados_despedida_fim(void) {
-#if   defined(NV_ANDROID)
-  dados_gravar("despedida.txt", "fim\n");
-#endif
 }
 
 void dados_descarregar_e_sair(void) {

@@ -15,11 +15,7 @@
  * the owner's TCL). The extra connections read distant ranges of the same
  * file and their per-second rates are summed. LG/Samsung play on one. */
 #ifndef STREAMFITDIAG_CONEXOES
-#ifdef NV_ANDROID
-#define STREAMFITDIAG_CONEXOES 4
-#else
 #define STREAMFITDIAG_CONEXOES 1
-#endif
 #endif
 #define STREAMFITDIAG_SALTO (256L * 1024L * 1024L)
 typedef struct {

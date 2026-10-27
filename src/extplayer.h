@@ -18,20 +18,4 @@ int extplayer_escolher(int anime, int modoFilme, const char *pkgFilme,
 // o externo cai no interno e `*avisar` = 1 (quem chama avisa o usuario).
 int extplayer_decidir(int modo, const char *cabs, int *avisar);
 
-#ifdef NV_ANDROID
-// Players de video instalados (nome ordenado). `atualizar` refaz a consulta.
-void        extplayer_atualizar_apps(void);
-int         extplayer_n_apps(void);
-const char *extplayer_app_pkg(int i);
-const char *extplayer_app_nome(int i);
-int         extplayer_app_instalado(const char *pkg);
-// `anime` = o titulo e anime (regra em artehero.h: artehero_eh_anime).
-// 1 = tratou (abriu o externo ou abriu a pergunta; `sair` fecha o player);
-// 0 = tocar no interno agora. `interno` roda quando a escolha for o interno.
-// Nunca registra a URL.
-int  extplayer_tentar(const char *url, const char *titulo, int anime,
-                      void (*interno)(const char *url), void (*sair)(void));
-void extplayer_acao(const char *chave, int botao);
-void extplayer_passo(unsigned agora);
-#endif
 #endif

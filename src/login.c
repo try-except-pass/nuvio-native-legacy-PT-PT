@@ -30,9 +30,6 @@
 #define LG_CAMPO_H        88.0f
 #define LG_MOSTRAR_W     150.0f
 static float lgBlocoW(void) {
-#ifdef NV_TOUCH_UI
-  if (NV_TELA_H > NV_TELA_W) return NV_TELA_W - 2.0f * NV_MARGEM_X;
-#endif
   return 1100.0f;
 }
 
@@ -287,13 +284,6 @@ static void linhaCentrada(TxtEstilo est, const char *s, int r, int g, int b,
   txt_desenhar_alpha(l, (NV_TELA_W - l.w) * 0.5f, y, alpha);
 }
 static float tituloLogin(float y) {
-#ifdef NV_TOUCH_UI
-  const char *s = i18n("Entrar na sua conta");
-  if (NV_TELA_H > NV_TELA_W && txt_largura(TXT_TITULO1, s) > LG_BLOCO_W)
-    return txt_bloco_corta(TXT_TITULO1, s, 255, 255, 255,
-                          (NV_TELA_W - LG_BLOCO_W) * 0.5f, y, LG_BLOCO_W,
-                          86.0f, 1.0f, 2) + 42.0f;
-#endif
   linhaCentrada(TXT_TITULO1, "Entrar na sua conta", 255, 255, 255, y, 1.0f);
   return 118.0f;
 }

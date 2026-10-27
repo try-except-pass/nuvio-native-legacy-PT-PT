@@ -14,9 +14,7 @@
 
 // Isolated session fixtures may omit the profile producer; complete apps
 // always link it. Token boundaries invalidate ownership without UI callbacks.
-#if defined(__APPLE__) && (defined(__GNUC__) || defined(__clang__))
-extern void perfis_invalidar_sessao(void) __attribute__((weak_import));
-#elif defined(__GNUC__) || defined(__clang__)
+#if   defined(__GNUC__) || defined(__clang__)
 extern void perfis_invalidar_sessao(void) __attribute__((weak));
 #else
 #include "perfis.h"

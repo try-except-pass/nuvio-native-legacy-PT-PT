@@ -210,19 +210,8 @@ static int ver;
 static char verGrupo[96];
 static char focoChave[96];
 static int foco, rolagem, syncAcao;
-#ifdef NV_TOUCH_UI
-static ToqueRolagem toqueLegendas;
-static float toqueLegendasOffset;
-static int toqueLegendasRolar(const PonteiroRolagem *e) {
-  if (!aberto || faixas_estilo_topo()) return 0;
-  return toquerol_evento(&toqueLegendas, e);
-}
-#endif
 static void rolagemZerar(void) {
   rolagem = 0;
-#ifdef NV_TOUCH_UI
-  toqueLegendasOffset = 0; toquerol_limpar(&toqueLegendas);
-#endif
 }
 static char aviso[128];
 static Uint32 avisoAte;
@@ -554,12 +543,6 @@ static void menuEscolher(void) {
 }
 
 int legendasui_evento(const SDL_Event *e) {
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo() && toquerol_navegacao(e)) {
-    rolagem = (int)(toqueLegendasOffset / 92.0f);
-    toquerol_limpar(&toqueLegendas);
-  }
-#endif
   SDL_Keycode k;
   LuiLinha *l;
   int ok;
@@ -1055,35 +1038,6 @@ void legendasui_corpo(GfxRect c, float a) {
       ponteiro_alvo(x0 + w - 10.0f - sw + w0, ty + (float)t.h - 54.0f, sw - w0, 54.0f, NULL, ponteiroAbaEstilo, 0, 0);
     } }
   y += LU_TIT_H + 14.0f;
-#ifdef NV_TOUCH_UI
-  if (telefoneui_ativo()) {
-    if (!toquerol_livre(&toqueLegendas)) {
-      ajustarRolagem(vis);
-      toqueLegendasOffset = rolagem * (LU_LN_H + LU_LN_VAO);
-    }
-    { float passo = LU_LN_H + LU_LN_VAO;
-    int n = nLinhasV < vis ? nLinhasV : vis;
-    float area = n * passo - (n > 0 ? LU_LN_VAO : 0);
-    GfxRect ilha;
-    int ptr = pont;
-    toquerol_vincular(&toqueLegendas, (GfxRect){x0, y, w, area}, gfx_escala(),
-                     0, nLinhasV * passo - LU_LN_VAO - area, 1, &toqueLegendasOffset);
-    if (aberto && a > 0.99f) ponteiro_rolagem(toqueLegendasRolar);
-    gfx_recorte(x0, y, w, area);
-    for (i = 0; i < nLinhasV; i++) {
-      float ry = y + i * passo - toqueLegendasOffset;
-      if (ry + LU_LN_H < y || ry > y + area) continue;
-      pont = ptr && ry >= y && ry + LU_LN_H <= y + area;
-      desenharLinha(&linhas[i], i, i == foco, x0, ry, w, a);
-      if (ptr && !pont) ponteiro_alvo_faixa(x0, ry, w, LU_LN_H, y, y + area, ponteiroLinha, NULL, i, 0);
-    }
-    pont = ptr;
-    if (plrilha_rect(&ilha)) gfx_recorte(ilha.x, ilha.y, ilha.w, ilha.h);
-    else gfx_recorte(c.x, c.y, c.w, c.h);
-    y += area + 14.0f;
-    }
-  } else
-#endif
   {
     ajustarRolagem(vis);
     fim = rolagem + vis; if (fim > nLinhasV) fim = nLinhasV;

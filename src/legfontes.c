@@ -1,9 +1,6 @@
 #include "legfontes.h"
 #include "assrender.h"
 #include "perfisessao.h"
-#ifdef NV_ANDROID
-#include "android.h"
-#endif
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <dirent.h>
@@ -20,11 +17,6 @@ static Fonte fontes[LEGFONTES_MAX];
 static int nFontes, lidas, aplicada, importando = -1;
 static char pasta[640], prefs[700], escolha[LEGFONTES_SLOTS][21];
 static unsigned revisao = 1;
-#ifdef NV_ANDROID
-static NvPerfilSessao importacaoSessao;
-static int confirmandoImportacao;
-static char importacaoPasta[640];
-#endif
 
 static uint32_t be32(const unsigned char *p) {
   return (uint32_t)p[0] << 24 | (uint32_t)p[1] << 16 | (uint32_t)p[2] << 8 | p[3];
@@ -285,9 +277,6 @@ static int confirmarPreferencias(EscolhaCommit *c) {
 }
 static int confirmarEscolha(void *u) {
   EscolhaCommit *c = u;
-#ifdef NV_ANDROID
-  if (confirmandoImportacao && !nv_perfil_sessao_atual(importacaoSessao)) return 0;
-#endif
   if (!c->origem) return confirmarPreferencias(c);
   EscolhaAnterior a;
   if (!prepararPreferencias(&a)) return 0;
@@ -374,40 +363,13 @@ int legfontes_importar(int slot, const char *arquivo) {
   return 0;
 }
 int legfontes_pedir_importacao(int slot) {
-#ifdef NV_ANDROID
-  if (slot < 0 || slot >= LEGFONTES_SLOTS || !pasta[0] || importando >= 0) return 0;
-  importacaoSessao = nv_perfil_sessao_ler();
-  snprintf(importacaoPasta, sizeof importacaoPasta, "%s", pasta);
-  if (!nv_perfil_sessao_atual(importacaoSessao) || !android_importar_fonte(slot)) return 0;
-  importando = slot;
-  return 1;
-#else
   (void)slot;
   return 0;
-#endif
 }
 const char *legfontes_atualizar(void) {
   if (!aplicada && TTF_WasInit()) {
     carregar();
     aplicada = assrender_fonte_local_transacao(legfontes_caminho(0), NULL, NULL);
   }
-#ifdef NV_ANDROID
-  char evento[80];
-  if (!android_fonte_evento(evento, sizeof evento)) return NULL;
-  int slot = importando; importando = -1;
-  int atual = slot >= 0 && !strcmp(pasta, importacaoPasta) && nv_perfil_sessao_atual(importacaoSessao);
-  if (!strncmp(evento, "R:", 2) && entradaValida(evento + 2)) {
-    if (!atual) {
-      char caminho[768]; snprintf(caminho, sizeof caminho, "%s/%s", importacaoPasta, evento + 2); unlink(caminho);
-      return NULL;
-    }
-    confirmandoImportacao = 1;
-    int ok = legfontes_importar(slot, evento + 2);
-    confirmandoImportacao = 0;
-    return ok ? "Fonte importada." : "Não foi possível importar a fonte. Use um arquivo TTF ou OTF de até 32 MB.";
-  }
-  return !atual || !strcmp(evento, "C") ? NULL : "Não foi possível importar a fonte. Use um arquivo TTF ou OTF de até 32 MB.";
-#else
   return NULL;
-#endif
 }

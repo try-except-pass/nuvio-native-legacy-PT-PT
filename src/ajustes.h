@@ -16,7 +16,7 @@
 
 // Targets with a system (IME) keyboard the "Teclado" setting can choose between:
 // Android, LG webOS, Samsung Tizen (.tpk and .wgt). Elsewhere the option is hidden.
-#if defined(NV_ANDROID) || defined(NV_WEBOS)
+#if defined(NV_WEBOS)
 #define NV_TECLADO_SIS 1
 #endif
 

@@ -86,7 +86,7 @@ static int tocouFonte;
 static Uint32 reaplicarAte, reaplicarEm, tocandoDesde;
 static int quadroInteiroEnviado;
 int trailer_suportado(void) {
-#if defined(__APPLE__) || defined(NV_LINUX_DESKTOP)
+#if defined(NV_LINUX_DESKTOP)
   return falso != 0;
 #else
   // O FRACASSO NAO TRAVA, MAS TEM TETO. O deploy mata o processo e relanca
@@ -182,9 +182,6 @@ void trailer_abrir(const char *fonte, GfxRect r, int som, int modoCheia) {
 void trailer_rect(GfxRect r) {
   if (!aberto) return;
   r = naTela(r);
-#ifdef NV_TOUCH_UI
-  if (rect.x == r.x && rect.y == r.y && rect.w == r.w && rect.h == r.h) return;
-#endif
   rect = r;
   video_janela((int)r.x, (int)r.y, (int)r.w, (int)r.h);
   recortePendente = 1;
@@ -237,9 +234,6 @@ int trailer_tocando(void) {
   return tocouFonte;
 }
 int trailer_mostra_video(void) {
-#ifdef NV_ANDROID
-  if (noCartao && !video_janela_pronta()) return 0;
-#endif
   return 1;
 }
 GfxRect trailer_retangulo(void) {

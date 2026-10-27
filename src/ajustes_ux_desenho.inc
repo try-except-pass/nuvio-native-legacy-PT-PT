@@ -476,23 +476,11 @@ static int ajEmLinha(int op) {
 static int ajEditandoLinha(int op) {
   return uxEditor == 1 && !uxRestaurar && !uxAvisoRisco && uxOp == op && ajEmLinha(op);
 }
-#ifdef NV_TOUCH_UI
-static void ajToqueInlineValor(int v, int op) {
-  if (!ajPontInline || !ajEditandoLinha(op) || v < 0 || v >= nValores(op)) return;
-  uxPendente = v; uxRodape = 0;
-}
-#endif
 static void ajToqueConfirmar(int a, int b) {
   (void)a; (void)b;
   if (uxEditor == 1 && !uxRestaurar && !uxAvisoRisco) { uxRodape = 0; uxAplicar(); }
 }
 static void ajToqueCancelar(int a, int b) { (void)a; (void)b; if (uxEditor) ajIptvVoltar(); }
-#ifdef NV_TOUCH_UI
-static void ajToqueEscolhaAlvo(GfxRect r, int v, int op, float topo, float base) {
-  if (ajTelaCheia() && ajPontInline && ajEditandoLinha(op))
-    ponteiro_alvo_faixa(r.x, r.y, r.w, r.h, topo, base, NULL, ajToqueInlineValor, v, op);
-}
-#endif
 static void ajToqueBotoes(float direita, float yc, float a) {
   const char *rot[2] = { "Confirmar", "Cancelar" };
   for (int i = 0; i < 2; i++) {
@@ -633,9 +621,6 @@ static void aj2Regua(int op, GfxRect ln, float y, float a) {
     for (k = 0; k < n; k++) {
       int v = L[k];
       if (f < 2) {
-#ifdef NV_TOUCH_UI
-        ajToqueEscolhaAlvo((GfxRect){bx + k * 72.0f, cy - 32.0f, 64, 64}, v, op, AJ_TOPO, AJ_BASE);
-#endif
         aj2Bolinha(op == AJ_FUNDO_DIN_COR ? FUNDO_DIN_TEMA[v] : v, bx + 28.0f + k * 72.0f, cy, v == alvo, v == sel && v != alvo, a); continue;
       }
       // Pilula da dinamica: disco com o DESENHO do que ela faz, tingido na cor
@@ -650,9 +635,6 @@ static void aj2Regua(int op, GfxRect ln, float y, float a) {
         TxtLinha t = ajTxtC(TXT_V2_SEG, nome, maxT);
         float w = 7 + 42 + 10 + t.w + 18, c1[3], c2[3];
         GfxRect p = { px, cy - 28.0f, w, 56 };
-#ifdef NV_TOUCH_UI
-        ajToqueEscolhaAlvo(p, v, AJ_TEMA, AJ_TOPO, AJ_BASE);
-#endif
         int foc = v == alvo;
         if (foc) {
           gfx_cor(p, 0.5f, 1, 1, 1, 0.16f * a);
@@ -815,9 +797,7 @@ static float ajCustoIcones(int op, float xDir, float yc, float a) {
 // "AVANCADO", que ganha do escopo ("ESTA TV" / "ESTE PERFIL", mockup v3 tela
 // 03). Acoes e leituras nao tem escopo para mostrar.
 static const char *ajSelo(int op) {
-#if !defined(NV_ANDROID)
   if (op == AJ_DV_MKV) return "Só LG";
-#endif
   if (op == AJ_LEG_SYNC_AUDIO) return "Android";
   if (uxAvancada(op)) return "Avançado";
   if (!uxTemPadrao(op)) return NULL;
@@ -979,13 +959,7 @@ static float ajSeg(const char *const *rot, const char *const *num, int n, int se
 // ANDROID, LIMITE DE FILEIRAS: o trilho vai de 3 a 40 em 90% da largura e o
 // ultimo trecho e o "Ilimitado" (200). Linear, 40 ficaria em 19% do trilho.
 static float ajFracaoLimite(float v) {
-#ifdef NV_ANDROID
-  const float lo = FIL_LIMITE_MIN, tv = FIL_LIMITE_MAX_TV, hi = FIL_LIMITE_MAX;
-  if (v <= tv) return 0.9f * (v - lo) / (tv - lo);
-  return 0.9f + 0.1f * (v - tv) / (hi - tv);
-#else
   return (v - FIL_LIMITE_MIN) / (float)(FIL_LIMITE_MAX - FIL_LIMITE_MIN);
-#endif
 }
 static float ajFracao(int op, int v) {
   const Opcao *o = &OPCOES[op];
@@ -1155,9 +1129,6 @@ static float aj2Seg(int op, int n, int sel, int ed, float xDir, float yc, float 
     int ac = i == sel && ed;
     TxtLinha t = ac ? ajTxtT(TXT_V2_SEG, ajRotSeg(op, i)) : ajTxt(TXT_V2_SEG, ajRotSeg(op, i));
     float iw = t.w + 44.0f, al = 0.55f;
-#ifdef NV_TOUCH_UI
-    ajToqueEscolhaAlvo((GfxRect){x, yc - ih * 0.5f, iw, ih}, i, op, AJ_TOPO, AJ_BASE);
-#endif
     if (i == sel) al = 1;
     txt_desenhar_alpha(t, x + 22, yc - t.h * 0.5f, al * a);
     x += iw + 4.0f;
@@ -1186,9 +1157,6 @@ static void aj2CartoesFundo(GfxRect ln, float y, float a) {
   for (i = 0; i < 3; i++) {
     float cx = ln.x + 30.0f + i * (cw + gap), mw = cw - 20.0f, mh = mw * 9.0f / 16.0f;
     TxtLinha t = ajTxtC(TXT_V2_SEG, N[i], cw - 50.0f);
-#ifdef NV_TOUCH_UI
-    ajToqueEscolhaAlvo((GfxRect){cx, y, cw, 10 + mh + 10 + 29 + 10}, i, AJ_FUNDO, AJ_TOPO, AJ_BASE);
-#endif
     if (i == sel) ajNeutro((GfxRect){ cx, y, cw, 10 + mh + 10 + 29 + 10 }, 20, 0.12f, 0.204f, 0.212f, 0.243f, a);
     aj2MiniFundo(i, cx + 10, y + 10, mw, (i == sel ? 1.0f : 0.7f) * a);
     if (i == sel) {

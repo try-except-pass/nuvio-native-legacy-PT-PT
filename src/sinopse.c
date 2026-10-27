@@ -96,9 +96,6 @@ static struct {
   TxtEstilo estilo;
   int nLinhas;
   struct SinopseLinha { size_t inicio, n; } *linhas;
-#ifdef NV_TOUCH_UI
-  ToqueRolagem toque;
-#endif
 } leitor;
 void sinopse_fechar(void) {
   free(leitor.texto); free(leitor.linhas); memset(&leitor, 0, sizeof leitor);
@@ -134,9 +131,6 @@ void sinopse_comentario(const char *autor, const char *texto, const char *data,
   copiar(leitor.data, sizeof leitor.data, data ? data : "");
 }
 static void fecharPonteiro(int a, int b) { (void)a; (void)b; sinopse_fechar(); }
-#ifdef NV_TOUCH_UI
-static int rolar(const PonteiroRolagem *e) { return sinopse_aberta() && toquerol_evento(&leitor.toque, e); }
-#endif
 void sinopse_evento(const SDL_Event *e) {
   SDL_Keycode k;
   if (!sinopse_aberta() || e->type != SDL_KEYDOWN) return;
@@ -151,9 +145,6 @@ void sinopse_evento(const SDL_Event *e) {
     return;
   }
   if (leitor.oculto) return;
-#ifdef NV_TOUCH_UI
-  if (toquerol_navegacao(e)) toquerol_limpar(&leitor.toque);
-#endif
   float anterior = leitor.scroll;
   if (leitor.comentario) leitor.scroll = leitor.destino;
   if (k == SDLK_UP) leitor.scroll -= leitor.passo;
@@ -239,20 +230,12 @@ void sinopse_desenhar(void) {
   botao = txt_linha_corta(TXT_PG_ROTULO, i18n("Fechar"), 243, 242, 239, 255, w - 2 * pad - 40);
   // dono (2026-10-26): a janela acompanha o tamanho do texto; sinopse curta nao ocupa a tela toda.
   int movel = 0;
-#ifdef NV_TOUCH_UI
-  movel = layout_modo_mobile();
-#endif
   if (!leitor.comentario && !leitor.oculto && !movel) {
     float th = textoCompleto(estilo, 0, 0, w - 2 * pad - 12, sinopse_entrelinha(TXT_DET_SIN, 40), 0);
     float need = pad + cab.h + 8 + titulo.h + 24 + th + 24 + fmaxf(56, botao.h + 24) + pad;
     if (need < h) { h = fmaxf(need, 300.0f); y = (NV_TELA_H - h) * .5f; folha = (GfxRect){ x, y, w, h }; }
   }
   { float visualH = fmaxf(56, botao.h + 24), alvoH = visualH;
-#ifdef NV_TOUCH_UI
-    // The Mobile canvas normalizes the short edge to1080. Reserve48dp on a
-    // 360dp phone, independently of UI zoom, without covering scrollable text.
-    if (layout_modo_mobile()) alvoH = fmaxf(alvoH, 144.0f / gfx_escala());
-#endif
     toqueFechar = (GfxRect){ x + pad, y + h - pad - alvoH, w - 2 * pad, alvoH };
     fechar = toqueFechar; fechar.y += (alvoH - visualH) * .5f; fechar.h = visualH;
   }
@@ -323,9 +306,5 @@ void sinopse_desenhar(void) {
   plrui_linha_foco(fechar, 20, 1);
   txt_desenhar_alpha(botao, fechar.x + (fechar.w - botao.w) * .5f, fechar.y + (fechar.h - botao.h) * .5f, 1);
   ponteiro_alvo(toqueFechar.x, toqueFechar.y, toqueFechar.w, toqueFechar.h, NULL, fecharPonteiro, 0, 0);
-#ifdef NV_TOUCH_UI
-  toquerol_vincular(&leitor.toque, texto, gfx_escala(), 0, leitor.max, 1, &leitor.scroll);
-  ponteiro_rolagem(rolar);
-#endif
   ESCALA_FIM();
 }

@@ -942,11 +942,7 @@ static void novidades11_desenharCorpo_(Uint32 agora) {
         // tecla esta ligada, mas sem confirmacao") e disse que era coisa de
         // amador. Grau de evidencia e problema meu, nao de quem esta no sofa.
         y += feature(fx, y, fw, "menu_settings",
-#ifdef NV_ANDROID
-              "Info · o registro",
-#else
               "VERMELHO · o registro",
-#endif
               "Abre o painel de log por cima de qualquer tela. É dali que sai "
               "o print quando alguma coisa dá errado.", ap);
         y += feature(fx, y, fw, "menu_library",
