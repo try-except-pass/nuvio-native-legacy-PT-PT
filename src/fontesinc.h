@@ -24,6 +24,12 @@ void fontesinc_leitor_destruir(FonteSincLeitor *l);
 // durante a leitura e a comparacao; cancelado devolve FSINC_DESCONHECIDA.
 int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
                      const LegendaDocumento *doc, int (*cancelado)(void *), void *u, int *offsetMs);
+// A FAIXA EMBUTIDA da fonte, a mesma referencia que fontesinc_julgar usa (lida uma vez por url): uma faixa de dialogo
+// no idioma da pessoa DENTRO da fonte foi multiplexada com o video e nao tem como estar dessincronizada.
+// Devolve 1 = veio (*idioma = o da faixa lida, a mais proxima de `idiomaRef`; *dialogo = 1 se nao e forcada nem so
+// letreiros), 0 = a fonte nao deu referencia, -1 = cancelado.
+int fontesinc_faixa(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
+                    int (*cancelado)(void *), void *u, char *idioma, unsigned tam, int *dialogo);
 // O motivo do ultimo veredito, em ingles estavel, para o log ("ok", "no_range", "low_confidence"...).
 const char *fontesinc_motivo(const FonteSincLeitor *l);
 

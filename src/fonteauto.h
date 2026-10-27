@@ -94,10 +94,14 @@ int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exige
 // indice e o nivel como fonteauto_sincronizada. `conferidas` (se nao NULL) recebe quantas fontes foram conferidas.
 // `conferir` e a rede (legref por Range + autosync_comparar): chamada primeiro com slot 0 e depois com slot 1 para a
 // mesma fonte, em seguida, para quem guardar a referencia lida. `cancelado` e consultado antes de cada fonte.
+// `embutida` (opcional): 1 se a fonte TRAZ uma faixa de dialogo no idioma principal dentro dela. Foi multiplexada com o
+// video, entao e uma principal sincronizada de fabrica (degrau 1) sem precisar de legenda de addon; vale mesmo que o
+// titulo nao tenha nenhuma. Perguntada antes de `conferir`, e a primeira que responder 1 encerra a procura.
 typedef struct {
   int (*conferir)(int indice, int slot, void *u);   // FSINC_*
   int (*cancelado)(void *u);                         // NULL = nunca
   void *u;
+  int (*embutida)(int indice, void *u);              // NULL = nao pergunta
 } FonteSincGancho;
 int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
                           const FonteSincGancho *g, int *nivel, int *conferidas);

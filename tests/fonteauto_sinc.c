@@ -60,6 +60,9 @@ static int conferirFalso(int i, int slot, void *u) {
   return verdade[i][slot];
 }
 static int cancelaFalso(void *u) { (void)u; return cancelaApos >= 0 && total >= cancelaApos; }
+static unsigned char emb[N];   // 1 = a fonte traz uma faixa de dialogo no idioma principal
+static int perguntouEmb[N];
+static int embFalso(int i, void *u) { (void)u; perguntouEmb[i]++; return emb[i]; }
 // `tem`: toda fonte tem legenda principal (e a secundaria, com tem2); a verdade e o contador voltam a zero.
 static void prepara(int n, int tem, int tem2) {
   limpa(n);
@@ -216,7 +219,7 @@ int main(void) {
 
   // A CONFERENCIA EM SERIE (fonteauto_sincronizar), com a rede trocada por uma tabela de verdades.
   {
-    FonteSincGancho g = { conferirFalso, cancelaFalso, NULL };
+    FonteSincGancho g = { conferirFalso, cancelaFalso, NULL, NULL };
     int feitas;
 
     // para na primeira em que a principal sincroniza: 0 e 1 nao, 2 sim; 3..5 nem sao conferidas
@@ -271,6 +274,27 @@ int main(void) {
     // sem gancho / sem fila
     CONFERE(fonteauto_sincronizar(fila, 3, f, 0, 0, NULL, &nv, &feitas) == -1 && feitas == 0, "sem gancho");
 
+    // FAIXA EMBUTIDA: a fonte 3 traz o idioma principal dentro dela e NENHUMA fonte tem legenda de addon: degrau 1
+    {
+      FonteSincGancho ge = { conferirFalso, cancelaFalso, NULL, embFalso };
+      prepara(6, 0, 0);
+      memset(emb, 0, sizeof emb); memset(perguntouEmb, 0, sizeof perguntouEmb);
+      emb[3] = 1;
+      r = fonteauto_sincronizar(fila, 6, f, 0, 1, &ge, &nv, &feitas);
+      CONFERE(r == 3 && nv == FSINC_PRIM_OK && feitas == 4, "embutida sem legenda de addon: %d nivel %d, %d conferidas", r, nv, feitas);
+      CONFERE(total == 0 && perguntouEmb[4] + perguntouEmb[5] == 0, "para na embutida: %d chamadas ao addon", total);
+      // a de cima que sincroniza pelo addon ganha da embutida mais abaixo (a posicao decide no mesmo degrau)
+      prepara(6, 1, 0); memset(emb, 0, sizeof emb); emb[4] = 1; verdade[2][0] = FSINC_CONFIRMADA;
+      CONFERE(fonteauto_sincronizar(fila, 6, f, 0, 1, &ge, &nv, &feitas) == 2, "addon sincronizada acima da embutida");
+      // e a embutida acima ganha da sincronizada pelo addon abaixo
+      prepara(6, 1, 0); memset(emb, 0, sizeof emb); emb[1] = 1; verdade[3][0] = FSINC_CONFIRMADA;
+      CONFERE(fonteauto_sincronizar(fila, 6, f, 0, 1, &ge, &nv, &feitas) == 1 && feitas == 2, "embutida acima da addon");
+      // com Original ligado, a embutida de uma fonte que nao e original nao disputa
+      prepara(6, 0, 0); memset(emb, 0, sizeof emb); memset(perguntouEmb, 0, sizeof perguntouEmb); emb[1] = 1; f[4].original = 1; f[5].original = 1;
+      r = fonteauto_sincronizar(fila, 6, f, 1, 1, &ge, &nv, &feitas);
+      CONFERE(r == 4 && nv == FSINC_NADA && perguntouEmb[0] == 0, "so as originais: %d nivel %d", r, nv);
+    }
+
     // PROPRIEDADE 3: parar cedo NUNCA muda a resposta. Mesma verdade, uma vez com a conferencia em serie e outra
     // com a tabela toda preenchida de uma vez e so a regra por cima.
     for (int caso = 0; caso < 20000 && falhas < 5; caso++) {
@@ -289,9 +313,12 @@ int main(void) {
       e = rand() % 2; ts = rand() % 2;
       memcpy(cheia, f, sizeof cheia);
       for (i = 0; i < n; i++) {   // a tabela toda de uma vez
+        emb[i] = rand() % 6 == 0;
         if (cheia[i].temPrim) cheia[i].sincPrim = verdade[i][0];
         if (ts && cheia[i].temSec) cheia[i].sincSec = verdade[i][1];
+        if (emb[i]) { cheia[i].temPrim = 1; cheia[i].sincPrim = FSINC_CONFIRMADA; }   // sincronizada de fabrica
       }
+      g.embutida = embFalso;
       r2 = fonteauto_sincronizada(fila, n, cheia, e, ts, &n2);
       r1 = fonteauto_sincronizar(fila, n, f, e, ts, &g, &n1, &feitas);
       CONFERE(r1 == r2 && n1 == n2, "caso %d: em serie %d/%d, tabela cheia %d/%d", caso, r1, n1, r2, n2);

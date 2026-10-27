@@ -21,6 +21,8 @@ struct FonteSincLeitor {
   uint64_t sessao;
   LegendaDocumento *refDoc;   // a referencia da ultima url (guardada para o proximo slot)
   int refFalhou;              // a leitura da ultima url nao deu referencia: nao tenta de novo
+  char refIdioma[24];         // idioma da faixa lida como referencia
+  int refDialogo;             // 1 = faixa de dialogo (nem forcada nem so letreiros)
   char motivo[40];
 };
 
@@ -34,7 +36,7 @@ FonteSincLeitor *fontesinc_leitor_criar(LegRefLer ler, void *u) {
 
 static void soltar(FonteSincLeitor *l) {
   legenda_documento_liberar(l->refDoc);
-  l->refDoc = NULL; l->refFalhou = 0; l->url[0] = 0;
+  l->refDoc = NULL; l->refFalhou = 0; l->url[0] = 0; l->refIdioma[0] = 0; l->refDialogo = 0;
 }
 
 void fontesinc_leitor_destruir(FonteSincLeitor *l) {
@@ -75,6 +77,27 @@ static int lerReferencia(FonteSincLeitor *l, const char *url, uint64_t sessao, c
     l->refFalhou = 1;
     return 0;
   }
+  snprintf(l->refIdioma, sizeof l->refIdioma, "%s", st.idioma);
+  l->refDialogo = !(legenda_documento_info(l->refDoc)->flags & (LEGENDA_DOC_FORCED | LEGENDA_DOC_SINAIS));
+  return 1;
+}
+
+// A referencia de `url`: a guardada, ou le agora. -1 = cancelado; 0 = pronta (ou guardada como falha em l->refFalhou).
+static int garantir(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
+                    int (*cancelado)(void *), void *u) {
+  if (!strcmp(l->url, url) && l->sessao == sessao) return 0;
+  return lerReferencia(l, url, sessao, idiomaRef, cancelado, u) < 0 ? -1 : 0;
+}
+
+int fontesinc_faixa(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
+                    int (*cancelado)(void *), void *u, char *idioma, unsigned tam, int *dialogo) {
+  if (idioma && tam) idioma[0] = 0;
+  if (dialogo) *dialogo = 0;
+  if (!l || !url || !url[0]) return 0;
+  if (garantir(l, url, sessao, idiomaRef, cancelado, u) < 0) return -1;
+  if (l->refFalhou || !l->refDoc) return 0;
+  if (idioma && tam) snprintf(idioma, tam, "%s", l->refIdioma);
+  if (dialogo) *dialogo = l->refDialogo;
   return 1;
 }
 
@@ -84,10 +107,7 @@ int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const
   AutoSyncResultado r;
   if (offsetMs) *offsetMs = 0;
   if (!l || !url || !url[0] || !doc) return FSINC_NAO;
-  if (strcmp(l->url, url) || l->sessao != sessao) {   // outra fonte: le a referencia dela
-    int e = lerReferencia(l, url, sessao, idiomaRef, cancelado, u);
-    if (e < 0) return FSINC_DESCONHECIDA;
-  }
+  if (garantir(l, url, sessao, idiomaRef, cancelado, u) < 0) return FSINC_DESCONHECIDA;   // outra fonte: le a dela
   if (l->refFalhou || !l->refDoc) return FSINC_NAO;     // a mesma fonte ja falhou: o mesmo veredito, sem ler de novo
   cfg = autosync_config(AUTOSYNC_QUICK);
   r = autosync_comparar(doc, l->refDoc, &cfg, cancelado, u);

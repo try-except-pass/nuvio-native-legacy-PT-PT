@@ -95,6 +95,19 @@ int main(int c, char **v) {
   printf("filme: %d off=%d motivo=%s pedidos novos=%d\n", r, off, fontesinc_motivo(l), pedidos - antes);
   assert(r == FSINC_CONFIRMADA && off > 2300 && off < 2700 && pedidos > antes);
 
+  // A FAIXA EMBUTIDA: em ingles so tem a faixa inglesa; a que tem uma faixa em portugues entrega o idioma dela
+  { char idioma[24]; int dialogo = 0;
+    r = fontesinc_faixa(l, "http://fonte/ff.mkv", SESSAO, "por", NULL, NULL, idioma, sizeof idioma, &dialogo);
+    printf("faixa de ff.mkv (pedindo por): r=%d idioma=%s dialogo=%d\n", r, idioma, dialogo);
+    assert(r == 1 && dialogo == 1 && strncmp(idioma, "po", 2) && strncmp(idioma, "pt", 2));
+    r = fontesinc_faixa(l, "http://fonte/cruz.mkv", SESSAO, "por", NULL, NULL, idioma, sizeof idioma, &dialogo);
+    printf("faixa de cruz.mkv (pedindo por): r=%d idioma=%s dialogo=%d\n", r, idioma, dialogo);
+    assert(r == 1 && dialogo == 1 && (!strncmp(idioma, "po", 2) || !strncmp(idioma, "pt", 2)));
+    r = fontesinc_faixa(l, "http://fonte/vob.mkv", SESSAO, "por", NULL, NULL, idioma, sizeof idioma, &dialogo);
+    assert(r == 0 && !idioma[0] && !dialogo);   // so imagem: nenhuma faixa de texto
+    r = fontesinc_faixa(l, "http://fonte/nao-existe.mkv", SESSAO, "por", NULL, NULL, idioma, sizeof idioma, &dialogo);
+    assert(r == 0); }
+
   // fonte SEM faixa de texto aproveitavel (so imagem): NAO, com o motivo; e fonte que nao existe (404): NAO
   r = fontesinc_julgar(l, "http://fonte/vob.mkv", SESSAO, "en", mais, NULL, NULL, &off);
   printf("sem faixa de texto: %d motivo=%s\n", r, fontesinc_motivo(l));

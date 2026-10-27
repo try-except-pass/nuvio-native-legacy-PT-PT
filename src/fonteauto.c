@@ -179,6 +179,11 @@ int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOrigina
     FonteSinc *s = &c[fila[q]];
     if (soOriginal && !s->original) continue;
     if (g->cancelado && g->cancelado(g->u)) break;
+    if (g->embutida && g->embutida(fila[q], g->u)) {   // sincronizada de fabrica: nada acima disso
+      s->temPrim = 1; s->sincPrim = FSINC_CONFIRMADA;
+      feitas++;
+      break;
+    }
     if (s->temPrim) s->sincPrim = (unsigned char)g->conferir(fila[q], 0, g->u);
     if (temSec && s->temSec) s->sincSec = (unsigned char)g->conferir(fila[q], 1, g->u);
     feitas++;

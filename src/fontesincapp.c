@@ -106,6 +106,22 @@ static int conferir(int i, int slot, void *u) {
   return veredito;
 }
 
+// A faixa EMBUTIDA no idioma principal: a mesma referencia que a conferencia le (lida uma vez por fonte). Uma faixa de
+// dialogo no idioma da pessoa dentro da fonte foi multiplexada com o video: sincronizada de fabrica, degrau 1, sem
+// precisar de legenda de addon. Faixa forcada ou so de letreiros nao conta.
+static int embutida(int i, void *u) {
+  Cena *c = u;
+  char url[4096], idioma[24];
+  int dialogo = 0;
+  if (!stream_sinc_link(c->geracao, i, url, sizeof url)) return 0;
+  if (fontesinc_faixa(c->leitor, url, c->x->sessao, c->idiomaRef, cancelado, (void *)c->x, idioma, sizeof idioma, &dialogo) != 1)
+    return 0;
+  if (!dialogo || !idioma[0] || !ling_casa(idioma, c->idiomaRef)) return 0;
+  printf("[sinc-fonte] fonte %d: traz uma faixa de dialogo em %s dentro dela (sincronizada de fabrica)\n", i, idioma);
+  fflush(stdout);
+  return 1;
+}
+
 // ONDE UMA FONTE ESTA NA LISTA DO DONO, menor = melhor: o audio original separa tudo (+10 para quem nao e original
 // quando alguma e); depois 1 principal sincronizada, 2 secundaria sincronizada, 3 principal sem confirmacao,
 // 4 secundaria sem confirmacao, 5 sem legenda. Troca-se quando a MELHOR da fila esta num lugar estritamente melhor que
@@ -158,7 +174,8 @@ static void *fio(void *arg) {
   printf("[sinc-fonte] %d fonte(s) na fila, %d legenda(s) %s%s%s\n", n, cena.docs[0].n, prim,
          temSec ? " + secundaria " : "", temSec ? sec : "");
   fflush(stdout);
-  if (!cena.docs[0].n && !(temSec && cena.docs[1].n)) { printf("[sinc-fonte] nenhuma legenda para comparar\n"); goto fim; }
+  if (!cena.docs[0].n && !(temSec && cena.docs[1].n))
+    printf("[sinc-fonte] nenhuma legenda de addon; so a faixa embutida nas fontes pode servir\n");
   temSec = temSec && cena.docs[1].n > 0;
 
   total = stream_n();
@@ -177,7 +194,7 @@ static void *fio(void *arg) {
   cena.leitor = fontesinc_leitor_criar(NULL, NULL);
   if (!cena.leitor) goto fim;
   exigeOriginal = ling_audio_e_original();
-  g.conferir = conferir; g.cancelado = cancelado; g.u = &cena;
+  g.conferir = conferir; g.cancelado = cancelado; g.u = &cena; g.embutida = embutida;
   melhor = fonteauto_sincronizar(fila, n, c, exigeOriginal, temSec, &g, &nivel, &feitas);
   soOriginal = 0;
   if (exigeOriginal) for (int q = 0; q < n; q++) soOriginal |= c[fila[q]].original;
