@@ -473,10 +473,24 @@ static int fioInstalar(void *arg) {
   //
   // Teto de 8 minutos: sao ~36 MB numa TV, e passar disso e sinal de que a
   // resposta nao vem mais. Sem teto o fio ficaria vivo para sempre.
-  { Uint32 ate = SDL_GetTicks() + 8 * 60 * 1000;
+  { Uint32 inicio = SDL_GetTicks(), ate = inicio + 8 * 60 * 1000, ultAviso = 0;
+    char ultPasso[48] = "";
+    int jaRespondeu = 0;   // 2026-10-27: o servico nunca respondeu e o cartao ficava 8 min em "Instalando"
     while (SDL_GetTicks() < ate) {
       FILE *f = fopen(AT_LOG_INST, "rb");
       SDL_Delay(300);
+      if (!jaRespondeu && SDL_GetTicks() - inicio >= 60000u) {
+        long tam = 0;
+        if (f) { fseek(f, 0, SEEK_END); tam = ftell(f); fseek(f, 0, SEEK_SET); }
+        if (tam <= 0) {
+          if (f) fclose(f);
+          SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
+          printf("[atualizacao] instalador sem nenhuma resposta em 60 s (o servico do Homebrew Channel nao respondeu)\n");
+          fflush(stdout);
+          return 0;
+        }
+        jaRespondeu = 1;   // houve resposta: segue ate o prazo normal
+      }
       if (!f) continue;
       { static char buf[8192];
         size_t n = fread(buf, 1, sizeof buf - 1, f);
@@ -501,6 +515,14 @@ static int fioInstalar(void *arg) {
         }
         if (strstr(buf, "\"finished\": true") || strstr(buf, "\"finished\":true")) fim = 1;
         if (strstr(buf, "\"errorText\"")) erro = 1;
+        // Rastro no log da TV: so o que muda (passo) ou, a cada 20 s, que o arquivo ainda esta como esta. Antes nada
+        // saia ate o fim, e um "Instalando" sem fim nao dizia onde parou (2026-10-27).
+        if (strcmp(passo, ultPasso) || SDL_GetTicks() - ultAviso >= 20000u) {
+          ultAviso = SDL_GetTicks();
+          snprintf(ultPasso, sizeof ultPasso, "%s", passo);
+          printf("[atualizacao] instalador: passo='%s' progresso=%.0f%% resposta=%zu bytes\n", passo, (double)pct, n);
+          fflush(stdout);
+        }
         SDL_LockMutex(mtx);
         if (pct >= 0.0f) instPct = pct;
         if (passo[0]) snprintf(instPasso, sizeof instPasso, "%s", passo);
@@ -513,7 +535,18 @@ static int fioInstalar(void *arg) {
           return 0;
         } } } }
   SDL_LockMutex(mtx); estado = AT_FALHOU; SDL_UnlockMutex(mtx);
-  printf("[atualizacao] instalador nao respondeu no prazo\n"); fflush(stdout);
+  { FILE *f = fopen(AT_LOG_INST, "rb");
+    char fim[241] = "";
+    size_t n = 0;
+    if (f) {
+      fseek(f, 0, SEEK_END);
+      long tam = ftell(f);
+      fseek(f, tam > 240 ? tam - 240 : 0, SEEK_SET);
+      n = fread(fim, 1, sizeof fim - 1, f); fim[n] = 0; fclose(f);
+      for (size_t k = 0; k < n; k++) if (fim[k] == '\n' || fim[k] == '\r') fim[k] = ' ';
+    }
+    printf("[atualizacao] instalador nao respondeu no prazo; fim da resposta: %s\n", f ? fim : "(sem arquivo)"); }
+  fflush(stdout);
   return 0;
 }
 

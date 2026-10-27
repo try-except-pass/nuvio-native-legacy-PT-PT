@@ -77,6 +77,13 @@ int main(void) {
   memlog_amostra(s, sizeof s); assert(!*s && !*logbuf);
   meminfo = "MemAvailable: 204800 kB"; // sem newline, RSS zero valido.
   memlog_amostra(s, sizeof s); assert(!strcmp(s, " | mem=0.0/200.0MB"));
+  // TV de 1 GB: o piso escala com a RAM (150*1091/1965 = 83 MB). 120 MB livres e o repouso da home dela, nao aviso.
+  status = "VmRSS: 235520 kB\n";
+  meminfo = "MemAvailable: 307200 kB\n"; memlog_amostra(s, sizeof s); *logbuf = 0;   // rearma
+  meminfo = "MemTotal: 1117184 kB\nMemAvailable: 122880 kB\n";
+  memlog_amostra(s, sizeof s); assert(!*logbuf);
+  meminfo = "MemTotal: 1117184 kB\nMemAvailable: 81920 kB\n";
+  memlog_amostra(s, sizeof s); assert(strstr(logbuf, "aviso MemAvailable<83MB"));
 #else
   memlog_evento("load"); memlog_evento("primeiro-quadro");
   assert(!*s && !*logbuf && leituras == 0);

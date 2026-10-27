@@ -684,6 +684,7 @@ void gfx_vidro_fosco_bloquear(void);
 // Call right after a full-screen veil: glass drawn earlier no longer makes a
 // glass over it go flat (modal islands over the Home sidebar).
 void gfx_vidro_cobrir(void);
+void gfx_vidro_movimento(void);   // algo se mexe: o vidro vai chapado ate 0,5 s depois que para
 // Glass drawn with a blur source this frame (zeroed in gfx_novo_quadro).
 extern int gfx_vidro_com_fonte;
 // Smoked (flat tinted) glasses drawn this frame: no capture, no blur (zeroed in gfx_novo_quadro).

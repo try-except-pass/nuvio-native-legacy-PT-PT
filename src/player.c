@@ -3188,7 +3188,9 @@ static void durFonteAtualizar(double real, Uint32 agora) {
       !(real > esperada * 2 || real < esperada * .5)) return;
   durFonteAvisada = 1;
   durFonteCurta = real < esperada * .5;
-  if (duracaook_tem(sessao_usuario(), perfis_ativo(), durFonteTitulo())) {
+  // O "OK" de antes vale para outra DURACAO (corte estendido, catalogo errado), nunca para um clipe: 30 s e o video de erro do
+  // provedor (Godfather, 2026-10-27: o OK guardado deixou o clipe tocar e acabar sem tentar outra fonte).
+  if (real >= 300 && duracaook_tem(sessao_usuario(), perfis_ativo(), durFonteTitulo())) {
     printf("[fonte] duracao incompatível: real=%.0fs esperada=%.0fs; kept: this title keeps sources of another length (OK earlier)\n",
            real, esperada);
     fflush(stdout);

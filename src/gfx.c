@@ -3508,6 +3508,13 @@ void gfx_vidro_fosco_bloquear(void) { foscoBloq = 1; }
 // A full-screen veil was just drawn over the glasses so far: they are now plain
 // backdrop, so a modal island over them frosts instead of going flat.
 void gfx_vidro_cobrir(void) { vidroNVidros = 0; }
+// VIDRO EM MOVIMENTO (dono, 2026-10-27): enquanto algo se mexe na tela (hero que desliza, fileira que rola) o vidro vai
+// chapado, como a fumaca (sem ler/desfocar o fundo, que e o custo da GPU), e o frost volta VID_MOV_MS depois que tudo
+// para. Quem anima chama gfx_vidro_movimento() a cada quadro em que anima.
+#define VID_MOV_MS 500u
+static Uint32 vidroMovAte;
+void gfx_vidro_movimento(void) { vidroMovAte = SDL_GetTicks() + VID_MOV_MS; }
+static int vidroEmMovimento(void) { return (int)(SDL_GetTicks() - vidroMovAte) < 0; }
 int gfx_vidro_com_fonte, gfx_vidro_chapados;
 
 // GLASS GOVERNOR ("Qualidade do vidro" = Automatica). Frames are counted in
@@ -3808,7 +3815,7 @@ static void vidroFundoFechar(void) {
   // No glass last frame (frost just resumed or appeared): its regions are
   // unknown, so blur the whole screen once, before foreground, instead of one
   // capture per glass. Not for smoked glass or over a video hole: no backdrop read.
-  if (!n && !vidroNFuros && ajustes_vidro() && (ajustes_vidro_qualidade() == 2 || (ajustes_vidro_qualidade() == 0 && !vidroDegradou))) { reg[0][0] = reg[0][1] = 0; reg[0][2] = NV_TELA_W; reg[0][3] = NV_TELA_H; n = 1; }
+  if (!n && !vidroNFuros && ajustes_vidro() && !vidroEmMovimento() && (ajustes_vidro_qualidade() == 2 || (ajustes_vidro_qualidade() == 0 && !vidroDegradou))) { reg[0][0] = reg[0][1] = 0; reg[0][2] = NV_TELA_W; reg[0][3] = NV_TELA_H; n = 1; }
   // A copia le a TELA: o fundo da Dinamica adiado tem de sair nela antes
   // (dinAdiado), senao a copia fica com o framebuffer transparente do
   // clear e o vidro le preto/lixo ate a proxima mudanca de hash — a faixa
@@ -3997,7 +4004,7 @@ void gfx_vidro(GfxRect r, float raio, int tipo, float cinza, float dens, float a
   // (Nuvio Arc): the real glass look is the tint plus the in-shader rim/top
   // highlight, never an art stand-in or a flat opaque box. With quality =
   // Desempenho, or once the governor dropped the tier.
-  fumaca = video || ajustes_vidro_qualidade() == 1 || (vidroDegradou && ajustes_vidro_qualidade() == 0);
+  fumaca = video || vidroEmMovimento() || ajustes_vidro_qualidade() == 1 || (vidroDegradou && ajustes_vidro_qualidade() == 0);
   if (fumaca) chapado = 1;
   if (vidroNVidros < VID_N) memcpy(vidroVidros[vidroNVidros++], tela, sizeof tela);
   memset(&vidPend, 0, sizeof vidPend);

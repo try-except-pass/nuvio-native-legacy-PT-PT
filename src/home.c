@@ -3876,6 +3876,7 @@ static void home_atualizar_(float dt, Uint32 agora) {
   } else {
     heroEntra = 1.0f;
   }
+  if (heroDesliza < 1.0f || heroSai > 0.0f) gfx_vidro_movimento();   // vidro chapado enquanto o hero se mexe
   if (heroDesliza < 1.0f) {
     heroDesliza = motionReduzido ? 1.0f
                 : heroDesliza + dt * (1000.0f / NV_HERO_DESLIZA_MS);
@@ -6299,6 +6300,7 @@ static void palcoPasso(int r, Uint32 agora) {
   }
   Uint32 ms = agora - palcoUlt[r];
   float k = palcoProgresso(ms);
+  if (k < 1) gfx_vidro_movimento();   // fileira rolando
   palcoPos[r] = k >= 1 ? (float)alvo : anim_mistura(palcoMov[r].de, (float)alvo, k);
   {
     // Recheck viewport geometry even when focus stays on the same column.

@@ -25,6 +25,16 @@ static long lerKB(const char *path, const char *campo) {
   fclose(f);
   return kb;
 }
+// O piso ESCALA com a RAM, como tex_memoria_livre (150 MB e o da TV de 1965 MB). Numa de 1 GB, 150 MB livres e o repouso
+// normal da home (150-180 MB); com o piso fixo o aviso disparava a cada volta do player e o corte de 30 s das texturas
+// deixava o hero em branco (log da 2.0.23, 2026-10-27). Sem MemTotal legivel, vale o fixo.
+static long pisoMb(void) {
+  long kb = lerKB("/proc/meminfo", "MemTotal:");
+  long ram = kb > 0 ? kb / 1024 : 0;
+  return ram > 0 && ram < 1965 ? MEMLOG_PISO_MB * ram / 1965 : MEMLOG_PISO_MB;
+}
+#else
+static long pisoMb(void) { return MEMLOG_PISO_MB; }
 #endif
 
 void memlog_amostra(char *sufixo, size_t tamanho) {
@@ -35,20 +45,22 @@ void memlog_amostra(char *sufixo, size_t tamanho) {
   long disponivel = lerKB("/proc/meminfo", "MemAvailable:");
   if (rss < 0 || disponivel < 0) return;
   snprintf(sufixo, tamanho, " | mem=%.1f/%.1fMB", rss / 1024.0, disponivel / 1024.0);
-  if (disponivel < MEMLOG_PISO_MB * 1024 && !abaixo) {
-    printf("[mem] aviso MemAvailable<%dMB mem=%.1f/%.1fMB\n", MEMLOG_PISO_MB, rss / 1024.0, disponivel / 1024.0);
+  // o piso escalado nunca passa do fixo: so le o MemTotal quando ja esta abaixo do fixo (nada a mais por amostra)
+  long piso = disponivel < MEMLOG_PISO_MB * 1024 ? pisoMb() : MEMLOG_PISO_MB;
+  if (disponivel < piso * 1024 && !abaixo) {
+    printf("[mem] aviso MemAvailable<%ldMB mem=%.1f/%.1fMB\n", piso, rss / 1024.0, disponivel / 1024.0);
     fflush(stdout);
     if (avisoCb) avisoCb();   // texturas + mkvass + texto + libass + heap
     else memlog_devolver();
   }
-  abaixo = disponivel < MEMLOG_PISO_MB * 1024;
+  abaixo = disponivel < piso * 1024;
 #endif
 }
 
 int memlog_pouca_memoria(void) {
 #if defined(__linux__)
   long kb = lerKB("/proc/meminfo", "MemAvailable:");
-  return kb >= 0 && kb < MEMLOG_PISO_MB * 1024;
+  return kb >= 0 && kb < pisoMb() * 1024;
 #else
   return 0;
 #endif
@@ -90,8 +102,8 @@ void memlog_quando_aviso(void (*cb)(void)) { avisoCb = cb; }
 
 int memlog_pode_reabrir(long (*livre)(void), void (*aliviar)(void)) {
   long mb = livre();
-  if (mb < 0 || mb >= MEMLOG_PISO_MB) return 1;
+  if (mb < 0 || mb >= pisoMb()) return 1;
   aliviar();
   mb = livre();
-  return mb < 0 || mb >= MEMLOG_PISO_MB;
+  return mb < 0 || mb >= pisoMb();
 }
