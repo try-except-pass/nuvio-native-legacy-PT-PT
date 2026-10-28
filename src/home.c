@@ -7628,7 +7628,12 @@ static void home_desenhar_(Uint32 agora) {
   if ((heroLigado() || dinPalcoSplit() || palcoFundoModo != PALCO_ATUAL) &&
       !vazioQr && palcoFundoAlpha > 0.004f) {
     gfx_opacidade_grupo = palcoFundoModo == PALCO_ATUAL ? palcoFundoAlpha : 1.0f;
-    desenhaHero(agora, pd);
+    // COM A ARTE NO CANTO ela se DISSOLVE em transparencia (o caminho "vazar", o mesmo que a pagina do titulo usa), e nao
+    // em #0d0d0d opaco: por baixo fica o brilho no acento que desenhaHero pinta, e e ele que se ve nas bordas.
+    { float forcaSalva = nv_ambiente_forca;
+      if (layoutHome() == HOME_LAYOUT_MODERNA && heroCantoK > 0.01f) nv_ambiente_forca = 1.0f;
+      desenhaHero(agora, pd);
+      nv_ambiente_forca = forcaSalva; }
     gfx_opacidade_grupo = 1.0f;
   }
   if (heroLigado() && !vazioQr && heroVisivelToque() > 0.25f) {
