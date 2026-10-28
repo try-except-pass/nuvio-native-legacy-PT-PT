@@ -24,6 +24,10 @@ void fontesinc_leitor_destruir(FonteSincLeitor *l);
 // durante a leitura e a comparacao; cancelado devolve FSINC_DESCONHECIDA.
 int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
                      const LegendaDocumento *doc, int (*cancelado)(void *), void *u, int *offsetMs);
+// So a COMPARACAO, sem tocar no leitor (varias ao mesmo tempo, em fios): exige a referencia ja lida (fontesinc_faixa == 1).
+// Mesmo veredito de fontesinc_julgar; *motivo = texto estatico (nunca liberar).
+int fontesinc_comparar(const FonteSincLeitor *l, const LegendaDocumento *doc, int (*cancelado)(void *), void *u,
+                       int *offsetMs, const char **motivo);
 // A FAIXA EMBUTIDA da fonte, a mesma referencia que fontesinc_julgar usa (lida uma vez por url): uma faixa de dialogo
 // no idioma da pessoa DENTRO da fonte foi multiplexada com o video e nao tem como estar dessincronizada.
 // Devolve 1 = veio (*idioma = o da faixa lida, a mais proxima de `idiomaRef`; *dialogo = 1 se nao e forcada nem so

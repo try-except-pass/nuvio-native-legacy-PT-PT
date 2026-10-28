@@ -4972,17 +4972,14 @@ static void desenhaHero(Uint32 agora, float saida) {
     r = (GfxRect){ a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, a.w + (b.w - a.w) * e, a.h + (b.h - a.h) * e };
     modoHero = e < 0.5f ? GFX_HERO_CHEIO : GFX_HERO;
   }
-  // O BRILHO NO ACENTO atras da arte recuada (a sombra que a pagina do titulo tem): mancha macia na cor de destaque,
-  // forte com a arte no canto e sumindo quando ela volta a tela cheia.
+  // A SOMBRA PRETA da arte recuada: a que ela ja tem na esquerda e embaixo (a rampa para o fundo) acompanha a imagem
+  // enquanto ela encolhe para o canto. Preta, sem a cor de destaque; so os lados esquerdo e inferior (o topo e a direita
+  // sao a borda da tela). A queda e em PIXELS a partir da borda do retangulo (parx): cheia na borda da arte, morrendo
+  // ate 240 px para fora, entao nao fica escondida pela arte opaca como o brilho antigo.
   if (lay == HOME_LAYOUT_MODERNA && kCanto > 0.01f && aArte > 0.01f) {
-    float ar, ag, ab;
-    ajustes_acento(&ar, &ag, &ab);
-    // A queda e em PIXELS a partir da borda do retangulo (parx): cheia na borda da arte, morrendo ate 280 px para fora.
-    // Antes o retangulo era so ~40 px maior que a arte e a queda era radial: o pico ficava no centro, escondido pela arte
-    // opaca, e o que sobrava a vista era uma borda quase transparente (2.1.5/2.1.6: "a sombra nao aparece").
-    const float folga = 280.0f;
-    gfx_rect((GfxRect){ r.x - folga, r.y - folga, r.w + folga * 2.0f, r.h + folga * 2.0f }, 0, GFX_SOMBRA, 1.0f, folga, 0,
-             0.5f, ar, ag, ab, 0.55f * anim_suave(kCanto) * aArte);
+    const float folga = 240.0f;
+    gfx_rect((GfxRect){ r.x - folga, r.y, r.w + folga, r.h + folga }, 0, GFX_SOMBRA, 1.0f, folga, 0,
+             0.5f, 0, 0, 0, 0.75f * anim_suave(kCanto) * aArte);
   }
   // LAYOUTS NOVOS. O destaque deles e sempre "de titulo" (a arte do titulo em
   // foco) e nunca o de colecao/social da Moderna, que sao telas cheias de

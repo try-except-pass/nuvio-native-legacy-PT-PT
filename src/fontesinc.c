@@ -126,6 +126,24 @@ int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const
   return FSINC_NAO;
 }
 
+int fontesinc_comparar(const FonteSincLeitor *l, const LegendaDocumento *doc, int (*cancelado)(void *), void *u,
+                       int *offsetMs, const char **motivo) {
+  AutoSyncConfig cfg;
+  AutoSyncResultado r;
+  if (offsetMs) *offsetMs = 0;
+  if (motivo) *motivo = "none";
+  if (!l || !l->refDoc || !doc) return FSINC_NAO;
+  cfg = autosync_config(AUTOSYNC_QUICK);
+  r = autosync_comparar(doc, l->refDoc, &cfg, cancelado, u);
+  if (r.estado == AUTOSYNC_CANCELLED) return FSINC_DESCONHECIDA;
+  if (motivo) *motivo = autosync_motivo(r.motivo);
+  if (r.estado == AUTOSYNC_ACCEPTED && !r.referenciaInvalida) {
+    if (offsetMs) *offsetMs = r.offsetMs;
+    return FSINC_CONFIRMADA;
+  }
+  return FSINC_NAO;
+}
+
 int fontesinc_audio(FonteSincLeitor *l, const char *url, uint64_t sessao, int (*cancelado)(void *), void *u,
                     char *audio, unsigned tam) {
   LegRefOrcamento o = { FS_LEITURA_BYTES, FS_PEDIDOS, FS_RITMO };

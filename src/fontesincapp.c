@@ -20,7 +20,8 @@
 #define ESPERA_LEGENDAS_MS 30000
 // Teto de TEMPO da conferencia inteira, nao de legendas nem de fontes: comparar custa ~2 ms no PC, o que custa e a rede
 // (baixar uma legenda, ler cada fonte). Estourado, vale o que ja se sabe.
-#define PRAZO_TOTAL_MS 600000   // a lista inteira, uma fonte por vez: 180 s nao chegava para 70 fontes
+// SEM teto de tempo (dono, 2026-10-28): a conferencia anda ate acabar a lista ou a reproducao/escolha mudar (vivo()).
+#define PRAZO_TOTAL_MS (24LL * 3600 * 1000)
 
 #define SINC_MAX 128   // = VER_MAX de streams.c: a lista inteira depois dos filtros
 typedef struct { unsigned tok; uint64_t sessao; int atual; long long ate; } Ctx;
@@ -87,11 +88,41 @@ static LegendaDocumento *baixarUma(const Ctx *x, Docs *dd, int k) {
   return dd->d[k];
 }
 
+// Baixa TODAS as legendas do idioma ao mesmo tempo (ate 6 conexoes) antes de a conferencia andar: uma a uma eram ~2 s
+// cada (22 legendas = quase um minuto antes de julgar a 2a fonte), e a fonte que falha abre a pagina do titulo em 30 s.
+typedef struct { const Ctx *x; Docs *dd; int prox; pthread_mutex_t m; } Pre;
+static void *preFio(void *a) {
+  Pre *p = a;
+  for (;;) {
+    int k;
+    pthread_mutex_lock(&p->m); k = p->prox++; pthread_mutex_unlock(&p->m);
+    if (k >= p->dd->n || !vivo(p->x) || agoraMs() > p->x->ate) break;
+    baixarUma(p->x, p->dd, k);   // cada fio tem o seu k: nenhum campo e disputado
+  }
+  return NULL;
+}
+static void prebaixar(const Ctx *x, Docs *dd) {
+  pthread_t t[5];
+  Pre p = { x, dd, 0, PTHREAD_MUTEX_INITIALIZER };
+  int nt = 0, n = dd->n < 6 ? dd->n : 6;
+  for (; nt < n - 1; nt++) if (pthread_create(&t[nt], NULL, preFio, &p) != 0) break;
+  preFio(&p);
+  for (int i = 0; i < nt; i++) pthread_join(t[i], NULL);
+}
+
+#define SINC_PARALELO 3
+typedef struct { Cena *c; LegendaDocumento *d; int r, off; const char *motivo; } Cmp;
+static void *cmpFio(void *a) {
+  Cmp *m = a;
+  m->r = fontesinc_comparar(m->c->leitor, m->d, canceladoCena, m->c, &m->off, &m->motivo);
+  return NULL;
+}
+
 // O gancho da conferencia em serie: a legenda do `slot` contra a fonte `i`, tentando TODAS as legendas do idioma, baixadas so quando chega nelas.
 static int conferir(int i, int slot, void *u) {
   Cena *c = u;
   char url[4096];
-  int off = 0, veredito = FSINC_NAO;
+  int veredito = FSINC_NAO;
   if (!stream_sinc_link(c->geracao, i, url, sizeof url)) {
     printf("[sinc-fonte] fonte %d: sem link direto pronto; nao conferida\n", i);
     return FSINC_DESCONHECIDA;
@@ -103,17 +134,29 @@ static int conferir(int i, int slot, void *u) {
       fflush(stdout);
       return FSINC_NAO;
     } }
-  for (int k = 0; k < c->docs[slot].n && !cancelado((void *)c->x); k++) {
-    const Legenda *l = &c->docs[slot].v[c->docs[slot].idx[k]];
-    LegendaDocumento *d = baixarUma(c->x, &c->docs[slot], k);
-    int r;
-    if (!d) continue;
-    r = fontesinc_julgar(c->leitor, url, c->x->sessao, c->idiomaRef, d, cancelado, (void *)c->x, &off);
-    printf("[sinc-fonte] fonte %d legenda %s #%d/%d \"%s\": %s (%s) %+d ms\n", i, slot ? "2" : "1", k + 1, c->docs[slot].n,
-           l->arquivo[0] ? l->arquivo : l->rotulo,
-           r == FSINC_CONFIRMADA ? "sincroniza" : r == FSINC_NAO ? "nao" : "cancelada", fontesinc_motivo(c->leitor), off);
-    if (r == FSINC_CONFIRMADA) { veredito = r; break; }
-    if (r == FSINC_DESCONHECIDA) { veredito = r; break; }
+  // TODAS as legendas do idioma, em lotes de ate 3 comparacoes ao mesmo tempo (a referencia ja foi lida e e so de leitura):
+  // na TV cada comparacao custa segundos, uma a uma eram minutos por fonte. A primeira da lista que sincroniza ganha.
+  { const int n = c->docs[slot].n;
+    for (int k0 = 0; k0 < n && !cancelado((void *)c->x) && veredito != FSINC_CONFIRMADA; k0 += SINC_PARALELO) {
+      Cmp cm[SINC_PARALELO];
+      pthread_t th[SINC_PARALELO];
+      int lote = n - k0 < SINC_PARALELO ? n - k0 : SINC_PARALELO, lancou[SINC_PARALELO] = { 0 };
+      for (int j = 0; j < lote; j++) {   // baixadas (as do prefetch ja estao) e entregues sem tocar no estado da conferencia
+        cm[j].c = c; cm[j].d = baixarUma(c->x, &c->docs[slot], k0 + j); cm[j].r = FSINC_NAO; cm[j].off = 0; cm[j].motivo = "none";
+      }
+      for (int j = 1; j < lote; j++) if (cm[j].d) { lancou[j] = pthread_create(&th[j], NULL, cmpFio, &cm[j]) == 0; if (!lancou[j]) cmpFio(&cm[j]); }
+      if (cm[0].d) cmpFio(&cm[0]);
+      for (int j = 1; j < lote; j++) if (lancou[j]) pthread_join(th[j], NULL);
+      for (int j = 0; j < lote; j++) {   // o veredito do lote, na ORDEM da lista
+        const Legenda *l = &c->docs[slot].v[c->docs[slot].idx[k0 + j]];
+        if (!cm[j].d) continue;
+        printf("[sinc-fonte] fonte %d legenda %s #%d/%d \"%s\": %s (%s) %+d ms\n", i, slot ? "2" : "1", k0 + j + 1, n,
+               l->arquivo[0] ? l->arquivo : l->rotulo,
+               cm[j].r == FSINC_CONFIRMADA ? "sincroniza" : cm[j].r == FSINC_NAO ? "nao" : "cancelada", cm[j].motivo, cm[j].off);
+        if (cm[j].r == FSINC_CONFIRMADA) { veredito = FSINC_CONFIRMADA; break; }
+        if (cm[j].r == FSINC_DESCONHECIDA) veredito = FSINC_DESCONHECIDA;
+      }
+    }
   }
   fflush(stdout);
   return veredito;
@@ -267,6 +310,8 @@ static void *fio(void *arg) {
   }
   cena.leitor = fontesinc_leitor_criar(NULL, NULL);
   if (!cena.leitor) goto fim;
+  prebaixar(x, &cena.docs[0]);
+  if (temSec) prebaixar(x, &cena.docs[1]);
   exigeOriginal = ling_audio_e_original();
   g.conferir = conferir; g.cancelado = canceladoCena; g.u = &cena; g.embutida = embutida; g.audioOriginal = audioOriginal;
   g.refAusente = refAusente; g.duracao = duracaoFonte; g.nomeCasa = nomeCasa;

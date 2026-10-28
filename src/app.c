@@ -6241,12 +6241,21 @@ void app_atualizar(float dt, Uint32 agora) {
     // O pulo AUTOMATICO obedece "Outra fonte se falhar" (Ajustes): esgotadas
     // as tentativas da reproducao, o que sobra e o aviso na tela — o OK do
     // usuario (pedido 1) continua abrindo a folha de fontes.
-    if (pedido == 2 && (fonteFalha || fonteVODTentativas >= VOD_FONTE_MAX_TENTATIVAS))
+    // Com o motor de failover ligado (o padrao) o pulo por duracao NAO era atendido: `fonteFalha` zerava o pedido e o clipe
+    // de erro de 30 s do provedor tocava ate o fim (Godfather, log de 2.1.7). Agora vale enquanto o motor ainda tem tentativas.
+    if (pedido == 2 && (fonteFalha ? fontefalha_tentativas(fonteFalha) >= fontefalha_teto(fonteFalha)
+                                   : fonteVODTentativas >= VOD_FONTE_MAX_TENTATIVAS))
       pedido = 0;
-    if (pedido && fonteFalha) {
-      // O pedido explicito abre Fontes; um aviso de duracao nao e erro de
-      // playback nem timeout e nao pode gastar a politica de failover.
+    if (pedido == 1 && fonteFalha) {
+      // O pedido explicito (OK) abre Fontes.
       nomeParaFolha(); stream_folha_abrir();
+    } else if (pedido == 2 && fonteFalha) {
+      int atual = stream_atual();
+      if (atual >= 0) stream_automatico_excluir(atual);
+      printf("[fonte] duracao: descartou %d; pedindo a proxima ao failover\n", atual);
+      fflush(stdout);
+      player_voltar_a_esperar();
+      (void)pedirProximaFonteVOD(atual);
     } else if (pedido) {
       int atual = stream_atual();
       if (atual >= 0) stream_automatico_excluir(atual);
