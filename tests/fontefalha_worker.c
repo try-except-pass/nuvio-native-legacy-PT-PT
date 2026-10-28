@@ -327,7 +327,7 @@ static void audioOriginalPrimeiro(void) {
   FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 2, -1); assert(s);
   int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
   assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
-  assert(idx == 1);   // a de menor qualidade, mas com o audio pedido
+  assert(idx == 0);   // a ordem da lista: a etiqueta de audio nao reordena (a conferencia em segundo plano decide depois)
   ling_local_audio("");
   fontefalha_sessao_liberar(s);
 }
@@ -345,12 +345,15 @@ static void soAudioOriginal(void) {
   { FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
     int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
     assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
-    assert(idx == 2 && nPedidos == 1);   // a que declara o ingles vem primeiro
+    assert(idx == 0 && nPedidos == 1);   // a ordem da lista: a etiqueta nao reordena
     assert(!stream_sem_audio_original(idioma, sizeof idioma));
-    // opcao 3 (2026-10-28): a fila e [declara o ingles, nao diz nada]; a que lista so o italiano nem entra
+    // 2026-10-28: a lista inteira vai para a conferencia, na ordem; so a que DECLARA o original leva a marca
     { int fila[16], lemb = -2; unsigned g = 0; unsigned char orig[16];
       int nq = stream_sinc_fila(nv_perfil_sessao_ler(), &g, &lemb, fila, orig, 16);
-      assert(nq == 2 && fila[0] == 2 && fila[1] == 1 && orig[0] == 1 && orig[1] == 0); }
+      int ing = -1;
+      assert(nq == 3);
+      for (int q = 0; q < nq; q++) if (fila[q] == 2) ing = q;
+      assert(ing >= 0 && orig[ing] == 1); }
     fontefalha_sessao_liberar(s); }
   resetar();
   // sem nenhuma que declare o ingles: a que NAO diz nada de audio serve (e a de outro idioma, nao)
@@ -361,7 +364,7 @@ static void soAudioOriginal(void) {
     FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 2, -1); assert(s);
     int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
     assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
-    assert(idx == 1 && nPedidos == 1);
+    assert(idx == 1 && nPedidos == 1);   // a ordem de qualidade de sempre (1080p BluRay vem antes da italiana sem altura); a etiqueta nao exclui
     assert(!stream_sem_audio_original(idioma, sizeof idioma));
     fontefalha_sessao_liberar(s); }
   resetar();
@@ -371,10 +374,9 @@ static void soAudioOriginal(void) {
     stream_definir_lista(m, 1);
     FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 1, -1); assert(s);
     int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
-    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) != FONTEFALHA_PROXIMA);
-    assert(nPedidos == 0);   // nada foi tentado: nenhuma fonte entrou no limite de links
-    assert(stream_sem_audio_original(idioma, sizeof idioma) && !strcmp(idioma, "en"));
-    assert(!stream_sem_audio_original(idioma, sizeof idioma));   // so uma vez
+    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+    assert(idx == 0 && nPedidos == 1);   // a etiqueta nao exclui: o arquivo e que diz (a conferencia le as faixas)
+    assert(!stream_sem_audio_original(idioma, sizeof idioma));
     fontefalha_sessao_liberar(s); }
   ling_local_audio(""); ling_definir_original("");
 }
@@ -427,8 +429,8 @@ static void sincRespeitaFiltro(void) {
     for (int q = 0; q < n; q++) assert(fila[q] == 0 || fila[q] == 2); }
   fontefalha_sessao_liberar(s);
 }
-// A CLASSE DO AUDIO VEM ANTES DA ORDEM DO ADD-ON (dono, 2026-10-28): a que DIZ ter o original, de um add-on mais abaixo,
-// abre antes da sem etiqueta do primeiro add-on. Dentro da mesma classe a ordem do add-on segue valendo.
+// A ETIQUETA DE AUDIO NAO REORDENA (dono, 2026-10-28): a sem etiqueta do primeiro add-on abre antes da que diz ter o
+// original de um add-on mais abaixo. Quem tem o audio original e decidido depois, em segundo plano.
 static void classeAntesDoAddon(void) {
   resetar(); FonteFalhaConfig c = cfg(1, 1, 3);
   Stream l[] = {fonte(&c, 0, "semtag-a", 0), fonte(&c, 1, "ingles-b", 0), fonte(&c, 0, "ingles-a", 0)};
@@ -440,7 +442,7 @@ static void classeAntesDoAddon(void) {
   { FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
     int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
     assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
-    assert(idx == 2);   // declara o ingles E e do primeiro add-on: a primeira da ordem entre as da classe 2
+    assert(idx == 0);   // a primeira da ordem, com ou sem etiqueta
     fontefalha_sessao_liberar(s); }
   ling_local_audio(""); ling_definir_original("");
 }

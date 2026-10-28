@@ -59,6 +59,7 @@ typedef struct {
   int feitos, total, pedidos, faixa;
   long long bytes;
   char idioma[24], codec[24];
+  long duracaoMs;      // duracao do arquivo (MKV: Info Duration x TimestampScale, so se o Info veio na cabeca); 0 = nao se sabe
   char audio[64];      // idiomas das faixas de AUDIO do arquivo ("it,en"); vazio = nao se sabe (MP4) ou nenhuma
 } LegRefStatus;
 

@@ -81,12 +81,18 @@ int fonteauto_idioma_classes(int *fila, int n, const unsigned char *classe, int 
 // para baixo). Aqui mora so a REGRA, sem rede: quem le a sincronia (legref.c por Range) e quem troca de fonte
 // e outro codigo. Passo sem idioma configurado e PULADO: sem secundaria nao ha os dois niveis dela; sem "Original"
 // ligado (ou sem fonte que diga ter o original) o audio nao separa ninguem.
-enum { FSINC_DESCONHECIDA = 0, FSINC_CONFIRMADA = 1, FSINC_NAO = 2 };   // NAO = conferida e nao casa, ou ilegivel
-enum { FSINC_NADA = 0, FSINC_PRIM_OK = 1, FSINC_SEC_OK = 2, FSINC_PRIM = 3, FSINC_SEC = 4 };
+enum { FSINC_DESCONHECIDA = 0, FSINC_CONFIRMADA = 1, FSINC_NAO = 2, FSINC_PROVAVEL = 3 };   // NAO = conferida e nao casa, ou ilegivel
+// OS SEIS NIVEIS DO DONO (menor = melhor): 1 principal sincronizada, 2 secundaria sincronizada, 3 principal provavelmente
+// sincronizada, 4 secundaria provavelmente sincronizada, 5 principal sem garantia, 6 secundaria sem garantia. 0 = ninguem
+// tem legenda. "Sincronizada" = a fonte da faixa embutida OU a legenda que o AutoSync consegue alinhar a ela.
+enum { FSINC_NADA = 0, FSINC_PRIM_OK = 1, FSINC_SEC_OK = 2, FSINC_PRIM_PROV = 3, FSINC_SEC_PROV = 4, FSINC_PRIM = 5, FSINC_SEC = 6 };
 typedef struct {
   unsigned char original;            // a fonte DIZ ter o audio original (a mesma leitura de temIdioma)
   unsigned char temPrim, temSec;     // ha legenda no idioma principal / secundario para ela
   unsigned char sincPrim, sincSec;   // FSINC_* dessa legenda com ESTA fonte (CONFIRMADA vale como "tem")
+  unsigned char semRef;              // o arquivo nao tem faixa de texto/PGS para comparar (nao e o mesmo que "nao casa")
+  unsigned char nomePrim, nomeSec;   // o addon devolveu a legenda com o MESMO nome de arquivo desta fonte
+  long duracaoMs;                    // duracao lida na cabeca do arquivo (0 = nao se sabe): a "gemea" tem a mesma
   unsigned char outro;               // o arquivo foi LIDO e nao tem o audio original (so as faixas de outros idiomas): fora
 } FonteSinc;
 // `fila` = indices de fonte na ordem de tentativa; `c` indexado pelo indice da fonte (como temIdioma). Devolve o
@@ -113,7 +119,21 @@ typedef struct {
   // 0 = leu as faixas e nao tem (fica fora: `outro`), -1 = nao deu para saber. So e perguntada para fonte que nao DIZ ter
   // o original e so com `exigeOriginal`: a etiqueta do addon quase nunca marca o ingles num filme em ingles.
   int (*audioOriginal)(int indice, void *u);
+  // (opcional) depois de uma conferencia que nao casou: 1 = a fonte nao tem NADA para comparar; *duracaoMs = a duracao dela
+  int (*refAusente)(int indice, long *duracaoMs, void *u);
+  // (opcional) a duracao do arquivo da fonte, para as que casaram (a gemea de quem nao tem referencia)
+  long (*duracao)(int indice, void *u);
+  // (opcional) 1 = alguma legenda do `slot` tem o mesmo nome de arquivo da fonte
+  int (*nomeCasa)(int indice, int slot, void *u);
 } FonteSincGancho;
+// O nivel (1..6) em que a fonte esta, 0 = sem legenda nenhuma. Funcao pura sobre os fatos de `s`.
+int fonteauto_nivel(const FonteSinc *s, int temSec);
+// A TABELA DE PONTOS DO DONO: cada fonte elegivel (nao `outro`), na ORDEM DA LISTA, leva a base do seu nivel
+// (999999, 99999, 9999, 999, 99, 9) menos 1 por fonte anterior no MESMO nivel. Antes, a "gemea" sem referencia (mesma
+// duracao, +-0,1 s, de uma fonte confirmada, ou legenda com o mesmo nome de arquivo) sobe para PROVAVEL. `pontos[i]` por
+// indice de fonte (0 = fora). Devolve o indice da melhor (a de mais pontos; sem legenda nenhuma, a primeira elegivel) e
+// *nivel (0 = ninguem tem legenda); -1 se nao ha fonte elegivel.
+int fonteauto_classificar(const int *fila, int n, FonteSinc *c, int temSec, long *pontos, int *nivel);
 int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
                           const FonteSincGancho *g, int *nivel, int *conferidas);
 

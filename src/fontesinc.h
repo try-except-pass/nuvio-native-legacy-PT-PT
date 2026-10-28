@@ -36,5 +36,10 @@ int fontesinc_faixa(FonteSincLeitor *l, const char *url, uint64_t sessao, const 
                     int (*cancelado)(void *), void *u, char *idioma, unsigned tam, int *dialogo);
 // O motivo do ultimo veredito, em ingles estavel, para o log ("ok", "no_range", "low_confidence"...).
 const char *fontesinc_motivo(const FonteSincLeitor *l);
+// Da ULTIMA referencia pedida: 1 = o arquivo nao tem NADA para comparar (sem faixa de texto/PGS, ou nao e Matroska);
+// 0 = tem, ou a leitura falhou por rede/orcamento (nao se sabe). So vale depois de fontesinc_faixa/fontesinc_julgar.
+int fontesinc_referencia_ausente(const FonteSincLeitor *l);
+// Duracao do arquivo em ms lida na cabeca (0 = nao se sabe), da ultima referencia pedida.
+long fontesinc_duracao_ms(const FonteSincLeitor *l);
 
 #endif

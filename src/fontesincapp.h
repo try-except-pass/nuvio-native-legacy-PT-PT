@@ -21,4 +21,8 @@ void fontesincapp_cancelar(void);
 // *sincronizada = 1 se a legenda dela esta com a sincronia CONFIRMADA (0 = trocou por um degrau sem confirmacao).
 int fontesincapp_trocar(int *indice, int *atual, int *sincronizada);
 
+// 1 UMA vez quando a conferencia terminou e NENHUMA fonte tem legenda no idioma pedido (nem a embutida): a UI avisa
+// "Legenda não encontrada" e segue tocando a primeira.
+int fontesincapp_sem_legenda(void);
+
 #endif

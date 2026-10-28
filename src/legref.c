@@ -513,6 +513,13 @@ static void publicarAudio(Job *j, LegRefStatus *st, const Faixa *fx, int nF) {
   pthread_mutex_unlock(&j->r->m);
 }
 
+static void publicarDuracao(Job *j, LegRefStatus *st, long ms) {
+  st->duracaoMs = ms;
+  pthread_mutex_lock(&j->r->m);
+  if (j->r->st.pedido == j->id) j->r->st.duracaoMs = ms;
+  pthread_mutex_unlock(&j->r->m);
+}
+
 // --- ESCOLHA E VALIDACAO CRUZADA DAS FAIXAS --------------------------------------
 // Ordem de preferencia: o idioma pedido antes; dentro dele, a faixa comum
 // antes da SDH/CC (que traz [porta batendo] a mais). Comentario fica de fora:
@@ -745,7 +752,12 @@ static LegendaDocumento *coletarMp4(Job *j, LegRefStatus *st, const unsigned cha
     Cx c = { moov, 0, nMoov }; char t[5]; const unsigned char *d; long m;
     while (caixa(&c, t, &d, &m)) {
       if (!memcmp(t, "mvex", 4)) { free(moov); j->erro = LEGREF_SEM_INDICE; return NULL; }   // fragmentado
-      if (!memcmp(t, "mvhd", 4) && m >= 24) escalaFilme = be32(d + (d[0] == 1 ? 20 : 12));
+      if (!memcmp(t, "mvhd", 4) && m >= 32) {
+        int v1 = d[0] == 1;
+        unsigned long long dur = v1 ? be64(d + 24) : be32(d + 16);
+        escalaFilme = be32(d + (v1 ? 20 : 12));
+        if (escalaFilme && dur) publicarDuracao(j, st, (long)((double)dur * 1000.0 / (double)escalaFilme + 0.5));
+      }
     }
     c.o = 0;
     while (caixa(&c, t, &d, &m) && nF < LR_FAIXAS)
@@ -936,6 +948,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   unsigned char *cab = NULL, *tracks = NULL, *cues = NULL, *bufTr;
   long long segData = -1, posTracks = -1, posCues = -1, posInfo = -1;
   double escala = 1e-6;   // TimestampScale padrao (1 ms) em segundos
+  double durBruta = -1;   // Info > Duration, em unidades de TimestampScale
   Faixa fx[LR_FAIXAS]; int nF = 0, escolhida = -1, i, semRel = 0, nP, cand[LR_FAIXAS], nCand = 0;
   LegRefPonto *pts = NULL; Evento *ev = NULL; int nEv = 0;
   LegendaDocumento *doc = NULL; int ass, vob, pgsModo = 0;
@@ -985,7 +998,14 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
         }
       } else if (id == 0x1549A966) {
         It in = { cab + ini + hdr, 0, (long)ts }; unsigned long id2; const unsigned char *d2; long t2;
-        while (prox(&in, &id2, &d2, &t2)) if (id2 == 0x2AD7B1) { unsigned long long v = lerUint(d2, t2); if (v) escala = (double)v / 1e9; }
+        while (prox(&in, &id2, &d2, &t2)) {
+          if (id2 == 0x2AD7B1) { unsigned long long v = lerUint(d2, t2); if (v) escala = (double)v / 1e9; }
+          else if (id2 == 0x4489 && (t2 == 4 || t2 == 8)) {   // Duration: float de 4 ou 8 bytes
+            unsigned long long b = lerUint(d2, t2);
+            if (t2 == 4) { unsigned int b32 = (unsigned int)b; float f; memcpy(&f, &b32, 4); durBruta = f; }
+            else { double d; memcpy(&d, &b, 8); durBruta = d; }
+          }
+        }
         posInfo = ini - segData;
       } else if (id == 0x1654AE6B) {
         nF = lerTracks(cab + ini + hdr, (long)ts, fx, LR_FAIXAS);
@@ -1001,6 +1021,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
     nF = lerTracks(tracks + oTr, nTr, fx, LR_FAIXAS);
   }
   (void)posInfo;
+  if (durBruta > 0) publicarDuracao(j, st, (long)(durBruta * escala * 1000.0 + 0.5));
   publicarAudio(j, st, fx, nF);
   if (j->p.soCabeca) { j->erro = LEGREF_SO_CABECA; goto fim; }
   // 2. As faixas candidatas: texto, nao letreiro, nao comentario, nao

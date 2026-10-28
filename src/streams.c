@@ -1573,7 +1573,7 @@ static int playlistVazia(const char *url, const char *cabecalhos) {
 //
 // A fila e montada por fonteauto.c: no modo "Primeira da lista" ela tem UMA
 // candidata, e nenhuma outra URL e tocada.
-#define VER_MAX  16
+#define VER_MAX  128   // a lista inteira depois dos filtros (a conferencia de sincronia olha TODAS, na ordem da lista)
 
 // A lista pode ser trocada por stream_definir_lista enquanto uma candidata e
 // conferida fora da trava. A geracao diz se o indice ainda e da mesma lista;
@@ -2091,23 +2091,9 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
                        total, pref, pts, acima, excl, grp, rk,
                        ajustes_fonte_ordem_uso(), total, fila);
   regraBloqueou = !nf && livres > 0;
-  // AUDIO ORIGINAL ANTES DE QUALIDADE (dono, 2026-10-27), a mesma volta de stream_primeira_boa_sessao: as que DIZEM ter
-  // o audio no idioma vao na frente, cada grupo na ordem de antes. Escolha explicita da pessoa nao e mexida.
+  // A ORDEM DA LISTA NAO MUDA (dono, 2026-10-28): nada reordena por etiqueta de audio. Quem tem o audio original e decidido
+  // depois, pela conferencia em segundo plano (etiqueta, ou as faixas do arquivo), sem tirar ninguem da posicao.
   falhaSemOriginal = 0;
-  if (escolhida < 0 && nf > 0 && idiomaAudioPedido()[0]) {
-    unsigned char *tem = calloc((size_t)total, 1);
-    if (tem) {
-      int com = 0, orig = ling_audio_e_original();
-      for (int q = 0; q < total; q++) tem[q] = (unsigned char)classeAudio(&copia[ordem[q]]);
-      // NUVIO_GO (dono): so o audio ORIGINAL do titulo, em tres classes (2026-10-28): primeiro as que DIZEM ter o audio
-      // original, depois as que nao dizem nada de audio (a conferencia de sincronia le as faixas do arquivo e promove ou
-      // exclui cada uma), e as que dizem OUTRO idioma nem entram na fila: nao sao tentadas e NAO contam no limite de
-      // links do add-on. Nenhuma fonte serve: nf = 0 e o app avisa e volta para a pagina do titulo (stream_sem_audio_original).
-      nf = fonteauto_idioma_classes(fila, nf, tem, orig, &com);
-      if (orig && nf < 1) { falhaSemOriginal = 1; snprintf(falhaSemOriginalIdioma, sizeof falhaSemOriginalIdioma, "%s", idiomaAudioPedido()); }
-      classes = tem;
-    }
-  }
   for (int q = 0; q < nf; q++) {
     int i = ordem[fila[q]];
     const Stream *s = &copia[i];
@@ -2636,6 +2622,15 @@ int stream_sinc_link(unsigned geracao, int i, char *url, size_t tam) {
   return ok;
 }
 
+// O nome do arquivo da candidata (para casar com o nome da legenda do addon). 0 = lista trocada ou sem nome.
+int stream_sinc_arquivo(unsigned geracao, int i, char *out, size_t tam) {
+  int ok = 0;
+  pthread_mutex_lock(&verTrava);
+  if (listaGeracao == geracao && i >= 0 && i < n && lista[i].arquivo[0]) { snprintf(out, tam, "%s", lista[i].arquivo); ok = 1; }
+  pthread_mutex_unlock(&verTrava);
+  return ok;
+}
+
 static int sessaoSegue(void *u) { return nv_perfil_sessao_atual(*(uint64_t *)u); }
 int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
   int fila[VER_MAX], nf, q, tocadas = 0, escolhida, total, pref, livres = 0, kk;
@@ -2719,16 +2714,15 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
     unsigned char *tem = calloc((size_t)total, 1);
     const char *pref = idiomaAudioPedido();
     if (tem && pref[0]) {
-      int com;
+      int com = 0;
       pthread_mutex_lock(&verTrava);
       if (listaGeracao == c.geracao)
         for (q = 0; q < nf; q++)
           if (fila[q] >= 0 && fila[q] < n) tem[fila[q]] = (unsigned char)classeAudio(&lista[fila[q]]);
       pthread_mutex_unlock(&verTrava);
-      fonteauto_idioma_classes(fila, nf, tem, 0, &com);   // 2, 1, 0: ninguem sai desta volta
+      for (q = 0; q < nf; q++) com += tem[fila[q]] == 2;   // so conta: a ordem da lista fica
       for (q = 0; q < nf && q < VER_MAX; q++) origRetrato[q] = (unsigned char)(tem[fila[q]] == 2);
-      printf("[fonte] audio %s: %d de %d fonte(s) dizem ter; %s\n", pref, com, nf,
-             com ? "toca a primeira delas" : "nenhuma diz: a melhor da lista");
+      printf("[fonte] audio %s: %d de %d fonte(s) dizem ter; a ordem da lista fica\n", pref, com, nf);
     }
     free(tem);
   }

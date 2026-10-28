@@ -6263,6 +6263,7 @@ void app_atualizar(float dt, Uint32 agora) {
   renovarVodInterrompido();
   tentarProximaFonteVOD();
   { int alvo, de, sinc; if (fontesincapp_trocar(&alvo, &de, &sinc)) trocarPorSincronia(alvo, de, sinc); }
+  if (fontesincapp_sem_legenda() && player_aberto() && !player_id_canal()[0]) player_toast(i18n("Legenda não encontrada"), 5000);
   lembrarAutomatica();
   bingeDaFonteAtual();
   lembrarTocando();

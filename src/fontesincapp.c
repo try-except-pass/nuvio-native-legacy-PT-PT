@@ -5,6 +5,7 @@
 #include "legenda.h"
 #include "linguas.h"
 #include "perfisessao.h"
+#include "naovideo.h"
 #include "rede.h"
 #include "streams.h"
 #include <pthread.h>
@@ -19,8 +20,9 @@
 #define ESPERA_LEGENDAS_MS 30000
 // Teto de TEMPO da conferencia inteira, nao de legendas nem de fontes: comparar custa ~2 ms no PC, o que custa e a rede
 // (baixar uma legenda, ler cada fonte). Estourado, vale o que ja se sabe.
-#define PRAZO_TOTAL_MS 180000
+#define PRAZO_TOTAL_MS 600000   // a lista inteira, uma fonte por vez: 180 s nao chegava para 70 fontes
 
+#define SINC_MAX 128   // = VER_MAX de streams.c: a lista inteira depois dos filtros
 typedef struct { unsigned tok; uint64_t sessao; int atual; long long ate; } Ctx;
 // As legendas de UM idioma: `idx` = as da lista que casam com o idioma (TODAS); `d` so existe depois de baixada, e so
 // e baixada quando a conferencia chega nela (a 1a que sincroniza encerra a procura, as demais nem sao baixadas).
@@ -36,6 +38,7 @@ static _Atomic int pedido = -1;           // a troca pedida (indice), -1 = nada
 static _Atomic int pedidoDe = -1;         // a fonte que tocava quando a troca foi pedida
 static _Atomic unsigned pedidoTok;        // de que conferencia veio
 static _Atomic int pedidoSinc;            // 1 = a legenda da fonte pedida esta com a sincronia confirmada
+static _Atomic unsigned semLegendaTok;   // `tok` da conferencia que nao achou legenda em fonte nenhuma
 static _Atomic unsigned jaTrocou;         // `tok` que ja trocou: no maximo UMA troca por reproducao
 
 static long long agoraMs(void) {
@@ -93,6 +96,13 @@ static int conferir(int i, int slot, void *u) {
     printf("[sinc-fonte] fonte %d: sem link direto pronto; nao conferida\n", i);
     return FSINC_DESCONHECIDA;
   }
+  { int rf = fontesinc_faixa(c->leitor, url, c->x->sessao, c->idiomaRef, cancelado, (void *)c->x, NULL, 0, NULL);
+    if (rf < 0) return FSINC_DESCONHECIDA;
+    if (rf == 0) {   // nada para comparar: nao baixa legenda nenhuma
+      printf("[sinc-fonte] fonte %d legenda %s: sem referencia (%s); nenhuma legenda baixada\n", i, slot ? "2" : "1", fontesinc_motivo(c->leitor));
+      fflush(stdout);
+      return FSINC_NAO;
+    } }
   for (int k = 0; k < c->docs[slot].n && !cancelado((void *)c->x); k++) {
     const Legenda *l = &c->docs[slot].v[c->docs[slot].idx[k]];
     LegendaDocumento *d = baixarUma(c->x, &c->docs[slot], k);
@@ -125,6 +135,38 @@ static int embutida(int i, void *u) {
   return 1;
 }
 
+// Ganchos da nota "provavelmente sincronizada": a fonte sem referencia, a duracao do arquivo, e o nome do arquivo.
+static int refAusente(int i, long *duracaoMs, void *u) {
+  Cena *c = u;
+  (void)i;
+  if (!fontesinc_referencia_ausente(c->leitor)) return 0;
+  if (duracaoMs) *duracaoMs = fontesinc_duracao_ms(c->leitor);
+  return 1;
+}
+static long duracaoFonte(int i, void *u) { Cena *c = u; (void)i; return fontesinc_duracao_ms(c->leitor); }
+// "TheGodfather.1972.mkv" e "thegodfather 1972.srt" (so letras e digitos, sem a extensao): o mesmo arquivo.
+static void chaveNome(const char *in, char *out, size_t tam) {
+  size_t k = 0;
+  const char *ponto = strrchr(in, '.');
+  size_t n = ponto && strlen(ponto) <= 5 ? (size_t)(ponto - in) : strlen(in);
+  for (size_t j = 0; j < n && k + 1 < tam; j++)
+    if ((in[j] >= '0' && in[j] <= '9') || ((in[j] | 32) >= 'a' && (in[j] | 32) <= 'z')) out[k++] = (char)(in[j] | 32);
+  out[k] = 0;
+}
+static int nomeCasa(int i, int slot, void *u) {
+  Cena *c = u;
+  char arq[512], ka[512], kl[512];
+  if (!stream_sinc_arquivo(c->geracao, i, arq, sizeof arq)) return 0;
+  chaveNome(arq, ka, sizeof ka);
+  if (strlen(ka) < 12) return 0;   // nome curto demais para provar qualquer coisa
+  for (int k = 0; k < c->docs[slot].n; k++) {
+    const Legenda *l = &c->docs[slot].v[c->docs[slot].idx[k]];
+    chaveNome(l->arquivo[0] ? l->arquivo : l->rotulo, kl, sizeof kl);
+    if (!strcmp(ka, kl)) return 1;
+  }
+  return 0;
+}
+
 // O ARQUIVO da fonte tem o audio original? A etiqueta do addon quase nunca marca o idioma de um filme em ingles, entao
 // a fonte "sem etiqueta" e conferida pelas faixas do proprio arquivo (a mesma leitura da cabeca da referencia).
 // 1 = tem uma faixa de audio no idioma, 0 = leu as faixas e nao tem, -1 = nao deu para saber (MP4, sem link, rede).
@@ -154,23 +196,23 @@ static int audioOriginal(int i, void *u) {
   return 0;
 }
 
-// ONDE UMA FONTE ESTA NA LISTA DO DONO, menor = melhor: o audio original separa tudo (+10 para quem nao e original
-// quando alguma e); depois 1 principal sincronizada, 2 secundaria sincronizada, 3 principal sem confirmacao,
-// 4 secundaria sem confirmacao, 5 sem legenda. Troca-se quando a MELHOR da fila esta num lugar estritamente melhor que
-// o da que toca: qualquer degrau da lista justifica, nao so a sincronia confirmada.
-static int lugar(const FonteSinc *s, int soOriginal, int temSec) {
-  int r = soOriginal && !s->original ? 10 : 0;
-  return r + (s->sincPrim == FSINC_CONFIRMADA ? 1
-            : temSec && s->sincSec == FSINC_CONFIRMADA ? 2
-            : s->temPrim ? 3
-            : temSec && s->temSec ? 4 : 5);
+// A fonte esta VIVA? Uma legenda sincronizada sem video nao serve: a mesma sonda da escolha (resposta de video, nao de erro).
+static int fonteViva(const Cena *c, int i) {
+  char url[4096], fim[4096], mime[96] = "";
+  int http = 0;
+  long corpo = -1;
+  if (!stream_sinc_link(c->geracao, i, url, sizeof url)) return 0;
+  if (!rede_url_final_tipo(url, 8, NULL, fim, sizeof fim, &http, mime, sizeof mime, &corpo)) return 0;
+  if (http < 200 || http >= 400) return 0;
+  return !naovideo_mime(mime, url, corpo);
 }
 
 static void *fio(void *arg) {
   Ctx *x = arg;
-  int fila[16], lembrada = -1, n, total, exigeOriginal, temSec, nivel = 0, feitas = 0, melhor, esperado = 0;
-  int soOriginal, atualNaFila = 0;
-  unsigned char original[16];
+  int fila[SINC_MAX], lembrada = -1, n, total, exigeOriginal, temSec, nivel = 0, feitas = 0, melhor, esperado = 0;
+  int atualNaFila = 0, nivelAtual;
+  long *pontos = NULL;
+  unsigned char original[SINC_MAX];
   unsigned geracao = 0;
   char primB[24], secB[24];
   const char *prim = primB, *sec = secB;
@@ -184,7 +226,7 @@ static void *fio(void *arg) {
   // copias: ling_*() devolve ponteiros que a UI pode trocar no meio de uma conferencia longa
   snprintf(primB, sizeof primB, "%s", ling_legenda());
   snprintf(secB, sizeof secB, "%s", ling_legenda2());
-  n = stream_sinc_fila(x->sessao, &geracao, &lembrada, fila, original, 16);   // 16 = VER_MAX de streams.c
+  n = stream_sinc_fila(x->sessao, &geracao, &lembrada, fila, original, SINC_MAX);
   x->ate = agoraMs() + PRAZO_TOTAL_MS;
   if (n < 2) { printf("[sinc-fonte] %d fonte(s) na fila; nada a comparar\n", n); goto fim; }
   if (!prim || !prim[0] || !strcasecmp(prim, "none")) { printf("[sinc-fonte] sem idioma de legenda; nada a conferir\n"); goto fim; }
@@ -227,6 +269,7 @@ static void *fio(void *arg) {
   if (!cena.leitor) goto fim;
   exigeOriginal = ling_audio_e_original();
   g.conferir = conferir; g.cancelado = canceladoCena; g.u = &cena; g.embutida = embutida; g.audioOriginal = audioOriginal;
+  g.refAusente = refAusente; g.duracao = duracaoFonte; g.nomeCasa = nomeCasa;
   // a que TOCA tambem: sem etiqueta de audio ela seria contada como "nao original" so por falta de marca
   if (exigeOriginal)
     for (int q = 0; q < n; q++)
@@ -235,30 +278,57 @@ static void *fio(void *arg) {
         if (r == 1) c[x->atual].original = 1; else if (r == 0) c[x->atual].outro = 1;
       }
   melhor = fonteauto_sincronizar(fila, n, c, exigeOriginal, temSec, &g, &nivel, &feitas);
-  soOriginal = 0;
-  if (exigeOriginal) for (int q = 0; q < n; q++) soOriginal |= c[fila[q]].original;
+  pontos = calloc((size_t)(total > 0 ? total : 1), sizeof *pontos);
+  if (pontos) melhor = fonteauto_classificar(fila, n, c, temSec, pontos, &nivel);   // idempotente: so devolve tambem os pontos
   for (int q = 0; q < n; q++) if (fila[q] == x->atual) atualNaFila = 1;
-  if (melhor >= 0 && atualNaFila)
-    printf("[sinc-fonte] %d fonte(s) conferida(s): melhor=%d (lugar %d); tocando=%d (lugar %d)\n", feitas, melhor,
-           lugar(&c[melhor], soOriginal, temSec), x->atual, lugar(&c[x->atual], soOriginal, temSec));
+  // o nivel de quem toca: fora da lista de quem tem audio original (arquivo lido, sem ele) vale pior que qualquer nivel
+  nivelAtual = !atualNaFila ? 0 : c[x->atual].outro ? 99 : fonteauto_nivel(&c[x->atual], temSec);
+  if (nivelAtual == FSINC_NADA) nivelAtual = 7;
+  if (melhor >= 0 && atualNaFila) {
+    printf("[sinc-fonte] %d de %d fonte(s) conferida(s): melhor=%d (nivel %d, %ld pontos); tocando=%d (nivel %d, %ld pontos)\n",
+           feitas, n, melhor, nivel ? nivel : 7, pontos ? pontos[melhor] : 0L, x->atual, nivelAtual,
+           pontos ? pontos[x->atual] : 0L);
+    for (int q = 0; q < n && pontos; q++)
+      if (pontos[fila[q]] > 0)
+        printf("[sinc-fonte]   lista %d: fonte %d, nivel %d, %ld pontos%s%s\n", q + 1, fila[q], fonteauto_nivel(&c[fila[q]], temSec),
+               pontos[fila[q]], c[fila[q]].semRef ? " (sem referencia)" : "",
+               (c[fila[q]].sincPrim == FSINC_PROVAVEL || c[fila[q]].sincSec == FSINC_PROVAVEL) ? " (provavel)" : "");
+  }
   fflush(stdout);
-  // troca quando a melhor da fila esta num lugar ESTRITAMENTE melhor da lista do que a que toca (a que toca tem de
-  // estar na fila: fora dela nao ha com o que comparar)
-  if (vivo(x) && melhor >= 0 && melhor != x->atual && atualNaFila &&
-      lugar(&c[melhor], soOriginal, temSec) < lugar(&c[x->atual], soOriginal, temSec) &&
-      atomic_load(&jaTrocou) != x->tok) {
-    atomic_store(&pedidoDe, x->atual);
-    atomic_store(&pedidoTok, x->tok);
-    atomic_store(&pedidoSinc, c[melhor].sincPrim == FSINC_CONFIRMADA || (temSec && c[melhor].sincSec == FSINC_CONFIRMADA));
-    atomic_store(&pedido, melhor);
-    printf("[sinc-fonte] pede a troca da fonte %d (lugar %d) para a %d (lugar %d)\n", x->atual,
-           lugar(&c[x->atual], soOriginal, temSec), melhor, lugar(&c[melhor], soOriginal, temSec));
-    fflush(stdout);
+  if (vivo(x) && agoraMs() <= x->ate && melhor >= 0 && nivel == FSINC_NADA) atomic_store(&semLegendaTok, x->tok);
+  // troca para a de MAIS PONTOS que esteja num nivel ESTRITAMENTE melhor que o de quem toca (quem toca tem de estar na
+  // lista) E que esteja viva: sem video a legenda sincronizada nao serve, entao a seguinte da tabela entra no lugar
+  if (vivo(x) && melhor >= 0 && atualNaFila && pontos && atomic_load(&jaTrocou) != x->tok) {
+    unsigned char *testada = calloc((size_t)total, 1);
+    int escolhida = -1;
+    for (int tentativa = 0; testada && tentativa < 6 && escolhida < 0 && vivo(x); tentativa++) {
+      int cand = -1, nvCand = 7;
+      long melhorPts = 0;
+      for (int q = 0; q < n; q++) {
+        int i = fila[q], nvI = fonteauto_nivel(&c[i], temSec);
+        if (i == x->atual || testada[i] || c[i].outro) continue;
+        if (nvI && pontos[i] > melhorPts) { melhorPts = pontos[i]; cand = i; nvCand = nvI; }
+      }
+      if (cand < 0 && nivelAtual == 99 && !testada[melhor] && melhor != x->atual) { cand = melhor; nvCand = 7; }   // sem legenda em lugar nenhum, mas a que toca nem tem o original
+      if (cand < 0 || nvCand >= nivelAtual) break;
+      testada[cand] = 1;
+      if (!fonteViva(&cena, cand)) { printf("[sinc-fonte] fonte %d (nivel %d) nao responde como video; proxima da tabela\n", cand, nvCand); fflush(stdout); continue; }
+      escolhida = cand; melhor = cand; nivel = nvCand == 7 ? FSINC_NADA : nvCand;
+    }
+    free(testada);
+    if (escolhida >= 0) {
+      atomic_store(&pedidoDe, x->atual);
+      atomic_store(&pedidoTok, x->tok);
+      atomic_store(&pedidoSinc, c[escolhida].sincPrim == FSINC_CONFIRMADA || (temSec && c[escolhida].sincSec == FSINC_CONFIRMADA));
+      atomic_store(&pedido, escolhida);
+      printf("[sinc-fonte] pede a troca da fonte %d (nivel %d) para a %d (nivel %d)\n", x->atual, nivelAtual, escolhida, nivel ? nivel : 7);
+      fflush(stdout);
+    }
   }
 fim:
   if (cena.leitor) fontesinc_leitor_destruir(cena.leitor);
   soltarDocs(&cena.docs[0]); soltarDocs(&cena.docs[1]);
-  free(c); free(leg); free(x);
+  free(c); free(leg); free(pontos); free(x);
   return NULL;
 }
 
@@ -276,6 +346,12 @@ void fontesincapp_iniciar(uint64_t sessao, int atual) {
 void fontesincapp_cancelar(void) {
   atomic_fetch_add(&vigente, 1);
   atomic_store(&pedido, -1);
+}
+
+int fontesincapp_sem_legenda(void) {
+  unsigned t = atomic_load(&semLegendaTok);
+  if (!t || t != atomic_load(&vigente)) return 0;
+  return atomic_compare_exchange_strong(&semLegendaTok, &t, 0);
 }
 
 int fontesincapp_trocar(int *indice, int *atual, int *sincronizada) {

@@ -1,5 +1,6 @@
 #include "fonteauto.h"
 #include <string.h>
+#include <stdlib.h>
 #include "fonteregra.h"
 #include <stddef.h>
 
@@ -142,62 +143,119 @@ int fonteauto_pode_decidir(const FonteautoParcial *p) {
   return p->boa && p->boa[c];
 }
 
-int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exigeOriginal, int temSec, int *nivel) {
-  int q, nv, soOriginal = 0;
+int fonteauto_nivel(const FonteSinc *s, int temSec) {
+  if (s->sincPrim == FSINC_CONFIRMADA) return FSINC_PRIM_OK;
+  if (temSec && s->sincSec == FSINC_CONFIRMADA) return FSINC_SEC_OK;
+  if (s->sincPrim == FSINC_PROVAVEL) return FSINC_PRIM_PROV;
+  if (temSec && s->sincSec == FSINC_PROVAVEL) return FSINC_SEC_PROV;
+  if (s->temPrim) return FSINC_PRIM;
+  if (temSec && s->temSec) return FSINC_SEC;
+  return FSINC_NADA;
+}
+
+int fonteauto_classificar(const int *fila, int n, FonteSinc *c, int temSec, long *pontos, int *nivel) {
+  static const long BASE[7] = { 0, 999999, 99999, 9999, 999, 99, 9 };
+  long usados[7] = { 0 };
+  int q, r, melhor = -1, primeira = -1;
+  long melhorPts = -1;
   if (nivel) *nivel = FSINC_NADA;
   if (!fila || n < 1 || !c) return -1;
-  // "Original" ligado e ao menos uma fonte que DIZ ter o original: so essas disputam. Nenhuma: todas, como a segunda volta.
-  if (exigeOriginal)
-    for (q = 0; q < n && !soOriginal; q++) soOriginal = c[fila[q]].original;
-  for (nv = FSINC_PRIM_OK; nv <= FSINC_SEC; nv++) {
-    if (!temSec && (nv == FSINC_SEC_OK || nv == FSINC_SEC)) continue;
-    for (q = 0; q < n; q++) {
-      const FonteSinc *s = &c[fila[q]];
-      int ok;
-      if (soOriginal && !s->original) continue;
-      if (s->outro) continue;
-      ok = nv == FSINC_PRIM_OK ? s->sincPrim == FSINC_CONFIRMADA
-         : nv == FSINC_SEC_OK  ? s->sincSec == FSINC_CONFIRMADA
-         : nv == FSINC_PRIM    ? (s->temPrim || s->sincPrim == FSINC_CONFIRMADA)
-                               : (s->temSec || s->sincSec == FSINC_CONFIRMADA);
-      if (ok) { if (nivel) *nivel = nv; return fila[q]; }
+  // a gemea: sem referencia, e uma fonte CONFIRMADA com a mesma duracao (+-0,1 s) ja deu o veredito da mesma legenda
+  for (q = 0; q < n; q++) {
+    FonteSinc *s = &c[fila[q]];
+    if (s->outro || !s->semRef) continue;
+    for (r = 0; r < n; r++) {
+      const FonteSinc *t = &c[fila[r]];
+      long d = s->duracaoMs - t->duracaoMs;
+      if (r == q || t->outro || s->duracaoMs <= 0 || t->duracaoMs <= 0 || d > 100 || d < -100) continue;
+      if (s->temPrim && s->sincPrim != FSINC_CONFIRMADA && t->sincPrim == FSINC_CONFIRMADA) s->sincPrim = FSINC_PROVAVEL;
+      if (temSec && s->temSec && s->sincSec != FSINC_CONFIRMADA && t->sincSec == FSINC_CONFIRMADA) s->sincSec = FSINC_PROVAVEL;
     }
+    if (s->nomePrim && s->temPrim && s->sincPrim != FSINC_CONFIRMADA) s->sincPrim = FSINC_PROVAVEL;
+    if (temSec && s->nomeSec && s->temSec && s->sincSec != FSINC_CONFIRMADA) s->sincSec = FSINC_PROVAVEL;
   }
-  for (q = 0; q < n; q++)   // ninguem tem legenda: a escolha de sempre
-    if ((!soOriginal || c[fila[q]].original) && !c[fila[q]].outro) return fila[q];
-  return fila[0];
+  for (q = 0; q < n; q++) {
+    const FonteSinc *s = &c[fila[q]];
+    int nv;
+    if (pontos) pontos[fila[q]] = 0;
+    if (s->outro) continue;
+    if (primeira < 0) primeira = fila[q];
+    nv = fonteauto_nivel(s, temSec);
+    if (!nv) continue;
+    { long p = BASE[nv] - usados[nv]++;
+      if (pontos) pontos[fila[q]] = p;
+      if (p > melhorPts) { melhorPts = p; melhor = fila[q]; if (nivel) *nivel = nv; } }
+  }
+  return melhor >= 0 ? melhor : primeira;
+}
+
+int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exigeOriginal, int temSec, int *nivel) {
+  FonteSinc *copia;
+  int r;
+  (void)exigeOriginal;   // a regra do audio mora na conferencia (`outro`), nao mais na ordem
+  if (nivel) *nivel = FSINC_NADA;
+  if (!fila || n < 1 || !c) return -1;
+  { int maior = 0;
+    for (r = 0; r < n; r++) if (fila[r] + 1 > maior) maior = fila[r] + 1;
+    copia = malloc(sizeof *copia * (size_t)maior);
+    if (!copia) return -1;
+    memcpy(copia, c, sizeof *copia * (size_t)maior); }
+  r = fonteauto_classificar(fila, n, copia, temSec, NULL, nivel);
+  free(copia);
+  return r;
 }
 
 int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
                           const FonteSincGancho *g, int *nivel, int *conferidas) {
-  int q, soOriginal = 0, feitas = 0, melhor;
+  int q, feitas = 0, melhorNivel = 7;   // 7 = nada ainda
   if (conferidas) *conferidas = 0;
   if (nivel) *nivel = FSINC_NADA;
   if (!fila || n < 1 || !c || !g || !g->conferir) return -1;
-  if (exigeOriginal)
-    for (q = 0; q < n && !soOriginal; q++) soOriginal = c[fila[q]].original;
+  // UMA volta, de cima para baixo, na ordem da lista. Cada fonte: primeiro o AUDIO (etiqueta, ou as faixas do arquivo),
+  // depois a legenda. Quem ja nao pode vencer o melhor achado (so um nivel melhor o supera: no mesmo nivel a de baixo
+  // tem menos pontos) nao gasta leitura de legenda; a primeira principal sincronizada encerra a volta.
   for (q = 0; q < n; q++) {
     FonteSinc *s = &c[fila[q]];
+    int v, nv;
     if (g->cancelado && g->cancelado(g->u)) break;
     if (exigeOriginal && !s->original && g->audioOriginal) {   // a etiqueta nao diz: le as faixas do arquivo
       int r = g->audioOriginal(fila[q], g->u);
-      if (r == 1) { s->original = 1; soOriginal = 1; }
+      if (r == 1) s->original = 1;
       else if (r == 0) { s->outro = 1; continue; }
     }
-    if (soOriginal && !s->original) continue;
+    if (s->outro) continue;
     if (g->embutida && g->embutida(fila[q], g->u)) {   // sincronizada de fabrica: nada acima disso
       s->temPrim = 1; s->sincPrim = FSINC_CONFIRMADA;
       feitas++;
       break;
     }
-    if (s->temPrim) s->sincPrim = (unsigned char)g->conferir(fila[q], 0, g->u);
-    if (temSec && s->temSec) s->sincSec = (unsigned char)g->conferir(fila[q], 1, g->u);
+    if (s->temPrim) {
+      v = g->conferir(fila[q], 0, g->u);
+      s->sincPrim = (unsigned char)v;
+      if (v == FSINC_NAO && g->refAusente && g->refAusente(fila[q], &s->duracaoMs, g->u)) {
+        s->semRef = 1;
+        if (g->nomeCasa && g->nomeCasa(fila[q], 0, g->u)) s->nomePrim = 1;
+      }
+      if (v == FSINC_CONFIRMADA && g->duracao) s->duracaoMs = g->duracao(fila[q], g->u);
+    }
+    nv = fonteauto_nivel(s, temSec);
+    if (nv && nv < melhorNivel) melhorNivel = nv;
+    if (s->sincPrim == FSINC_CONFIRMADA) { feitas++; break; }
+    if (temSec && s->temSec && melhorNivel > FSINC_SEC_OK) {   // so vale se ainda nao ha secundaria sincronizada acima
+      v = g->conferir(fila[q], 1, g->u);
+      s->sincSec = (unsigned char)v;
+      if (v == FSINC_NAO && g->refAusente && g->refAusente(fila[q], &s->duracaoMs, g->u)) {
+        s->semRef = 1;
+        if (g->nomeCasa && g->nomeCasa(fila[q], 1, g->u)) s->nomeSec = 1;
+      }
+      if (v == FSINC_CONFIRMADA && g->duracao) s->duracaoMs = g->duracao(fila[q], g->u);
+      nv = fonteauto_nivel(s, temSec);
+      if (nv && nv < melhorNivel) melhorNivel = nv;
+    }
     feitas++;
-    if (s->sincPrim == FSINC_CONFIRMADA) break;   // o melhor nivel que existe: nao ha o que conferir adiante
   }
   if (conferidas) *conferidas = feitas;
-  melhor = fonteauto_sincronizada(fila, n, c, exigeOriginal, temSec, nivel);
-  return melhor;
+  return fonteauto_classificar(fila, n, c, temSec, NULL, nivel);
 }
 
 int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma) {

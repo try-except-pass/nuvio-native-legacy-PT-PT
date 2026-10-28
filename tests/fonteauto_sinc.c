@@ -27,23 +27,21 @@ static int escolhe(int n, int exigeOriginal, int temSec, int *nivel) {
 
 // O ORACULO: escrito de outro jeito (uma chave por fonte, vence a menor), para nao repetir o laco da regra.
 static int oraculo(int n, int exigeOriginal, int temSec, int *nivel) {
-  int soOrig = 0, melhor = -1, chave, q, melhorChave = 1 << 30;
-  if (exigeOriginal) for (q = 0; q < n; q++) soOrig |= f[fila[q]].original;
+  int melhor = -1, chave, q, melhorChave = 1 << 30;
+  (void)exigeOriginal;   // a marca de audio nao reordena nem tira ninguem: so `outro` (arquivo lido, sem o original) tira
   for (q = 0; q < n; q++) {
     const FonteSinc *s = &f[fila[q]];
     int nv = 9;
-    if (soOrig && !s->original) continue;
     if (s->sincPrim == FSINC_CONFIRMADA) nv = 1;
     else if (temSec && s->sincSec == FSINC_CONFIRMADA) nv = 2;
-    else if (s->temPrim) nv = 3;
-    else if (temSec && s->temSec) nv = 4;
+    else if (s->temPrim) nv = 5;
+    else if (temSec && s->temSec) nv = 6;
     // um nivel melhor numa fonte mais ABAIXO ganha de um nivel pior mais acima: o nivel vem antes da posicao
     chave = nv * 1000 + q;
     if (chave < melhorChave) { melhorChave = chave; melhor = fila[q]; }
   }
   if (melhor < 0 || melhorChave >= 9000) {   // ninguem tem legenda: a 1a elegivel
     *nivel = FSINC_NADA;
-    for (q = 0; q < n; q++) if (!soOrig || f[fila[q]].original) return fila[q];
     return fila[0];
   }
   *nivel = melhorChave / 1000;
@@ -104,13 +102,13 @@ int main(void) {
   fila[0] = 5; fila[1] = 3; fila[2] = 2; fila[3] = 0; fila[4] = 1; fila[5] = 4;
   CONFERE(escolhe(6, 0, 1, &nv) == 3, "ordem da fila: 3 vem antes de 2");
 
-  // audio original vem ANTES da sincronia: a original sem sincronia ganha da nao original sincronizada
+  // a marca de audio NAO reordena (dono, 2026-10-28): a sincronizada acima vence a original sem sincronia
   limpa(6);
   for (i = 0; i < 6; i++) f[i].temPrim = 1;
   f[5].original = 1;
   f[1].sincPrim = FSINC_CONFIRMADA;
   r = escolhe(6, 1, 1, &nv);
-  CONFERE(r == 5 && nv == FSINC_PRIM, "original antes da sincronia: %d nivel %d", r, nv);
+  CONFERE(r == 1 && nv == FSINC_PRIM_OK, "a marca de audio nao reordena: %d nivel %d", r, nv);
   // sem "Original" ligado a marca nao separa ninguem
   r = escolhe(6, 0, 1, &nv);
   CONFERE(r == 1 && nv == FSINC_PRIM_OK, "sem Original: %d nivel %d", r, nv);
@@ -149,7 +147,7 @@ int main(void) {
   limpa(5);
   CONFERE(escolhe(5, 1, 1, &nv) == 0 && nv == FSINC_NADA, "nada: 1a");
   f[3].original = 1; f[4].original = 1;
-  CONFERE(escolhe(5, 1, 1, &nv) == 3 && nv == FSINC_NADA, "nada, com original: a 1a original");
+  CONFERE(escolhe(5, 1, 1, &nv) == 0 && nv == FSINC_NADA, "nada, com original: a 1a da lista");
 
   // PROPRIEDADE 1: contra o oraculo, em casos aleatorios
   srand(20261027);
@@ -237,8 +235,7 @@ int main(void) {
     f[1].original = f[4].original = 1;
     verdade[4][0] = FSINC_CONFIRMADA;
     r = fonteauto_sincronizar(fila, 6, f, 1, 1, &g, &nv, &feitas);
-    CONFERE(r == 4 && feitas == 2 && chamadas[0][0] + chamadas[2][0] + chamadas[3][0] + chamadas[5][0] == 0,
-            "so as originais: %d, %d conferidas", r, feitas);
+    CONFERE(r == 4 && feitas == 5, "a lista na ordem, sem pular as sem marca: %d, %d conferidas", r, feitas);
     // ... e sem nenhuma original, todas disputam
     prepara(6, 1, 1);
     verdade[5][0] = FSINC_CONFIRMADA;
@@ -295,7 +292,7 @@ int main(void) {
       // com Original ligado, a embutida de uma fonte que nao e original nao disputa
       prepara(6, 0, 0); memset(emb, 0, sizeof emb); memset(perguntouEmb, 0, sizeof perguntouEmb); emb[1] = 1; f[4].original = 1; f[5].original = 1;
       r = fonteauto_sincronizar(fila, 6, f, 1, 1, &ge, &nv, &feitas);
-      CONFERE(r == 4 && nv == FSINC_NADA && perguntouEmb[0] == 0, "so as originais: %d nivel %d", r, nv);
+      CONFERE(r == 1 && nv == FSINC_PRIM_OK, "embutida na 2a da lista: %d nivel %d", r, nv);
     }
 
     // AUDIO PELO ARQUIVO (opcao 3, 2026-10-28): a etiqueta nao diz; as faixas do arquivo decidem.
@@ -319,7 +316,7 @@ int main(void) {
       f[3].original = 1; audioVer[0] = 0; audioVer[1] = -1; audioVer[2] = -1;
       verdade[0][0] = FSINC_CONFIRMADA; verdade[3][0] = FSINC_CONFIRMADA;
       r = fonteauto_sincronizar(fila, 4, f, 1, 0, &ga, &nv, &feitas);
-      CONFERE(r == 3 && chamadas[0][0] == 0 && chamadas[1][0] == 0, "arquivo sem o original fica fora mesmo sincronizando: %d", r);
+      CONFERE(r == 3 && chamadas[0][0] == 0, "arquivo sem o original fica fora mesmo sincronizando: %d", r);
       // sem Original ligado o gancho nao e perguntado
       prepara(3, 1, 0); memset(perguntouAud, 0, sizeof perguntouAud);
       fonteauto_sincronizar(fila, 3, f, 0, 0, &ga, &nv, &feitas);
@@ -327,6 +324,44 @@ int main(void) {
       // a regra dos niveis tambem pula a "outro"
       limpa(3); f[0].temPrim = f[1].temPrim = 1; f[0].outro = 1;
       CONFERE(escolhe(3, 1, 0, &nv) == 1 && nv == FSINC_PRIM, "regra: a de outro idioma nao vence");
+    }
+
+    // A TABELA DE PONTOS (dono, 2026-10-28): base por nivel menos 1 por fonte anterior no mesmo nivel; ordem da lista
+    {
+      long pts[N]; int nv2, rr;
+      limpa(6);
+      for (i = 0; i < 6; i++) f[i].temPrim = f[i].temSec = 1;
+      f[1].sincSec = FSINC_CONFIRMADA; f[3].sincPrim = FSINC_CONFIRMADA; f[4].sincSec = FSINC_CONFIRMADA;
+      rr = fonteauto_classificar(fila, 6, f, 1, pts, &nv2);
+      CONFERE(rr == 3 && nv2 == FSINC_PRIM_OK && pts[3] == 999999, "principal sincronizada vence: %d nivel %d pts %ld", rr, nv2, pts[3]);
+      CONFERE(pts[1] == 99999 && pts[4] == 99998 && pts[0] == 99 && pts[2] == 98, "pontos: sec %ld %ld, sem garantia %ld %ld", pts[1], pts[4], pts[0], pts[2]);
+      // a gemea: sem referencia, mesma duracao (+-0,1 s) de uma CONFIRMADA: PROVAVEL, acima do "sem garantia"
+      limpa(4);
+      for (i = 0; i < 4; i++) f[i].temPrim = 1;
+      f[0].semRef = 1; f[0].sincPrim = FSINC_NAO; f[0].duracaoMs = 5584579;
+      f[1].semRef = 1; f[1].sincPrim = FSINC_NAO; f[1].duracaoMs = 5400000;   // outra duracao: sem gemea
+      f[3].sincPrim = FSINC_CONFIRMADA; f[3].duracaoMs = 5584640;            // 61 ms de diferenca
+      f[3].sincPrim = FSINC_NAO;                                             // sem confirmada: ninguem e gemea de ninguem
+      rr = fonteauto_classificar(fila, 4, f, 0, pts, &nv2);
+      CONFERE(nv2 == FSINC_PRIM && rr == 0, "sem confirmada nao ha gemea: %d nivel %d", rr, nv2);
+      f[3].sincPrim = FSINC_CONFIRMADA;
+      rr = fonteauto_classificar(fila, 4, f, 0, pts, &nv2);
+      CONFERE(rr == 3 && nv2 == FSINC_PRIM_OK, "a confirmada vence: %d nivel %d", rr, nv2);
+      f[3].sincPrim = FSINC_NAO; f[3].semRef = 0; f[2].sincPrim = FSINC_CONFIRMADA; f[2].duracaoMs = 5584579;
+      rr = fonteauto_classificar(fila, 4, f, 0, pts, &nv2);
+      CONFERE(rr == 2 && f[0].sincPrim == FSINC_PROVAVEL && f[1].sincPrim == FSINC_NAO, "gemea 0 virou provavel, 1 nao: %d, %d, %d", rr, f[0].sincPrim, f[1].sincPrim);
+      // sem nenhuma sincronizada, a provavel (nivel 3) ganha da sem garantia (nivel 5)
+      f[2].sincPrim = FSINC_NAO; f[3].duracaoMs = 0; f[0].sincPrim = FSINC_NAO; f[0].nomePrim = 1;
+      rr = fonteauto_classificar(fila, 4, f, 0, pts, &nv2);
+      CONFERE(rr == 0 && nv2 == FSINC_PRIM_PROV, "mesmo nome de arquivo: provavel: %d nivel %d", rr, nv2);
+      // o caso da lista do dono: a 3a (sem etiqueta, faixa PT embutida) vence na posicao, sem ser reordenada
+      limpa(5);
+      for (i = 0; i < 5; i++) f[i].temPrim = 1;
+      f[0].original = f[1].original = 1;   // as etiquetadas vem na frente na lista do addon... mas a 3a ja tem PT dentro
+      f[2].sincPrim = FSINC_CONFIRMADA;
+      f[4].sincPrim = FSINC_CONFIRMADA;
+      rr = fonteauto_classificar(fila, 5, f, 1, pts, &nv2);
+      CONFERE(rr == 2 && pts[2] == 999999 && pts[4] == 999998, "3a da lista vence por posicao: %d %ld %ld", rr, pts[2], pts[4]);
     }
 
     // PROPRIEDADE 3: parar cedo NUNCA muda a resposta. Mesma verdade, uma vez com a conferencia em serie e outra

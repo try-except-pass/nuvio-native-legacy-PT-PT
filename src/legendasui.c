@@ -628,7 +628,7 @@ int legendasui_evento(const SDL_Event *e) {
 #define LU_PAD_X   18.0f
 #define LU_PAD_Y   22.0f
 #define LU_TIT_H   42.0f   // heading only: the title already sits in the header by the clock
-#define LU_LN_H    88.0f
+#define LU_LN_H    76.0f   // era 88: com 7 linhas o painel passava de 790 px e saia da tela da TV (dono, 2.1.6)
 #define LU_LN_VAO   4.0f
 #define LU_PE_H    47.0f
 // PONTEIRO (#99). A linha sob o cursor ganha o foco pela mesma focar() das
@@ -676,8 +676,9 @@ int legendasui_teste_foco(int *alvoOut, int *syncOut) {
 }
 
 static int luVis(void) {
-  int n = (int)((NV_VTELA_H - 48.0f - 40.0f - 60.0f - 183.0f + 4.0f) / (LU_LN_H + LU_LN_VAO));
-  return n > 7 ? 7 : n < 2 ? 2 : n;
+  // 80 px a mais de folga (a area segura da TV) e no maximo 6 linhas: o painel cabe inteiro na tela
+  int n = (int)((NV_VTELA_H - 48.0f - 40.0f - 60.0f - 183.0f - 80.0f + 4.0f) / (LU_LN_H + LU_LN_VAO));
+  return n > 6 ? 6 : n < 2 ? 2 : n;
 }
 
 float legendasui_altura(void) {

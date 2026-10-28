@@ -4977,8 +4977,12 @@ static void desenhaHero(Uint32 agora, float saida) {
   if (lay == HOME_LAYOUT_MODERNA && kCanto > 0.01f && aArte > 0.01f) {
     float ar, ag, ab;
     ajustes_acento(&ar, &ag, &ab);
-    gfx_rect((GfxRect){ r.x + r.w * 0.12f - 40.0f, r.y - 40.0f, r.w * 0.88f + 40.0f, r.h + 70.0f }, 0, GFX_SOMBRA, 1.0f, 0, 0,
-             0.5f, ar, ag, ab, 0.42f * anim_suave(kCanto) * aArte);
+    // A queda e em PIXELS a partir da borda do retangulo (parx): cheia na borda da arte, morrendo ate 280 px para fora.
+    // Antes o retangulo era so ~40 px maior que a arte e a queda era radial: o pico ficava no centro, escondido pela arte
+    // opaca, e o que sobrava a vista era uma borda quase transparente (2.1.5/2.1.6: "a sombra nao aparece").
+    const float folga = 280.0f;
+    gfx_rect((GfxRect){ r.x - folga, r.y - folga, r.w + folga * 2.0f, r.h + folga * 2.0f }, 0, GFX_SOMBRA, 1.0f, folga, 0,
+             0.5f, ar, ag, ab, 0.55f * anim_suave(kCanto) * aArte);
   }
   // LAYOUTS NOVOS. O destaque deles e sempre "de titulo" (a arte do titulo em
   // foco) e nunca o de colecao/social da Moderna, que sao telas cheias de

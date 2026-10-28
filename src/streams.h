@@ -207,6 +207,7 @@ int  stream_n_candidatas(void);
 int  stream_sinc_fila(uint64_t sessao, unsigned *geracao, int *lembrada, int *fila, unsigned char *original, int max);
 // O link tocavel da candidata i, so se ja e um link direto pronto, sem cabecalhos, de lista ainda vigente.
 int  stream_sinc_link(unsigned geracao, int i, char *url, size_t tam);
+int  stream_sinc_arquivo(unsigned geracao, int i, char *out, size_t tam);
 
 // DE QUEM E A LISTA QUE ESTA EM MEMORIA — issue #101.
 //

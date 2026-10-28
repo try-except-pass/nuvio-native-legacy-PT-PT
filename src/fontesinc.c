@@ -24,6 +24,8 @@ struct FonteSincLeitor {
   char refIdioma[24];         // idioma da faixa lida como referencia
   int refDialogo;             // 1 = faixa de dialogo (nem forcada nem so letreiros)
   char motivo[40];
+  int semReferencia;          // a ultima leitura: o arquivo nao tem faixa de texto/PGS, ou nao e Matroska
+  long duracaoMs;
 };
 
 FonteSincLeitor *fontesinc_leitor_criar(LegRefLer ler, void *u) {
@@ -36,7 +38,7 @@ FonteSincLeitor *fontesinc_leitor_criar(LegRefLer ler, void *u) {
 
 static void soltar(FonteSincLeitor *l) {
   legenda_documento_liberar(l->refDoc);
-  l->refDoc = NULL; l->refFalhou = 0; l->url[0] = 0; l->refIdioma[0] = 0; l->refDialogo = 0;
+  l->refDoc = NULL; l->refFalhou = 0; l->url[0] = 0; l->refIdioma[0] = 0; l->refDialogo = 0; l->semReferencia = 0; l->duracaoMs = 0;
 }
 
 void fontesinc_leitor_destruir(FonteSincLeitor *l) {
@@ -47,6 +49,8 @@ void fontesinc_leitor_destruir(FonteSincLeitor *l) {
 }
 
 const char *fontesinc_motivo(const FonteSincLeitor *l) { return l ? l->motivo : "none"; }
+int fontesinc_referencia_ausente(const FonteSincLeitor *l) { return l && l->semReferencia; }
+long fontesinc_duracao_ms(const FonteSincLeitor *l) { return l ? l->duracaoMs : 0; }
 
 // Le a referencia de `url` (uma vez). 0 = nao veio (l->motivo diz por que), -1 = cancelado.
 static int lerReferencia(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
@@ -71,8 +75,10 @@ static int lerReferencia(FonteSincLeitor *l, const char *url, uint64_t sessao, c
     }
     usleep(5000); ms += 5;
   }
+  l->duracaoMs = st.duracaoMs;
   if (st.fase == LEGREF_PRONTO) l->refDoc = legref_tomar(l->ref, pedido);
   if (!l->refDoc) {
+    l->semReferencia = st.motivo == LEGREF_SEM_FAIXA || st.motivo == LEGREF_NAO_MKV;
     snprintf(l->motivo, sizeof l->motivo, "%s", legref_motivo(st.motivo));
     l->refFalhou = 1;
     return 0;
