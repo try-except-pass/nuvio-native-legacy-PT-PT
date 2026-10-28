@@ -9,6 +9,7 @@
 #include <strings.h>
 #include <time.h>
 #include <errno.h>
+#include <zlib.h>
 // strcasestr is a GNU extension: the webOS toolchain and emcc do not declare it.
 static int contemSemCaixa(const char *h, const char *n) {
   size_t k = strlen(n);
@@ -79,7 +80,7 @@ static int prox(It *it, unsigned long *id, const unsigned char **d, long *tam) {
 
 // --- PARSERS PUROS ------------------------------------------------------------
 typedef struct {
-  int numero, tipo, forced, codificada;
+  int numero, tipo, forced, codificada, zlib;   // zlib: blocos comprimidos (mkvmerge antigo); codificada: o resto, nao lemos
   char codec[24], idioma[24], nome[96];
   const unsigned char *priv; long nPriv;
 } Faixa;
@@ -90,6 +91,27 @@ static void copiaStr(char *dst, size_t tam, const unsigned char *d, long n) {
   while (k && !dst[k - 1]) dst[--k] = 0;
 }
 
+// ContentEncodings: so a compressao zlib (CompAlgo 0, o padrao que o mkvmerge omite) e lida; cifra, header
+// stripping, bzlib e lzo seguem recusados (codificada).
+static void codificacao(const unsigned char *p, long n, Faixa *f) {
+  It it = { p, 0, n };
+  unsigned long id; const unsigned char *d; long t; int n1 = 0;
+  while (prox(&it, &id, &d, &t)) {
+    It e = { d, 0, t }; unsigned long i2; const unsigned char *d2; long t2; int comp = 0, algo = 0;
+    if (id != 0x6240) continue;
+    n1++;
+    while (prox(&e, &i2, &d2, &t2)) {
+      if (i2 == 0x5034) {
+        It c = { d2, 0, t2 }; unsigned long i3; const unsigned char *d3; long t3;
+        comp = 1;
+        while (prox(&c, &i3, &d3, &t3)) if (i3 == 0x4254) algo = (int)lerUint(d3, t3);
+      } else if (i2 == 0x5035) comp = -1;   // ContentEncryption
+    }
+    if (comp != 1 || algo != 0) f->codificada = 1;
+  }
+  if (n1 != 1) f->codificada = 1;   // varias camadas: nao lemos
+  else if (!f->codificada) f->zlib = 1;
+}
 static int lerTracks(const unsigned char *p, long n, Faixa *v, int max) {
   It it = { p, 0, n }, sub;
   unsigned long id, id2;
@@ -111,7 +133,7 @@ static int lerTracks(const unsigned char *p, long n, Faixa *v, int max) {
       else if (id2 == 0x536E) copiaStr(f.nome, sizeof f.nome, d2, t2);
       else if (id2 == 0x55AA) f.forced = lerUint(d2, t2) != 0;
       else if (id2 == 0x63A2) { f.priv = d2; f.nPriv = t2; }
-      else if (id2 == 0x6D80) f.codificada = 1;   // compressao/cifra: nao lemos
+      else if (id2 == 0x6D80) codificacao(d2, t2, &f);
     }
     v[k++] = f;
   }
@@ -756,12 +778,17 @@ static LegendaDocumento *coletarMp4(Job *j, LegRefStatus *st, const unsigned cha
 #define LR_PGS_AMOSTRAS 16
 #define LR_PGS_MIN      40         // menos blocos que isto nao dizem nada
 #define LR_PGS_JANELA   256L       // cabecalho do bloco + o PCS
+#define LR_PGS_AM_MAX   160        // teto de amostras (as 16 do comeco + a bisseccao das viradas)
+#define LR_PGS_ESTREITO 6          // trecho de tantos pontos com a fase virada: nao se bisseca mais, e descartado
+static int vobsubFaixa(const Faixa *f) {
+  return f->tipo == 0x11 && !f->codificada && !strcmp(f->codec, "S_VOBSUB");
+}
 static int pgsFaixa(const Faixa *f) {
   return f->tipo == 0x11 && !f->codificada && !strcmp(f->codec, "S_HDMV/PGS");
 }
 // 1 = o bloco MOSTRA uma fala (PCS com objetos), 0 = LIMPA, -1 = nao e um bloco
 // desta faixa / nao deu para ler. `p` comeca no BlockGroup/SimpleBlock.
-static int pgsMostra(const unsigned char *p, long n, int faixa) {
+static int pgsMostra(const unsigned char *p, long n, int faixa, int zl) {
   unsigned long id; long long s; int a, b, c, k; unsigned long tr = 0;
   const unsigned char *bl = NULL; long nb = 0, o;
   a = lerId(p, n, &id);
@@ -785,6 +812,18 @@ static int pgsMostra(const unsigned char *p, long n, int faixa) {
   for (k = 1; k < c; k++) tr = (tr << 8) | bl[k];
   if ((int)tr != faixa || ((bl[c + 2] >> 1) & 3)) return -1;   // outra faixa / lacing
   bl += c + 3; nb -= c + 3;
+  if (zl) {   // blocos zlib: basta o comeco do fluxo, o PCS e o primeiro segmento
+    static __thread unsigned char dz[512];
+    z_stream z; int r; long got;
+    memset(&z, 0, sizeof z);
+    if (inflateInit(&z) != Z_OK) return -1;
+    z.next_in = (Bytef *)bl; z.avail_in = (uInt)nb; z.next_out = dz; z.avail_out = sizeof dz;
+    r = inflate(&z, Z_SYNC_FLUSH);
+    got = (long)(sizeof dz - z.avail_out);
+    inflateEnd(&z);
+    if ((r != Z_OK && r != Z_STREAM_END && r != Z_BUF_ERROR) || got < 3) return -1;
+    bl = dz; nb = got;
+  }
   // Segmentos: tipo(1) tamanho(2). PCS = 0x16; objetos no byte 10 do corpo.
   for (o = 0; o + 3 <= nb;) {
     int t = bl[o]; long sz = (bl[o + 1] << 8) | bl[o + 2];
@@ -798,39 +837,78 @@ static int cmpPontoIni(const void *a, const void *b) {
 }
 // `pts` (do Cues da faixa) sai ordenado por tempo. NULL + j->erro quando a
 // faixa nao serve.
+// A fase de um ponto: a paridade dos indices que MOSTRAM uma fala. 1 = lida (*fase 0 ou 1), 0 = bloco ilegivel,
+// -1 = a leitura falhou (j->erro ja foi posto).
+static int pgsFase(Job *j, const Faixa *f, const LegRefPonto *pts, int i, long long segData, int *fase) {
+  unsigned char *buf; long n = 0; int h, m = -1;
+  buf = ler(j, segData + pts[i].pos + 5 + pts[i].rel, 7 + (f->zlib ? 4 * LR_PGS_JANELA : LR_PGS_JANELA), &n);
+  if (!buf) return -1;
+  for (h = 5; h <= 12 && m < 0; h++)   // o cabecalho do Cluster tem 5 a 12 bytes
+    if (h - 5 < n) m = pgsMostra(buf + (h - 5), n - (h - 5), f->numero, f->zlib);
+  free(buf);
+  if (m < 0) return 0;
+  *fase = m ? i % 2 : 1 - i % 2;
+  return 1;
+}
+// `pts` (do Cues da faixa) sai ordenado por tempo. NULL + j->erro quando a faixa nao serve.
+// Os pontos alternam MOSTRA/LIMPA, mas alguns arquivos escorregam (dois MOSTRA ou dois LIMPA seguidos): a fase vira e o
+// resto da faixa, lido com a fase velha, sairia com os tempos de LIMPA no lugar dos de MOSTRA. Amostra-se espalhado;
+// onde duas amostras vizinhas discordam, bisseca-se ate um trecho estreito, que e descartado. O resto vale com a fase de
+// cada trecho.
 static LegendaDocumento *pgsDoc(Job *j, const Faixa *f, LegRefPonto *pts, int nP, long long segData) {
-  int k, i, validas = 0, voto[2] = { 0, 0 }, par, nT = 0, ruins = 0;
+  int am[LR_PGS_AM_MAX], fs[LR_PGS_AM_MAX], na = 0, k, i, tentadas = 0, lidas = 0, descartados = 0, nT = 0, ruins = 0;
+  unsigned char dz[LR_PGS_AM_MAX] = { 0 };   // dz[k]: o trecho (k, k+1) foi desistido (bloco ilegivel), nao se bisseca mais
   Tempo *tv; LegendaDocumento *doc; char ident[32];
   if (nP < LR_PGS_MIN) { j->erro = LEGREF_INCOMPLETO; return NULL; }
   qsort(pts, (size_t)nP, sizeof *pts, cmpPontoIni);
   for (k = 0; k < LR_PGS_AMOSTRAS; k++) {
-    long long cl; unsigned char *buf; long n = 0; int h, m = -1;
+    int fase = 0, r;
     i = (int)((long long)k * (nP - 1) / (LR_PGS_AMOSTRAS - 1));
-    cl = segData + pts[i].pos;
-    buf = ler(j, cl + 5 + pts[i].rel, 7 + LR_PGS_JANELA, &n);
-    if (!buf) return NULL;
-    for (h = 5; h <= 12 && m < 0; h++)   // o cabecalho do Cluster tem 5 a 12 bytes
-      if (h - 5 < n) m = pgsMostra(buf + (h - 5), n - (h - 5), f->numero);
-    free(buf);
-    if (m < 0) continue;
-    validas++;
-    voto[m ? i % 2 : 1 - i % 2]++;   // paridade dos indices que MOSTRAM
+    tentadas++;
+    r = pgsFase(j, f, pts, i, segData, &fase);
+    if (r < 0) return NULL;
+    if (r) { am[na] = i; fs[na] = fase; na++; lidas++; }
   }
-  par = voto[1] > voto[0];
-  if (validas < LR_PGS_AMOSTRAS * 3 / 4 || voto[1 - par] > 1) { j->erro = LEGREF_INCOMPLETO; return NULL; }
+  if (lidas < LR_PGS_AMOSTRAS * 3 / 4) { j->erro = LEGREF_INCOMPLETO; return NULL; }
+  for (;;) {   // bisseca a primeira dupla vizinha que discorda e ainda nao e estreita
+    int onde = -1, fase = 0, r, meio;
+    for (k = 0; k + 1 < na; k++) if (!dz[k] && fs[k] != fs[k + 1] && am[k + 1] - am[k] > LR_PGS_ESTREITO) { onde = k; break; }
+    if (onde < 0 || na >= LR_PGS_AM_MAX) break;
+    meio = (am[onde] + am[onde + 1]) / 2;
+    tentadas++;
+    r = pgsFase(j, f, pts, meio, segData, &fase);
+    if (r < 0) return NULL;
+    if (!r) {   // bloco ilegivel: tenta o vizinho; se tambem nao, este trecho fica como esta (sera descartado)
+      r = pgsFase(j, f, pts, meio + 1, segData, &fase);
+      if (r < 0) return NULL;
+      if (r) meio++;
+    }
+    if (!r) { dz[onde] = 1; continue; }
+    memmove(am + onde + 2, am + onde + 1, (size_t)(na - onde - 1) * sizeof *am);
+    memmove(fs + onde + 2, fs + onde + 1, (size_t)(na - onde - 1) * sizeof *fs);
+    memmove(dz + onde + 2, dz + onde + 1, (size_t)(na - onde - 1) * sizeof *dz);
+    am[onde + 1] = meio; fs[onde + 1] = fase; dz[onde + 1] = 0; na++;
+  }
   tv = malloc((size_t)(nP / 2 + 1) * sizeof *tv);
   if (!tv) { j->erro = LEGREF_MEMORIA; return NULL; }
-  for (i = par; i + 1 < nP; i += 2) {
-    double d = pts[i + 1].inicio - pts[i].inicio;
-    if (d > 0.1 && d < 20.0) { tv[nT].inicio = pts[i].inicio; tv[nT].fim = pts[i + 1].inicio; nT++; }
-    else ruins++;
+  for (k = 0; k + 1 < na; k++) {
+    if (fs[k] != fs[k + 1]) { descartados += am[k + 1] - am[k]; continue; }   // a virada esta aqui dentro
+    for (i = am[k]; i < am[k + 1] && i + 1 < nP; i++) {
+      double d;
+      if (i % 2 != fs[k]) continue;
+      d = pts[i + 1].inicio - pts[i].inicio;
+      if (d > 0.1 && d < 20.0) { tv[nT].inicio = pts[i].inicio; tv[nT].fim = pts[i + 1].inicio; nT++; }
+      else ruins++;
+    }
   }
-  if (nT < LR_PGS_MIN / 2 || ruins * 5 > nT) { free(tv); j->erro = LEGREF_INCOMPLETO; return NULL; }
+  if (nT < LR_PGS_MIN / 2 || ruins * 5 > nT || descartados * 4 > nP) { free(tv); j->erro = LEGREF_INCOMPLETO; return NULL; }
+  qsort(tv, (size_t)nT, sizeof *tv, cmpTempo);
   snprintf(ident, sizeof ident, "mkv-track:%d", f->numero);
   progresso(j, nT, nT);
   doc = montarTempos(tv, nT, f->idioma, ident, f->forced, j->p.sessao);
   free(tv);
   if (!doc) j->erro = LEGREF_MEMORIA;
+  (void)tentadas;
   return doc;
 }
 
@@ -841,7 +919,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   double escala = 1e-6;   // TimestampScale padrao (1 ms) em segundos
   Faixa fx[LR_FAIXAS]; int nF = 0, escolhida = -1, i, semRel = 0, nP, cand[LR_FAIXAS], nCand = 0;
   LegRefPonto *pts = NULL; Evento *ev = NULL; int nEv = 0;
-  LegendaDocumento *doc = NULL; int ass, pgsModo = 0;
+  LegendaDocumento *doc = NULL; int ass, vob, pgsModo = 0;
   // 1. Cabeca do arquivo. O primeiro pedido segue redirects (debrid) e guarda
   // o endereco final: Range e cabecalho do dono e nao atravessa origem num
   // redirect, entao os seguintes vao direto ao destino.
@@ -915,17 +993,27 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
       for (e = 0; e < j->p.nExcl; e++) if (j->p.excl[e] == fx[i].numero) ok[i] = 0;
     }
     nCand = ordenar(ids, nms, ok, nF, j->p.idioma, cand);
-    if (!nCand) {   // sem texto: faixa de imagem (PGS), so pelos tempos
+    // Sem texto: faixa de imagem, so pelos tempos. VOBSUB antes de PGS: cada bloco e uma fala inteira e o Cues ja traz a
+    // duracao (zero leitura de bloco); no PGS e preciso amostrar blocos para separar MOSTRA de LIMPA.
+    for (int img = 0; img < 2 && !nCand; img++) {
       for (i = 0; i < nF; i++) {
         int e;
-        ok[i] = pgsFaixa(&fx[i]) && !letreiro(&fx[i]) && !comentario(fx[i].nome);
+        ok[i] = (img ? pgsFaixa(&fx[i]) : vobsubFaixa(&fx[i])) && !letreiro(&fx[i]) && !comentario(fx[i].nome);
         for (e = 0; e < j->p.nExcl; e++) if (j->p.excl[e] == fx[i].numero) ok[i] = 0;
       }
       nCand = ordenar(ids, nms, ok, nF, j->p.idioma, cand);
-      pgsModo = nCand > 0;
+      pgsModo = nCand > 0 && img;
     }
   }
-  if (!nCand) { j->erro = LEGREF_SEM_FAIXA; goto fim; }
+  if (!nCand) {
+    // Diz por que cada faixa ficou de fora (so tipo/codec/flags, sem nome nem URL) para o proximo log da TV.
+    for (i = 0; i < nF; i++)
+      printf("[legref] faixa %d tipo=%d codec=%s idioma=%s forced=%d codificada=%d\n", fx[i].numero, fx[i].tipo,
+             fx[i].codec, fx[i].idioma, fx[i].forced, fx[i].codificada);
+    printf("[legref] sem faixa de referencia: %d faixa(s) lida(s) na cabeca de %ld bytes, posTracks=%lld\n", nF, tam,
+           posTracks);
+    j->erro = LEGREF_SEM_FAIXA; goto fim;
+  }
   escolhida = cand[0];
   anunciar(j, st, fx[escolhida].numero, fx[escolhida].idioma, fx[escolhida].codec);
   // 3. O indice.
@@ -956,7 +1044,8 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
     }
     for (x = 0; x < nv; x++) free(tv[x]);
   }
-  ass = strcmp(fx[escolhida].codec, "S_TEXT/UTF8") != 0;
+  vob = !strcmp(fx[escolhida].codec, "S_VOBSUB");   // imagem: so os tempos do Cues, como o SRT com CueDuration
+  ass = !vob && strcmp(fx[escolhida].codec, "S_TEXT/UTF8") != 0;
   nP = legref_cues(cues + oCu, nCu, fx[escolhida].numero, escala, &pts, &semRel);
   if (nP < 0) { j->erro = LEGREF_ORCAMENTO; goto fim; }
   // Um CuePoint sem posicao relativa e um bloco que nao sabemos buscar: a
@@ -983,6 +1072,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
       goto fim;
     }
   }
+  if (fx[escolhida].zlib || vob) { j->erro = LEGREF_INCOMPLETO; goto fim; }   // sem duracoes no Cues: os blocos viriam comprimidos ou seriam imagem
   qsort(pts, (size_t)nP, sizeof *pts, cmpPonto);
   ev = calloc((size_t)nP, sizeof *ev);
   if (!ev) { j->erro = LEGREF_MEMORIA; goto fim; }

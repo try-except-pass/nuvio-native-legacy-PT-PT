@@ -2710,6 +2710,11 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
     }
     free(tem);
   }
+  // Fila de 0 ou 1 = a conferencia de sincronia (fontesincapp.c) nao tem o que comparar: dizer quem ficou de fora.
+  if (nf < 2)
+    printf("[fonte] fila do automatico: %d de %d fonte(s); fora: excluida=%d filtro=%d fora-de-cache=%d informativa=%d decoder=%d morta=%d\n",
+           nf, total, motivos[MOT_EXCLUIDA], motivos[MOT_FILTRO], motivos[MOT_FORA_CACHE], motivos[MOT_INFORMATIVA],
+           motivos[MOT_DECODER], motivos[MOT_MORTA]);
   retratoGuardar(c.sessao, c.geracao, fila, origRetrato, nf, lembradaIdx);   // a fila INTEIRA, antes do corte
   if (nf > tentativas) nf = tentativas;
   free(pts); free(acima); free(excl); free(grp); free(rk);

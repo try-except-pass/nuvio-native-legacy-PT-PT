@@ -2,8 +2,9 @@
 # Fixtures MKV reais para tests/legref.sh e tests/legsync.sh (ffmpeg + mkvmerge).
 #   bash tests/legref_fixtures.sh DIR
 set -eu
+AQUI=$(cd "$(dirname "$0")" && pwd)
 D=${1:-${TMPDIR:-/tmp}/nv-legref-fx}; mkdir -p "$D"
-[ -f "$D/.ok" ] && [ -f "$D/ext_traduzida_mais2000.srt" ] && [ -f "$D/filme.mkv" ] && [ -f "$D/cruz2.mkv" ] && exit 0
+[ -f "$D/.ok" ] && [ -f "$D/ext_traduzida_mais2000.srt" ] && [ -f "$D/filme.mkv" ] && [ -f "$D/cruz2.mkv" ] && [ -f "$D/zl.mkv" ] && [ -f "$D/pgs_slip.mkv" ] && exit 0
 command -v ffmpeg >/dev/null && command -v mkvmerge >/dev/null || { echo "precisa de ffmpeg e mkvmerge"; exit 2; }
 python3 - "$D" <<'PY'
 import random, sys
@@ -78,6 +79,8 @@ ffmpeg -loglevel error -y -i video.mkv -i emb.srt -map 0 -map 1 -c copy -c:s srt
 mkvmerge -q -o mm.mkv video.mkv --language 0:eng --forced-display-flag 0:1 --track-name 0:Signs emb.srt \
   --language 0:eng emb.ass --language 0:por ext_mais2500.srt
 # Sem Cues para a legenda: o indice so aponta o video.
+# legenda com compressao zlib (o padrao antigo do mkvmerge para legendas: foi o que a TV nao leu em 2026-10-28)
+mkvmerge -q -o zl.mkv video.mkv --language 0:eng --compression 0:zlib emb.srt
 mkvmerge -q -o semcues.mkv video.mkv --cues 0:none --language 0:eng emb.srt
 # Validacao cruzada: a primeira faixa em ingles esta +1,5 s fora; outra em
 # ingles e uma em portugues concordam no tempo certo. Em cruz2 so as duas
@@ -98,4 +101,5 @@ ffmpeg -loglevel error -y -i video.mp4 -i emb.srt -map 0 -map 1 -c copy -c:s mov
 ffmpeg -loglevel error -y -f lavfi -t 7200 -i "testsrc2=s=160x90:r=2" -c:v libx264 -preset ultrafast -b:v 40k -g 10 video_filme.mkv
 mkvmerge -q -o filme.mkv video_filme.mkv --language 0:eng filme_emb.srt
 rm -f video_filme.mkv
+python3 "$AQUI/legref_imagem.py" "$D"   # legenda de imagem sintetica: PGS, PGS com escorregoes, VOBSUB, com e sem zlib
 touch .ok

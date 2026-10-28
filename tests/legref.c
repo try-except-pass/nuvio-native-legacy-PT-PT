@@ -124,6 +124,23 @@ int main(int argc, char **argv) {
   { int ex[1] = { 3 }; d = colher(r, "mm.mkv", "en", ex, 1, LEGREF_OK, &s); assert(d && s.faixa == 4); legenda_documento_liberar(d); casos++; }
 
   // 3. Recusas honestas.
+  d = colher(r, "zl.mkv", "en", NULL, 0, LEGREF_OK, &s); assert(d && s.faixa == 2); legenda_documento_liberar(d); casos++;   // zlib
+  // Legenda de IMAGEM (tests/legref_imagem.py): so os tempos, do Cues (VOBSUB) ou de blocos amostrados (PGS).
+  { const char *const arq[] = { "pgs.mkv", "pgs_zl.mkv", "pgs_slip.mkv", "vob.mkv", "vob_zl.mkv", "pgs_slip_pl.mkv" };
+    for (int q = 0; q < 6; q++) {
+      int n = 0, ruins = 0; const LegendaCue *c;
+      d = colher(r, arq[q], "en", NULL, 0, LEGREF_OK, &s); assert(d);
+      c = legenda_documento_dados(d, &n);
+      // pgs_slip descarta so os trechos estreitos das viradas; os demais tem de ser exatos
+      assert(q == 2 || q == 5 ? n >= 170 && n <= 200 : n == 200);
+      for (int i = 0; i < n; i++) {   // inicio = 10 + 4k: um LIMPA usado como inicio cairia em 12 + 4k
+        double k = (c[i].inicio - 10) / 4; if (fabs(k - floor(k + .5)) > 0.001) ruins++;
+        assert(fabs(c[i].fim - c[i].inicio - 2.0) < 0.011 || q == 2 || q == 5);
+      }
+      assert(ruins == 0);
+      printf("imagem %s: %d falas, %d pedidos\n", arq[q], n, s.pedidos);
+      legenda_documento_liberar(d); casos++;
+    } }
   assert(!colher(r, "semcues.mkv", "en", NULL, 0, LEGREF_SEM_INDICE, NULL)); casos++;
   assert(!colher(r, "soforced.mkv", "en", NULL, 0, LEGREF_SEM_FAIXA, NULL)); casos++;
   assert(!colher(r, "video.mp4", "en", NULL, 0, LEGREF_SEM_FAIXA, NULL)); casos++;   // MP4 sem faixa de texto
@@ -202,3 +219,5 @@ int main(int argc, char **argv) {
   printf("legref: %d casos ok\n", casos);
   return 0;
 }
+
+const char *i18n(const char *s) { return s; }   // legenda.c o chama; o teste nao liga i18n.c
