@@ -4972,15 +4972,6 @@ static void desenhaHero(Uint32 agora, float saida) {
     r = (GfxRect){ a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, a.w + (b.w - a.w) * e, a.h + (b.h - a.h) * e };
     modoHero = e < 0.5f ? GFX_HERO_CHEIO : GFX_HERO;
   }
-  // A SOMBRA PRETA da arte recuada: a que ela ja tem na esquerda e embaixo (a rampa para o fundo) acompanha a imagem
-  // enquanto ela encolhe para o canto. Preta, sem a cor de destaque; so os lados esquerdo e inferior (o topo e a direita
-  // sao a borda da tela). A queda e em PIXELS a partir da borda do retangulo (parx): cheia na borda da arte, morrendo
-  // ate 240 px para fora, entao nao fica escondida pela arte opaca como o brilho antigo.
-  if (lay == HOME_LAYOUT_MODERNA && kCanto > 0.01f && aArte > 0.01f) {
-    const float folga = 240.0f;
-    gfx_rect((GfxRect){ r.x - folga, r.y, r.w + folga, r.h + folga }, 0, GFX_SOMBRA, 1.0f, folga, 0,
-             0.5f, 0, 0, 0, 0.75f * anim_suave(kCanto) * aArte);
-  }
   // LAYOUTS NOVOS. O destaque deles e sempre "de titulo" (a arte do titulo em
   // foco) e nunca o de colecao/social da Moderna, que sao telas cheias de
   // outro assunto. Medidas do bloco de texto: a Moderna as le das constantes
@@ -7629,12 +7620,7 @@ static void home_desenhar_(Uint32 agora) {
   if ((heroLigado() || dinPalcoSplit() || palcoFundoModo != PALCO_ATUAL) &&
       !vazioQr && palcoFundoAlpha > 0.004f) {
     gfx_opacidade_grupo = palcoFundoModo == PALCO_ATUAL ? palcoFundoAlpha : 1.0f;
-    // COM A ARTE NO CANTO ela se DISSOLVE em transparencia (o caminho "vazar", o mesmo que a pagina do titulo usa), e nao
-    // em #0d0d0d opaco: por baixo fica o brilho no acento que desenhaHero pinta, e e ele que se ve nas bordas.
-    { float forcaSalva = nv_ambiente_forca;
-      if (layoutHome() == HOME_LAYOUT_MODERNA && heroCantoK > 0.01f) nv_ambiente_forca = 1.0f;
-      desenhaHero(agora, pd);
-      nv_ambiente_forca = forcaSalva; }
+    desenhaHero(agora, pd);
     gfx_opacidade_grupo = 1.0f;
   }
   if (heroLigado() && !vazioQr && heroVisivelToque() > 0.25f) {

@@ -82,7 +82,7 @@ const char *autosync_motivo(AutoSyncMotivo m) {
   static const char *const nomes[]={"accepted","no_reference","incomplete_document",
     "forced_or_signs","sparse_dialogue","repeated_dialogue","low_confidence",
     "ambiguous_peak","region_disagreement","session_changed","analysis_budget",
-    "out_of_memory","excluded_reference","invalid_argument"};
+    "out_of_memory","excluded_reference","partial_subtitle","invalid_argument"};
   return m>=0&&m<(int)(sizeof nomes/sizeof *nomes)?nomes[m]:"invalid_argument";
 }
 
@@ -826,6 +826,10 @@ AutoSyncResultado autosync_alinhar(const LegendaDocumento *doc,const LegendaDocu
     r.confianca=pontuar(&x,&rf,0);bitsLiberar(&x);
   }
   if(r.confianca<AS_MIN_SCORE){r.motivo=AUTOSYNC_LOW_CONFIDENCE;goto fim;}
+  /* Legenda PARCIAL (so uma metade do filme, o CD1 ou o CD2): alinhada, ela deixa o resto do filme sem fala nenhuma e a
+   * palavra "sincronizada" engana (Truman Show, 2.1.8: legenda de 46 min recolocada 49 min para a frente, sem legenda na
+   * primeira metade). Nao serve como sincronizada: quem chama passa para a proxima legenda. */
+  if(parcial){r.motivo=AUTOSYNC_PARTIAL;goto fim;}
   r.trechos=np;r.escala=pc[0].t.p;
   r.tipo=np>1||r.ancoras?AUTOSYNC_T_TRECHOS:pc[0].t.p!=1?AUTOSYNC_T_ESCALA:AUTOSYNC_T_OFFSET;
   {
