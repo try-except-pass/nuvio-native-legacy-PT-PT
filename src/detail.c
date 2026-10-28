@@ -1429,6 +1429,18 @@ static GfxRect arteCanto(void) {
   home_hero_rect_faixa(&r.x, &r.y, &r.w, &r.h);
   return r;
 }
+// O retangulo da arte a `pg` (0 = tela cheia no alto da pagina, 1 = recuada no canto superior direito) e rolagem
+// `rolagem`: o canto e o do ALTO da pagina, entao ao rolar ele sobe com o conteudo e sai da tela; ao voltar, a arte
+// desce do canto e cresce ate a tela cheia. A mesma mola (pg) leva o tamanho e o apagar da vinheta.
+static GfxRect arteNaPagina(GfxRect cheia, float pg, float rolagem) {
+  float e = anim_suave(pg);
+  GfxRect f = arteCanto(), r;
+  if (e < 0.001f) return cheia;
+  r.x = cheia.x + (f.x - cheia.x) * e; r.y = cheia.y + (f.y - cheia.y) * e;
+  r.w = cheia.w + (f.w - cheia.w) * e; r.h = cheia.h + (f.h - cheia.h) * e;
+  r.y -= rolagem * e;
+  return r;
+}
 static int epFuros(GfxRect *holes);
 static void desenhaArteDetalhe(GfxRect alvo, GLuint tex, const char *arte,
                                int poster, float alpha, float pg) {
@@ -1455,9 +1467,10 @@ static void desenhaArteDetalhe(GfxRect alvo, GLuint tex, const char *arte,
     } else {
       GfxRect holes[N_ITENS * 2];
       int n = epFuros(holes);
-      // pg 0..1: a arte cheia sai e a mesma arte, na faixa do canto, entra (a faixa tem as proprias mascaras de borda)
-      if (pg < 0.995f) gfx_rect_furos(alvo, tex, GFX_DETALHE, veu, 0, 0, 0, 0, 0, 0, alpha * (1.0f - pg), holes, n);
-      if (pg > 0.005f) gfx_rect(arteCanto(), tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, alpha * pg);
+      // `alvo` ja vem encolhido e rolado por arteNaPagina; no canto vale a faixa do destaque (GFX_HERO, com as rampas de borda)
+      if (alvo.y + alvo.h <= 0.0f) { /* o canto saiu da tela: nada a desenhar */ }
+      else if (anim_suave(pg) < 0.5f) gfx_rect_furos(alvo, tex, GFX_DETALHE, veu, 0, 0, 0, 0, 0, 0, alpha, holes, n);
+      else gfx_rect(alvo, tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, alpha);
     }
   } else {
     float ap = gfx_tex_aspect_atual > 0.05f ? gfx_tex_aspect_atual : (2.0f / 3.0f);
@@ -7702,6 +7715,7 @@ static void detalheFundo(float s) {
   // Os tres levam o veu de leitura por cima (veuLeitura, fora daqui).
   GfxRect alvo; float aEntrada;
   backdropRect(&alvo, &aEntrada);
+  alvo = arteNaPagina(alvo, pg, scrollY);   // a arte recua para o canto e sobe com a pagina (e volta ao rolar para cima)
   const char *arte = arteDe(idx);
   if (carDesenhaFundo()) { carFundo(); return; }
   int artePoster = arteDetalheEhPoster(idx);
@@ -7728,7 +7742,7 @@ static void detalheFundo(float s) {
     if (pg > 0.005f) gfx_cor(tela, 0.0f, 0.043f, 0.047f, 0.055f, 0.55f * pg * aEntrada); } // vidro-ok: full-screen scrim
   // A arte nitida do topo, vazando nas bordas (o GFX_DETALHE com o caminho
   // "vazar": alfa = 1 - vinheta, em vez de misturar no #0d0d0d).
-  if (tex && (1.0f - pg) * aEntrada > 0.005f) {
+  if (tex && aEntrada > 0.005f) {
     if (artePoster) {
       desenhaArteDetalhe(alvo, tex, arte, 1, aEntrada * (1.0f - pg), pg);
       return;
@@ -7743,8 +7757,10 @@ static void detalheFundo(float s) {
     // ~30 fps, clr 22 ms + swap 21 ms). O teto de 0,998 que havia aqui
     // obrigava o caminho misturado; sem fundo intacto o caminho continua o
     // misturado (o "vazar"), com alfa 1 em vez de 0,998.
-    gfx_rect(alvo, tex, GFX_DETALHE, 1.0f, 0, 0, 0.0f, 0, 0, 0, aEntrada * (1.0f - pg));
-    if (pg > 0.005f) gfx_rect(arteCanto(), tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, aEntrada * pg);   // recua para o canto
+    if (alvo.y + alvo.h > 0.0f) {
+      if (anim_suave(pg) < 0.5f) gfx_rect(alvo, tex, GFX_DETALHE, 1.0f, 0, 0, 0.0f, 0, 0, 0, aEntrada);
+      else gfx_rect(alvo, tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, aEntrada);
+    }
     gfx_tex_aspect_atual = 0.0f;
     nv_ambiente_forca = salva;
   }

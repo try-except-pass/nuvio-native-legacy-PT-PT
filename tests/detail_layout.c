@@ -171,6 +171,20 @@ int main(void) {
   detail_evento(&e);
   assert(!saindo && detail_pediu_menu() && !detail_pediu_relogio());
   e.key.keysym.sym = SDLK_LEFT;
+  // A ARTE NA PAGINA (2026-10-28): tela cheia no alto; recuada no canto da faixa do destaque ao descer; o canto sobe com a
+  // rolagem e sai da tela; a mola do meio e um tamanho intermediario.
+  { GfxRect cheia = { 0, 0, NV_TELA_W, NV_TELA_H }, f = arteCanto(), a, m;
+    a = arteNaPagina(cheia, 0.0f, 0.0f);
+    assert(a.x == 0 && a.y == 0 && a.w == NV_TELA_W && a.h == NV_TELA_H);
+    a = arteNaPagina(cheia, 1.0f, 0.0f);
+    assert(fabsf(a.x - f.x) < 0.5f && fabsf(a.y - f.y) < 0.5f && fabsf(a.w - f.w) < 0.5f && fabsf(a.h - f.h) < 0.5f);
+    assert(a.w < NV_TELA_W && a.h < NV_TELA_H);
+    m = arteNaPagina(cheia, 0.5f, 0.0f);
+    assert(m.w < NV_TELA_W && m.w > a.w && m.h < NV_TELA_H && m.h > a.h);
+    a = arteNaPagina(cheia, 1.0f, 300.0f);
+    assert(fabsf(a.y - (f.y - 300.0f)) < 0.5f);                       // o canto sobe com a pagina
+    a = arteNaPagina(cheia, 1.0f, f.h + 50.0f);
+    assert(a.y + a.h <= 0.0f); }                                      // e sai da tela (nada a desenhar)
   nivel = 1; foco.fileira = SEC_RELACIONADOS; foco.coluna = 0; scrollY = 321.0f;
   detail_evento(&e);
   assert(!saindo && detail_pediu_menu());

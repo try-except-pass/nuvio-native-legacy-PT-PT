@@ -540,6 +540,10 @@ static Uint32 heroTrocaEm = 0;
 //             quadro em que a textura fica pronta E o esvanecimento acabou.
 static float heroSai   = 0.0f;
 static float heroEntra = 1.0f;
+// O CANTO (dono, 2026-10-28): 0 = a arte do destaque em tela cheia, 1 = recuada para a faixa do canto superior direito (a
+// Moderna, com o foco nas fileiras). Uma mola leva de um a outro: a arte encolhe e anda, em vez de aparecer e sumir.
+static float heroCantoK = 0.0f;
+static int heroNoCanto(void);   // o alvo da mola, mais abaixo
 // Stage switches fade through the base background, never stack fullscreen passes.
 static int palcoFundoModo = 1, palcoFundoAlvo = 1, palcoFundoItem = -1;
 static float palcoFundoT = 1.0f, palcoFundoInicio = 1.0f;
@@ -3885,6 +3889,10 @@ static void home_atualizar_(float dt, Uint32 agora) {
     palcoItemA = fminf(1.0f, palcoItemA + k);
   }
 
+  { float alvoCanto = heroNoCanto() ? 1.0f : 0.0f;
+    heroCantoK = motionReduzido ? alvoCanto : anim_mola(heroCantoK, alvoCanto, dt, NV_MOLA_PAGINA);
+    if (fabsf(heroCantoK - alvoCanto) < 0.002f) heroCantoK = alvoCanto;
+    else gfx_vidro_movimento(); }   // vidro chapado enquanto a arte anda
   if (heroSai > 0.0f) {
     heroSai -= dt * (1000.0f / NV_HERO_FADE_MS);
     if (heroSai < 0.0f) heroSai = 0.0f;
@@ -4756,6 +4764,14 @@ static float desenhaCopiaHero(const CatItem *ci, int principal, float x,
 // usar. Era isso que faltava para a abertura ler como rearranjo de layout e
 // nao como troca de tela.
 static void ponteiroHero(int a, int b);
+// A arte do destaque esta (ou vai para) o canto? So na Moderna, e so com o foco nas fileiras; a fileira de amigos e a de
+// colecoes mostram a arte em tela cheia. O mesmo teste que decide `cheio` mais abaixo, a favor do canto.
+static int heroNoCanto(void) {
+  if (layoutHome() != HOME_LAYOUT_MODERNA || homeRetratoTelefone()) return 0;
+  if (focoHero) return 0;
+  if (foco.fileira >= 0 && foco.fileira < nFileiras && fileiras[foco.fileira].tipo == FILEIRA_SOCIAL) return 0;
+  return 1;
+}
 static GfxRect heroArtworkRect(int lay, int cheio) {
   if (lay == HOME_LAYOUT_PADRAO) return padBannerRect();
   GfxRect r = lay == HOME_LAYOUT_DINAMICA
@@ -4948,6 +4964,22 @@ static void desenhaHero(Uint32 agora, float saida) {
   // Em tela cheia o bloco sobe 70px (ver layout.h).
   GfxModo modoHero = cheio ? GFX_HERO_CHEIO : GFX_HERO;
   GfxRect r = heroArtworkRect(lay, cheio);
+  // A MOLA DO CANTO: no meio do caminho o retangulo e a mistura dos dois e o modo (a rampa de borda) troca na metade.
+  float kCanto = lay == HOME_LAYOUT_MODERNA ? heroCantoK : (cheio ? 0.0f : 1.0f);
+  if (lay == HOME_LAYOUT_MODERNA && !homeRetratoTelefone() && kCanto > 0.001f && kCanto < 0.999f) {
+    GfxRect a = heroArtworkRect(lay, 1), b = heroArtworkRect(lay, 0);
+    float e = anim_suave(kCanto);
+    r = (GfxRect){ a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, a.w + (b.w - a.w) * e, a.h + (b.h - a.h) * e };
+    modoHero = e < 0.5f ? GFX_HERO_CHEIO : GFX_HERO;
+  }
+  // O BRILHO NO ACENTO atras da arte recuada (a sombra que a pagina do titulo tem): mancha macia na cor de destaque,
+  // forte com a arte no canto e sumindo quando ela volta a tela cheia.
+  if (lay == HOME_LAYOUT_MODERNA && kCanto > 0.01f && aArte > 0.01f) {
+    float ar, ag, ab;
+    ajustes_acento(&ar, &ag, &ab);
+    gfx_rect((GfxRect){ r.x + r.w * 0.12f - 40.0f, r.y - 40.0f, r.w * 0.88f + 40.0f, r.h + 70.0f }, 0, GFX_SOMBRA, 1.0f, 0, 0,
+             0.5f, ar, ag, ab, 0.42f * anim_suave(kCanto) * aArte);
+  }
   // LAYOUTS NOVOS. O destaque deles e sempre "de titulo" (a arte do titulo em
   // foco) e nunca o de colecao/social da Moderna, que sao telas cheias de
   // outro assunto. Medidas do bloco de texto: a Moderna as le das constantes
