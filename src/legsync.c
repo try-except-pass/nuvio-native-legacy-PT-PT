@@ -379,7 +379,7 @@ static double posicaoSegunda(double pos) {
 
 // --- REFERENCIA ------------------------------------------------------------------
 static void iniciarColeta(void) {
-  LegRefOrcamento o;
+  LegRefOrcamento o = { 0, 0, 0 };   // sempre inicializado: um campo solto mudou o modo da legref na 2.1.3
   long long resta = LS_SESSAO_BYTES - L.bytesSessao;
   if (!L.ref) { L.refMotivo = LEGREF_PLATAFORMA; L.querModo = -1; return; }
   if (resta < 512 * 1024) { L.refMotivo = LEGREF_ORCAMENTO; L.querModo = -1; return; }

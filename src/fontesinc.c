@@ -122,13 +122,13 @@ int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const
 
 int fontesinc_audio(FonteSincLeitor *l, const char *url, uint64_t sessao, int (*cancelado)(void *), void *u,
                     char *audio, unsigned tam) {
-  LegRefOrcamento o = { FS_LEITURA_BYTES, FS_PEDIDOS, FS_RITMO, 1 };
+  LegRefOrcamento o = { FS_LEITURA_BYTES, FS_PEDIDOS, FS_RITMO };
   LegRefStatus st;
   uint64_t pedido;
   int ms = 0;
   if (audio && tam) audio[0] = 0;
   if (!l || !l->ref || !url || !url[0]) return 0;
-  pedido = legref_pedir(l->ref, url, sessao, "", NULL, 0, &o);
+  pedido = legref_pedir_audio(l->ref, url, sessao, &o);
   if (!pedido) return 0;
   for (;;) {
     st = legref_status(l->ref);

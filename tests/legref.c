@@ -141,13 +141,12 @@ int main(int argc, char **argv) {
       printf("imagem %s: %d falas, %d pedidos\n", arq[q], n, s.pedidos);
       legenda_documento_liberar(d); casos++;
     } }
-  // OS IDIOMAS DE AUDIO do arquivo (opcao 3, 2026-10-28): saem do status junto da referencia, e com soCabeca o pedido
+  // OS IDIOMAS DE AUDIO do arquivo (opcao 3, 2026-10-28): saem do status junto da referencia, e com legref_pedir_audio o pedido
   // le so a cabeca (faixas) e para, sem Cues nem blocos.
   d = colher(r, "audio.mkv", "en", NULL, 0, LEGREF_OK, &s); assert(d && !strcmp(s.audio, "ita,eng")); legenda_documento_liberar(d); casos++;
   { LegRefOrcamento o = orcamento(); char url[256]; uint64_t id; LegRefStatus h;
-    o.soCabeca = 1;
     snprintf(url, sizeof url, "https://cdn.example/x/%s", "audio.mkv");
-    id = legref_pedir(r, url, 7, "", NULL, 0, &o); assert(id);
+    id = legref_pedir_audio(r, url, 7, &o); assert(id);
     h = esperar(r, id);
     assert(h.motivo == LEGREF_SO_CABECA && !strcmp(h.audio, "ita,eng") && h.pedidos <= 2);
     assert(!legref_tomar(r, id)); casos++; }

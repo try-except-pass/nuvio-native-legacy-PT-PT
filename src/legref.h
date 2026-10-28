@@ -43,14 +43,13 @@ typedef enum {
   LEGREF_OK = 0, LEGREF_PLATAFORMA, LEGREF_SEM_RANGE, LEGREF_NAO_MKV,
   LEGREF_SEM_FAIXA, LEGREF_SEM_INDICE, LEGREF_SEM_DURACAO, LEGREF_REDE,
   LEGREF_ORCAMENTO, LEGREF_INCOMPLETO, LEGREF_MEMORIA, LEGREF_PARADO,
-  LEGREF_SO_CABECA   // pedido com soCabeca: leu as faixas e parou, de proposito
+  LEGREF_SO_CABECA   // pedido por legref_pedir_audio: leu as faixas e parou, de proposito
 } LegRefMotivo;
 
 typedef struct {
   long long maxBytes;  // bytes de corpo somados nesta leitura
   int maxPedidos;      // Ranges nesta leitura
   int pedidosPorSeg;   // teto de ritmo (nao disputar a conexao do video)
-  int soCabeca;        // 1 = le so a cabeca (faixas e idiomas de audio) e para: nao le Cues nem blocos
 } LegRefOrcamento;
 
 typedef struct {
@@ -81,6 +80,10 @@ void legref_destruir(LegRef *r);          // cancela e faz join
 // (TrackNumber), preferindo `idioma`. Substitui o pedido anterior. 0 = recusado.
 uint64_t legref_pedir(LegRef *r, const char *url, uint64_t sessao, const char *idioma,
                       const int *excluidas, int nExcluidas, const LegRefOrcamento *orc);
+// So a CABECA do arquivo: le as faixas, publica os idiomas de AUDIO em LegRefStatus.audio e para (motivo LEGREF_SO_CABECA);
+// nao le Cues nem blocos. E uma funcao a parte, e nao um campo do orcamento: um orcamento montado sem inicializar (legsync.c)
+// ligava o modo sem querer e a referencia de sincronia nunca vinha (2.1.3, "head_only" em todo titulo).
+uint64_t legref_pedir_audio(LegRef *r, const char *url, uint64_t sessao, const LegRefOrcamento *orc);
 void legref_cancelar(LegRef *r);
 // Cabecalhos da fonte ("Nome: valor" por linha), lidos a cada legref_pedir na
 // thread de quem pede. Sem eles o CDN que exige Referer/Authorization responde

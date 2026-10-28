@@ -193,6 +193,7 @@ typedef struct {
   uint64_t id, sessao;
   char url[4096], idioma[24], cabs[2048];
   int excl[16], nExcl;
+  int soCabeca;   // 1 = so a cabeca (legref_pedir_audio)
   LegRefOrcamento orc;
   LegendaDocumento *(*local)(const char *, uint64_t, const int *, int);
 } Pedido;
@@ -1001,7 +1002,7 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
   }
   (void)posInfo;
   publicarAudio(j, st, fx, nF);
-  if (j->p.orc.soCabeca) { j->erro = LEGREF_SO_CABECA; goto fim; }
+  if (j->p.soCabeca) { j->erro = LEGREF_SO_CABECA; goto fim; }
   // 2. As faixas candidatas: texto, nao letreiro, nao comentario, nao
   // excluidas; em ordem de preferencia (ordenar).
   {
@@ -1279,8 +1280,8 @@ static LegendaDocumento *(*fonteLocal)(const char *, uint64_t, const int *, int)
 void legref_fonte_local(LegendaDocumento *(*f)(const char *, uint64_t, const int *, int)) { fonteLocal = f; }
 void legref_fonte_cabecalhos(const char *(*f)(void)) { fonteCabs = f; }
 
-uint64_t legref_pedir(LegRef *r, const char *url, uint64_t sessao, const char *idioma,
-                      const int *excluidas, int nExcluidas, const LegRefOrcamento *orc) {
+static uint64_t pedir(LegRef *r, const char *url, uint64_t sessao, const char *idioma,
+                      const int *excluidas, int nExcluidas, const LegRefOrcamento *orc, int soCabeca) {
   LegendaDocumento *velho; uint64_t id; int i;
   if (!r || !url || !*url || strlen(url) >= sizeof r->ped.url || !orc ||
       orc->maxBytes <= 0 || orc->maxPedidos <= 0) return 0;
@@ -1288,7 +1289,7 @@ uint64_t legref_pedir(LegRef *r, const char *url, uint64_t sessao, const char *i
   velho = r->doc; r->doc = NULL;
   id = ++r->gerador;
   memset(&r->ped, 0, sizeof r->ped);
-  r->ped.id = id; r->ped.sessao = sessao; r->ped.orc = *orc; r->ped.local = fonteLocal;
+  r->ped.id = id; r->ped.sessao = sessao; r->ped.orc = *orc; r->ped.local = fonteLocal; r->ped.soCabeca = soCabeca;
   snprintf(r->ped.url, sizeof r->ped.url, "%s", url);
   snprintf(r->ped.idioma, sizeof r->ped.idioma, "%s", idioma ? idioma : "");
   snprintf(r->ped.cabs, sizeof r->ped.cabs, "%s", fonteCabs && fonteCabs() ? fonteCabs() : "");
@@ -1301,6 +1302,13 @@ uint64_t legref_pedir(LegRef *r, const char *url, uint64_t sessao, const char *i
   pthread_mutex_unlock(&r->m);
   legenda_documento_liberar(velho);
   return id;
+}
+uint64_t legref_pedir(LegRef *r, const char *url, uint64_t sessao, const char *idioma,
+                      const int *excluidas, int nExcluidas, const LegRefOrcamento *orc) {
+  return pedir(r, url, sessao, idioma, excluidas, nExcluidas, orc, 0);
+}
+uint64_t legref_pedir_audio(LegRef *r, const char *url, uint64_t sessao, const LegRefOrcamento *orc) {
+  return pedir(r, url, sessao, "", NULL, 0, orc, 1);
 }
 
 void legref_cancelar(LegRef *r) {
