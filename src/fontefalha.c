@@ -426,7 +426,8 @@ static int escolher(FonteFalhaSessao *s, const FonteFalhaCandidata *c, int n, in
     if (!s->nTentada && c[i].indice == s->preferido) return i;
     int rank = s->cfg.addons ? addonIndice(&s->cfg, c[i].addon) : -1;
     if (rank < 0) rank = FONTEFALHA_MAX_ADDONS + (c[i].ordemAddon >= 0 ? c[i].ordemAddon : 0);
-    if (melhor < 0 || rank < rankMelhor) { melhor = i; rankMelhor = rank; }
+    // a classe do audio vem antes da ordem do add-on (dono, 2026-10-28: as que DIZEM ter o original, depois as sem etiqueta)
+    if (melhor < 0 || c[i].classe > c[melhor].classe || (c[i].classe == c[melhor].classe && rank < rankMelhor)) { melhor = i; rankMelhor = rank; }
   }
   return melhor;
 }

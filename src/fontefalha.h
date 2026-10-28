@@ -61,6 +61,7 @@ int fontefalha_addon_definir_ao_vivo(const char *chave, int ligado);
 typedef struct FonteFalhaSessao FonteFalhaSessao;
 typedef struct {
   int indice, nativa, ordemAddon;
+  int classe;   // classe do audio (streams.c): 2 diz ter o idioma, 1 nao diz nada, 0 diz outro; a maior vence ANTES da ordem do add-on
   char addon[FONTEFALHA_CHAVE];
   // Hash + arquivo para native; URL + cabecalhos para URL direta. O chamador
   // mantem a string durante a chamada; tentar() guarda uma copia propria.

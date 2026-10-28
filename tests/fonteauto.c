@@ -371,6 +371,16 @@ int main(void) {
     int um[1] = {4}; tem[4] = 1;
     CONFERE(fonteauto_idioma_primeiro(um, 1, tem) == 1 && um[0] == 4, "idioma: fila de 1"); }
 
+  // 12b) As TRES classes (opcao 3, 2026-10-28): 2 diz ter o original, 1 nao diz nada, 0 diz outro idioma.
+  { int f[6] = {5, 3, 9, 1, 7, 2}, dec = -1; unsigned char cl[N] = {0};
+    cl[9] = cl[7] = 2; cl[3] = cl[1] = 1; cl[5] = cl[2] = 0;
+    CONFERE(fonteauto_idioma_classes(f, 6, cl, 1, &dec) == 4 && dec == 2, "classes: 4 ficam, 2 declaradas");
+    CONFERE(f[0] == 9 && f[1] == 7 && f[2] == 3 && f[3] == 1, "classes: 2 antes da 1, cada grupo na ordem de antes");
+    int g[6] = {5, 3, 9, 1, 7, 2};
+    CONFERE(fonteauto_idioma_classes(g, 6, cl, 0, &dec) == 6 && g[4] == 5 && g[5] == 2, "classes: sem tirar, as de outro idioma no fim");
+    int h[3] = {5, 2, 5}; h[2] = 2;
+    CONFERE(fonteauto_idioma_classes(h, 2, cl, 1, &dec) == 0 && dec == 0, "classes: so de outro idioma = fila vazia"); }
+
   parcial();
   grupos();
   ordemAddons();

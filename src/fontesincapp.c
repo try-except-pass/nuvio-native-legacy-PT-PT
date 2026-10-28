@@ -125,6 +125,35 @@ static int embutida(int i, void *u) {
   return 1;
 }
 
+// O ARQUIVO da fonte tem o audio original? A etiqueta do addon quase nunca marca o idioma de um filme em ingles, entao
+// a fonte "sem etiqueta" e conferida pelas faixas do proprio arquivo (a mesma leitura da cabeca da referencia).
+// 1 = tem uma faixa de audio no idioma, 0 = leu as faixas e nao tem, -1 = nao deu para saber (MP4, sem link, rede).
+static int audioOriginal(int i, void *u) {
+  Cena *c = u;
+  char url[4096], audio[64], *p, *fim;
+  const char *pref = ling_audio();
+  if (!pref || !pref[0] || !stream_sinc_link(c->geracao, i, url, sizeof url)) return -1;
+  if (fontesinc_audio(c->leitor, url, c->x->sessao, cancelado, (void *)c->x, audio, sizeof audio) != 1 || !audio[0])
+    return -1;
+  for (p = audio; *p; p = fim ? fim + 1 : p + strlen(p)) {
+    char cod[24];
+    size_t n;
+    fim = strchr(p, ',');
+    n = fim ? (size_t)(fim - p) : strlen(p);
+    if (n >= sizeof cod) n = sizeof cod - 1;
+    memcpy(cod, p, n); cod[n] = 0;
+    if (ling_casa(cod, pref)) {
+      printf("[sinc-fonte] fonte %d: o arquivo traz audio em %s (a etiqueta nao dizia): conta como original\n", i, pref);
+      fflush(stdout);
+      return 1;
+    }
+    if (!fim) break;
+  }
+  printf("[sinc-fonte] fonte %d: audio do arquivo = %s; sem %s: fora\n", i, audio, pref);
+  fflush(stdout);
+  return 0;
+}
+
 // ONDE UMA FONTE ESTA NA LISTA DO DONO, menor = melhor: o audio original separa tudo (+10 para quem nao e original
 // quando alguma e); depois 1 principal sincronizada, 2 secundaria sincronizada, 3 principal sem confirmacao,
 // 4 secundaria sem confirmacao, 5 sem legenda. Troca-se quando a MELHOR da fila esta num lugar estritamente melhor que
@@ -197,7 +226,14 @@ static void *fio(void *arg) {
   cena.leitor = fontesinc_leitor_criar(NULL, NULL);
   if (!cena.leitor) goto fim;
   exigeOriginal = ling_audio_e_original();
-  g.conferir = conferir; g.cancelado = canceladoCena; g.u = &cena; g.embutida = embutida;
+  g.conferir = conferir; g.cancelado = canceladoCena; g.u = &cena; g.embutida = embutida; g.audioOriginal = audioOriginal;
+  // a que TOCA tambem: sem etiqueta de audio ela seria contada como "nao original" so por falta de marca
+  if (exigeOriginal)
+    for (int q = 0; q < n; q++)
+      if (fila[q] == x->atual && !c[x->atual].original) {
+        int r = audioOriginal(x->atual, &cena);
+        if (r == 1) c[x->atual].original = 1; else if (r == 0) c[x->atual].outro = 1;
+      }
   melhor = fonteauto_sincronizar(fila, n, c, exigeOriginal, temSec, &g, &nivel, &feitas);
   soOriginal = 0;
   if (exigeOriginal) for (int q = 0; q < n; q++) soOriginal |= c[fila[q]].original;

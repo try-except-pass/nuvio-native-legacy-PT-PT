@@ -67,6 +67,12 @@ int fonteauto_fila_o(int modo, int total, int preferida, const long *pontos,
 // devolve quantas passaram na primeira volta.
 int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma);
 
+// A MESMA VOLTA COM TRES CLASSES (dono, 2026-10-28; "opcao 3"): `classe[indice]` = 2 a fonte DIZ ter o idioma, 1 ela nao
+// diz nada de audio (ou e "dual/multi": pode ter), 0 ela diz OUTRO idioma e nao o pedido. Reordena `fila` estavel:
+// 2, depois 1, depois 0. Com `tirarOutros` a classe 0 sai da fila (so sobram as 2 e as 1); sem ele ela fica no fim.
+// Devolve quantas ficaram em `fila` e, em *declaradas (se nao NULL), quantas eram da classe 2.
+int fonteauto_idioma_classes(int *fila, int n, const unsigned char *classe, int tirarOutros, int *declaradas);
+
 // ESCOLHA QUE MIRA UMA LEGENDA SINCRONIZADA (dono, 2026-10-27; HANDOFF §4 item 2). Achar uma legenda no idioma
 // principal nao basta: tem de ser uma que SINCRONIZA com a fonte. A ordem do dono:
 //   audio original > legenda principal sincronizada > legenda secundaria sincronizada
@@ -81,6 +87,7 @@ typedef struct {
   unsigned char original;            // a fonte DIZ ter o audio original (a mesma leitura de temIdioma)
   unsigned char temPrim, temSec;     // ha legenda no idioma principal / secundario para ela
   unsigned char sincPrim, sincSec;   // FSINC_* dessa legenda com ESTA fonte (CONFIRMADA vale como "tem")
+  unsigned char outro;               // o arquivo foi LIDO e nao tem o audio original (so as faixas de outros idiomas): fora
 } FonteSinc;
 // `fila` = indices de fonte na ordem de tentativa; `c` indexado pelo indice da fonte (como temIdioma). Devolve o
 // indice escolhido e, em *nivel, FSINC_* (FSINC_NADA = ninguem tem legenda: a primeira da fila, como sempre).
@@ -102,6 +109,10 @@ typedef struct {
   int (*cancelado)(void *u);                         // NULL = nunca
   void *u;
   int (*embutida)(int indice, void *u);              // NULL = nao pergunta
+  // (opcional) o ARQUIVO da fonte tem uma faixa de audio no idioma original? 1 = tem (a fonte passa a valer como "diz ter"),
+  // 0 = leu as faixas e nao tem (fica fora: `outro`), -1 = nao deu para saber. So e perguntada para fonte que nao DIZ ter
+  // o original e so com `exigeOriginal`: a etiqueta do addon quase nunca marca o ingles num filme em ingles.
+  int (*audioOriginal)(int indice, void *u);
 } FonteSincGancho;
 int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOriginal, int temSec,
                           const FonteSincGancho *g, int *nivel, int *conferidas);

@@ -239,6 +239,18 @@ int fontenota_idioma(const char *t, const char *pref) {
   return FN_IDIOMA_NADA;
 }
 
+// O texto cita ALGUM idioma da tabela como audio? Separa a fonte que nao diz nada de audio da que diz OUTRO idioma
+// (a que diz outro e nao o pedido nao serve para o audio original). "dual/multi" nao conta: nao exclui ninguem.
+int fontenota_idioma_alguma(const char *t) {
+  if (!t) return 0;
+  for (size_t k = 0; k < sizeof LINGUAS / sizeof LINGUAS[0]; k++) {
+    const Lingua *l = &LINGUAS[k];
+    for (int i = 0; l->palavras[i]; i++) if (palavraDeAudio(t, l->palavras[i])) return 1;
+    for (int i = 0; l->bandeiras[i]; i++) if (bandeiraDeAudio(t, l->bandeiras[i])) return 1;
+  }
+  return 0;
+}
+
 // -------------------------------------------------------------------- nota
 
 void fontenota_avaliar(const FonteNotaEntrada *e, FonteNota *n) {

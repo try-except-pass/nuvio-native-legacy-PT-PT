@@ -119,3 +119,28 @@ int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const
   }
   return FSINC_NAO;
 }
+
+int fontesinc_audio(FonteSincLeitor *l, const char *url, uint64_t sessao, int (*cancelado)(void *), void *u,
+                    char *audio, unsigned tam) {
+  LegRefOrcamento o = { FS_LEITURA_BYTES, FS_PEDIDOS, FS_RITMO, 1 };
+  LegRefStatus st;
+  uint64_t pedido;
+  int ms = 0;
+  if (audio && tam) audio[0] = 0;
+  if (!l || !l->ref || !url || !url[0]) return 0;
+  pedido = legref_pedir(l->ref, url, sessao, "", NULL, 0, &o);
+  if (!pedido) return 0;
+  for (;;) {
+    st = legref_status(l->ref);
+    if (st.fase != LEGREF_LENDO) break;
+    if ((cancelado && cancelado(u)) || ms >= FS_PRAZO_MS) {
+      legref_cancelar(l->ref);
+      return ms >= FS_PRAZO_MS ? 0 : -1;
+    }
+    usleep(5000); ms += 5;
+  }
+  l->url[0] = 0;   // o pedido da cabeca substituiu o da referencia: a proxima garantir() le de novo
+  if (st.motivo != LEGREF_SO_CABECA && st.motivo != LEGREF_OK) return 0;
+  if (audio && tam) snprintf(audio, tam, "%s", st.audio);
+  return 1;
+}

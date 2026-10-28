@@ -345,15 +345,31 @@ static void soAudioOriginal(void) {
   { FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
     int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
     assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
-    assert(idx == 2 && nPedidos == 1);   // so a que declara o ingles; as outras nem foram tentadas
+    assert(idx == 2 && nPedidos == 1);   // a que declara o ingles vem primeiro
     assert(!stream_sem_audio_original(idioma, sizeof idioma));
+    // opcao 3 (2026-10-28): a fila e [declara o ingles, nao diz nada]; a que lista so o italiano nem entra
+    { int fila[16], lemb = -2; unsigned g = 0; unsigned char orig[16];
+      int nq = stream_sinc_fila(nv_perfil_sessao_ler(), &g, &lemb, fila, orig, 16);
+      assert(nq == 2 && fila[0] == 2 && fila[1] == 1 && orig[0] == 1 && orig[1] == 0); }
     fontefalha_sessao_liberar(s); }
   resetar();
+  // sem nenhuma que declare o ingles: a que NAO diz nada de audio serve (e a de outro idioma, nao)
   { Stream m[] = {fonte(&c, 0, "italiano", 0), fonte(&c, 0, "semtag", 0)};
     snprintf(m[0].rotulo, sizeof m[0].rotulo, "2160p Italian"); snprintf(m[0].audioIdiomas, sizeof m[0].audioIdiomas, "it");
     snprintf(m[1].rotulo, sizeof m[1].rotulo, "1080p BluRay");
     stream_definir_lista(m, 2);
     FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 2, -1); assert(s);
+    int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
+    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+    assert(idx == 1 && nPedidos == 1);
+    assert(!stream_sem_audio_original(idioma, sizeof idioma));
+    fontefalha_sessao_liberar(s); }
+  resetar();
+  // so ha fonte de outro idioma: nada e tentado e o app avisa e volta ao titulo
+  { Stream m[] = {fonte(&c, 0, "italiano", 0)};
+    snprintf(m[0].rotulo, sizeof m[0].rotulo, "2160p Italian"); snprintf(m[0].audioIdiomas, sizeof m[0].audioIdiomas, "it");
+    stream_definir_lista(m, 1);
+    FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 1, -1); assert(s);
     int idx, serv; char url[4096], idioma[24]; unsigned ger = stream_lista_geracao();
     assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) != FONTEFALHA_PROXIMA);
     assert(nPedidos == 0);   // nada foi tentado: nenhuma fonte entrou no limite de links
@@ -387,6 +403,46 @@ static void decoderAprendido(void) {
   assert(stream_falha_verificar(s, ger, 0, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_FIM);
   assert(nPedidos == 2 && fontefalha_tentativas(s) == 2);
   fontefalha_sessao_liberar(s);
+}
+// A fila da conferencia de sincronia so tem o que os filtros do dono deixam o automatico tocar. O Poderoso Chefao
+// (2026-10-28) trocou para um 2160p com TrueHD que os filtros recusam: o retrato saia de antes do fontefiltro_permite.
+static void sincRespeitaFiltro(void) {
+  resetar(); FonteFalhaConfig c = cfg(1, 0, 3);
+  c.filtro.excluir[FONTEFILTRO_RESOLUCAO] = fontefiltro_valores(FONTEFILTRO_RESOLUCAO, "2160p");
+  assert(c.filtro.excluir[FONTEFILTRO_RESOLUCAO]);
+  Stream l[] = {fonte(&c, 0, "hd-a", 0), fonte(&c, 0, "uhd", 0), fonte(&c, 0, "hd-b", 0)};
+  for (int i = 0; i < 3; i++) {
+    l[i].altura = i == 1 ? 2160 : 1080;
+    snprintf(l[i].rotulo, sizeof l[i].rotulo, "%dp", l[i].altura);
+    l[i].filtro.valores[FONTEFILTRO_RESOLUCAO] = fontefiltro_valores(FONTEFILTRO_RESOLUCAO, i == 1 ? "2160p" : "1080p");
+  }
+  stream_definir_lista(l, 3);
+  FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
+  int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
+  assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+  assert(idx != 1);   // o filtro ja valia para a escolha
+  { int fila[16], lemb = -2; unsigned g = 0; unsigned char orig[16];
+    int n = stream_sinc_fila(nv_perfil_sessao_ler(), &g, &lemb, fila, orig, 16);
+    assert(n == 2);   // a 2160p que o filtro recusa nao entra: antes eram 3
+    for (int q = 0; q < n; q++) assert(fila[q] == 0 || fila[q] == 2); }
+  fontefalha_sessao_liberar(s);
+}
+// A CLASSE DO AUDIO VEM ANTES DA ORDEM DO ADD-ON (dono, 2026-10-28): a que DIZ ter o original, de um add-on mais abaixo,
+// abre antes da sem etiqueta do primeiro add-on. Dentro da mesma classe a ordem do add-on segue valendo.
+static void classeAntesDoAddon(void) {
+  resetar(); FonteFalhaConfig c = cfg(1, 1, 3);
+  Stream l[] = {fonte(&c, 0, "semtag-a", 0), fonte(&c, 1, "ingles-b", 0), fonte(&c, 0, "ingles-a", 0)};
+  snprintf(l[0].rotulo, sizeof l[0].rotulo, "1080p BluRay");
+  snprintf(l[1].rotulo, sizeof l[1].rotulo, "1080p English"); snprintf(l[1].audioIdiomas, sizeof l[1].audioIdiomas, "en");
+  snprintf(l[2].rotulo, sizeof l[2].rotulo, "720p English"); snprintf(l[2].audioIdiomas, sizeof l[2].audioIdiomas, "en");
+  ling_local_audio("~"); ling_definir_original("en");
+  stream_definir_lista(l, 3);
+  { FonteFalhaSessao *s = fontefalha_sessao_nova(&c, 3, -1); assert(s);
+    int idx, serv; char url[4096]; unsigned ger = stream_lista_geracao();
+    assert(stream_falha_verificar(s, ger, -1, foiCancelado, NULL, &idx, &serv, url, sizeof url) == FONTEFALHA_PROXIMA);
+    assert(idx == 2);   // declara o ingles E e do primeiro add-on: a primeira da ordem entre as da classe 2
+    fontefalha_sessao_liberar(s); }
+  ling_local_audio(""); ling_definir_original("");
 }
 static void geracaoECancelamento(void) {
   for (int modo = 0; modo < 2; modo++) {
@@ -607,7 +663,7 @@ static void ordemSemPrioridade(void) {
 int main(int argc, char **argv) {
   assert(argc == 2 && "runner supplies an isolated preference directory");
   ordemETotal(); identidadeEDedup(); missNaoExcluiOutroServico(); semTetosAntigos();
-  limiteNativoIndependente(); decoderAprendido(); audioOriginalPrimeiro(); soAudioOriginal();
+  limiteNativoIndependente(); decoderAprendido(); sincRespeitaFiltro(); classeAntesDoAddon(); audioOriginalPrimeiro(); soAudioOriginal();
   cachePertenceAoServico(); hashCanonicoEAplicacaoSobreposta();
   geracaoECancelamento(); addonIndependente(); buscaParcial(); escolhaManual();
   resolvedorManual(argv[1]);

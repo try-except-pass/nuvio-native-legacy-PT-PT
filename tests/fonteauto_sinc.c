@@ -59,6 +59,9 @@ static int conferirFalso(int i, int slot, void *u) {
   total++;
   return verdade[i][slot];
 }
+// O ARQUIVO da fonte tem o audio original? 1 = tem, 0 = nao tem, -1 = nao deu (a tabela da conferencia por faixas do arquivo).
+static int audioVer[N], perguntouAud[N];
+static int audioFalso(int i, void *u) { (void)u; perguntouAud[i]++; return audioVer[i]; }
 static int cancelaFalso(void *u) { (void)u; return cancelaApos >= 0 && total >= cancelaApos; }
 static unsigned char emb[N];   // 1 = a fonte traz uma faixa de dialogo no idioma principal
 static int perguntouEmb[N];
@@ -293,6 +296,37 @@ int main(void) {
       prepara(6, 0, 0); memset(emb, 0, sizeof emb); memset(perguntouEmb, 0, sizeof perguntouEmb); emb[1] = 1; f[4].original = 1; f[5].original = 1;
       r = fonteauto_sincronizar(fila, 6, f, 1, 1, &ge, &nv, &feitas);
       CONFERE(r == 4 && nv == FSINC_NADA && perguntouEmb[0] == 0, "so as originais: %d nivel %d", r, nv);
+    }
+
+    // AUDIO PELO ARQUIVO (opcao 3, 2026-10-28): a etiqueta nao diz; as faixas do arquivo decidem.
+    {
+      FonteSincGancho ga = { conferirFalso, cancelaFalso, NULL, NULL, audioFalso };
+      // ninguem diz ter o original: 0 nao tem (fora, nem conferida), 1 e 2 tem; a 2 sincroniza e a 3 nem e perguntada
+      prepara(4, 1, 0); memset(audioVer, 0, sizeof audioVer); memset(perguntouAud, 0, sizeof perguntouAud);
+      audioVer[0] = 0; audioVer[1] = 1; audioVer[2] = 1; audioVer[3] = -1;
+      verdade[2][0] = FSINC_CONFIRMADA;
+      r = fonteauto_sincronizar(fila, 4, f, 1, 0, &ga, &nv, &feitas);
+      CONFERE(r == 2 && nv == FSINC_PRIM_OK && feitas == 2, "audio pelo arquivo: %d nivel %d, %d conferidas", r, nv, feitas);
+      CONFERE(f[0].outro && !f[0].original && f[1].original && f[2].original, "marcas: outro/original");
+      CONFERE(chamadas[0][0] == 0 && chamadas[3][0] == 0 && perguntouAud[3] == 0, "a de outro idioma nao gasta conferencia; a de depois nao e lida");
+      // com uma que DIZ ter o original, a sem etiqueta so disputa se o arquivo confirmar; a que o arquivo nega fica fora
+      prepara(4, 1, 0); memset(audioVer, 0, sizeof audioVer); memset(perguntouAud, 0, sizeof perguntouAud);
+      f[3].original = 1; audioVer[0] = 1; audioVer[1] = 0; audioVer[2] = -1;
+      verdade[0][0] = FSINC_CONFIRMADA;
+      r = fonteauto_sincronizar(fila, 4, f, 1, 0, &ga, &nv, &feitas);
+      CONFERE(r == 0 && nv == FSINC_PRIM_OK && f[0].original, "sem etiqueta, com o original no arquivo: %d nivel %d", r, nv);
+      prepara(4, 1, 0); memset(audioVer, 0, sizeof audioVer); memset(perguntouAud, 0, sizeof perguntouAud);
+      f[3].original = 1; audioVer[0] = 0; audioVer[1] = -1; audioVer[2] = -1;
+      verdade[0][0] = FSINC_CONFIRMADA; verdade[3][0] = FSINC_CONFIRMADA;
+      r = fonteauto_sincronizar(fila, 4, f, 1, 0, &ga, &nv, &feitas);
+      CONFERE(r == 3 && chamadas[0][0] == 0 && chamadas[1][0] == 0, "arquivo sem o original fica fora mesmo sincronizando: %d", r);
+      // sem Original ligado o gancho nao e perguntado
+      prepara(3, 1, 0); memset(perguntouAud, 0, sizeof perguntouAud);
+      fonteauto_sincronizar(fila, 3, f, 0, 0, &ga, &nv, &feitas);
+      CONFERE(perguntouAud[0] + perguntouAud[1] + perguntouAud[2] == 0, "sem Original ligado: nao le as faixas");
+      // a regra dos niveis tambem pula a "outro"
+      limpa(3); f[0].temPrim = f[1].temPrim = 1; f[0].outro = 1;
+      CONFERE(escolhe(3, 1, 0, &nv) == 1 && nv == FSINC_PRIM, "regra: a de outro idioma nao vence");
     }
 
     // PROPRIEDADE 3: parar cedo NUNCA muda a resposta. Mesma verdade, uma vez com a conferencia em serie e outra

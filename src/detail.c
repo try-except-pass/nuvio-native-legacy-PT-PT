@@ -1423,6 +1423,12 @@ int detail_arte_titulo(const CatItem *titulo, char *saida, size_t tam, int *post
   return 1;
 }
 
+// O CANTO: a faixa da arte do destaque (home.c), onde a arte recua ao rolar a pagina para o elenco (dono, 2026-10-28).
+static GfxRect arteCanto(void) {
+  GfxRect r;
+  home_hero_rect_faixa(&r.x, &r.y, &r.w, &r.h);
+  return r;
+}
 static int epFuros(GfxRect *holes);
 static void desenhaArteDetalhe(GfxRect alvo, GLuint tex, const char *arte,
                                int poster, float alpha, float pg) {
@@ -1449,7 +1455,9 @@ static void desenhaArteDetalhe(GfxRect alvo, GLuint tex, const char *arte,
     } else {
       GfxRect holes[N_ITENS * 2];
       int n = epFuros(holes);
-      gfx_rect_furos(alvo, tex, GFX_DETALHE, veu, 0, 0, 0, 0, 0, 0, alpha, holes, n);
+      // pg 0..1: a arte cheia sai e a mesma arte, na faixa do canto, entra (a faixa tem as proprias mascaras de borda)
+      if (pg < 0.995f) gfx_rect_furos(alvo, tex, GFX_DETALHE, veu, 0, 0, 0, 0, 0, 0, alpha * (1.0f - pg), holes, n);
+      if (pg > 0.005f) gfx_rect(arteCanto(), tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, alpha * pg);
     }
   } else {
     float ap = gfx_tex_aspect_atual > 0.05f ? gfx_tex_aspect_atual : (2.0f / 3.0f);
@@ -3192,8 +3200,9 @@ static void detail_evento_(const SDL_Event *e) {
       if (amigosDoTitulo(&at)) { focoAmigos = 1; return; }
       if (sinopseDe(idx)) { focoSinopse = 1; return; }
     }
-    // #407: Up focuses the clock; only OK opens its panel.
-    if (k == SDLK_UP && !e->key.repeat) { pediuRelogio = 1; return; }
+    // CIMA na linha do Play abre a barra lateral, como a ESQUERDA (dono, 2026-10-28; antes, #407, ia para o relogio).
+    // No carrossel esticado a seta e do carrossel, como la.
+    if (k == SDLK_UP && !e->key.repeat) { if (!(carro && carCheia)) pediuMenu = 1; return; }
     // CARROSSEL: a primeira seta para baixo so estica o cartao (ver carCheia).
     if (k == SDLK_DOWN && carro && !carCheia) { carCheia = 1; return; }
     if (k == SDLK_DOWN) {
@@ -7039,7 +7048,7 @@ static float desenhaFrases(float x, float y, float a) {
   float hq, hf;
   if (!frasesAberta)
     return desenhaChamada(x, y, "Frases e ficha de produção",
-                          "Wikiquote e Wikidata — nada escrito por nós",
+                          "Citações do Wikiquote e dados do Wikidata — não escritos por nós",
                           "Duas consultas: carrega quando você desce até aqui",
                           a);
   hq = seriefrases_desenhar(q);
@@ -7708,8 +7717,7 @@ static void detalheFundo(float s) {
   // Frost independe da textura; a arte e apenas a camada opcional do topo.
   if (modo == FUNDO_ARTE || comTrailer ||
       (modo != FUNDO_FROST && (artePoster || !tex))) {
-    desenhaArteDetalhe(alvo, tex, arte, artePoster,
-                       tex ? aEntrada * (1.0f - 0.85f * pg) : 1.0f, pg);
+    desenhaArteDetalhe(alvo, tex, arte, artePoster, tex ? aEntrada : 1.0f, pg);
     return;
   }
   { GfxRect tela = { 0, 0, NV_TELA_W, NV_TELA_H };
@@ -7736,6 +7744,7 @@ static void detalheFundo(float s) {
     // obrigava o caminho misturado; sem fundo intacto o caminho continua o
     // misturado (o "vazar"), com alfa 1 em vez de 0,998.
     gfx_rect(alvo, tex, GFX_DETALHE, 1.0f, 0, 0, 0.0f, 0, 0, 0, aEntrada * (1.0f - pg));
+    if (pg > 0.005f) gfx_rect(arteCanto(), tex, GFX_HERO, 0, 0, 0, 0, 0, 0, 0, aEntrada * pg);   // recua para o canto
     gfx_tex_aspect_atual = 0.0f;
     nv_ambiente_forca = salva;
   }

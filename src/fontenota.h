@@ -121,5 +121,6 @@ void fontenota_explicar(const FonteNota *n, char *dst, size_t tam);
 // Pecas usadas acima, expostas para o teste e para quem quiser so uma delas.
 int fontenota_bitrate_declarado(const char *texto);          // kbps; 0 = nenhum
 int fontenota_idioma(const char *texto, const char *pref);   // FN_IDIOMA_*
+int fontenota_idioma_alguma(const char *texto);               // 1 = cita algum idioma como audio (qualquer um)
 
 #endif

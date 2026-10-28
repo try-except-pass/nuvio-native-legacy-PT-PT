@@ -4,7 +4,7 @@
 set -eu
 AQUI=$(cd "$(dirname "$0")" && pwd)
 D=${1:-${TMPDIR:-/tmp}/nv-legref-fx}; mkdir -p "$D"
-[ -f "$D/.ok" ] && [ -f "$D/ext_traduzida_mais2000.srt" ] && [ -f "$D/filme.mkv" ] && [ -f "$D/cruz2.mkv" ] && [ -f "$D/zl.mkv" ] && [ -f "$D/pgs_slip.mkv" ] && exit 0
+[ -f "$D/.ok" ] && [ -f "$D/ext_traduzida_mais2000.srt" ] && [ -f "$D/filme.mkv" ] && [ -f "$D/cruz2.mkv" ] && [ -f "$D/zl.mkv" ] && [ -f "$D/pgs_slip.mkv" ] && [ -f "$D/audio.mkv" ] && exit 0
 command -v ffmpeg >/dev/null && command -v mkvmerge >/dev/null || { echo "precisa de ffmpeg e mkvmerge"; exit 2; }
 python3 - "$D" <<'PY'
 import random, sys

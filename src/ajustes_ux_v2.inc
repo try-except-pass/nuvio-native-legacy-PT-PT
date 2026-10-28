@@ -637,8 +637,8 @@ static GfxRect aj2GradeR(void) {
 static float aj2GradeColW(void) { return (aj2GradeR().w - 2 * AJ2_G_PAD - 2 * AJ2_G_VAO) / 3.0f; }
 static int aj2GradeLinha(int s) { int k = 0; while (s - k > 0 && aj2Grupo(s - k - 1) == aj2Grupo(s)) k++; return k; }
 static float aj2GradeChipY(void) { return aj2GradeR().y + 45.0f; }
-static float aj2GradeDescY(void) { return aj2GradeChipY() + AJ2_G_CHIP + 32.0f + (ajRetrato() ? AJ2_G_CHIP + 20.0f : 0.0f); }
-static float aj2GradeCabY(void) { return aj2GradeDescY() + AJ2_G_DESC + 22.0f; }
+static float aj2GradeDescY(void) { return aj2GradeChipY() + AJ2_G_CHIP + 32.0f; }
+static float aj2GradeCabY(void) { return aj2GradeDescY(); }   // sem a fileira dos cartoes de descoberta (2026-10-28): as categorias sobem
 static float aj2GradeCartaoH(void) {
   GfxRect g = aj2GradeR();
   float util = g.y + g.h - 57.0f - (aj2GradeCabY() + AJ2_G_CAB), h;
@@ -684,11 +684,8 @@ static GfxRect aj2TopoRetratoR(int t) {
   float x = g.x + AJ2_G_PAD, y = aj2GradeChipY(), fim = g.x + g.w - AJ2_G_PAD;
   float w = (fim - x - 20.0f) * 0.5f;
   if (t <= AJ2_T_LAYOUT) {
-    // 2x2 grid: Search | Advanced, then Profile | Different-from-default. The
-    // Panel|List chip is hidden in portrait (Mobile never offers it).
-    int col = t == AJ2_T_AV || t == AJ2_T_DIF || t == AJ2_T_LAYOUT;
-    int lin = t == AJ2_T_PERFIL || t == AJ2_T_DIF || t == AJ2_T_LAYOUT;
-    return (GfxRect){x + col * (w + 20.0f), y + lin * (AJ2_G_CHIP + 20.0f), w, AJ2_G_CHIP};
+    // uma linha: Search | Different-from-default (as outras pilulas sairam, 2026-10-28)
+    return (GfxRect){x + (t == AJ2_T_DIF ? w + 20.0f : 0.0f), y, w, AJ2_G_CHIP};
   }
   return (GfxRect){x, aj2GradeDescY() + (t == AJ2_T_TOUR ? 0.0f : AJ2_G_DESC + 20.0f), fim - x, AJ2_G_DESC};
 }
@@ -696,22 +693,10 @@ static GfxRect aj2TopoR(int t) {
   if (!aj2TopoVisivel(t)) return (GfxRect){0};
   if (ajRetrato()) return aj2TopoRetratoR(t);
   GfxRect g = aj2GradeR();
-  float cw = aj2GradeColW(), x = g.x + AJ2_G_PAD, y = aj2GradeChipY(), fim = g.x + g.w - AJ2_G_PAD;
-  float wb = cw + (cw + AJ2_G_VAO) / 3.0f, wa = aj2TopoLargura(AJ2_T_AV), wp = aj2TopoLargura(AJ2_T_PERFIL);
-  float wl = ajLayoutSelecionavel() ? aj2TopoLargura(AJ2_T_LAYOUT) : 0.0f, wd = aj2TopoLargura(AJ2_T_DIF);
-  float gap = ajLayoutSelecionavel() ? 80.0f : 60.0f;
-  // Drop the optional Advanced state before shortening Search or the profile name.
-  if (wb + gap + wa + wp + wd + wl > fim - x)
-    wa = 30 + 34 + 16 + (float)txt_largura(TXT_V3_CHIP, i18n("Avançadas")) + 32;
-  if (wb + gap + wa + wp + wd + wl > fim - x) { wb = fim - x - gap - wa - wp - wd - wl; if (wb < 240) wb = 240; }
-  if (wb + gap + wa + wp + wd + wl > fim - x) { float k = (fim - x - gap - wb) / (wa + wp + wd + wl); wa *= k; wp *= k; wd *= k; wl *= k; }
+  float cw = aj2GradeColW(), x = g.x + AJ2_G_PAD, y = aj2GradeChipY();
+  float wb = cw + (cw + AJ2_G_VAO) / 3.0f, wd = aj2TopoLargura(AJ2_T_DIF);
   if (t == AJ2_T_BUSCA) return (GfxRect){ x, y, wb, AJ2_G_CHIP };
-  if (t == AJ2_T_AV) return (GfxRect){ x + wb + 20, y, wa, AJ2_G_CHIP };
-  if (t == AJ2_T_PERFIL) return (GfxRect){ x + wb + 20 + wa + 20, y, wp, AJ2_G_CHIP };
-  if (t == AJ2_T_DIF) return (GfxRect){ x + wb + 20 + wa + 20 + wp + 20, y, wd, AJ2_G_CHIP };
-  if (t == AJ2_T_LAYOUT) return (GfxRect){ fim - wl, y, wl, AJ2_G_CHIP };
-  if (t == AJ2_T_TOUR) return (GfxRect){ x, aj2GradeDescY(), 2 * cw + AJ2_G_VAO, AJ2_G_DESC };
-  return (GfxRect){ x + 2 * (cw + AJ2_G_VAO), aj2GradeDescY(), cw, AJ2_G_DESC };
+  return (GfxRect){ x + wb + 20.0f, y, wd, AJ2_G_CHIP };   // AJ2_T_DIF
 }
 static void aj2GradeAtualizar(float dt) {
   uxLayoutDisponibilidade();
@@ -844,7 +829,8 @@ static void aj2GradeCartaoDesenhar(int s, float f) {
     aj2GradeIcone(aj2MenuIcone(j), tr.x + (tile - ico) * 0.5f, tr.y + (tile - ico) * 0.5f, ico, k); }
   tx = r.x + 25.0f + tile + 25.0f;
   tw = r.x + r.w - 25.0f - tx;
-  aj2MenuValor(s, vb, sizeof vb);
+  vb[0] = 0;   // 2026-10-28: o cartao leva so o nome; o valor da 1a opcao aparecia por baixo e vazava para o cartao
+  gfx_recorte(r.x, r.y, r.w, r.h);
   // O nome inteiro, sempre: numa linha; em duas (alemao, russo) no mesmo corpo.
   { int linhas = (float)txt_largura(en, nome) > tw ? 2 : 1, ti = ajTinta();
     float lineH = fmaxf(44.0f, (float)ajTxt(en, nome).h + 2.0f);
@@ -856,6 +842,7 @@ static void aj2GradeCartaoDesenhar(int s, float f) {
       if (k > 0.01f) txt_bloco(en, nome, ti, ti, ti, tx, y, tw, lineH, k, 2);
     }
     if (valH > 0) aj2GradeTexto(TXT_V3_VALOR, vb, tx, y + nomeH + 4.0f + valH * 0.5f, tw, 0.62f, k); }
+  gfx_sem_recorte();
 }
 // --- O INDICE EM LISTA (#339, Ajustes › Aparencia › Layout dos Ajustes) -------------
 // "La pantalla de ajustes anterior, la de las filas uno abajo de la otra, era muy
@@ -875,7 +862,7 @@ static void aj2GradeCartaoDesenhar(int s, float f) {
 #define AJ2_L_ICO   56.0f
 static float aj2LRh = AJ2_L_RMAX;
 static int aj2Lista(void) { return ajustes_layout_lista(); }
-static float aj2LTopo(void) { return aj2GradeDescY() + AJ2_G_DESC + 8.0f + (ajRetrato() ? AJ2_G_DESC + 20.0f : 0.0f); }
+static float aj2LTopo(void) { return aj2GradeCabY() + 8.0f; }
 static float aj2LBase(void) { GfxRect g = aj2GradeR(); return g.y + g.h - AJ2_L_PE; }
 static float aj2LTextoX(GfxRect r) { return r.x + 22.0f + AJ2_L_ICO + 26.0f; }
 static const char *aj2LDesc(int sec) {

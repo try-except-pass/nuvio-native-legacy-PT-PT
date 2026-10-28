@@ -1122,6 +1122,20 @@ static int temAudioPedido(const Stream *s) {
   snprintf(t, sizeof t, "%s\n%s\n%s", s->rotulo, s->descricao, s->arquivo);
   return fontenota_idioma(t, pref) == FN_IDIOMA_EXPLICITO;
 }
+// A CLASSE DE AUDIO da fonte (dono, 2026-10-28, "opcao 3"): 2 = DIZ ter o idioma (o original), 1 = nao diz nada de audio
+// ou e "dual/multi" (pode ter: lancamentos de filme em ingles quase nunca marcam o ingles), 0 = diz OUTRO idioma e nao o
+// pedido (a lista de audio do addon sem ele, ou o texto citando so outras linguas). A 0 nao entra na fila do audio original.
+static int classeAudio(const Stream *s) {
+  char t[sizeof s->rotulo + sizeof s->descricao + sizeof s->arquivo + 4];
+  const char *pref = idiomaAudioPedido();
+  int nivel;
+  if (!pref[0] || !s) return 1;
+  if (temAudioPedido(s)) return 2;
+  if (idiomaDeclaradoNota(s, pref, &nivel)) return 0;   // o addon LISTA os audios e o idioma nao esta
+  snprintf(t, sizeof t, "%s\n%s\n%s", s->rotulo, s->descricao, s->arquivo);
+  if (fontenota_idioma(t, pref) == FN_IDIOMA_DUAL) return 1;
+  return fontenota_idioma_alguma(t) ? 0 : 1;
+}
 static void notaAvaliar(const Stream *s, double dur, const char *idioma, FonteNota *nt) {
   FonteNotaEntrada e;
   memset(&e, 0, sizeof e);
@@ -2031,6 +2045,7 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
   signed char *grp = NULL;
   Stream *copia = NULL;
   FonteFalhaCandidata *c = NULL;
+  unsigned char *classes = NULL;   // a classe de audio de cada posicao (o dono da fila decide a ordem; o motor desempata)
   FonteRegraCfg escopo = regraCfg();
   *saida = NULL; *fontes = NULL; *quantidade = 0;
   if (lembrada) *lembrada = -1;
@@ -2082,17 +2097,15 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
   if (escolhida < 0 && nf > 0 && idiomaAudioPedido()[0]) {
     unsigned char *tem = calloc((size_t)total, 1);
     if (tem) {
-      int com;
-      for (int q = 0; q < total; q++) tem[q] = (unsigned char)temAudioPedido(&copia[ordem[q]]);
-      com = fonteauto_idioma_primeiro(fila, nf, tem);
-      // NUVIO_GO (dono): so o audio ORIGINAL do titulo. A fonte que nao declara o audio no idioma original nem entra na fila:
-      // nao e tentada e NAO conta no limite de links do add-on (ler a fonte prova que o add-on e a fonte funcionam; o que
-      // falta e o idioma). Nenhuma declara: nf = 0 e o app avisa e volta para a pagina do titulo (stream_sem_audio_original).
-      if (ling_audio_e_original()) {
-        if (com < 1) { falhaSemOriginal = 1; snprintf(falhaSemOriginalIdioma, sizeof falhaSemOriginalIdioma, "%s", idiomaAudioPedido()); }
-        nf = com;
-      }
-      free(tem);
+      int com = 0, orig = ling_audio_e_original();
+      for (int q = 0; q < total; q++) tem[q] = (unsigned char)classeAudio(&copia[ordem[q]]);
+      // NUVIO_GO (dono): so o audio ORIGINAL do titulo, em tres classes (2026-10-28): primeiro as que DIZEM ter o audio
+      // original, depois as que nao dizem nada de audio (a conferencia de sincronia le as faixas do arquivo e promove ou
+      // exclui cada uma), e as que dizem OUTRO idioma nem entram na fila: nao sao tentadas e NAO contam no limite de
+      // links do add-on. Nenhuma fonte serve: nf = 0 e o app avisa e volta para a pagina do titulo (stream_sem_audio_original).
+      nf = fonteauto_idioma_classes(fila, nf, tem, orig, &com);
+      if (orig && nf < 1) { falhaSemOriginal = 1; snprintf(falhaSemOriginalIdioma, sizeof falhaSemOriginalIdioma, "%s", idiomaAudioPedido()); }
+      classes = tem;
     }
   }
   for (int q = 0; q < nf; q++) {
@@ -2107,6 +2120,7 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
     stream_falha_identidade(s, id, (unsigned)tam);
     c[q].indice = i; c[q].nativa = s->infoHash[0] != 0;
     c[q].filtro = s->filtro;
+    c[q].classe = classes ? classes[fila[q]] : 0;
     c[q].ordemAddon = s->addonOrdem;
     snprintf(c[q].addon, sizeof c[q].addon, "%s", s->addonChave);
     c[q].identidade = id;
@@ -2116,7 +2130,7 @@ static int falhaCandidatas(unsigned geracao, int escolhida, int primeira, FonteF
 fim:
   pthread_mutex_unlock(&verTrava);
   free(ordem); free(fila); free(rk); free(pts); free(acima); free(excl); free(grp);
-  free(copia); free(c);
+  free(copia); free(c); free(classes);
   return *fontes != NULL;
 }
 static int falhaCancelada(unsigned geracao, int (*cancelado)(void *), void *ctx) {
@@ -2170,9 +2184,17 @@ int stream_falha_verificar(FonteFalhaSessao *sessao, unsigned geracao, int escol
   }
   // O RETRATO DA FILA tambem por aqui (HANDOFF item 2): e este o caminho da escolha quando a politica de falha esta
   // ligada, e sem o retrato a conferencia de sincronia (fontesincapp.c) achava a fila vazia e nao trocava nunca.
-  { int fi[VER_MAX], k = nc < VER_MAX ? nc : VER_MAX;
+  // So entra no retrato o que o automatico PODERIA tocar: os filtros do dono (fontefalha_proxima aplica
+  // fontefiltro_permite so na hora de escolher a rota) valem tambem para a troca por sincronia. Sem isto ela trocava
+  // para uma fonte que os filtros recusam (Poderoso Chefao, 2026-10-28: um 2160p com TrueHD, "Audio Codec Not Supported").
+  { int fi[VER_MAX], k = 0;
     unsigned char orig[VER_MAX] = {0};
-    for (int q = 0; q < k; q++) { fi[q] = c[q].indice; orig[q] = (unsigned char)temAudioPedido(&fontes[c[q].indice]); }
+    FonteFiltroConfig filtro;
+    fontefalha_sessao_filtro(sessao, &filtro);
+    for (int q = 0; q < nc && k < VER_MAX; q++) {
+      if (!fontefiltro_permite(&filtro, &c[q].filtro)) continue;
+      fi[k] = c[q].indice; orig[k] = (unsigned char)temAudioPedido(&fontes[c[q].indice]); k++;
+    }
     retratoGuardar(nv_perfil_sessao_ler(), geracao, fi, orig, k, lembrada);
   }
   for (;;) {
@@ -2701,10 +2723,10 @@ int stream_primeira_boa_sessao(int tentativas, uint64_t sessao) {
       pthread_mutex_lock(&verTrava);
       if (listaGeracao == c.geracao)
         for (q = 0; q < nf; q++)
-          if (fila[q] >= 0 && fila[q] < n) tem[fila[q]] = (unsigned char)temAudioPedido(&lista[fila[q]]);
+          if (fila[q] >= 0 && fila[q] < n) tem[fila[q]] = (unsigned char)classeAudio(&lista[fila[q]]);
       pthread_mutex_unlock(&verTrava);
-      com = fonteauto_idioma_primeiro(fila, nf, tem);
-      for (q = 0; q < nf && q < VER_MAX; q++) origRetrato[q] = tem[fila[q]];
+      fonteauto_idioma_classes(fila, nf, tem, 0, &com);   // 2, 1, 0: ninguem sai desta volta
+      for (q = 0; q < nf && q < VER_MAX; q++) origRetrato[q] = (unsigned char)(tem[fila[q]] == 2);
       printf("[fonte] audio %s: %d de %d fonte(s) dizem ter; %s\n", pref, com, nf,
              com ? "toca a primeira delas" : "nenhuma diz: a melhor da lista");
     }

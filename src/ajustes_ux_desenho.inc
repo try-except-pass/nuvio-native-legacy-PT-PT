@@ -124,7 +124,8 @@ static float ajLogo(const char *c, float x, float y, float maxW, float maxH, flo
 }
 
 // --- MATERIAL -------------------------------------------------------------------
-static int ajVid(void) { return ajustes_vidro(); }
+// DONO, 2026-10-28: a tela de Ajustes nao leva vidro (sem o desfoque nem a camada fosca); o ajuste Vidro vale no resto do app.
+static int ajVid(void) { return 0; }
 // A sombra da ilha. `opaca` = o miolo vem por cima com alfa 1 (o solido): a
 // parte da mancha que ele cobre nao e desenhada (gfx_sombra_vazada, o furo e a
 // ilha sem a faixa do canto arredondado). No vidro o miolo e translucido e a

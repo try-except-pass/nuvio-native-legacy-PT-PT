@@ -438,8 +438,9 @@ static void gate(void) {
   perfil_infantil_esquecer();
   admin_pin_esquecer();
   pfEntrada();
-  focoIndice = 1; uxTopo = AJ2_T_PERFIL;
-  assert(uxEvento(SDLK_RETURN) && pfTela == PF_MENU && ajModalAberto());
+  // a pilula Perfil saiu do alto dos Ajustes (2026-10-28); o menu abre por pfAbrir, o mesmo caminho dela (e Conta e sobre)
+  pfAbrir();
+  assert(pfTela == PF_MENU && ajModalAberto());
   pfExigirAdmin(PA_EDITAR, 2);
   assert(pfFase == 3 && !edPerfil);
   assert(pfDigitado("4821") == 1 && pfFase == 4);

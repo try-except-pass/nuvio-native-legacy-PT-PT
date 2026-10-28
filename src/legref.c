@@ -494,6 +494,24 @@ static void anunciar(Job *j, LegRefStatus *st, int numero, const char *idioma, c
   pthread_mutex_unlock(&j->r->m);
 }
 
+// Os idiomas das faixas de AUDIO (TrackType 2) do arquivo, "it,en", para quem quiser saber se o audio original esta
+// la dentro: a etiqueta do addon quase nunca diz. Vai para o status ja na cabeca, antes de qualquer outra coisa falhar.
+static void publicarAudio(Job *j, LegRefStatus *st, const Faixa *fx, int nF) {
+  char a[sizeof st->audio] = ""; size_t k = 0;
+  for (int i = 0; i < nF; i++) {
+    size_t n;
+    if (fx[i].tipo != 2 || !fx[i].idioma[0]) continue;
+    n = strlen(fx[i].idioma);
+    if (k + n + 2 > sizeof a) break;
+    if (k) a[k++] = ',';
+    memcpy(a + k, fx[i].idioma, n); k += n; a[k] = 0;
+  }
+  snprintf(st->audio, sizeof st->audio, "%s", a);
+  pthread_mutex_lock(&j->r->m);
+  if (j->r->st.pedido == j->id) snprintf(j->r->st.audio, sizeof j->r->st.audio, "%s", a);
+  pthread_mutex_unlock(&j->r->m);
+}
+
 // --- ESCOLHA E VALIDACAO CRUZADA DAS FAIXAS --------------------------------------
 // Ordem de preferencia: o idioma pedido antes; dentro dele, a faixa comum
 // antes da SDH/CC (que traz [porta batendo] a mais). Comentario fica de fora:
@@ -982,6 +1000,8 @@ static LegendaDocumento *coletar(Job *j, LegRefStatus *st) {
     nF = lerTracks(tracks + oTr, nTr, fx, LR_FAIXAS);
   }
   (void)posInfo;
+  publicarAudio(j, st, fx, nF);
+  if (j->p.orc.soCabeca) { j->erro = LEGREF_SO_CABECA; goto fim; }
   // 2. As faixas candidatas: texto, nao letreiro, nao comentario, nao
   // excluidas; em ordem de preferencia (ordenar).
   {
@@ -1318,6 +1338,6 @@ LegendaDocumento *legref_tomar(LegRef *r, uint64_t pedido) {
 
 const char *legref_motivo(LegRefMotivo m) {
   static const char *const n[] = { "ok", "platform", "no_range", "not_matroska", "no_text_track",
-    "no_index", "no_block_duration", "network", "budget", "incomplete", "out_of_memory", "stopped" };
+    "no_index", "no_block_duration", "network", "budget", "incomplete", "out_of_memory", "stopped", "head_only" };
   return m >= 0 && m < (int)(sizeof n / sizeof *n) ? n[m] : "invalid";
 }

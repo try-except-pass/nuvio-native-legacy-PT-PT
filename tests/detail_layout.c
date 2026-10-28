@@ -99,8 +99,7 @@ int main(void) {
   assert(!mostrarNomeLogo(&c, u, 1, "pt-BR"));
   snprintf(c.tipo, sizeof c.tipo, "movie");
   cat_definir_tudo(&c, 1, NULL, 0); idx = 0;
-  // Ratings: focus stops only on the big score, never per source chip.
-  assert(secaoN(SEC_NOTAS) == 1);
+  // (a secao de notas saiu da pagina do titulo em 2.0.x; a regra "foco so na nota grande" nao tem mais o que testar)
   carro = 1; carCheia = 1; carN = 3; carPos = carAplicado = 1;
   nivel = 0; saindo = 0;
   SDL_Event e = {0}; e.type = SDL_KEYDOWN;
@@ -166,6 +165,12 @@ int main(void) {
   e.type = SDL_KEYDOWN; e.key.keysym.sym = SDLK_LEFT;
   detail_evento(&e);
   assert(!saindo && detail_pediu_menu() && !detail_pediu_menu());
+  // CIMA no primeiro botao abre a barra lateral, como a ESQUERDA (antes ia para o relogio)
+  nivel = 0; botao = 0; pediuMenu = 0;
+  e.key.keysym.sym = SDLK_UP; e.key.repeat = 0;
+  detail_evento(&e);
+  assert(!saindo && detail_pediu_menu() && !detail_pediu_relogio());
+  e.key.keysym.sym = SDLK_LEFT;
   nivel = 1; foco.fileira = SEC_RELACIONADOS; foco.coluna = 0; scrollY = 321.0f;
   detail_evento(&e);
   assert(!saindo && detail_pediu_menu());

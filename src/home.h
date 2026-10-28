@@ -98,6 +98,7 @@ void home_fileiras_vistas(Uint32 agora);
 // isto para nascer com o backdrop no mesmo lugar — o fundo do detalhe E a arte
 // do titulo em foco, e ela nao deve reaparecer, deve continuar.
 void home_hero_rect(float *x, float *y, float *w, float *h);
+void home_hero_rect_faixa(float *x, float *y, float *w, float *h);   // a faixa do canto superior direito (arte fora da tela cheia)
 // Indices de catalogo da fonte "Catalogos do destaque" (0 = automatico). Usado pela vitrine do descanso.
 int  home_hero_fonte_itens(int *out, int cap);
 // A LINHA DE META do destaque do topo: episodio em andamento, genero, ano e

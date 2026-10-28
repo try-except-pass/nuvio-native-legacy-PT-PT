@@ -155,6 +155,7 @@ int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exige
       const FonteSinc *s = &c[fila[q]];
       int ok;
       if (soOriginal && !s->original) continue;
+      if (s->outro) continue;
       ok = nv == FSINC_PRIM_OK ? s->sincPrim == FSINC_CONFIRMADA
          : nv == FSINC_SEC_OK  ? s->sincSec == FSINC_CONFIRMADA
          : nv == FSINC_PRIM    ? (s->temPrim || s->sincPrim == FSINC_CONFIRMADA)
@@ -163,7 +164,7 @@ int fonteauto_sincronizada(const int *fila, int n, const FonteSinc *c, int exige
     }
   }
   for (q = 0; q < n; q++)   // ninguem tem legenda: a escolha de sempre
-    if (!soOriginal || c[fila[q]].original) return fila[q];
+    if ((!soOriginal || c[fila[q]].original) && !c[fila[q]].outro) return fila[q];
   return fila[0];
 }
 
@@ -177,8 +178,13 @@ int fonteauto_sincronizar(const int *fila, int n, FonteSinc *c, int exigeOrigina
     for (q = 0; q < n && !soOriginal; q++) soOriginal = c[fila[q]].original;
   for (q = 0; q < n; q++) {
     FonteSinc *s = &c[fila[q]];
-    if (soOriginal && !s->original) continue;
     if (g->cancelado && g->cancelado(g->u)) break;
+    if (exigeOriginal && !s->original && g->audioOriginal) {   // a etiqueta nao diz: le as faixas do arquivo
+      int r = g->audioOriginal(fila[q], g->u);
+      if (r == 1) { s->original = 1; soOriginal = 1; }
+      else if (r == 0) { s->outro = 1; continue; }
+    }
+    if (soOriginal && !s->original) continue;
     if (g->embutida && g->embutida(fila[q], g->u)) {   // sincronizada de fabrica: nada acima disso
       s->temPrim = 1; s->sincPrim = FSINC_CONFIRMADA;
       feitas++;
@@ -204,4 +210,21 @@ int fonteauto_idioma_primeiro(int *fila, int n, const unsigned char *temIdioma) 
   }
   memcpy(fila + com, resto, sizeof *resto * (size_t)nr);
   return com;
+}
+
+int fonteauto_idioma_classes(int *fila, int n, const unsigned char *classe, int tirarOutros, int *declaradas) {
+  int q, k = 0, c2 = 0;
+  if (declaradas) *declaradas = 0;
+  if (!fila || n < 1 || !classe) return n > 0 ? n : 0;
+  { int copia[n];
+    memcpy(copia, fila, sizeof *copia * (size_t)n);
+    for (q = 0; q < n; q++) if (classe[copia[q]] == 2) fila[k++] = copia[q];
+    c2 = k;
+    for (q = 0; q < n; q++) if (classe[copia[q]] == 1) fila[k++] = copia[q];
+    if (!tirarOutros) {
+      for (q = 0; q < n; q++) if (classe[copia[q]] != 1 && classe[copia[q]] != 2) fila[k++] = copia[q];
+      k = n;
+    } }
+  if (declaradas) *declaradas = c2;
+  return k;
 }

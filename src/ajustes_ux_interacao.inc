@@ -2,7 +2,9 @@ static int aj2GrupoDe(int s);   // ajustes_ux_v2.inc: o grupo (coluna da grade) 
 static void guiaIrCapitulo(const char *icone);   // ajustes_ux_guia.inc
 // #339: AJ2_T_LAYOUT e o segmentado "Painel | Lista" no fim da fileira das pilulas.
 enum { AJ2_T_BUSCA = 0, AJ2_T_AV, AJ2_T_PERFIL, AJ2_T_DIF, AJ2_T_LAYOUT, AJ2_T_TOUR, AJ2_T_RESOLVER, AJ2_T_N };
-static int aj2TopoVisivel(int t) { return t >= 0 && t < AJ2_T_N && (t != AJ2_T_LAYOUT || ajLayoutSelecionavel()); }
+// DONO, 2026-10-28: do alto da tela de Ajustes ficam so a busca e "Diferentes do padrao". Avancadas (agora ligado de fabrica),
+// Perfil (ha em Conta e sobre), o seletor Painel|Lista e os dois cartoes de descoberta saram da tela.
+static int aj2TopoVisivel(int t) { return t == AJ2_T_BUSCA || t == AJ2_T_DIF; }
 static int ajEmLinha(int op);
 static int ajPaleta(int op) { return op == AJ_TEMA || op == AJ_FUNDO_DIN_COR; }
 static int ajReguaMover(int op, int v, int dx, int dy);
@@ -24,6 +26,7 @@ static void uxCancelar(void) {
 }
 static void uxListarDiferencas(void);
 static void uxLayoutDisponibilidade(void) {
+  if (uxTopo >= 0 && !aj2TopoVisivel(uxTopo)) uxTopo = AJ2_T_BUSCA;   // pilula que saiu da tela nunca recebe o foco
   if (ajLayoutSelecionavel()) return;
   uxCabLayout = 0;
   if (uxEditor && uxOp == AJ_LAYOUT_AJUSTES) uxCancelar();
@@ -34,7 +37,6 @@ static void uxLayoutDisponibilidade(void) {
   }
   if (uxIndice == 1) for (int i = 0; i < uxNDifs; i++)
     if (uxDifs[i] == AJ_LAYOUT_AJUSTES) { uxListarDiferencas(); break; }
-  if (uxTopo == AJ2_T_LAYOUT) uxTopo = AJ2_T_PERFIL;
 }
 static void uxListarDiferencas(void) {
   int i;
@@ -473,21 +475,16 @@ static int uxEvento(SDL_Keycode k) {
         return 1;
       }
       if (k == SDLK_LEFT) {
-        if (t == AJ2_T_BUSCA || t == AJ2_T_TOUR) { sair = 1; return 1; }
-        uxTopo = t == AJ2_T_RESOLVER ? AJ2_T_TOUR : t - 1;
+        if (t == AJ2_T_BUSCA) { sair = 1; return 1; }
+        uxTopo = AJ2_T_BUSCA;
       } else if (k == SDLK_RIGHT) {
-        if (t < (ajLayoutSelecionavel() ? AJ2_T_LAYOUT : AJ2_T_DIF) || t == AJ2_T_TOUR) uxTopo = t + 1;
+        if (t == AJ2_T_BUSCA) uxTopo = AJ2_T_DIF;
       } else if (k == SDLK_DOWN) {
-        if (t <= AJ2_T_AV) uxTopo = AJ2_T_TOUR;
-        else if (t == AJ2_T_PERFIL || t == AJ2_T_DIF || t == AJ2_T_LAYOUT) uxTopo = AJ2_T_RESOLVER;
-        else {
-          int g = t == AJ2_T_TOUR || ajustes_layout_lista() || ajRetrato() ? 0 : 2, dest = ini[g] < nSecoes ? ini[g] : 0;
-          uxVeioBusca = 0; focarSecao(dest); uxIndice = dest + 2;
-        }
+        // da busca para a primeira categoria da 1a coluna; de "Diferentes do padrao" para a da coluna do meio
+        int g = ajustes_layout_lista() || ajRetrato() || t == AJ2_T_BUSCA || ini[1] >= nSecoes ? 0 : 1, dest = ini[g] < nSecoes ? ini[g] : 0;
+        uxVeioBusca = 0; focarSecao(dest); uxIndice = dest + 2;
       } else if (k == SDLK_UP) {
-        if (t == AJ2_T_TOUR) uxTopo = AJ2_T_BUSCA;
-        else if (t == AJ2_T_RESOLVER) uxTopo = AJ2_T_PERFIL;
-        else if (ajustes_menu_topo()) { sair = 1; return 1; }
+        if (ajustes_menu_topo()) { sair = 1; return 1; }
         else pediuRelogio = 1;
       }
       return 1;
@@ -501,7 +498,7 @@ static int uxEvento(SDL_Keycode k) {
       if (ajustes_layout_lista() || ajRetrato()) {
         if (k == SDLK_UP) {
           if (sec > 0) dest = sec - 1;
-          else { uxTopo = AJ2_T_TOUR; uxVeioBusca = 0; return 1; }
+          else { uxTopo = AJ2_T_BUSCA; uxVeioBusca = 0; return 1; }
         }
         if (k == SDLK_DOWN && sec + 1 < nSecoes) dest = sec + 1;
         if (k == SDLK_LEFT) { sair = 1; return 1; }
@@ -510,7 +507,7 @@ static int uxEvento(SDL_Keycode k) {
       }
       if (k == SDLK_UP) {
         if (lin > 0) dest = sec - 1;
-        else { uxTopo = g == 2 ? AJ2_T_RESOLVER : AJ2_T_TOUR; uxVeioBusca = 0; return 1; }
+        else { uxTopo = g == 0 ? AJ2_T_BUSCA : AJ2_T_DIF; uxVeioBusca = 0; return 1; }
       }
       if (k == SDLK_DOWN && sec + 1 < ini[g + 1]) dest = sec + 1;
       if (k == SDLK_LEFT && g == 0) { sair = 1; return 1; }

@@ -1140,7 +1140,7 @@
   T("Cada scraper vira mais uma origem na folha de Fontes, rodando junto com os addons. Limites globais de memória e de pedidos.", "Cada scraper passa a ser mais uma origem na folha de Fontes, a funcionar em conjunto com os addons. Limites globais de memória e de pedidos."),
   T("Cadastrado em Ajustes › Conta", "Registado em Definições › Conta"),
   T("Campo", "Campo"),
-  T("Campos do Wikidata — não é curiosidade escrita por nós", "Campos do Wikidata — não é curiosidade escrita por nós"),
+  T("Campos do Wikidata — não é curiosidade escrita por nós", "Dados do Wikidata, não escritos por nós"),
   T("Canadá", "Canadá"),
   T("Canais", "Canais"),
   T("Canais HLS tocam na LG, busca no guia e botão Proporção no canal.", "Os canais HLS passam na LG, pesquisa no guia e um botão Proporção no canal."),

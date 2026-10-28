@@ -42,13 +42,15 @@ typedef enum {
 typedef enum {
   LEGREF_OK = 0, LEGREF_PLATAFORMA, LEGREF_SEM_RANGE, LEGREF_NAO_MKV,
   LEGREF_SEM_FAIXA, LEGREF_SEM_INDICE, LEGREF_SEM_DURACAO, LEGREF_REDE,
-  LEGREF_ORCAMENTO, LEGREF_INCOMPLETO, LEGREF_MEMORIA, LEGREF_PARADO
+  LEGREF_ORCAMENTO, LEGREF_INCOMPLETO, LEGREF_MEMORIA, LEGREF_PARADO,
+  LEGREF_SO_CABECA   // pedido com soCabeca: leu as faixas e parou, de proposito
 } LegRefMotivo;
 
 typedef struct {
   long long maxBytes;  // bytes de corpo somados nesta leitura
   int maxPedidos;      // Ranges nesta leitura
   int pedidosPorSeg;   // teto de ritmo (nao disputar a conexao do video)
+  int soCabeca;        // 1 = le so a cabeca (faixas e idiomas de audio) e para: nao le Cues nem blocos
 } LegRefOrcamento;
 
 typedef struct {
@@ -58,6 +60,7 @@ typedef struct {
   int feitos, total, pedidos, faixa;
   long long bytes;
   char idioma[24], codec[24];
+  char audio[64];      // idiomas das faixas de AUDIO do arquivo ("it,en"); vazio = nao se sabe (MP4) ou nenhuma
 } LegRefStatus;
 
 // Leitor de [ini, ini+n). Devolve buffer malloc (*tam pode ser menor so no fim

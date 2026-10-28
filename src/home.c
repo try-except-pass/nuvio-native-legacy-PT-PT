@@ -4177,6 +4177,14 @@ float home_topo_fracao(void) {
   return f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f);
 }
 
+// A FAIXA do destaque (a arte fora da tela cheia, no canto superior direito): o tamanho-padrao a que a pagina do titulo
+// recua a arte ao rolar para o elenco. Um retangulo so, o mesmo da Home com o foco nas fileiras.
+static GfxRect heroArtworkRect(int lay, int cheio);
+void home_hero_rect_faixa(float *x, float *y, float *w, float *h) {
+  GfxRect r = heroArtworkRect(HOME_LAYOUT_MODERNA, 0);
+  *x = r.x; *y = r.y; *w = r.w; *h = r.h;
+}
+
 void home_hero_rect(float *x, float *y, float *w, float *h) {
   GfxRect r = heroArteRect;
   // Dinamica com o destaque ja rolado para fora: a pagina do titulo cresce a
@@ -4931,7 +4939,9 @@ static void desenhaHero(Uint32 agora, float saida) {
   // A fileira de AMIGOS tambem: o destaque dela e outra tela (fundo social,
   // autoria, ficha) desenhada para a arte inteira; na faixa a arte parava no
   // meio e sobrava o fundo social dos lados (dono, 05/10).
-  int cheio = homeRetratoTelefone() || ajustes_hero_cheio() ||
+  // DONO, 2026-10-28: descer UMA fileira a partir do destaque leva a arte para o canto superior direito (a faixa), com o
+  // ajuste "Fundo em tela cheia" ligado ou nao: ele deixou de mandar aqui (a linha dele fica indisponivel).
+  int cheio = homeRetratoTelefone() ||
               (lay == HOME_LAYOUT_MODERNA &&
                (focoHero || (foco.fileira >= 0 && foco.fileira < nFileiras &&
                              fileiras[foco.fileira].tipo == FILEIRA_SOCIAL)));

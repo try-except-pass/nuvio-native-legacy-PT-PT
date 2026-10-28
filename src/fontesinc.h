@@ -28,6 +28,10 @@ int fontesinc_julgar(FonteSincLeitor *l, const char *url, uint64_t sessao, const
 // no idioma da pessoa DENTRO da fonte foi multiplexada com o video e nao tem como estar dessincronizada.
 // Devolve 1 = veio (*idioma = o da faixa lida, a mais proxima de `idiomaRef`; *dialogo = 1 se nao e forcada nem so
 // letreiros), 0 = a fonte nao deu referencia, -1 = cancelado.
+// OS IDIOMAS DE AUDIO DO ARQUIVO da fonte ("it,en"), lidos so da cabeca (o mesmo Range da referencia, sem Cues nem blocos).
+// 1 = leu (`audio` pode vir vazio: MP4, ou sem faixa de audio), 0 = nao deu, -1 = cancelado.
+int fontesinc_audio(FonteSincLeitor *l, const char *url, uint64_t sessao, int (*cancelado)(void *), void *u,
+                    char *audio, unsigned tam);
 int fontesinc_faixa(FonteSincLeitor *l, const char *url, uint64_t sessao, const char *idiomaRef,
                     int (*cancelado)(void *), void *u, char *idioma, unsigned tam, int *dialogo);
 // O motivo do ultimo veredito, em ingles estavel, para o log ("ok", "no_range", "low_confidence"...).

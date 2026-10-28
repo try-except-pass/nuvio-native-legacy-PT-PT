@@ -2420,7 +2420,7 @@ static const struct { int op, v; } PADROES_TV[] = {
   { AJ_DET_BLUR_NAO_VISTOS, 0 }, { AJ_EP_TAMANHO, 0 }, { AJ_TMDB_ARTE, 1 }, { AJ_EXPANDIR_ATRASO, 5 }, { AJ_BORDA_FOCO, 1 },
   { AJ_SOMBRA_FOCO, 1 }, { AJ_LARGURA_DP, 92 }, { AJ_HERO_FUNDO, 6 }, { AJ_HERO_ARTE_DIF, 0 }, { AJ_DET_TRAILER_AUTO, 1 },
   { AJ_HERO_TRAILER_SOM, 0 }, { AJ_LOGO_TRAILER, 0 }, { AJ_ADDON_POSTER, 0 }, { AJ_ADDON_FUNDO, 0 }, { AJ_HERO_TRAILER_ESPERA, 100 },
-  { AJ_NAV_RAPIDA, 0 }, { AJ_TEX_MB, 4 },
+  { AJ_NAV_RAPIDA, 0 }, { AJ_TEX_MB, 4 }, { AJ_AVANCADAS, 0 },   // V_LIGA: 0 = ligado (dono, 2026-10-28)
 };
 // Nuvio_GO (dono): opcoes que SAIRAM da tela e valem FIXAS. Aplicado depois de ler o arquivo, a conta e o perfil,
 // entao um ajustes.txt antigo nao muda o comportamento. -1 = o padrao de fabrica de valor[].
@@ -5069,6 +5069,15 @@ static void ajustesDirBase(const char *dir) {
   // desligada. Decisao do dono (05/10/2026): "para novos e antigos usuarios".
   // Uma vez so; quem trocar depois, fica. Em modo seguro (SEGURO) a cor
   // dinamica continua desligada na leitura, como sempre.
+  // MIGRACAO UNICA (2.1.3, dono): "mostrar avancadas" ligado para todos (a pilula que alternava saiu da tela de Ajustes).
+  // Quem desligar depois em Aparencia, fica.
+  { char *m = dados_ler("avancadas-213.txt");
+    if (m) free(m);
+    else {
+      valor[AJ_AVANCADAS] = 0;
+      dados_gravar("avancadas-213.txt", "1\n");
+      gravar();
+    } }
   { char *m = dados_ler("aparencia-20.txt");
     if (m) free(m);
     else {
@@ -7401,7 +7410,7 @@ static int inativa(int op) {
     case AJ_HERO_CATALOGOS: return !ajustes_hero_ligado();
     // O fundo em tela cheia e da Moderna: no Padrao o destaque e um banner e na
     // Dinamica ele e sempre de ponta a ponta e rola junto com as fileiras.
-    case AJ_HERO_CHEIO:   return ajustes_home_layout() != HOME_LAYOUT_MODERNA;
+    case AJ_HERO_CHEIO:   return 1;   // 2026-10-28: sem efeito; a arte recua para o canto ao descer, sempre (home.c)
     case AJ_EP_TAMANHO:   return ajustes_home_layout() != HOME_LAYOUT_MODERNA;
     // #162: o Descobrir do app web (navegar catalogos por tipo e genero) ainda
     // nao existe nesta TV — o "Explorar" daqui e outra tela. A escolha vem e
@@ -7624,7 +7633,7 @@ static const char *ajudaOpcaoBase(int op) {
     if (op == AJ_MENU_TOPO) return "No layout Dinâmica o menu já fica no alto da tela.";
     if (op == AJ_RAIL_BLUR) return "Ative a barra lateral moderna para usar o desfoque.";
     if (op == AJ_HERO_CATALOGOS) return "Ative Mostrar destaque para exibir os catálogos no topo da Home.";
-    if (op == AJ_HERO_CHEIO) return "Só vale no layout Moderna. No Padrão o destaque é um banner, e na Dinâmica ele ocupa a largura toda e sobe junto com a rolagem.";
+    if (op == AJ_HERO_CHEIO) return "Sem efeito: com o foco no destaque a arte ocupa a tela inteira e, ao descer para as fileiras, recua para o canto superior direito.";
     // #205: uma frase por causa, na mesma ordem de inativa().
     if (op == AJ_P2P_LIMITE || op == AJ_P2P_DESTINO) {
       if (!p2pmotor_disponivel()) return "O motor P2P embutido não está disponível nesta TV.";
@@ -7788,7 +7797,7 @@ static const char *ajudaOpcaoBase(int op) {
     case AJ_HERO_NOTAS: return "Mostra ou esconde a nota do IMDb no destaque.";
     case AJ_HERO_ANO: return "Mostra ou esconde o ano no destaque.";
     case AJ_HERO_DURACAO: return "Mostra ou esconde a duração no destaque.";
-    case AJ_HERO_CHEIO: return "O destaque do topo ocupa a tela inteira atrás das fileiras, em vez de ficar num bloco.";
+    case AJ_HERO_CHEIO: return "Com o foco no destaque a arte ocupa a tela inteira; ao descer para as fileiras ela recua para o canto superior direito.";
     case AJ_HERO_FUNDO: return "De onde vem a arte de fundo do destaque, da página do título e dos cards deitados: catálogo/Cinemeta, IMDb/Metahub, TMDB, Trakt, Apple TV, fanart.tv (com chave) ou Anime (Kitsu/AniList). Automático usa a do catálogo. MDBList fornece notas, não imagens.";
     case AJ_HERO_ARTE_DIF: return "Desligado: card, destaque e página do título mostram a mesma imagem. Ligado: o card fica com a arte do catálogo e o destaque usa outra foto — TMDB vira outro fundo do TMDB; em Automático, ou se a escolhida repetir o card, usa Apple TV, outro fundo do TMDB, fanart.tv, anime ou Trakt.";
     case AJ_HERO_TRAILER: return "Com o foco parado no destaque do topo, o trailer do título toca no lugar da arte, sem som a menos que Som do trailer esteja ligado. Mover o foco volta para a arte.";
