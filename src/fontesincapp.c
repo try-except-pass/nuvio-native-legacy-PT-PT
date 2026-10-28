@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "legsync.h"
 #include <strings.h>
 #include <unistd.h>
 
@@ -41,6 +42,26 @@ static _Atomic unsigned pedidoTok;        // de que conferencia veio
 static _Atomic int pedidoSinc;            // 1 = a legenda da fonte pedida esta com a sincronia confirmada
 static _Atomic unsigned semLegendaTok;   // `tok` da conferencia que nao achou legenda em fonte nenhuma
 static _Atomic unsigned jaTrocou;         // `tok` que ja trocou: no maximo UMA troca por reproducao
+
+// A legenda que SINCRONIZOU com cada fonte (slot 1 = principal), por geracao da lista: o player a usa na escolha da
+// legenda e na troca, em vez de adivinhar a primeira da lista (Truman Show: a primeira era metade do filme).
+static pthread_mutex_t mVenc = PTHREAD_MUTEX_INITIALIZER;
+static struct { unsigned ger; uint64_t hash[SINC_MAX]; } venc;
+static void vencGravar(unsigned ger, int i, uint64_t hash) {
+  if (i < 0 || i >= SINC_MAX) return;
+  pthread_mutex_lock(&mVenc);
+  if (venc.ger != ger) { memset(&venc, 0, sizeof venc); venc.ger = ger; }
+  venc.hash[i] = hash;
+  pthread_mutex_unlock(&mVenc);
+}
+int fontesincapp_legenda_da_fonte(int fonte, uint64_t *hash) {
+  int ok = 0;
+  if (fonte < 0 || fonte >= SINC_MAX) return 0;
+  pthread_mutex_lock(&mVenc);
+  if (venc.ger == stream_lista_geracao() && venc.hash[fonte]) { if (hash) *hash = venc.hash[fonte]; ok = 1; }
+  pthread_mutex_unlock(&mVenc);
+  return ok;
+}
 
 static long long agoraMs(void) {
   struct timespec t;
@@ -153,7 +174,7 @@ static int conferir(int i, int slot, void *u) {
         printf("[sinc-fonte] fonte %d legenda %s #%d/%d \"%s\": %s (%s) %+d ms\n", i, slot ? "2" : "1", k0 + j + 1, n,
                l->arquivo[0] ? l->arquivo : l->rotulo,
                cm[j].r == FSINC_CONFIRMADA ? "sincroniza" : cm[j].r == FSINC_NAO ? "nao" : "cancelada", cm[j].motivo, cm[j].off);
-        if (cm[j].r == FSINC_CONFIRMADA) { veredito = FSINC_CONFIRMADA; break; }
+        if (cm[j].r == FSINC_CONFIRMADA) { veredito = FSINC_CONFIRMADA; if (!slot) vencGravar(c->geracao, i, legsync_hash_url(l->url)); break; }
         if (cm[j].r == FSINC_DESCONHECIDA) veredito = FSINC_DESCONHECIDA;
       }
     }

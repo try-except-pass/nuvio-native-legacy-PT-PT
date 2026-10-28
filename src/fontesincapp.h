@@ -25,4 +25,8 @@ int fontesincapp_trocar(int *indice, int *atual, int *sincronizada);
 // "Legenda não encontrada" e segue tocando a primeira.
 int fontesincapp_sem_legenda(void);
 
+// A legenda (hash do URL, o mesmo de legsync_hash_url) que SINCRONIZOU com a fonte `fonte` na conferencia: 1 e *hash
+// preenchido, 0 = ainda nao se sabe (nao conferida, ou nenhuma sincronizou).
+int fontesincapp_legenda_da_fonte(int fonte, uint64_t *hash);
+
 #endif

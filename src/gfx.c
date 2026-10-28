@@ -632,6 +632,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "           + clamp((y-0.892)/0.063,0.0,1.0)*0.40\n"
   "           + clamp((y-0.955)/0.045,0.0,1.0)*0.35;\n"
   "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
+  "  ah += (1.0 - ah) * (1.0 - smoothstep(0.0, 0.30, xd));\n"   // faixa/canto: a borda esquerda da arte se dissolve no fundo (dono, 2026-10-28: linha reta visivel)
   // uPar.x > 0.5 = SO AS RAMPAS, como veu com alpha: por cima do trailer que
   // toca atras do canvas no lugar da arte (trailer.h). Mesma regra do
   // GFX_DETALHE.
@@ -1346,6 +1347,7 @@ static const char *FS_CORPO[GFX_NMODOS] = {
   "           + clamp((y-0.892)/0.063,0.0,1.0)*0.40\n"
   "           + clamp((y-0.955)/0.045,0.0,1.0)*0.35;\n"
   "  float ah = nv_sombra_canto();\n"   // dono (2026-10-26): sombra so atras do bloco do titulo (Ajustes > Sombra do destaque)
+  "  ah += (1.0 - ah) * (1.0 - smoothstep(0.0, 0.30, xd));\n"   // faixa/canto: a borda esquerda da arte se dissolve no fundo (dono, 2026-10-28: linha reta visivel)
   "  float rampa = clamp(ah + av - ah*av, 0.0, 1.0);\n"
   "  vec3 dst = (uAmbOn > 0.5) ? texture2D(uAmb, vAmb).rgb : bg;\n"
   "  vec3 cB = texture2D(uTexB, clamp(coverAsp(vec2(xd, vUv.y), uTexAspB), 0.0, 1.0)).rgb;\n"

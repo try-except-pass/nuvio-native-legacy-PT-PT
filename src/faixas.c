@@ -23,6 +23,8 @@
 #include "plrilha.h"
 #include "legendasui.h"
 #include "legsync.h"
+#include "fontesincapp.h"
+#include "streams.h"
 #include "legauto.h"
 #include "legmemoria.h"
 #include "cacheboost.h"
@@ -408,8 +410,14 @@ static int autoTroca(const char *idioma, const uint64_t *tent, int n, int voltar
   int nv, j, k;
   if (!v) return 0;
   nv = addons_legendas_copiar(v, LEG_MAX, NULL, NULL);
-  for (j = 0; j < nv; j++) {
+  int jw = -1;   // a que a conferencia viu sincronizar com a fonte que toca vai primeiro
+  { uint64_t hw;
+    if (!voltar && fontesincapp_legenda_da_fonte(stream_atual(), &hw))
+      for (j = 0; j < nv; j++) if (v[j].url[0] && legsync_hash_url(v[j].url) == hw) { jw = j; break; } }
+  for (int j2 = -1; j2 < nv; j2++) {
     int jaFoi = 0;
+    j = j2 < 0 ? jw : j2;
+    if (j < 0 || (j2 >= 0 && j == jw)) continue;
     uint64_t h = legsync_hash_url(v[j].url);
     if (!v[j].url[0]) continue;
     if (voltar) { if (n < 1 || h != tent[0]) continue; }
@@ -1165,6 +1173,7 @@ static void legendaAutomatica(Uint32 agora) {
     if (v) {
       int nv = addons_legendas_copiar(v, LEG_MAX, NULL, NULL);
       uint64_t lem = ci ? legauto_lembrada(ci->imdb[0] ? ci->imdb : ci->titulo, pref) : 0;
+      (void)fontesincapp_legenda_da_fonte(stream_atual(), &lem);   // a que a conferencia viu sincronizar com ESTA fonte
       int b = legauto_escolher(v, nv, pref, legauto_midia(video_url_atual()), NULL, 0, lem);
       if (b >= 0 && b < nAdd) r = nEmb + b;
       free(v);

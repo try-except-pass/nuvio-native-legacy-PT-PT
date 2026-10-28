@@ -20,7 +20,8 @@
 // frente (bufferRange percent 100 = 10 s, C9 12/10): com 20 s a leitura nunca
 // andava la. 8 s = so le com o buffer perto de cheio.
 #define LS_FOLGA_MIN     8.0
-#define LS_AUTO_MAX      2                     // a escolhida + 1 troca (troca demais = legenda piscando)
+#define LS_AUTO_MAX      8                     // a escolhida + trocas (troca demais = legenda piscando)
+#define LS_AUTO_PARCIAL  6                     // trocas seguidas quando a recusa e "legenda parcial" (so metade do filme)
 #define LS_AUTO_REFS     2                     // R4: faixas de referencia incompletas que ainda vale pular
 
 static pthread_mutex_t M = PTHREAD_MUTEX_INITIALIZER;
@@ -477,7 +478,9 @@ static void autoEncerrar(const char *motivo) {
 
 static void autoFalhou(int semReferencia) {
   if (semReferencia) { autoEncerrar("sem referencia para julgar outra"); return; }
-  if (L.autoTrocasEp == 0 && L.nAutoTent < LS_AUTO_MAX && L.primIdioma[0]) {
+  // Parcial (CD1/CD2) nao e acaso: a proxima do idioma costuma ser a mesma metade (Truman Show: 3 da mesma fonte), entao segue ate achar uma inteira.
+  int parcial = L.autoFalha == AUTOSYNC_PARTIAL && L.autoTrocasEp < LS_AUTO_PARCIAL;
+  if ((L.autoTrocasEp == 0 || parcial) && L.nAutoTent < LS_AUTO_MAX && L.primIdioma[0]) {
     L.autoPend = 1;
     printf("[legsync] automatico: referencia recusou; troca uma vez\n"); fflush(stdout);
   } else autoEncerrar(L.autoTrocasEp ? "ja trocou neste episodio" : "sem outra do idioma");
